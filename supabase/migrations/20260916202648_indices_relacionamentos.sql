@@ -1,0 +1,12 @@
+begin;
+create index if not exists upload_tickets_ordem_idx on private.upload_tickets(ordem_id);
+create index if not exists agendamentos_servico_empresa_idx on public.agendamentos(servico_id,empresa_id);
+create index if not exists diagnosticos_ordem_empresa_idx on public.diagnosticos(ordem_id,empresa_id);
+create index if not exists equipamento_segredos_ordem_empresa_idx on public.equipamento_segredos(ordem_id,empresa_id);
+create index if not exists fotos_os_ordem_empresa_idx on public.fotos_os(ordem_id,empresa_id);
+create index if not exists fotos_os_usuario_idx on public.fotos_os(usuario_id);
+create index if not exists historico_os_ordem_empresa_idx on public.historico_os(ordem_id,empresa_id);
+create index if not exists historico_os_usuario_idx on public.historico_os(usuario_id);
+create index if not exists orcamentos_ordem_empresa_idx on public.orcamentos(ordem_id,empresa_id);
+create index if not exists ordens_servico_criado_por_idx on public.ordens_servico(criado_por);
+commit;
