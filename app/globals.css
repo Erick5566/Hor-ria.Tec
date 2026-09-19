@@ -1248,3 +1248,312 @@ small {
     margin: 25px auto;
   }
 }
+
+
+/* Horária visual refresh — palette #F1F1F1 / #68B5E4 / #3A4DA1 / #282828 */
+:root {
+  --bg: #f1f1f1;
+  --ink: #282828;
+  --muted: #667085;
+  --green: #3a4da1;
+  --line: #d9deea;
+  --soft: #eaf4fb;
+  --white: #ffffff;
+  --brand-primary: #3a4da1;
+  --brand-secondary: #68b5e4;
+  --brand-dark: #282828;
+  --brand-surface: #ffffff;
+  --brand-bg: #f1f1f1;
+  --brand-shadow: 0 10px 30px rgb(40 40 40 / 7%);
+}
+
+body {
+  background: var(--brand-bg);
+  color: var(--brand-dark);
+}
+
+button:hover {
+  background: #e7edf8;
+}
+
+button.primary:hover {
+  background: #2f418f;
+}
+
+.primary {
+  background: var(--brand-primary);
+  color: #fff;
+  box-shadow: 0 6px 16px rgb(58 77 161 / 18%);
+}
+
+.outline {
+  border-color: #bfc9df;
+  color: var(--brand-primary);
+  background: #fff;
+}
+
+input,
+select,
+textarea {
+  border-color: #cfd6e5;
+  background: #fff;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  border-color: var(--brand-primary);
+  box-shadow: 0 0 0 3px rgb(104 181 228 / 20%);
+}
+
+input[type="checkbox"] {
+  accent-color: var(--brand-primary);
+}
+
+.brand-dot,
+.eyebrow,
+.green-dot,
+.text-button,
+.switch button {
+  color: var(--brand-primary);
+}
+
+.brand-icon {
+  background: var(--brand-primary);
+}
+
+.card,
+.stat,
+.booking-card {
+  background: #fff;
+  border-color: #d9deea;
+  box-shadow: var(--brand-shadow);
+}
+
+.app-shell,
+.dashboard {
+  background: var(--brand-bg);
+}
+
+.sidebar {
+  background: var(--brand-dark);
+  color: #f1f1f1;
+  border-right-color: rgb(255 255 255 / 8%);
+}
+
+.sidebar .brand,
+.sidebar .brand a,
+.sidebar .brand strong {
+  color: #fff;
+}
+
+.sidebar .brand-logo {
+  filter: brightness(0) invert(1);
+}
+
+.workspace-label {
+  color: #9eb5cf;
+}
+
+.business {
+  border-bottom-color: rgb(255 255 255 / 10%);
+}
+
+.business > span,
+.sidebar .avatar {
+  background: var(--brand-primary);
+  color: #fff;
+}
+
+.business small,
+.sidebar-footer strong,
+.sidebar-footer p,
+.sidebar-footer button {
+  color: #b9c8d8;
+}
+
+.nav-item {
+  color: #c9d3df;
+}
+
+.nav-item:hover {
+  background: rgb(104 181 228 / 12%);
+  color: #fff;
+}
+
+.nav-item.active {
+  background: var(--brand-primary);
+  color: #fff;
+  box-shadow: 0 8px 20px rgb(58 77 161 / 28%);
+}
+
+.sidebar-footer button {
+  border-top-color: rgb(255 255 255 / 10%);
+}
+
+.topbar {
+  background: rgb(255 255 255 / 92%);
+  border-bottom-color: #d9deea;
+  backdrop-filter: blur(10px);
+}
+
+.dashboard-content {
+  background:
+    radial-gradient(circle at 100% 0%, rgb(104 181 228 / 8%), transparent 26rem),
+    var(--brand-bg);
+}
+
+.page-heading h1,
+.stat > strong {
+  color: var(--brand-dark);
+}
+
+.stat {
+  position: relative;
+  overflow: hidden;
+}
+
+.stat::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 4px;
+  background: linear-gradient(var(--brand-primary), var(--brand-secondary));
+}
+
+.stat > span {
+  color: #67728a;
+}
+
+.stat b {
+  background: #eaf4fb;
+  color: var(--brand-primary);
+}
+
+.segmented {
+  background: #e5e9f2;
+}
+
+.segmented .selected {
+  color: var(--brand-primary);
+  box-shadow: 0 2px 8px rgb(58 77 161 / 10%);
+}
+
+.today {
+  color: var(--brand-primary);
+  border-color: #c3cee4;
+  background: #fff;
+}
+
+.aguardando {
+  background: #eef3ff;
+  color: #3a4da1;
+}
+
+.em_atendimento {
+  background: #e5f4fc;
+  color: #256b98;
+}
+
+.concluido {
+  background: #eaf7ef;
+  color: #247247;
+}
+
+.bloqueio {
+  background: #f1f1f1;
+  color: #282828;
+}
+
+.appointment-time {
+  border-right-color: var(--brand-secondary);
+}
+
+.empty-icon,
+.share-bar,
+.booking-summary,
+.notice {
+  background: #eaf4fb;
+  color: var(--brand-primary);
+}
+
+.share-bar {
+  border-color: #d5e6f1;
+}
+
+.login-layout {
+  background: #fff;
+}
+
+.login-story {
+  color: #fff;
+  background:
+    radial-gradient(circle at 20% 20%, rgb(104 181 228 / 35%), transparent 22rem),
+    linear-gradient(145deg, #282828 0%, #1f2b58 55%, #3a4da1 100%);
+}
+
+.login-story h1,
+.login-story p,
+.login-story small {
+  color: #fff;
+}
+
+.login-story em {
+  color: #9dd7f7;
+}
+
+.login-story:after {
+  border-color: rgb(104 181 228 / 45%);
+  box-shadow:
+    0 0 0 45px transparent,
+    0 0 0 46px rgb(104 181 228 / 18%);
+}
+
+.decor-card {
+  background: rgb(255 255 255 / 92%);
+  color: #282828;
+  border-color: rgb(255 255 255 / 40%);
+  box-shadow: 0 18px 45px rgb(10 18 44 / 25%);
+}
+
+.decor-card small {
+  color: #667085;
+}
+
+.login-form {
+  background: #fff;
+}
+
+.check {
+  background: #eaf4fb;
+  color: var(--brand-primary);
+}
+
+.service-option:hover {
+  border-color: var(--brand-secondary);
+  background: #f8fcff;
+}
+
+.service-option > span:first-child,
+.business-logo {
+  background: #eaf4fb;
+  color: var(--brand-primary);
+  border-color: #d5e6f1;
+}
+
+.steps .current {
+  color: var(--brand-primary);
+}
+
+.steps .current b,
+.slot.selected {
+  background: var(--brand-primary);
+  border-color: var(--brand-primary);
+}
+
+@media (max-width: 800px) {
+  .sidebar {
+    background: var(--brand-dark);
+    border-bottom-color: rgb(255 255 255 / 8%);
+  }
+}
