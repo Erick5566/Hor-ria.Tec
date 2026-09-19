@@ -920,3 +920,374 @@ tbody tr:last-child td {
     padding-bottom: 30px;
   }
 }
+
+
+/* Horária Workspace refresh */
+:root {
+  --bg: #f1f1f1;
+  --ink: #282828;
+  --muted: #6f7890;
+  --green: #3a4da1;
+  --line: #d8deec;
+  --soft: #eef3fb;
+  --primary: #3a4da1;
+  --secondary: #68b5e4;
+  --support: #282828;
+  --surface: #ffffff;
+}
+
+body {
+  background: #f1f1f1;
+}
+
+.workspace {
+  background:
+    radial-gradient(circle at 88% 4%, rgb(104 181 228 / 9%), transparent 30rem),
+    #f1f1f1;
+}
+
+.main-sidebar {
+  background: #282828;
+  color: #f1f1f1;
+  border-right: 1px solid rgb(255 255 255 / 8%);
+  box-shadow: 14px 0 32px rgb(40 40 40 / 6%);
+}
+
+.main-sidebar .brand-logo,
+.mobile-top .brand-logo,
+.login-story .brand-logo {
+  filter: brightness(0) invert(1);
+}
+
+.main-sidebar .brand-icon,
+.mobile-top .brand-icon {
+  background: #3a4da1;
+  color: #fff;
+}
+
+.workspace-company {
+  margin-top: 8px;
+  padding: 18px 12px;
+  border-radius: 12px;
+  background: rgb(255 255 255 / 4%);
+}
+
+.workspace-company > span {
+  background: #3a4da1;
+  color: #fff;
+}
+
+.workspace-company small,
+.main-sidebar nav h2 {
+  color: #9eb5cf;
+}
+
+.main-sidebar nav a {
+  color: #d4dce6;
+  border-radius: 9px;
+}
+
+.main-sidebar nav a.current {
+  background: #3a4da1;
+  color: #fff;
+  box-shadow: 0 8px 20px rgb(58 77 161 / 28%);
+}
+
+.main-sidebar nav a:hover:not(.current) {
+  background: rgb(104 181 228 / 12%);
+  color: #fff;
+}
+
+.main-sidebar footer {
+  border-top-color: rgb(255 255 255 / 10%);
+}
+
+.main-sidebar footer a,
+.main-sidebar footer button {
+  color: #c8d2df;
+}
+
+.workspace-top {
+  background: rgb(255 255 255 / 92%);
+  border-bottom-color: #d8deec;
+  backdrop-filter: blur(12px);
+  position: sticky;
+  top: 0;
+  z-index: 20;
+}
+
+.workspace-top > span > span,
+.user-chip {
+  color: #6f7890;
+}
+
+.module {
+  padding-top: 40px;
+}
+
+.module-heading h1 {
+  color: #282828;
+  letter-spacing: -1.2px;
+}
+
+.module-heading p {
+  color: #6f7890;
+}
+
+.metric-grid {
+  gap: 16px;
+}
+
+.metric {
+  position: relative;
+  overflow: hidden;
+  background: #fff;
+  color: #282828;
+  border: 1px solid #d8deec;
+  box-shadow: 0 10px 26px rgb(40 40 40 / 6%);
+  border-radius: 14px;
+}
+
+.metric::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 4px;
+  background: linear-gradient(90deg, #3a4da1, #68b5e4);
+}
+
+.metric:nth-child(3n),
+.metric:nth-child(4n) {
+  background: #fff;
+  color: #282828;
+}
+
+.metric span,
+.metric small {
+  color: #6f7890;
+}
+
+.metric strong {
+  color: #282828;
+}
+
+.dashboard-operation {
+  border-color: #d8deec;
+  background: #d8deec;
+  box-shadow: 0 8px 22px rgb(40 40 40 / 5%);
+}
+
+.dashboard-operation a {
+  background: #fff;
+  transition: background .18s ease, transform .18s ease;
+}
+
+.dashboard-operation a:hover {
+  background: #f7fbfe;
+}
+
+.dashboard-operation span,
+.dashboard-operation small {
+  color: #6f7890;
+}
+
+.panel {
+  background: #fff;
+  border-color: #d8deec;
+  border-radius: 14px;
+  box-shadow: 0 8px 24px rgb(40 40 40 / 5%);
+}
+
+.panel h2 {
+  color: #282828;
+}
+
+.panel-head a,
+td a {
+  color: #3a4da1;
+  text-decoration-color: rgb(58 77 161 / 35%);
+  text-underline-offset: 3px;
+}
+
+th {
+  color: #5f6880;
+  background: #f4f6fa;
+}
+
+td {
+  border-bottom-color: #e5e9f2;
+}
+
+tbody tr:hover td {
+  background: #fbfcff;
+}
+
+.status-pill {
+  border-color: #c9d2e4;
+  background: #eef2ff;
+  color: #3a4da1;
+}
+
+.status-pill[data-status="em_reparo"],
+.status-pill[data-status="em_testes"] {
+  background: #e5f4fc;
+  color: #256b98;
+  border-color: #b9dff3;
+}
+
+.status-pill[data-status="finalizado"] {
+  background: #eaf7ef;
+  color: #2f7a4d;
+  border-color: #cfe8d8;
+}
+
+.status-pill[data-status="cancelado"] {
+  background: #f4f4f4;
+  color: #737373;
+}
+
+.tabs {
+  border-bottom-color: #d8deec;
+}
+
+.tabs button {
+  color: #6f7890;
+}
+
+.tabs button.active {
+  color: #3a4da1;
+  border-bottom-color: #3a4da1;
+  background: #f7f9ff;
+}
+
+.bar {
+  background: #e3e8f0;
+}
+
+.bar > span,
+.finance-origin-bars .bar i {
+  background: linear-gradient(90deg, #3a4da1, #68b5e4);
+}
+
+.notice {
+  background: #eef6fb;
+  border-color: #cfe5f2;
+  color: #33466d;
+}
+
+.notice.error {
+  border-left-color: #a43f48;
+  background: #fff2f3;
+  color: #7b3037;
+}
+
+.saved {
+  background: #eef2ff;
+  border-color: #cfd7ee;
+}
+
+.login-story {
+  background:
+    radial-gradient(circle at 18% 18%, rgb(104 181 228 / 32%), transparent 24rem),
+    linear-gradient(145deg, #282828 0%, #202a52 58%, #3a4da1 100%);
+}
+
+.login-story:after {
+  border-color: rgb(104 181 228 / 36%);
+}
+
+.login-story p,
+.login-story > small,
+.login-story .eyebrow {
+  color: #d8e7f3;
+}
+
+.login-story em {
+  color: #9dd7f7;
+}
+
+.decor-card {
+  background: rgb(255 255 255 / 10%);
+  border-color: rgb(255 255 255 / 18%);
+  backdrop-filter: blur(10px);
+}
+
+.decor-card small {
+  color: #d7e6f2;
+}
+
+.login-form {
+  background: #fff;
+}
+
+.check,
+.avatar,
+.business-logo {
+  background: #eaf4fb;
+  color: #3a4da1;
+}
+
+.share-bar {
+  background: #eef6fb;
+  border-color: #cfe5f2;
+}
+
+.share-icon,
+.green-dot,
+.text-button {
+  color: #3a4da1;
+}
+
+.appointment-time {
+  border-color: #68b5e4;
+}
+
+.agenda-toolbar {
+  background: #fbfcff;
+}
+
+.step-navigation span {
+  border-bottom-color: #d8deec;
+}
+
+.step-navigation span.active {
+  border-color: #3a4da1;
+  color: #3a4da1;
+}
+
+.timeline li {
+  border-left-color: #cbd6e5;
+}
+
+.timeline li:before {
+  background: #3a4da1;
+}
+
+.photo-card,
+.mobile-order {
+  border-color: #d8deec;
+  box-shadow: 0 6px 18px rgb(40 40 40 / 4%);
+}
+
+.lightbox {
+  background: rgb(27 31 43 / 94%);
+}
+
+.warning-label {
+  border-color: #c9d2e4;
+  color: #6f7890;
+}
+
+@media (max-width: 760px) {
+  .mobile-top {
+    background: #282828;
+    border-bottom: 1px solid rgb(255 255 255 / 8%);
+  }
+  .nav-scrim {
+    background: rgb(40 40 40 / 62%);
+    backdrop-filter: blur(2px);
+  }
+  .main-sidebar {
+    background: #282828;
+  }
+}

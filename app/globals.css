@@ -1557,3 +1557,98 @@ input[type="checkbox"] {
     border-bottom-color: rgb(255 255 255 / 8%);
   }
 }
+
+
+/* Horária Design System v2 — consistent interaction and hierarchy */
+:root {
+  --brand-primary-strong: #2f418f;
+  --brand-primary-soft: #eef2ff;
+  --brand-secondary-soft: #e8f5fc;
+  --brand-border: #d8deec;
+  --brand-muted: #6f7890;
+  --brand-success: #2f7a4d;
+  --brand-warning: #9a6a1d;
+  --brand-danger: #a43f48;
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --shadow-sm: 0 4px 14px rgb(40 40 40 / 5%);
+  --shadow-md: 0 12px 32px rgb(40 40 40 / 8%);
+}
+
+::selection {
+  background: rgb(104 181 228 / 35%);
+  color: #282828;
+}
+
+button,
+.primary,
+.outline,
+.nav-item,
+.service-option,
+.slot,
+.card,
+.stat {
+  transition: background-color .18s ease, border-color .18s ease, color .18s ease, box-shadow .18s ease, transform .18s ease;
+}
+
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 3px solid rgb(104 181 228 / 55%);
+  outline-offset: 2px;
+}
+
+.primary:active,
+.outline:active,
+button:active {
+  transform: translateY(1px);
+}
+
+h1,
+h2,
+h3 {
+  color: #282828;
+}
+
+p,
+small {
+  color: var(--brand-muted);
+}
+
+hr {
+  border: 0;
+  border-top: 1px solid var(--brand-border);
+}
+
+.public-header {
+  background: rgb(255 255 255 / 88%);
+  border-bottom: 1px solid var(--brand-border);
+  backdrop-filter: blur(12px);
+  position: sticky;
+  top: 0;
+  z-index: 20;
+}
+
+.booking-layout,
+.public-repair,
+.center {
+  animation: horaria-enter .28s ease both;
+}
+
+@keyframes horaria-enter {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    transition: none !important;
+    animation: none !important;
+  }
+}

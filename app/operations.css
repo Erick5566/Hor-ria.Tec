@@ -1639,3 +1639,297 @@ button.danger,
     grid-template-columns: 1fr 80px 100px auto;
   }
 }
+
+
+/* Horária Operations + Admin + Public refresh */
+.option-popover {
+  background: #fff;
+  border-color: #d8deec;
+  box-shadow: 0 16px 36px rgb(40 40 40 / 12%);
+}
+
+.option-popover button {
+  color: #282828;
+}
+
+.option-popover button:hover,
+.option-popover button[aria-selected="true"] {
+  background: #eef6fb;
+  color: #3a4da1;
+}
+
+.option-popover small {
+  color: #6f7890;
+}
+
+.option-popover .manual-option,
+.field-link {
+  color: #3a4da1;
+}
+
+.device-glyph {
+  color: #3a4da1;
+}
+
+.color-picker label > span {
+  border-color: #cbd4e4;
+}
+
+.color-picker label.selected > span {
+  outline-color: #3a4da1;
+}
+
+.category-cards button {
+  background: #fff;
+  color: #495267;
+  border-color: #d8deec;
+  box-shadow: 0 5px 16px rgb(40 40 40 / 4%);
+}
+
+.category-cards button:hover {
+  border-color: #68b5e4;
+  background: #f7fbfe;
+}
+
+.category-cards button.selected {
+  background: #3a4da1;
+  color: #fff;
+  border-color: #3a4da1;
+  box-shadow: 0 10px 24px rgb(58 77 161 / 22%);
+}
+
+.category-cards button.selected .device-glyph {
+  color: #fff;
+}
+
+.camera-backdrop {
+  background: rgb(24 28 40 / 90%);
+}
+
+.camera-sheet {
+  background: #fff;
+  color: #282828;
+}
+
+.camera-preview {
+  background: #282828;
+}
+
+.tracking-hero {
+  border-top-color: #3a4da1;
+}
+
+.tracking-status-copy small,
+.tracking-timeline time {
+  color: #6f7890;
+}
+
+.tracking-timeline li::before {
+  background: #d5ddec;
+}
+
+.tracking-timeline li > span {
+  background: #3a4da1;
+  border-color: #eef2ff;
+  box-shadow: 0 0 0 2px #3a4da1;
+}
+
+.state-page {
+  background:
+    radial-gradient(circle at 80% 10%, rgb(104 181 228 / 14%), transparent 28rem),
+    #f1f1f1;
+}
+
+.state-card {
+  background: #fff;
+  border-color: #d8deec;
+  box-shadow: 0 22px 60px rgb(40 40 40 / 10%);
+}
+
+.state-card h1 {
+  color: #282828;
+}
+
+.state-card p {
+  color: #6f7890;
+}
+
+.state-icon {
+  color: #fff;
+  background: #3a4da1;
+}
+
+.trial-banner {
+  color: #3a4da1;
+  background: #eef2ff;
+  border-color: #cfd7ee;
+}
+
+.admin-workspace {
+  background:
+    radial-gradient(circle at 90% 5%, rgb(104 181 228 / 8%), transparent 28rem),
+    #f1f1f1;
+}
+
+.admin-sidebar {
+  color: #f1f1f1;
+  background: #282828;
+  border-right: 1px solid rgb(255 255 255 / 8%);
+}
+
+.admin-sidebar .brand-logo {
+  filter: brightness(0) invert(1);
+}
+
+.admin-identity {
+  border-block-color: rgb(255 255 255 / 10%);
+}
+
+.admin-identity span,
+.admin-identity small {
+  color: #9eb5cf;
+}
+
+.admin-sidebar nav a {
+  color: #d6dee7;
+}
+
+.admin-sidebar nav a:hover {
+  color: #fff;
+  background: rgb(104 181 228 / 12%);
+}
+
+.admin-main > header {
+  color: #6f7890;
+  background: rgb(255 255 255 / 92%);
+  border-bottom-color: #d8deec;
+  backdrop-filter: blur(12px);
+}
+
+.admin-role {
+  color: #fff;
+  background: #3a4da1;
+}
+
+.admin-metrics article {
+  position: relative;
+  overflow: hidden;
+  color: #282828;
+  background: #fff;
+  border: 1px solid #d8deec;
+  border-radius: 14px;
+  box-shadow: 0 9px 24px rgb(40 40 40 / 6%);
+}
+
+.admin-metrics article::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 4px;
+  background: linear-gradient(90deg, #3a4da1, #68b5e4);
+}
+
+.admin-metrics article span,
+.admin-metrics article small {
+  color: #6f7890;
+}
+
+.admin-module td small,
+.audit-list article > span,
+.audit-list small {
+  color: #6f7890;
+}
+
+.account-status {
+  color: #3a4da1;
+  background: #eef2ff;
+  border: 1px solid #cfd7ee;
+}
+
+.account-status.suspended,
+.account-status.canceled,
+.account-status.past_due {
+  color: #8b343d;
+  background: #fff0f1;
+  border-color: #f0c9cd;
+}
+
+.copy-line,
+.copy-line code {
+  background: #f4f6fa;
+  color: #282828;
+}
+
+button.danger,
+.danger {
+  background: #a43f48;
+  border-color: #a43f48;
+}
+
+.audit-list article {
+  border-bottom-color: #e2e7f0;
+}
+
+.logo-preview,
+.toggle {
+  background: #fff;
+  border-color: #d8deec;
+}
+
+.copy-line,
+.section-order {
+  border-bottom-color: #e3e8f0;
+}
+
+.input-prefix {
+  border-color: #d8deec;
+  background: #fff;
+}
+
+.sticky-save {
+  background: rgb(40 40 40 / 94%);
+  box-shadow: 0 14px 36px rgb(40 40 40 / 20%);
+}
+
+.editor-panel {
+  border-left-color: #3a4da1;
+}
+
+.status {
+  border-color: #c9d2e4;
+  background: #eef2ff;
+  color: #3a4da1;
+}
+
+.status.pronto_venda,
+.status.concluido,
+.status.vendido {
+  background: #3a4da1;
+  color: #fff;
+}
+
+.showcase-grid article {
+  border-color: #d8deec;
+  background: #fff;
+  box-shadow: 0 7px 20px rgb(40 40 40 / 5%);
+}
+
+.showcase-placeholder {
+  background: #eef2ff;
+  color: #3a4da1;
+}
+
+.public-showcase,
+.public-portal {
+  color: #282828;
+}
+
+.public-section-heading span {
+  color: var(--tenant-secondary, #68b5e4);
+}
+
+@media (max-width: 900px) {
+  .admin-sidebar {
+    background: #282828;
+  }
+}
