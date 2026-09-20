@@ -111,15 +111,21 @@ export const menu = [
 export default function Workspace({
   children,
   initialAccess,
+  initialEmpresa,
+  initialUserId,
+  initialEmail,
 }: {
   children: React.ReactNode;
   initialAccess: AccessContext;
+  initialEmpresa: Empresa | null;
+  initialUserId: string;
+  initialEmail: string;
 }) {
-  const [empresa, setEmpresa] = useState<Empresa | null>(null),
+  const [empresa, setEmpresa] = useState<Empresa | null>(initialEmpresa),
     [access, setAccess] = useState(initialAccess),
-    [userId, setUserId] = useState(""),
-    [email, setEmail] = useState(""),
-    [loading, setLoading] = useState(true),
+    [userId, setUserId] = useState(initialUserId),
+    [email, setEmail] = useState(initialEmail),
+    [loading, setLoading] = useState(false),
     [error, setError] = useState(""),
     [open, setOpen] = useState(false),
     [globalSearch, setGlobalSearch] = useState(""),
@@ -195,7 +201,7 @@ export default function Workspace({
         .maybeSingle();
       if (result.error) throw result.error;
       setEmpresa(result.data);
-      await supabase.rpc("registrar_acesso");
+      void supabase.rpc("registrar_acesso");
     } catch (e) {
       setError(message(e as Error));
     } finally {
@@ -203,7 +209,6 @@ export default function Workspace({
     }
   }, [router]);
   useEffect(() => {
-    refresh();
     const { data } = supabase?.auth.onAuthStateChange(
       async (event, session) => {
         if (["SIGNED_IN", "TOKEN_REFRESHED"].includes(event) && session)
@@ -214,7 +219,17 @@ export default function Workspace({
         }
       },
     ) || { data: null };
-    return () => data?.subscription.unsubscribe();
+
+    // The server already validated the session and loaded the company.
+    // Refresh quietly after first paint instead of blocking the whole workspace.
+    const backgroundRefresh = window.setTimeout(() => {
+      void refresh();
+    }, 4000);
+
+    return () => {
+      window.clearTimeout(backgroundRefresh);
+      data?.subscription.unsubscribe();
+    };
   }, [refresh, router]);
   useEffect(() => {
     setOpen(false);
@@ -363,7 +378,12 @@ export default function Workspace({
 
   useEffect(() => {
     if (!empresa?.id || !supabase || !userId) return;
-    void loadAlerts();
+
+    // Notifications are important, but they do not need to compete with the
+    // first screen's data requests. Load them just after the main content.
+    const initialAlertsTimer = window.setTimeout(() => {
+      void loadAlerts();
+    }, 700);
 
     const channel = supabase
       .channel(`workspace-alerts-${empresa.id}-${userId}`)
@@ -401,6 +421,7 @@ export default function Workspace({
 
     const timer = window.setInterval(loadAlerts, 60000);
     return () => {
+      window.clearTimeout(initialAlertsTimer);
       window.clearInterval(timer);
       void supabase!.removeChannel(channel);
     };
