@@ -351,21 +351,19 @@ export default function Overview() {
           </div>
         </div>
 
-        <div className="dashboard-hero-actions">
-          <Link className="dashboard-new-order" href="/painel/ordens/nova">
-            <span>＋</span>
-            Nova Ordem
-          </Link>
+        <Link className="dashboard-new-order" href="/painel/ordens/nova">
+          <span>＋</span>
+          Nova Ordem
+        </Link>
 
-          <Link className="dashboard-callout" href="/painel/ajuda">
-            <span className="dashboard-callout-icon">▥</span>
-            <div>
-              <strong>Aumente a produtividade da sua assistência</strong>
-              <small>Dicas, tutoriais e novidades da Horária.</small>
-            </div>
-            <span>→</span>
-          </Link>
-        </div>
+        <Link className="dashboard-callout" href="/painel/ajuda">
+          <span className="dashboard-callout-icon">▥</span>
+          <div>
+            <strong>Aumente a produtividade da sua assistência</strong>
+            <small>Dicas, tutoriais e novidades da Horária.</small>
+          </div>
+          <span>→</span>
+        </Link>
       </div>
 
       <ErrorBox error={error} />
