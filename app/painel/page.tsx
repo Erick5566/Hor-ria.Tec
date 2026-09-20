@@ -1,5 +1,6 @@
 "use client";
 import Link from "next/link";
+import { useState } from "react";
 import {
   useRows,
   Ordem,
@@ -10,6 +11,7 @@ import {
 } from "@/lib/assistencia";
 import { Agendamento, today, time } from "@/lib/supabase";
 import { Empty, Badge, ErrorBox } from "@/components/ui";
+import { useWorkspace } from "@/components/workspace";
 
 function dateKey(value: string) {
   return value.slice(0, 10);
@@ -32,6 +34,10 @@ function daysBetween(start: string, end: string) {
 }
 
 export default function Overview() {
+  const { selectedMonth } = useWorkspace();
+  const [chartDays, setChartDays] = useState<7 | 14 | 30>(30);
+  const [statusFilter, setStatusFilter] = useState("todos");
+
   const os = useRows<Ordem>("ordens_servico"),
     cs = useRows<Cliente>("clientes"),
     eq = useRows<Equipamento>("equipamentos"),
@@ -39,7 +45,7 @@ export default function Overview() {
     fin = useRows<Lancamento>("financeiro");
 
   const day = today();
-  const month = day.slice(0, 7);
+  const month = selectedMonth;
   const previousMonth = monthBefore(month);
 
   const openOrders = os.data.filter(
@@ -135,9 +141,15 @@ export default function Overview() {
     },
   ];
 
-  const last30 = Array.from({ length: 30 }, (_, index) => {
-    const date = new Date(day + "T12:00:00");
-    date.setDate(date.getDate() - (29 - index));
+  const chartAnchor = (() => {
+    if (selectedMonth === day.slice(0, 7)) return new Date(day + "T12:00:00");
+    const [year, value] = selectedMonth.split("-").map(Number);
+    return new Date(year, value, 0, 12, 0, 0);
+  })();
+
+  const trendData = Array.from({ length: chartDays }, (_, index) => {
+    const date = new Date(chartAnchor);
+    date.setDate(date.getDate() - (chartDays - 1 - index));
     const key = date.toISOString().slice(0, 10);
     const endOfDay = key + "T23:59:59";
 
@@ -162,70 +174,82 @@ export default function Overview() {
 
   const maxTrend = Math.max(
     1,
-    ...last30.flatMap((item) => [item.opened, item.active, item.finalized]),
+    ...trendData.flatMap((item) => [item.opened, item.active, item.finalized]),
   );
 
   const trendPoints = (key: "opened" | "active" | "finalized") =>
-    last30
+    trendData
       .map((item, index) => {
-        const x = (index / Math.max(1, last30.length - 1)) * 100;
+        const x = (index / Math.max(1, trendData.length - 1)) * 100;
         const y = 88 - (item[key] / maxTrend) * 72;
         return `${x},${y}`;
       })
       .join(" ");
 
+  const periodOrders = os.data.filter((item) => item.criado_em.startsWith(month));
   const statusGroups = [
     {
       key: "concluidas",
       label: "Concluídas",
       color: "#25b47e",
-      count: os.data.filter((item) => item.status === "finalizado").length,
+      match: (item: Ordem) => item.status === "finalizado",
     },
     {
       key: "andamento",
       label: "Em andamento",
       color: "#2d8cff",
-      count: os.data.filter(
-        (item) =>
-          !["finalizado", "cancelado", "aguardando_peca", "aguardando_orcamento", "orcamento_enviado", "aguardando_aprovacao"].includes(
-            item.status,
-          ),
-      ).length,
+      match: (item: Ordem) =>
+        !["finalizado", "cancelado", "aguardando_peca", "aguardando_orcamento", "orcamento_enviado", "aguardando_aprovacao"].includes(
+          item.status,
+        ),
     },
     {
       key: "pecas",
       label: "Aguardando peças",
       color: "#f5b83d",
-      count: awaitingParts,
+      match: (item: Ordem) => item.status === "aguardando_peca",
     },
     {
       key: "orcamento",
       label: "Aguardando orçamento",
       color: "#8e58e9",
-      count: os.data.filter((item) =>
+      match: (item: Ordem) =>
         ["aguardando_orcamento", "orcamento_enviado", "aguardando_aprovacao"].includes(
           item.status,
         ),
-      ).length,
     },
     {
       key: "canceladas",
       label: "Canceladas",
       color: "#ef4b76",
-      count: os.data.filter((item) => item.status === "cancelado").length,
+      match: (item: Ordem) => item.status === "cancelado",
     },
   ];
-  const groupedCount = statusGroups.reduce((sum, item) => sum + item.count, 0);
-  const statusData = [
-    ...statusGroups,
+
+  const statusWithCounts = statusGroups.map((group) => ({
+    key: group.key,
+    label: group.label,
+    color: group.color,
+    count: periodOrders.filter(group.match).length,
+  }));
+  const groupedCount = statusWithCounts.reduce((sum, item) => sum + item.count, 0);
+  const allStatusData = [
+    ...statusWithCounts,
     {
       key: "outros",
       label: "Outros",
       color: "#99a8bd",
-      count: Math.max(0, os.data.length - groupedCount),
+      count: Math.max(0, periodOrders.length - groupedCount),
     },
   ];
-  const statusTotal = Math.max(1, os.data.length);
+  const statusData =
+    statusFilter === "todos"
+      ? allStatusData
+      : allStatusData.filter((item) => item.key === statusFilter);
+  const statusTotal = Math.max(
+    1,
+    statusData.reduce((sum, item) => sum + item.count, 0),
+  );
   let cursor = 0;
   const donut = `conic-gradient(${statusData
     .map((item) => {
@@ -235,15 +259,15 @@ export default function Overview() {
     })
     .join(",")})`;
 
-  const completionRate = os.data.length
+  const completionRate = periodOrders.length
     ? Math.round(
-        (os.data.filter((item) => item.status === "finalizado").length /
-          os.data.length) *
+        (periodOrders.filter((item) => item.status === "finalizado").length /
+          periodOrders.length) *
           100,
       )
     : 0;
 
-  const repairDurations = os.data
+  const repairDurations = periodOrders
     .filter((item) => item.status === "finalizado")
     .map((item) =>
       daysBetween(item.iniciado_em || item.criado_em, item.atualizado_em),
@@ -300,14 +324,14 @@ export default function Overview() {
           </div>
         </div>
 
-        <div className="dashboard-callout">
+        <Link className="dashboard-callout" href="/painel/ajuda">
           <span className="dashboard-callout-icon">▥</span>
           <div>
             <strong>Aumente a produtividade da sua assistência</strong>
             <small>Dicas, tutoriais e novidades da Horária.</small>
           </div>
           <span>→</span>
-        </div>
+        </Link>
 
         <Link className="dashboard-new-order" href="/painel/ordens/nova">
           <span>＋</span>
@@ -349,7 +373,16 @@ export default function Overview() {
               <h2>▥ Evolução de ordens de serviço</h2>
               <p>Acompanhe o volume de ordens ao longo do tempo.</p>
             </div>
-            <span className="dashboard-filter">Últimos 30 dias⌄</span>
+            <select
+              className="dashboard-filter"
+              aria-label="Período do gráfico"
+              value={chartDays}
+              onChange={(event) => setChartDays(Number(event.target.value) as 7 | 14 | 30)}
+            >
+              <option value={7}>Últimos 7 dias</option>
+              <option value={14}>Últimos 14 dias</option>
+              <option value={30}>Últimos 30 dias</option>
+            </select>
           </div>
 
           <div className="dashboard-line-chart dashboard-line-chart-reference">
@@ -387,8 +420,8 @@ export default function Overview() {
             </svg>
 
             <div className="dashboard-chart-axis">
-              {last30
-                .filter((_, index) => index % 6 === 0 || index === last30.length - 1)
+              {trendData
+                .filter((_, index) => index % 6 === 0 || index === trendData.length - 1)
                 .map((item) => (
                   <span key={item.key}>{item.label}</span>
                 ))}
@@ -408,14 +441,27 @@ export default function Overview() {
               <h2>◔ Status das ordens</h2>
               <p>Distribuição das ordens no período.</p>
             </div>
-            <span className="dashboard-filter">Todos os status⌄</span>
+            <select
+              className="dashboard-filter"
+              aria-label="Filtrar status"
+              value={statusFilter}
+              onChange={(event) => setStatusFilter(event.target.value)}
+            >
+              <option value="todos">Todos os status</option>
+              <option value="concluidas">Concluídas</option>
+              <option value="andamento">Em andamento</option>
+              <option value="pecas">Aguardando peças</option>
+              <option value="orcamento">Aguardando orçamento</option>
+              <option value="canceladas">Canceladas</option>
+              <option value="outros">Outros</option>
+            </select>
           </div>
 
           <div className="dashboard-status-layout">
             <div className="dashboard-status-donut" style={{ background: donut }}>
               <div>
-                <strong>{os.data.length}</strong>
-                <small>Ordens no total</small>
+                <strong>{statusTotal}</strong>
+                <small>Ordens no período</small>
               </div>
             </div>
             <div className="dashboard-status-legend">
@@ -435,7 +481,16 @@ export default function Overview() {
             <div>
               <h2>▥ Desempenho da assistência</h2>
             </div>
-            <span className="dashboard-filter">Últimos 30 dias⌄</span>
+            <select
+              className="dashboard-filter"
+              aria-label="Período de desempenho"
+              value={chartDays}
+              onChange={(event) => setChartDays(Number(event.target.value) as 7 | 14 | 30)}
+            >
+              <option value={7}>Últimos 7 dias</option>
+              <option value={14}>Últimos 14 dias</option>
+              <option value={30}>Últimos 30 dias</option>
+            </select>
           </div>
 
           <div className="dashboard-performance-list">
