@@ -65,7 +65,7 @@ export default function Records({
     }
   }
   return (
-    <section className="module">
+    <section className={`module unified-pro records-pro records-${kind}`}>
       <Heading
         title={isClient ? "Clientes" : "Equipamentos"}
         subtitle={
