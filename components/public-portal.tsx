@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import type { CSSProperties } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Brand } from "./brand";
 import { ErrorBox } from "./ui";
 import { PhotoPicker } from "./photos";
@@ -83,6 +84,7 @@ type ShowcaseItem = {
   condicao: "Novo" | "Seminovo";
 };
 export default function PublicPortal({ slug }: { slug: string }) {
+  const router = useRouter();
   const [profile, setProfile] = useState<Profile | null>(null),
     [showcase, setShowcase] = useState<{
       produtos: ShowcaseItem[];
@@ -199,6 +201,9 @@ export default function PublicPortal({ slug }: { slug: string }) {
         created.upload_token,
       );
       setDone(true);
+      router.push(
+        `/solicitacao-enviada/${created.token}?os=${encodeURIComponent(String(created.numero))}`,
+      );
     } catch (e) {
       setError(message(e as Error));
     } finally {
@@ -291,6 +296,11 @@ export default function PublicPortal({ slug }: { slug: string }) {
                     →
                   </Link>
                 )}
+            </div>
+            <div className="public-trust-strip" aria-label="Compromissos de atendimento">
+              <span>✓ Solicitação registrada na hora</span>
+              <span>◷ Retorno durante o horário de atendimento</span>
+              <span>▣ Acompanhamento online do reparo</span>
             </div>
           </header>
           <ErrorBox error={error} />
@@ -432,6 +442,56 @@ export default function PublicPortal({ slug }: { slug: string }) {
                   </div>
                 </section>
               )}
+            <section className="public-faq">
+              <div className="public-section-heading">
+                <div>
+                  <span>DÚVIDAS FREQUENTES</span>
+                  <h2>Perguntas frequentes</h2>
+                </div>
+                <p>Informações rápidas antes de solicitar o atendimento.</p>
+              </div>
+              <div className="faq-list">
+                <details>
+                  <summary>Como funciona o atendimento?</summary>
+                  <p>
+                    Você envia os dados do equipamento e do problema. A
+                    assistência registra a solicitação, analisa o aparelho e
+                    mantém o andamento disponível para consulta.
+                  </p>
+                </details>
+                <details>
+                  <summary>Quando recebo uma resposta?</summary>
+                  <p>
+                    A solicitação é registrada imediatamente. A equipe responde
+                    pelo contato informado durante o horário de atendimento da
+                    assistência.
+                  </p>
+                </details>
+                <details>
+                  <summary>Posso acompanhar o reparo online?</summary>
+                  <p>
+                    Sim. Após a criação da ordem você recebe um link individual
+                    para acompanhar etapas e informações liberadas pela equipe.
+                  </p>
+                </details>
+                <details>
+                  <summary>Preciso enviar foto do aparelho?</summary>
+                  <p>
+                    Quando a assistência solicitar, você poderá anexar fotos
+                    para registrar o estado do equipamento e ajudar na
+                    avaliação inicial.
+                  </p>
+                </details>
+                <details>
+                  <summary>O orçamento é aprovado automaticamente?</summary>
+                  <p>
+                    Não. Quando houver orçamento, a assistência poderá
+                    disponibilizá-lo para sua análise antes da continuidade do
+                    serviço.
+                  </p>
+                </details>
+              </div>
+            </section>
             {(profile.pagina?.mostrar_contato ?? true) && (
               <section
                 className="public-contact"
@@ -489,26 +549,57 @@ export default function PublicPortal({ slug }: { slug: string }) {
                         {profile.estado && `/${profile.estado}`}
                       </p>
                     )}
-                    {profile.pagina?.mostrar_mapa && profile.google_maps && (
-                      <a
-                        className="outline"
-                        href={profile.google_maps}
-                        target="_blank"
-                        rel="noreferrer"
-                      >
-                        Abrir no mapa ↗
-                      </a>
-                    )}
-                    {profile.pagina?.mostrar_google_avaliacao &&
-                      profile.google_avaliacao && (
+                    {profile.pagina?.mostrar_mapa &&
+                      (profile.google_maps || profile.endereco) && (
                         <a
                           className="outline"
-                          href={profile.google_avaliacao}
+                          href={
+                            profile.google_maps ||
+                            `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+                              [
+                                profile.endereco,
+                                profile.cidade,
+                                profile.estado,
+                              ]
+                                .filter(Boolean)
+                                .join(", "),
+                            )}`
+                          }
                           target="_blank"
                           rel="noreferrer"
                         >
-                          Avaliar no Google ↗
+                          Traçar rota no mapa ↗
                         </a>
+                      )}
+                    {profile.pagina?.mostrar_google_avaliacao &&
+                      (profile.google_business || profile.google_avaliacao) && (
+                        <div className="real-reviews-card">
+                          <strong>Avaliações reais</strong>
+                          <p>
+                            Consulte a reputação desta assistência diretamente
+                            no perfil oficial do Google.
+                          </p>
+                          <a
+                            className="outline"
+                            href={
+                              profile.google_business ||
+                              profile.google_avaliacao
+                            }
+                            target="_blank"
+                            rel="noreferrer"
+                          >
+                            Ver avaliações no Google ↗
+                          </a>
+                          {profile.google_avaliacao && (
+                            <a
+                              href={profile.google_avaliacao}
+                              target="_blank"
+                              rel="noreferrer"
+                            >
+                              Deixar uma avaliação ↗
+                            </a>
+                          )}
+                        </div>
                       )}
                     {profile.pagina?.mostrar_horario && profile.horario && (
                       <details>
@@ -756,6 +847,7 @@ export default function PublicPortal({ slug }: { slug: string }) {
               alt="Horária"
             />
             <span>Tecnologia Horária</span>
+            <Link href="/privacidade">Privacidade</Link>
           </footer>
         </>
       )}
