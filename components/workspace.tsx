@@ -74,7 +74,8 @@ export default function Workspace({
     [email, setEmail] = useState(""),
     [loading, setLoading] = useState(true),
     [error, setError] = useState(""),
-    [open, setOpen] = useState(false);
+    [open, setOpen] = useState(false),
+    [globalSearch, setGlobalSearch] = useState("");
   const router = useRouter(),
     path = usePathname();
   const refresh = useCallback(async () => {
@@ -153,6 +154,26 @@ export default function Workspace({
         [],
       )
       .find((item) => item[1] === path)?.[0] || "Assistência técnica";
+
+  function submitGlobalSearch(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const query = globalSearch.trim().toLowerCase();
+    if (!query) return;
+    const destinations = [
+      { words: ["cliente", "clientes"], href: "/painel/clientes" },
+      { words: ["equipamento", "equipamentos", "aparelho"], href: "/painel/equipamentos" },
+      { words: ["orçamento", "orcamento", "proposta"], href: "/painel/orcamentos" },
+      { words: ["agenda", "agendamento", "horário", "horario"], href: "/painel/agenda" },
+      { words: ["serviço", "servico", "serviços", "servicos"], href: "/painel/servicos" },
+      { words: ["financeiro", "finança", "financas", "receita"], href: "/painel/financeiro" },
+      { words: ["mesa", "reparo"], href: "/painel/mesa-reparo" },
+    ];
+    const destination = destinations.find((item) =>
+      item.words.some((word) => query.includes(word)),
+    );
+    router.push(destination?.href || "/painel/ordens");
+    setGlobalSearch("");
+  }
   return (
     <div className="workspace">
       <header className="mobile-top">
@@ -215,6 +236,14 @@ export default function Workspace({
             </section>
           ))}
         </nav>
+        <Link className="sidebar-promo" href="/painel">
+          <span className="sidebar-promo-icon">✦</span>
+          <div>
+            <strong>Seu negócio mais organizado e lucrativo.</strong>
+            <small>Horária · Gestão para assistência técnica.</small>
+          </div>
+          <b>→</b>
+        </Link>
         <footer>
           <Link href="/painel/perfil">♙ Perfil</Link>
           <Link href="/painel/ajuda">? Ajuda</Link>
@@ -234,10 +263,28 @@ export default function Workspace({
       </aside>
       <main className="workspace-main">
         <header className="workspace-top">
-          <span>
-            Horária <span>/ {title}</span>
-          </span>
-          <span className="user-chip">{email || "Área da assistência"}</span>
+          <form className="workspace-global-search" onSubmit={submitGlobalSearch}>
+            <span aria-hidden="true">⌕</span>
+            <input
+              aria-label="Buscar área do sistema"
+              placeholder="Buscar cliente, OS, equipamento, serviço..."
+              value={globalSearch}
+              onChange={(event) => setGlobalSearch(event.target.value)}
+            />
+          </form>
+          <div className="workspace-top-context">
+            <span className="workspace-breadcrumb">
+              Horária <span>/ {title}</span>
+            </span>
+            <div className="workspace-profile-chip">
+              <span>{empresa?.nome?.slice(0, 2).toUpperCase() || "H"}</span>
+              <div>
+                <strong>{empresa?.nome || "Sua assistência"}</strong>
+                <small>{email || "Gestão técnica"}</small>
+              </div>
+              <b>⌄</b>
+            </div>
+          </div>
         </header>
         {error && (
           <div className="notice" role="alert">
