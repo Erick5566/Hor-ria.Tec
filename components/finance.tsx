@@ -1,102 +1,202 @@
 "use client";
-import { useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useWorkspace } from "./workspace";
-import { Lancamento, Ordem, money, useRows, saveRow } from "@/lib/assistencia";
+import {
+  type Lancamento,
+  money,
+  saveRow,
+} from "@/lib/assistencia";
 import { supabase, message, today } from "@/lib/supabase";
-import { ErrorBox, Empty } from "./ui";
+import { ErrorBox, Empty, Pagination } from "./ui";
 
-const originLabel: Record<Lancamento["origem"], string> = {
+const originLabel: Record<"reparo" | "loja" | "seminovo" | "manual", string> = {
   reparo: "Reparos",
   loja: "Loja",
   seminovo: "Seminovos",
   manual: "Outros",
-  despesa: "Despesas",
 };
 
-const originClass: Record<Lancamento["origem"], string> = {
+const originClass: Record<"reparo" | "loja" | "seminovo" | "manual", string> = {
   reparo: "repair",
   loja: "store",
   seminovo: "used",
   manual: "other",
-  despesa: "expense",
 };
 
-function isoDay(date: Date) {
-  return date.toISOString().slice(0, 10);
-}
+type FinanceData = {
+  page: number;
+  pageSize: number;
+  total: number;
+  entries: Lancamento[];
+  metrics: {
+    revenue: number;
+    expense: number;
+    pendingRevenue: number;
+    pendingCount: number;
+    paidRevenueCount: number;
+    finalizedOrders: number;
+  };
+  origins: {
+    reparo: number;
+    loja: number;
+    seminovo: number;
+    manual: number;
+  };
+  recent: Lancamento[];
+  pending: Lancamento[];
+  evolution: Array<{
+    key: string;
+    receita: number;
+    despesa: number;
+  }>;
+};
+
+type OrderOption = {
+  id: string;
+  numero: number;
+};
 
 export default function Finance({ ordemId }: { ordemId?: string }) {
-  const { empresa } = useWorkspace(),
-    entries = useRows<Lancamento>("financeiro"),
-    orders = useRows<Ordem>("ordens_servico");
+  const { empresa } = useWorkspace();
+  const [data, setData] = useState<FinanceData | null>(null);
+  const [page, setPage] = useState(1);
+  const [adding, setAdding] = useState(false);
+  const [error, setError] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [orderOptions, setOrderOptions] = useState<OrderOption[]>([]);
+  const [ordersLoading, setOrdersLoading] = useState(false);
 
-  const [adding, setAdding] = useState(false),
-    [error, setError] = useState(""),
-    [busy, setBusy] = useState(false);
-
-  const data = useMemo(
-    () => entries.data.filter((item) => !ordemId || item.ordem_id === ordemId),
-    [entries.data, ordemId],
+  const load = useCallback(
+    async (silent = false) => {
+      if (!supabase) return;
+      if (!silent) setLoading(true);
+      try {
+        const result = await supabase.rpc("finance_overview_page", {
+          p_page: page,
+          p_page_size: 30,
+          p_order_id: ordemId || null,
+        });
+        if (result.error) throw result.error;
+        setData(result.data as FinanceData);
+        setError("");
+      } catch (caught) {
+        setError(message(caught as Error));
+      } finally {
+        if (!silent) setLoading(false);
+      }
+    },
+    [page, ordemId],
   );
 
-  const paid = data.filter((item) => item.status === "pago");
-  const sum = (type: Lancamento["tipo"]) =>
-    paid
-      .filter((item) => item.tipo === type)
-      .reduce((total, item) => total + Number(item.valor), 0);
+  useEffect(() => {
+    void load(false);
+  }, [load]);
 
-  const receita = sum("receita");
-  const despesa = sum("despesa");
+  useEffect(() => {
+    if (!supabase || !empresa.id) return;
+
+    let timer: number | undefined;
+    const refreshSoon = () => {
+      window.clearTimeout(timer);
+      timer = window.setTimeout(() => void load(true), 250);
+    };
+
+    let channel = supabase
+      .channel(`finance-${empresa.id}-${ordemId || "all"}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "financeiro",
+          filter: `empresa_id=eq.${empresa.id}`,
+        },
+        refreshSoon,
+      );
+
+    if (!ordemId) {
+      channel = channel.on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "ordens_servico",
+          filter: `empresa_id=eq.${empresa.id}`,
+        },
+        refreshSoon,
+      );
+    }
+
+    channel.subscribe();
+
+    return () => {
+      window.clearTimeout(timer);
+      void supabase!.removeChannel(channel);
+    };
+  }, [empresa.id, ordemId, load]);
+
+  const loadOrderOptions = useCallback(async () => {
+    if (ordemId || !supabase || orderOptions.length || ordersLoading) return;
+    setOrdersLoading(true);
+    try {
+      const all: OrderOption[] = [];
+      for (let offset = 0; ; offset += 1000) {
+        const result = await supabase
+          .from("ordens_servico")
+          .select("id,numero")
+          .eq("empresa_id", empresa.id)
+          .order("numero", { ascending: false })
+          .range(offset, offset + 999);
+        if (result.error) throw result.error;
+        all.push(...((result.data || []) as OrderOption[]));
+        if ((result.data || []).length < 1000) break;
+      }
+      setOrderOptions(all);
+    } catch (caught) {
+      setError(message(caught as Error));
+    } finally {
+      setOrdersLoading(false);
+    }
+  }, [
+    ordemId,
+    empresa.id,
+    orderOptions.length,
+    ordersLoading,
+  ]);
+
+  function openNewLaunch() {
+    setAdding(true);
+    void loadOrderOptions();
+  }
+
+  const metrics = data?.metrics;
+  const receita = Number(metrics?.revenue || 0);
+  const despesa = Number(metrics?.expense || 0);
   const saldo = receita - despesa;
-  const pendingRevenue = data
-    .filter((item) => item.tipo === "receita" && item.status === "pendente")
-    .reduce((total, item) => total + Number(item.valor), 0);
-  const paidRevenueCount = paid.filter((item) => item.tipo === "receita").length;
+  const pendingRevenue = Number(metrics?.pendingRevenue || 0);
+  const paidRevenueCount = metrics?.paidRevenueCount || 0;
   const ticket = paidRevenueCount ? receita / paidRevenueCount : 0;
-  const finalizedOrders = orders.data.filter(
-    (order) => order.status === "finalizado",
-  ).length;
 
-  const origins = (["reparo", "loja", "seminovo", "manual"] as const).map(
-    (origin) => ({
-      origin,
-      value: paid
-        .filter((item) => item.tipo === "receita" && item.origem === origin)
-        .reduce((total, item) => total + Number(item.valor), 0),
-    }),
-  );
+  const origins = (
+    ["reparo", "loja", "seminovo", "manual"] as const
+  ).map((origin) => ({
+    origin,
+    value: Number(data?.origins?.[origin] || 0),
+  }));
   const originTotal = origins.reduce((total, item) => total + item.value, 0);
 
-  const recent = [...data]
-    .sort((a, b) =>
-      (b.pago_em || b.vencimento).localeCompare(a.pago_em || a.vencimento),
-    )
-    .slice(0, 6);
-
-  const pending = [...data]
-    .filter((item) => item.status === "pendente" && item.tipo === "receita")
-    .sort((a, b) => a.vencimento.localeCompare(b.vencimento))
-    .slice(0, 5);
-
-  const evolution = useMemo(() => {
-    const base = new Date(today() + "T12:00:00");
-    return Array.from({ length: 14 }, (_, index) => {
-      const date = new Date(base);
-      date.setDate(base.getDate() - (13 - index));
-      const key = isoDay(date);
-      const dayEntries = paid.filter((item) => item.pago_em === key);
-      return {
-        key,
-        label: date.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" }),
-        receita: dayEntries
-          .filter((item) => item.tipo === "receita")
-          .reduce((total, item) => total + Number(item.valor), 0),
-        despesa: dayEntries
-          .filter((item) => item.tipo === "despesa")
-          .reduce((total, item) => total + Number(item.valor), 0),
-      };
-    });
-  }, [paid]);
+  const evolution = useMemo(
+    () =>
+      (data?.evolution || []).map((item) => ({
+        ...item,
+        label: new Date(item.key + "T12:00:00").toLocaleDateString("pt-BR", {
+          day: "2-digit",
+          month: "2-digit",
+        }),
+      })),
+    [data?.evolution],
+  );
 
   const maxEvolution = Math.max(
     1,
@@ -141,45 +241,49 @@ export default function Finance({ ordemId }: { ordemId?: string }) {
       .select("id")
       .single();
     if (result.error) setError(message(result.error));
-    else await entries.reload();
+    else await load(true);
     setBusy(false);
   }
 
+  const entries = data?.entries || [];
+  const recent = data?.recent || [];
+  const pending = data?.pending || [];
+
   return (
     <div className={ordemId ? "" : "finance-dashboard"}>
-      <ErrorBox error={error || entries.error || orders.error} />
+      <ErrorBox error={error} />
 
       {!ordemId && (
         <>
           <div className="finance-kpis">
             <article>
               <span>Receita do período</span>
-              <strong>{money(receita)}</strong>
+              <strong>{loading && !data ? "—" : money(receita)}</strong>
               <small>Valores recebidos</small>
             </article>
             <article>
               <span>Despesas</span>
-              <strong>{money(despesa)}</strong>
+              <strong>{loading && !data ? "—" : money(despesa)}</strong>
               <small>Pagamentos realizados</small>
             </article>
             <article>
               <span>Lucro / saldo</span>
-              <strong>{money(saldo)}</strong>
+              <strong>{loading && !data ? "—" : money(saldo)}</strong>
               <small>Receitas menos despesas</small>
             </article>
             <article>
               <span>Ticket médio</span>
-              <strong>{money(ticket)}</strong>
+              <strong>{loading && !data ? "—" : money(ticket)}</strong>
               <small>Por recebimento</small>
             </article>
             <article>
               <span>A receber</span>
-              <strong>{money(pendingRevenue)}</strong>
-              <small>{pending.length} títulos próximos</small>
+              <strong>{loading && !data ? "—" : money(pendingRevenue)}</strong>
+              <small>{metrics?.pendingCount || 0} títulos pendentes</small>
             </article>
             <article>
               <span>Ordens finalizadas</span>
-              <strong>{finalizedOrders}</strong>
+              <strong>{loading && !data ? "—" : metrics?.finalizedOrders || 0}</strong>
               <small>Total concluído</small>
             </article>
           </div>
@@ -207,7 +311,9 @@ export default function Finance({ ordemId }: { ordemId?: string }) {
                       : 0;
                     return (
                       <div key={item.origin}>
-                        <span className={"legend-dot " + originClass[item.origin]} />
+                        <span
+                          className={"legend-dot " + originClass[item.origin]}
+                        />
                         <b>{originLabel[item.origin]}</b>
                         <em>{percent}%</em>
                         <strong>{money(item.value)}</strong>
@@ -230,7 +336,11 @@ export default function Finance({ ordemId }: { ordemId?: string }) {
                 </div>
               </div>
               <div className="finance-line-chart">
-                <svg viewBox="0 0 100 100" preserveAspectRatio="none" aria-label="Gráfico de evolução financeira">
+                <svg
+                  viewBox="0 0 100 100"
+                  preserveAspectRatio="none"
+                  aria-label="Gráfico de evolução financeira"
+                >
                   <defs>
                     <linearGradient id="incomeFill" x1="0" y1="0" x2="0" y2="1">
                       <stop offset="0%" stopColor="#68b5e4" stopOpacity=".35" />
@@ -238,7 +348,14 @@ export default function Finance({ ordemId }: { ordemId?: string }) {
                     </linearGradient>
                   </defs>
                   {[20, 40, 60, 80].map((y) => (
-                    <line key={y} x1="0" x2="100" y1={y} y2={y} className="grid-line" />
+                    <line
+                      key={y}
+                      x1="0"
+                      x2="100"
+                      y1={y}
+                      y2={y}
+                      className="grid-line"
+                    />
                   ))}
                   <polygon
                     points={"0,92 " + points("receita") + " 100,92"}
@@ -248,9 +365,11 @@ export default function Finance({ ordemId }: { ordemId?: string }) {
                   <polyline points={points("despesa")} className="expense-line" />
                 </svg>
                 <div className="finance-axis">
-                  {evolution.filter((_, index) => index % 3 === 0).map((item) => (
-                    <span key={item.key}>{item.label}</span>
-                  ))}
+                  {evolution
+                    .filter((_, index) => index % 3 === 0)
+                    .map((item) => (
+                      <span key={item.key}>{item.label}</span>
+                    ))}
                 </div>
               </div>
             </section>
@@ -263,14 +382,20 @@ export default function Finance({ ordemId }: { ordemId?: string }) {
                   <h2>Últimas movimentações</h2>
                   <p>Entradas e saídas registradas recentemente.</p>
                 </div>
-                <button className="finance-ghost" onClick={() => setAdding(true)}>
+                <button className="finance-ghost" onClick={openNewLaunch}>
                   + Novo lançamento
                 </button>
               </div>
               <div className="finance-movements">
                 {recent.map((item) => (
                   <div key={item.id}>
-                    <span className={item.tipo === "receita" ? "movement-icon in" : "movement-icon out"}>
+                    <span
+                      className={
+                        item.tipo === "receita"
+                          ? "movement-icon in"
+                          : "movement-icon out"
+                      }
+                    >
                       {item.tipo === "receita" ? "↗" : "↘"}
                     </span>
                     <div>
@@ -278,10 +403,15 @@ export default function Finance({ ordemId }: { ordemId?: string }) {
                       <small>
                         {item.pago_em
                           ? item.pago_em.split("-").reverse().join("/")
-                          : "Vence " + item.vencimento.split("-").reverse().join("/")}
+                          : "Vence " +
+                            item.vencimento.split("-").reverse().join("/")}
                       </small>
                     </div>
-                    <b className={item.tipo === "receita" ? "money-in" : "money-out"}>
+                    <b
+                      className={
+                        item.tipo === "receita" ? "money-in" : "money-out"
+                      }
+                    >
                       {item.tipo === "receita" ? "+" : "-"} {money(item.valor)}
                     </b>
                   </div>
@@ -303,7 +433,11 @@ export default function Finance({ ordemId }: { ordemId?: string }) {
                   style={{
                     background:
                       receita + despesa > 0
-                        ? `conic-gradient(#68b5e4 0 ${(receita / (receita + despesa)) * 100}%, #9a6070 ${(receita / (receita + despesa)) * 100}% 100%)`
+                        ? `conic-gradient(#68b5e4 0 ${
+                            (receita / (receita + despesa)) * 100
+                          }%, #9a6070 ${
+                            (receita / (receita + despesa)) * 100
+                          }% 100%)`
                         : "conic-gradient(#30384a 0 100%)",
                   }}
                 >
@@ -313,8 +447,16 @@ export default function Finance({ ordemId }: { ordemId?: string }) {
                   </div>
                 </div>
                 <div className="finance-balance-summary">
-                  <div><span className="legend-dot repair" /><b>Receitas</b><strong>{money(receita)}</strong></div>
-                  <div><span className="legend-dot expense" /><b>Despesas</b><strong>{money(despesa)}</strong></div>
+                  <div>
+                    <span className="legend-dot repair" />
+                    <b>Receitas</b>
+                    <strong>{money(receita)}</strong>
+                  </div>
+                  <div>
+                    <span className="legend-dot expense" />
+                    <b>Despesas</b>
+                    <strong>{money(despesa)}</strong>
+                  </div>
                 </div>
               </div>
             </section>
@@ -331,7 +473,9 @@ export default function Finance({ ordemId }: { ordemId?: string }) {
                   <div key={item.id}>
                     <div>
                       <strong>{item.descricao}</strong>
-                      <small>Vence {item.vencimento.split("-").reverse().join("/")}</small>
+                      <small>
+                        Vence {item.vencimento.split("-").reverse().join("/")}
+                      </small>
                     </div>
                     <b>{money(item.valor)}</b>
                   </div>
@@ -349,7 +493,13 @@ export default function Finance({ ordemId }: { ordemId?: string }) {
             <h2>Lançamentos</h2>
             {!ordemId && <p>Controle manual de entradas e saídas.</p>}
           </div>
-          <button className="primary" onClick={() => setAdding(!adding)}>
+          <button
+            className="primary"
+            onClick={() => {
+              if (adding) setAdding(false);
+              else openNewLaunch();
+            }}
+          >
             {adding ? "Fechar" : "+ Novo lançamento"}
           </button>
         </div>
@@ -380,7 +530,8 @@ export default function Finance({ ordemId }: { ordemId?: string }) {
                         : "manual",
                 });
                 setAdding(false);
-                await entries.reload();
+                setPage(1);
+                await load(true);
               } catch (caught) {
                 setError(message(caught as Error));
               } finally {
@@ -402,19 +553,34 @@ export default function Finance({ ordemId }: { ordemId?: string }) {
               </label>
               <label>
                 Valor
-                <input name="valor" type="number" min="0.01" step="0.01" required />
+                <input
+                  name="valor"
+                  type="number"
+                  min="0.01"
+                  step="0.01"
+                  required
+                />
               </label>
               <label>
                 Vencimento
-                <input name="vencimento" type="date" defaultValue={today()} required />
+                <input
+                  name="vencimento"
+                  type="date"
+                  defaultValue={today()}
+                  required
+                />
               </label>
               {!ordemId && (
                 <label>
                   Ordem (opcional)
-                  <select name="ordem">
-                    <option value="">Sem vínculo</option>
-                    {orders.data.map((order) => (
-                      <option key={order.id} value={order.id}>OS #{order.numero}</option>
+                  <select name="ordem" disabled={ordersLoading}>
+                    <option value="">
+                      {ordersLoading ? "Carregando ordens..." : "Sem vínculo"}
+                    </option>
+                    {orderOptions.map((order) => (
+                      <option key={order.id} value={order.id}>
+                        OS #{order.numero}
+                      </option>
                     ))}
                   </select>
                 </label>
@@ -424,31 +590,32 @@ export default function Finance({ ordemId }: { ordemId?: string }) {
                 Já recebido / pago hoje
               </label>
             </div>
-            <button disabled={busy} className="primary">Salvar lançamento</button>
+            <button disabled={busy} className="primary">
+              Salvar lançamento
+            </button>
           </form>
         )}
 
-        {entries.loading ? (
+        {loading && !data ? (
           <p>Carregando…</p>
-        ) : !data.length ? (
+        ) : !entries.length ? (
           <Empty title="Nenhum lançamento cadastrado" />
         ) : (
-          <div className="table-scroll finance-table">
-            <table>
-              <thead>
-                <tr>
-                  <th>Descrição</th>
-                  <th>Tipo</th>
-                  <th>Valor</th>
-                  <th>Vencimento</th>
-                  <th>Status</th>
-                  <th>Ação</th>
-                </tr>
-              </thead>
-              <tbody>
-                {[...data]
-                  .sort((a, b) => b.vencimento.localeCompare(a.vencimento))
-                  .map((item) => (
+          <>
+            <div className="table-scroll finance-table">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Descrição</th>
+                    <th>Tipo</th>
+                    <th>Valor</th>
+                    <th>Vencimento</th>
+                    <th>Status</th>
+                    <th>Ação</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {entries.map((item) => (
                     <tr key={item.id}>
                       <td>{item.descricao}</td>
                       <td>{item.tipo}</td>
@@ -458,7 +625,10 @@ export default function Finance({ ordemId }: { ordemId?: string }) {
                       <td>
                         {item.status === "pendente" ? (
                           <button disabled={busy} onClick={() => pay(item)}>
-                            Registrar {item.tipo === "receita" ? "recebimento" : "pagamento"}
+                            Registrar{" "}
+                            {item.tipo === "receita"
+                              ? "recebimento"
+                              : "pagamento"}
                           </button>
                         ) : (
                           item.pago_em?.split("-").reverse().join("/")
@@ -466,12 +636,20 @@ export default function Finance({ ordemId }: { ordemId?: string }) {
                       </td>
                     </tr>
                   ))}
-              </tbody>
-            </table>
-          </div>
+                </tbody>
+              </table>
+            </div>
+            <Pagination
+              page={data?.page || page}
+              pageSize={data?.pageSize || 30}
+              total={data?.total || 0}
+              onPageChange={setPage}
+            />
+          </>
         )}
         <p className="hint">
-          Registre movimentações realizadas ou previstas. A Horária não processa pagamentos.
+          Registre movimentações realizadas ou previstas. A Horária não processa
+          pagamentos.
         </p>
       </section>
     </div>
