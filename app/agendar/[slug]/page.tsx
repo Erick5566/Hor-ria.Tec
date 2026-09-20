@@ -1,5 +1,6 @@
 "use client";
 import { use, useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { Brand, MissingConfig } from "@/components/brand";
 import {
   publicDb,
@@ -18,6 +19,7 @@ export default function Booking({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = use(params);
+  const router = useRouter();
   const [company, setCompany] = useState<Empresa | null>(null),
     [loading, setLoading] = useState(true),
     [error, setError] = useState(""),
@@ -95,7 +97,12 @@ export default function Booking({
         }
         throw error;
       }
-      setStep(4);
+      const query = new URLSearchParams({
+        servico: service?.nome || "Atendimento",
+        dia: dateLabel(day),
+        hora: time(slot),
+      });
+      router.push(`/agendar/${slug}/obrigado?${query.toString()}`);
     } catch (e) {
       setError(message(e as Error));
     } finally {

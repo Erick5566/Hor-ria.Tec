@@ -1,8 +1,15 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Brand } from "@/components/brand";
 import SignOutButton from "@/components/sign-out-button";
 import { getServerAccess } from "@/lib/server-auth";
+
+export const metadata: Metadata = {
+  title: "Administração",
+  description: "Administração interna da plataforma Horária.",
+  robots: { index: false, follow: false },
+};
 
 export default async function AdminLayout({
   children,

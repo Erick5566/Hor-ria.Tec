@@ -134,6 +134,15 @@ export default function Workspace({
   const router = useRouter(),
     path = usePathname();
 
+  const title =
+    menu
+      .reduce<ReadonlyArray<readonly [string, string, string]>>(
+        (all, group) => [...all, ...group[1]],
+        [],
+      )
+      .find((item) => item[1] === path)?.[0] ||
+    (path.startsWith("/painel/ordens/") ? "Ordem de serviço" : "Assistência técnica");
+
   const setPeriod = useCallback((start: string, end: string) => {
     if (!start || !end) return;
     const normalizedStart = start <= end ? start : end;
@@ -210,6 +219,10 @@ export default function Workspace({
   useEffect(() => {
     setOpen(false);
   }, [path]);
+
+  useEffect(() => {
+    document.title = `${title} | Horária`;
+  }, [title]);
   useEffect(() => {
     const close = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
@@ -438,13 +451,6 @@ export default function Workspace({
   }
 
   if (!configured) return <MissingConfig />;
-  const title =
-    menu
-      .reduce<ReadonlyArray<readonly [string, string, string]>>(
-        (all, g) => [...all, ...g[1]],
-        [],
-      )
-      .find((item) => item[1] === path)?.[0] || "Assistência técnica";
 
   async function submitGlobalSearch(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -909,6 +915,15 @@ export default function Workspace({
             </div>
           </div>
         </header>
+        <nav className="workspace-breadcrumbs" aria-label="Navegação estrutural">
+          <Link href="/painel">Painel</Link>
+          {path !== "/painel" && (
+            <>
+              <span aria-hidden="true">›</span>
+              <span aria-current="page">{title}</span>
+            </>
+          )}
+        </nav>
         {error && (
           <div className="notice" role="alert">
             {error}

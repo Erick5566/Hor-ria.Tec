@@ -503,7 +503,10 @@ export default function PublicPageSettings() {
                   {identity.logo && (
                     <button
                       type="button"
-                      onClick={() => setIdentity({ ...identity, logo: "" })}
+                      onClick={() => {
+                        if (!window.confirm("Remover a imagem da página pública?")) return;
+                        setIdentity({ ...identity, logo: "" });
+                      }}
                     >
                       Remover imagem
                     </button>

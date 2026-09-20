@@ -46,7 +46,21 @@ export default function CompanySettings() {
               "Escolha cores com contraste suficiente para textos brancos.",
             );
           if (
-            ["painel", "agendar", "acompanhar", "api"].includes(
+            [
+              "painel",
+              "agendar",
+              "acompanhar",
+              "api",
+              "admin",
+              "entrar",
+              "cadastro",
+              "privacidade",
+              "recuperar-senha",
+              "redefinir-senha",
+              "solicitacao-enviada",
+              "manutencao",
+              "conta-bloqueada",
+            ].includes(
               String(f.get("slug")),
             )
           )
@@ -66,6 +80,8 @@ export default function CompanySettings() {
               site: f.get("site") || null,
               logo_url: f.get("logo_url") || null,
               google_avaliacao_url: f.get("google_avaliacao_url") || null,
+              google_maps_url: f.get("google_maps_url") || null,
+              google_business_url: f.get("google_business_url") || null,
               cep: f.get("cep") || null,
               numero_endereco: f.get("numero_endereco") || null,
               complemento: f.get("complemento") || null,
@@ -76,6 +92,7 @@ export default function CompanySettings() {
               cor_secundaria: colors.secondary,
               cor_botao: colors.button,
               tema_publico: f.get("tema_publico"),
+              prazo_resposta_horas: Number(f.get("prazo_resposta_horas") || 4),
               fotos_obrigatorias: f.get("fotos") === "on",
               solicitar_endereco: f.get("solicitar_endereco") === "on",
               horario: hours,
@@ -176,6 +193,24 @@ export default function CompanySettings() {
             type="url"
             defaultValue={empresa.google_avaliacao_url || ""}
             placeholder="https://g.page/r/…/review"
+          />
+        </label>
+        <label>
+          Link do perfil no Google
+          <input
+            name="google_business_url"
+            type="url"
+            defaultValue={empresa.google_business_url || ""}
+            placeholder="https://g.page/…"
+          />
+        </label>
+        <label>
+          Link do Google Maps / rota
+          <input
+            name="google_maps_url"
+            type="url"
+            defaultValue={empresa.google_maps_url || ""}
+            placeholder="https://maps.google.com/…"
           />
         </label>
         <label>
@@ -288,6 +323,26 @@ export default function CompanySettings() {
           </button>
         </div>
       </div>
+      <h2>Compromisso de resposta</h2>
+      <div className="form-grid">
+        <label>
+          Prazo informado ao cliente
+          <select
+            name="prazo_resposta_horas"
+            defaultValue={String(empresa.prazo_resposta_horas || 4)}
+          >
+            <option value="1">Até 1 hora útil</option>
+            <option value="2">Até 2 horas úteis</option>
+            <option value="4">Até 4 horas úteis</option>
+            <option value="8">Até 8 horas úteis</option>
+            <option value="24">Até 24 horas</option>
+            <option value="48">Até 48 horas</option>
+          </select>
+        </label>
+      </div>
+      <p className="hint">
+        Esse prazo aparece na página pública como compromisso de retorno.
+      </p>
       <h2>Fotos e atendimento</h2>
       <label className="check-label">
         <input
