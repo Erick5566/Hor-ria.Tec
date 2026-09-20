@@ -181,7 +181,19 @@ export default function Workspace({
         .from("ordens_servico")
         .select("id,numero,status,prioridade,prazo_previsto")
         .eq("empresa_id", empresa!.id)
-        .not("status", "in", '("finalizado","cancelado")')
+        .in("status", [
+          "novo",
+          "recebido",
+          "em_diagnostico",
+          "aguardando_orcamento",
+          "orcamento_enviado",
+          "aguardando_aprovacao",
+          "orcamento_aprovado",
+          "em_reparo",
+          "aguardando_peca",
+          "em_testes",
+          "pronto_retirada",
+        ])
         .order("prazo_previsto", { ascending: true, nullsFirst: false })
         .limit(40);
       if (error || !active) return;
