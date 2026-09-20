@@ -6183,3 +6183,98 @@ button.danger,
     font-size: .54rem;
   }
 }
+
+
+/* KPI sparklines — real SVG curves instead of decorative crossed lines */
+.dashboard-reference .dashboard-kpi-value {
+  display: flex;
+  align-items: flex-end;
+  gap: 14px;
+}
+
+.dashboard-reference .dashboard-kpi-value > strong {
+  flex: 0 0 auto;
+}
+
+.dashboard-kpi-sparkline {
+  display: block;
+  width: 92px;
+  min-width: 92px;
+  height: 38px;
+  margin-left: auto;
+  color: #1670ff;
+  opacity: .98;
+}
+
+.dashboard-kpi-sparkline svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.dashboard-kpi-sparkline polyline {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.4;
+  vector-effect: non-scaling-stroke;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.dashboard-kpi-sparkline polygon {
+  pointer-events: none;
+}
+
+.dashboard-kpi-sparkline.blue,
+.dashboard-kpi-sparkline.sky {
+  color: #2688ff;
+}
+
+.dashboard-kpi-sparkline.amber {
+  color: #f2a000;
+}
+
+.dashboard-kpi-sparkline.green {
+  color: #14a977;
+}
+
+.dashboard-kpi-sparkline.purple {
+  color: #8c52ff;
+}
+
+/* Disable the previous pseudo-line artwork. */
+.dashboard-mini-line,
+.dashboard-mini-line::before,
+.dashboard-mini-line::after {
+  display: none !important;
+  content: none !important;
+}
+
+@media (max-width: 1080px) {
+  .dashboard-kpi-sparkline {
+    width: 84px;
+    min-width: 84px;
+    height: 36px;
+  }
+}
+
+@media (max-width: 760px) {
+  .dashboard-kpi-sparkline {
+    width: 76px;
+    min-width: 76px;
+    height: 34px;
+  }
+}
+
+@media (max-width: 480px) {
+  .dashboard-reference .dashboard-kpi-value {
+    gap: 10px;
+  }
+
+  .dashboard-kpi-sparkline {
+    width: 88px;
+    min-width: 88px;
+    height: 34px;
+  }
+}
