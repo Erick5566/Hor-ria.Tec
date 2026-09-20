@@ -3003,21 +3003,30 @@ tbody tr:hover td {
 }
 
 .workspace-date-chip {
-  position: relative;
   min-width: 205px;
-  justify-content: center;
-  padding-inline: 38px;
+  display: grid;
+  grid-template-columns: 18px minmax(0, 1fr) 18px;
+  align-items: center;
+  column-gap: 9px;
+  padding: 0 13px;
   text-align: center;
+}
+
+.workspace-date-chip::after {
+  content: "";
+  width: 18px;
+  height: 18px;
 }
 
 .workspace-date-chip > span {
-  width: 100%;
+  min-width: 0;
   text-align: center;
+  justify-self: stretch;
 }
 
 .workspace-date-chip .workspace-calendar-icon {
-  position: absolute;
-  left: 13px;
+  position: static;
+  justify-self: center;
   color: #2259a6;
 }
 
