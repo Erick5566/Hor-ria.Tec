@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { Brand, MissingConfig } from "@/components/brand";
 import Setup from "@/components/setup";
 import AppointmentForm from "@/components/appointment-form";
+import { Heading } from "@/components/ui";
 import Link from "next/link";
 import {
   supabase,
@@ -239,21 +240,20 @@ export default function Painel() {
         ) : !empresa ? (
           <Setup done={load} />
         ) : (
-          <div className="dashboard-content">
-            <div className="page-heading">
-              <div>
-                <span className="eyebrow">OPERAÇÃO ORGANIZADA</span>
-                <h1>
-                  Agenda<span className="green-dot">.</span>
-                </h1>
-                <p>Organize os horários. Cuide de cada atendimento.</p>
+          <section className="module dashboard-pro agenda-dashboard">
+            <div className="dashboard-hero agenda-dashboard-hero">
+              <Heading
+                title="Agenda"
+                subtitle="Organize horários, acompanhe atendimentos e mantenha o dia sob controle."
+              />
+              <div className="agenda-hero-actions">
+                <button className="primary" onClick={() => setAdding(!adding)}>
+                  {adding ? "Fechar formulário" : "+ Novo atendimento"}
+                </button>
+                <button className="outline" onClick={() => setBlocking(true)}>
+                  ⊘ Bloquear horário
+                </button>
               </div>
-              <button className="primary" onClick={() => setAdding(!adding)}>
-                {adding ? "Fechar formulário" : "+ Novo atendimento"}
-              </button>
-              <button className="outline" onClick={() => setBlocking(true)}>
-                ⊘ Bloquear horário
-              </button>
             </div>
             {adding && (
               <AppointmentForm
@@ -263,14 +263,16 @@ export default function Painel() {
                 }}
               />
             )}
-            <section className="stats">
-              <div className="stat">
-                <span>
-                  Agendamentos <b>↗</b>
-                </span>
-                <strong>
-                  {appointments.length.toString().padStart(2, "0")}
-                </strong>
+            <section className="dashboard-kpis agenda-kpis">
+              <article className="dashboard-kpi blue">
+                <div className="dashboard-kpi-top">
+                  <span className="dashboard-kpi-icon">▦</span>
+                  <span>Agendamentos</span>
+                </div>
+                <div className="dashboard-kpi-value">
+                  <strong>{appointments.length}</strong>
+                  <span className="mini-spark">⌁</span>
+                </div>
                 <small>
                   {view === "dia"
                     ? "No dia selecionado"
@@ -278,33 +280,42 @@ export default function Painel() {
                       ? "No mês selecionado"
                       : "Nos próximos 7 dias"}
                 </small>
-              </div>
-              <div className="stat">
-                <span>
-                  Em atendimento <b>◷</b>
-                </span>
-                <strong>
-                  {appointments
-                    .filter((a) => a.status === "em_atendimento")
-                    .length.toString()
-                    .padStart(2, "0")}
-                </strong>
-                <small>Tempo dedicado ao cliente</small>
-              </div>
-              <div className="stat">
-                <span>
-                  Concluídos <b>✓</b>
-                </span>
-                <strong>
-                  {appointments
-                    .filter((a) => a.status === "concluido")
-                    .length.toString()
-                    .padStart(2, "0")}
-                </strong>
+              </article>
+              <article className="dashboard-kpi amber">
+                <div className="dashboard-kpi-top">
+                  <span className="dashboard-kpi-icon">◷</span>
+                  <span>Em atendimento</span>
+                </div>
+                <div className="dashboard-kpi-value">
+                  <strong>{appointments.filter((item) => item.status === "em_atendimento").length}</strong>
+                  <span className="mini-spark">⌁</span>
+                </div>
+                <small>Atendimentos em execução</small>
+              </article>
+              <article className="dashboard-kpi green">
+                <div className="dashboard-kpi-top">
+                  <span className="dashboard-kpi-icon">✓</span>
+                  <span>Concluídos</span>
+                </div>
+                <div className="dashboard-kpi-value">
+                  <strong>{appointments.filter((item) => item.status === "concluido").length}</strong>
+                  <span className="mini-spark">⌁</span>
+                </div>
                 <small>Atendimentos finalizados</small>
-              </div>
+              </article>
+              <article className="dashboard-kpi purple">
+                <div className="dashboard-kpi-top">
+                  <span className="dashboard-kpi-icon">⊘</span>
+                  <span>Horários bloqueados</span>
+                </div>
+                <div className="dashboard-kpi-value">
+                  <strong>{bookings.filter((item) => item.bloqueio).length}</strong>
+                  <span className="mini-spark">⌁</span>
+                </div>
+                <small>Períodos indisponíveis</small>
+              </article>
             </section>
-            <section className="agenda card">
+            <section className="agenda card dashboard-card agenda-main-card">
               <div className="agenda-toolbar">
                 <div className="date-control">
                   <button
@@ -484,7 +495,7 @@ export default function Painel() {
                 </div>
               )}
             </section>
-            <section className="share-bar">
+            <section className="share-bar dashboard-card agenda-share-card">
               <span className="share-icon">↗</span>
               <div>
                 <strong>Sua agenda, a um link de distância.</strong>
@@ -499,7 +510,7 @@ export default function Painel() {
                 Abrir página pública ↗
               </a>
             </section>
-          </div>
+          </section>
         )}
         {blocking && (
           <div className="modal-backdrop">
