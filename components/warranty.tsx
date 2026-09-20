@@ -1,17 +1,37 @@
 "use client";
-import { useState } from "react";
-import { Garantia, stamp, useRows } from "@/lib/assistencia";
+import { useCallback, useEffect, useState } from "react";
+import { Garantia, stamp } from "@/lib/assistencia";
 import { message, shift, supabase, today } from "@/lib/supabase";
 import { Empty, ErrorBox } from "./ui";
 
 export default function Warranty({ ordemId }: { ordemId: string }) {
-  const warranties = useRows<Garantia>("garantias");
+  const [warranties, setWarranties] = useState<Garantia[]>([]);
+  const [loading, setLoading] = useState(true);
   const [days, setDays] = useState(90);
   const [customEnd, setCustomEnd] = useState(shift(today(), 90));
   const [adding, setAdding] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
-  const data = warranties.data.filter((item) => item.ordem_id === ordemId);
+  const load = useCallback(async () => {
+    setLoading(true);
+    const result = await supabase!
+      .from("garantias")
+      .select("*")
+      .eq("ordem_id", ordemId)
+      .order("fim", { ascending: false });
+    if (result.error) setError(message(result.error));
+    else {
+      setWarranties((result.data || []) as Garantia[]);
+      setError("");
+    }
+    setLoading(false);
+  }, [ordemId]);
+
+  useEffect(() => {
+    void load();
+  }, [load]);
+
+  const data = warranties;
   return (
     <section className="panel">
       <div className="panel-head">
@@ -26,7 +46,7 @@ export default function Warranty({ ordemId }: { ordemId: string }) {
           {adding ? "Fechar" : "+ Registrar garantia"}
         </button>
       </div>
-      <ErrorBox error={error || warranties.error} />
+      <ErrorBox error={error} />
       {adding && (
         <form
           onSubmit={async (event) => {
@@ -49,7 +69,7 @@ export default function Warranty({ ordemId }: { ordemId: string }) {
             if (result.error) setError(message(result.error));
             else {
               setAdding(false);
-              await warranties.reload();
+              await load();
             }
             setBusy(false);
           }}
@@ -125,7 +145,9 @@ export default function Warranty({ ordemId }: { ordemId: string }) {
           )}
         </form>
       )}
-      {!data.length ? (
+      {loading ? (
+        <p>Carregando garantias…</p>
+      ) : !data.length ? (
         <Empty title="Nenhuma garantia registrada" />
       ) : (
         <div className="warranty-list">
