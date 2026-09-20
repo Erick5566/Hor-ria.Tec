@@ -241,33 +241,124 @@ export default function Workspace({
       )
       .find((item) => item[1] === path)?.[0] || "Assistência técnica";
 
-  function submitGlobalSearch(event: React.FormEvent<HTMLFormElement>) {
+  async function submitGlobalSearch(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const raw = globalSearch.trim();
     const query = raw.toLowerCase();
     if (!query) return;
 
     const destinations = [
-      { words: ["cliente", "clientes"], href: "/painel/clientes" },
-      { words: ["equipamento", "equipamentos", "aparelho"], href: "/painel/equipamentos" },
-      { words: ["orçamento", "orcamento", "proposta"], href: "/painel/orcamentos" },
-      { words: ["agenda", "agendamento", "horário", "horario"], href: "/painel/agenda" },
-      { words: ["serviço", "servico", "serviços", "servicos"], href: "/painel/servicos" },
-      { words: ["financeiro", "finança", "financas", "receita"], href: "/painel/financeiro" },
-      { words: ["estoque", "peça", "peca", "produto"], href: "/painel/estoque" },
-      { words: ["relatório", "relatorio", "relatórios", "relatorios"], href: "/painel/relatorios" },
-      { words: ["diagnóstico", "diagnostico", "diagnósticos", "diagnosticos", "mesa", "reparo"], href: "/painel/mesa-reparo" },
-      { words: ["recebimento", "entrada", "nova ordem"], href: "/painel/ordens/nova" },
+      { words: ["clientes"], href: "/painel/clientes" },
+      { words: ["equipamentos"], href: "/painel/equipamentos" },
+      { words: ["orçamentos", "orcamentos"], href: "/painel/orcamentos" },
+      { words: ["agenda", "agendamentos"], href: "/painel/agenda" },
+      { words: ["serviços", "servicos"], href: "/painel/servicos" },
+      { words: ["financeiro", "finanças", "financas"], href: "/painel/financeiro" },
+      { words: ["estoque"], href: "/painel/estoque" },
+      { words: ["relatórios", "relatorios"], href: "/painel/relatorios" },
+      { words: ["diagnósticos", "diagnosticos", "mesa de reparo"], href: "/painel/mesa-reparo" },
+      { words: ["recebimento", "nova ordem"], href: "/painel/ordens/nova" },
     ];
     const destination = destinations.find((item) =>
-      item.words.some((word) => query.includes(word)),
+      item.words.some((word) => query === word),
     );
-
     if (destination) {
       router.push(destination.href);
-    } else {
-      router.push("/painel/ordens?q=" + encodeURIComponent(raw));
+      setGlobalSearch("");
+      return;
     }
+
+    if (!empresa?.id || !supabase) {
+      router.push("/painel/ordens?q=" + encodeURIComponent(raw));
+      setGlobalSearch("");
+      return;
+    }
+
+    try {
+      const number = Number(raw.replace(/\D/g, ""));
+      if (number && (query.startsWith("os") || /^\d+$/.test(raw))) {
+        const order = await supabase
+          .from("ordens_servico")
+          .select("id")
+          .eq("empresa_id", empresa.id)
+          .eq("numero", number)
+          .maybeSingle();
+        if (order.data?.id) {
+          router.push("/painel/ordens/" + order.data.id);
+          setGlobalSearch("");
+          return;
+        }
+      }
+
+      const customer = await supabase
+        .from("clientes")
+        .select("id")
+        .eq("empresa_id", empresa.id)
+        .ilike("nome", `%${raw}%`)
+        .limit(1)
+        .maybeSingle();
+      if (customer.data?.id) {
+        router.push("/painel/clientes/" + customer.data.id);
+        setGlobalSearch("");
+        return;
+      }
+
+      const deviceByModel = await supabase
+        .from("equipamentos")
+        .select("id")
+        .eq("empresa_id", empresa.id)
+        .ilike("modelo", `%${raw}%`)
+        .limit(1)
+        .maybeSingle();
+      if (deviceByModel.data?.id) {
+        router.push("/painel/equipamentos/" + deviceByModel.data.id);
+        setGlobalSearch("");
+        return;
+      }
+
+      const deviceByBrand = await supabase
+        .from("equipamentos")
+        .select("id")
+        .eq("empresa_id", empresa.id)
+        .ilike("marca", `%${raw}%`)
+        .limit(1)
+        .maybeSingle();
+      if (deviceByBrand.data?.id) {
+        router.push("/painel/equipamentos/" + deviceByBrand.data.id);
+        setGlobalSearch("");
+        return;
+      }
+
+      const service = await supabase
+        .from("servicos")
+        .select("id")
+        .eq("empresa_id", empresa.id)
+        .ilike("nome", `%${raw}%`)
+        .limit(1)
+        .maybeSingle();
+      if (service.data?.id) {
+        router.push("/painel/servicos");
+        setGlobalSearch("");
+        return;
+      }
+
+      const orderByProblem = await supabase
+        .from("ordens_servico")
+        .select("id")
+        .eq("empresa_id", empresa.id)
+        .ilike("problema", `%${raw}%`)
+        .limit(1)
+        .maybeSingle();
+      if (orderByProblem.data?.id) {
+        router.push("/painel/ordens/" + orderByProblem.data.id);
+        setGlobalSearch("");
+        return;
+      }
+    } catch {
+      // A busca por página abaixo continua disponível como fallback.
+    }
+
+    router.push("/painel/ordens?q=" + encodeURIComponent(raw));
     setGlobalSearch("");
   }
 
