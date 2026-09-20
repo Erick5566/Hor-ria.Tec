@@ -7207,3 +7207,6 @@ button.danger,
 .mfa-error{padding:12px 14px;color:#87353d;background:#f9e9eb;border:1px solid #efc9cd;border-radius:10px}
 .mfa-actions{display:flex;gap:10px;flex-wrap:wrap}
 @media(max-width:560px){.mfa-page{padding:12px}.mfa-card{padding:22px 17px;border-radius:16px}.mfa-actions{display:grid}}
+
+
+/* manual-security-rollout-retry-2026-09-20-1950 */
