@@ -1,102 +1,160 @@
 "use client";
-import { use, useEffect, useState, useCallback } from "react";
+import { use, useCallback, useEffect, useState } from "react";
+import dynamic from "next/dynamic";
 import Link from "next/link";
 import { supabase, message } from "@/lib/supabase";
 import {
-  Ordem,
-  Cliente,
-  Equipamento,
+  type Ordem,
   statuses,
-  Status,
+  type Status,
   stamp,
 } from "@/lib/assistencia";
 import { Heading, Badge, ErrorBox, Empty } from "@/components/ui";
-import { PhotosPanel } from "@/components/photos";
-import Diagnosis from "@/components/diagnosis";
-import Quote from "@/components/quote";
-import History from "@/components/history";
-import Finance from "@/components/finance";
-import OrderAdministration from "@/components/order-administration";
-import Warranty from "@/components/warranty";
+
+function TabLoading() {
+  return (
+    <div className="module-inline-loading" aria-live="polite">
+      <span />
+      <div>
+        <strong>Carregando seção…</strong>
+        <small>Buscando apenas os dados desta aba.</small>
+      </div>
+    </div>
+  );
+}
+
+const PhotosPanel = dynamic(
+  () => import("@/components/photos").then((module) => module.PhotosPanel),
+  { loading: TabLoading },
+);
+const Diagnosis = dynamic(() => import("@/components/diagnosis"), {
+  loading: TabLoading,
+});
+const Quote = dynamic(() => import("@/components/quote"), {
+  loading: TabLoading,
+});
+const History = dynamic(() => import("@/components/history"), {
+  loading: TabLoading,
+});
+const Finance = dynamic(() => import("@/components/finance"), {
+  loading: TabLoading,
+});
+const OrderAdministration = dynamic(
+  () => import("@/components/order-administration"),
+  { loading: TabLoading },
+);
+const Warranty = dynamic(() => import("@/components/warranty"), {
+  loading: TabLoading,
+});
+
+type OrderClient = {
+  id: string;
+  nome: string;
+  whatsapp: string;
+};
+
+type OrderEquipment = {
+  id: string;
+  marca: string;
+  modelo: string;
+  imei: string | null;
+};
+
+type OrderDetailData = {
+  order: Ordem;
+  client: OrderClient;
+  equipment: OrderEquipment;
+};
+
+const tabs = [
+  "Resumo",
+  "Diagnóstico",
+  "Orçamento",
+  "Fotos",
+  "Histórico",
+  "Financeiro",
+  "Garantia",
+] as const;
+
+type Tab = (typeof tabs)[number];
+
 export default function OrderDetail({
   params,
 }: {
   params: Promise<{ id: string }>;
 }) {
   const { id } = use(params);
-  const [order, setOrder] = useState<Ordem | null>(null),
-    [tab, setTab] = useState("Resumo"),
-    [client, setClient] = useState<Cliente | null>(null),
-    [equipment, setEquipment] = useState<Equipamento | null>(null),
-    [error, setError] = useState(""),
-    [loading, setLoading] = useState(true),
-    [busy, setBusy] = useState(false);
-  const load = useCallback(async () => {
-    try {
-      const { data, error } = await supabase!
-        .from("ordens_servico")
-        .select("*")
-        .eq("id", id)
-        .single();
-      if (error) throw error;
-      setOrder(data);
-      const [c, e] = await Promise.all([
-        supabase!
-          .from("clientes")
-          .select("*")
-          .eq("id", data.cliente_id)
-          .single(),
-        supabase!
-          .from("equipamentos")
-          .select("*")
-          .eq("id", data.equipamento_id)
-          .single(),
-      ]);
-      if (c.error || e.error) throw c.error || e.error;
-      setClient(c.data);
-      setEquipment(e.data);
-    } catch (e) {
-      setError(message(e as Error));
-    } finally {
-      setLoading(false);
-    }
-  }, [id]);
+  const [data, setData] = useState<OrderDetailData | null>(null);
+  const [tab, setTab] = useState<Tab>("Resumo");
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [busy, setBusy] = useState(false);
+
+  const load = useCallback(
+    async (silent = false) => {
+      if (!silent) setLoading(true);
+      try {
+        const result = await supabase!.rpc("order_detail_summary", {
+          p_order: id,
+        });
+        if (result.error) throw result.error;
+        if (!result.data) throw new Error("Ordem de serviço não encontrada.");
+        setData(result.data as OrderDetailData);
+        setError("");
+      } catch (caught) {
+        setError(message(caught as Error));
+      } finally {
+        if (!silent) setLoading(false);
+      }
+    },
+    [id],
+  );
+
   useEffect(() => {
-    load();
+    void load(false);
   }, [load]);
+
   async function updateStatus(value: Status) {
     setBusy(true);
     setError("");
     try {
-      const { error } = await supabase!
+      const result = await supabase!
         .from("ordens_servico")
         .update({ status: value })
         .eq("id", id)
         .select("id")
         .single();
-      if (error) throw error;
-      await load();
-    } catch (e) {
-      setError(message(e as Error));
+      if (result.error) throw result.error;
+      await load(true);
+    } catch (caught) {
+      setError(message(caught as Error));
     } finally {
       setBusy(false);
     }
   }
+
+  const order = data?.order;
+  const client = data?.client;
+  const equipment = data?.equipment;
+
   return (
     <section className="module unified-pro order-detail-pro">
       <Link className="subtle" href="/painel/ordens">
         ← Ordens de serviço
       </Link>
+
       <Heading
         title={order ? `OS #${order.numero}` : "Ordem de serviço"}
         subtitle={
           equipment
-            ? `${equipment.marca} ${equipment.modelo} · ${client?.nome}`
+            ? `${equipment.marca} ${equipment.modelo} · ${client?.nome || ""}`
             : undefined
         }
       />
+
       <ErrorBox error={error} />
-      {loading ? (
+
+      {loading && !data ? (
         <Empty title="Carregando ordem…" />
       ) : (
         order && (
@@ -107,34 +165,50 @@ export default function OrderDetail({
                 aria-label="Alterar status da ordem"
                 disabled={busy}
                 value={order.status}
-                onChange={(e) => updateStatus(e.target.value as Status)}
+                onChange={(event) =>
+                  void updateStatus(event.target.value as Status)
+                }
               >
-                {Object.entries(statuses).map(([v, n]) => (
-                  <option key={v} value={v}>
-                    {n}
+                {Object.entries(statuses).map(([value, name]) => (
+                  <option key={value} value={value}>
+                    {name}
                   </option>
                 ))}
               </select>
             </div>
+
             <div className="tabs">
-              {[
-                "Resumo",
-                "Diagnóstico",
-                "Orçamento",
-                "Fotos",
-                "Histórico",
-                "Financeiro",
-                "Garantia",
-              ].map((t) => (
+              {tabs.map((item) => (
                 <button
-                  key={t}
-                  className={tab === t ? "active" : ""}
-                  onClick={() => setTab(t)}
+                  key={item}
+                  className={tab === item ? "active" : ""}
+                  onClick={() => setTab(item)}
                 >
-                  {t}
+                  {item}
                 </button>
               ))}
             </div>
+
+            {!order.entrada_confirmada && (
+              <div className="notice">
+                Entrada em conferência.{" "}
+                <button
+                  disabled={busy}
+                  onClick={async () => {
+                    setBusy(true);
+                    const result = await supabase!.rpc("confirmar_entrada", {
+                      p_ordem: id,
+                    });
+                    if (result.error) setError(message(result.error));
+                    else await load(true);
+                    setBusy(false);
+                  }}
+                >
+                  Confirmar entrada
+                </button>
+              </div>
+            )}
+
             {tab === "Financeiro" && <Finance ordemId={id} />}
             {tab === "Garantia" && <Warranty ordemId={id} />}
             {tab === "Histórico" && <History ordemId={id} />}
@@ -143,37 +217,21 @@ export default function OrderDetail({
                 ordemId={id}
                 trackingToken={order.token_acompanhamento}
                 telefone={client?.whatsapp || ""}
-                onChanged={load}
+                onChanged={() => void load(true)}
               />
             )}
             {tab === "Diagnóstico" && (
               <Diagnosis ordemId={id} empresaId={order.empresa_id} />
-            )}
-            {!order.entrada_confirmada && (
-              <div className="notice">
-                Entrada em conferência.{" "}
-                <button
-                  disabled={busy}
-                  onClick={async () => {
-                    setBusy(true);
-                    const r = await supabase!.rpc("confirmar_entrada", {
-                      p_ordem: id,
-                    });
-                    if (r.error) setError(message(r.error));
-                    else await load();
-                    setBusy(false);
-                  }}
-                >
-                  Confirmar entrada
-                </button>
-              </div>
             )}
             {tab === "Fotos" && (
               <PhotosPanel ordemId={id} empresaId={order.empresa_id} />
             )}
             {tab === "Resumo" && (
               <>
-                <OrderAdministration order={order} onChanged={load} />
+                <OrderAdministration
+                  order={order}
+                  onChanged={() => void load(true)}
+                />
                 <section className="panel">
                   <h2>Resumo do atendimento</h2>
                   <dl className="definition-grid">
@@ -204,8 +262,10 @@ export default function OrderDetail({
                       <dd>{order.tecnico || "Não atribuído"}</dd>
                     </div>
                   </dl>
+
                   <h3>Problema relatado pelo cliente</h3>
                   <p className="prose">{order.problema}</p>
+
                   <h3>Estado do equipamento</h3>
                   <p>{order.estado.join(" · ") || "Sem marcas registradas"}</p>
                   <p className="prose">{order.observacoes_estado}</p>
