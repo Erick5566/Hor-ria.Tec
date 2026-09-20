@@ -1,6 +1,7 @@
 "use client";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import {
   useRows,
   Ordem,
@@ -28,19 +29,24 @@ function initials(name?: string | null) {
 }
 
 export default function Orders() {
+  const params = useSearchParams();
   const os = useRows<Ordem>("ordens_servico"),
     cs = useRows<Cliente>("clientes"),
     eq = useRows<Equipamento>("equipamentos"),
     qs = useRows<Orcamento>("orcamentos");
 
-  const [search, setSearch] = useState("");
+  const [search, setSearch] = useState(params.get("q") || "");
   const [status, setStatus] = useState("");
   const [technician, setTechnician] = useState("");
   const [priority, setPriority] = useState("");
   const [period, setPeriod] = useState("");
   const [sort, setSort] = useState<"recent" | "oldest" | "value">("recent");
 
-  const quotes = latestQuotes(qs.data);
+  useEffect(() => {
+    setSearch(params.get("q") || "");
+  }, [params]);
+
+    const quotes = latestQuotes(qs.data);
 
   const technicians = useMemo(
     () =>
