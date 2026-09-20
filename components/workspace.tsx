@@ -576,6 +576,15 @@ export default function Workspace({
   const periodLabel =
     formatShortDate(periodStart) + " - " + formatShortDate(periodEnd);
   const unreadAlerts = alerts.filter((alert) => !readAlertIds.has(alert.id));
+  const activeMenuHref =
+    menu
+      .flatMap(([, items]) => items.map(([, href]) => href))
+      .filter(
+        (href) =>
+          path === href ||
+          (href !== "/painel" && path.startsWith(href + "/")),
+      )
+      .sort((a, b) => b.length - a.length)[0] || "";
 
   return (
     <div className="workspace">
@@ -625,12 +634,7 @@ export default function Workspace({
                   <Link
                     key={href}
                     href={href}
-                    className={
-                      path === href ||
-                      (href !== "/painel" && path.startsWith(href + "/"))
-                        ? "current"
-                        : ""
-                    }
+                    className={href === activeMenuHref ? "current" : ""}
                   >
                     <span aria-hidden="true">{icon}</span>
                     {label}
