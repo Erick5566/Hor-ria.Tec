@@ -687,7 +687,10 @@ export default function PublicPortal({ slug }: { slug: string }) {
                         name="telefone"
                         type="tel"
                         required
+                        pattern={"[+0-9 \\(\\)\\-]{8,25}"}
+                        maxLength={25}
                         autoComplete="tel"
+                        placeholder="(11) 99999-9999"
                       />
                     </label>
                     <label>
