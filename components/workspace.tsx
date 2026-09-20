@@ -32,32 +32,28 @@ export function useWorkspace() {
   return value;
 }
 export const menu = [
-  ["VISÃO GERAL", [["Dashboard", "/painel", "▦"]]],
   [
-    "OPERAÇÃO",
+    "PRINCIPAL",
     [
-      ["Mesa de reparo", "/painel/mesa-reparo", "▦"],
+      ["Painel", "/painel", "⌂"],
       ["Ordens de serviço", "/painel/ordens", "▤"],
-      ["Agenda", "/painel/agenda", "◷"],
+      ["Recebimento", "/painel/ordens/nova", "◷"],
+      ["Diagnósticos", "/painel/mesa-reparo", "⌕"],
+      ["Agenda", "/painel/agenda", "▦"],
       ["Clientes", "/painel/clientes", "♙"],
       ["Equipamentos", "/painel/equipamentos", "▣"],
-      ["Orçamentos", "/painel/orcamentos", "▧"],
-    ],
-  ],
-  [
-    "GESTÃO",
-    [
-      ["Serviços", "/painel/servicos", "⌘"],
+      ["Estoque", "/painel/estoque", "▧"],
       ["Financeiro", "/painel/financeiro", "＄"],
+      ["Relatórios", "/painel/relatorios", "◫"],
+      ["Serviços", "/painel/servicos", "⌘"],
+      ["Configurações", "/painel/configuracoes", "⚙"],
     ],
   ],
   [
-    "CONFIGURAÇÕES",
+    "EMPRESA",
     [
       ["Minha página", "/painel/minha-pagina", "↗"],
       ["Minha assistência", "/painel/empresa", "▢"],
-      ["Aparência", "/painel/empresa#aparencia", "◐"],
-      ["Configurações", "/painel/configuracoes", "⚙"],
     ],
   ],
 ] as const;
@@ -166,7 +162,10 @@ export default function Workspace({
       { words: ["agenda", "agendamento", "horário", "horario"], href: "/painel/agenda" },
       { words: ["serviço", "servico", "serviços", "servicos"], href: "/painel/servicos" },
       { words: ["financeiro", "finança", "financas", "receita"], href: "/painel/financeiro" },
-      { words: ["mesa", "reparo"], href: "/painel/mesa-reparo" },
+      { words: ["estoque", "peça", "peca", "produto"], href: "/painel/estoque" },
+      { words: ["relatório", "relatorio", "relatórios", "relatorios"], href: "/painel/relatorios" },
+      { words: ["diagnóstico", "diagnostico", "diagnósticos", "diagnosticos", "mesa", "reparo"], href: "/painel/mesa-reparo" },
+      { words: ["recebimento", "entrada", "nova ordem"], href: "/painel/ordens/nova" },
     ];
     const destination = destinations.find((item) =>
       item.words.some((word) => query.includes(word)),
@@ -174,6 +173,14 @@ export default function Workspace({
     router.push(destination?.href || "/painel/ordens");
     setGlobalSearch("");
   }
+  const now = new Date();
+  const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+  const monthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+  const periodLabel =
+    monthStart.toLocaleDateString("pt-BR") +
+    " - " +
+    monthEnd.toLocaleDateString("pt-BR");
+
   return (
     <div className="workspace">
       <header className="mobile-top">
@@ -273,14 +280,20 @@ export default function Workspace({
             />
           </form>
           <div className="workspace-top-context">
-            <span className="workspace-breadcrumb">
-              Horária <span>/ {title}</span>
+            <span className="workspace-date-chip">
+              <b aria-hidden="true">▣</b>
+              {periodLabel}
+              <i aria-hidden="true">⌄</i>
             </span>
+            <button className="workspace-alert-button" aria-label="Notificações" type="button">
+              ♢
+              <span />
+            </button>
             <div className="workspace-profile-chip">
               <span>{empresa?.nome?.slice(0, 2).toUpperCase() || "H"}</span>
               <div>
                 <strong>{empresa?.nome || "Sua assistência"}</strong>
-                <small>{email || "Gestão técnica"}</small>
+                <small>Gestor da loja</small>
               </div>
               <b>⌄</b>
             </div>
