@@ -3248,3 +3248,65 @@ tbody tr:hover td {
     padding: 6px 14px 0;
   }
 }
+
+
+/* Shared pagination for large management tables */
+.data-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px 4px 2px;
+  color: #6e7f99;
+  font-size: .68rem;
+  font-weight: 700;
+}
+
+.data-pagination > div {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.data-pagination button {
+  min-height: 36px;
+  padding: 0 12px;
+  border: 1px solid #dbe4f0;
+  border-radius: 9px;
+  background: #fff;
+  color: #33547f;
+  font: inherit;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.data-pagination button:hover:not(:disabled) {
+  border-color: #9ebbe0;
+  background: #f6f9fd;
+}
+
+.data-pagination button:disabled {
+  opacity: .45;
+  cursor: not-allowed;
+}
+
+.data-pagination strong {
+  color: #405776;
+  font-size: .65rem;
+  white-space: nowrap;
+}
+
+@media (max-width: 680px) {
+  .data-pagination {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .data-pagination > div {
+    justify-content: space-between;
+  }
+
+  .data-pagination button {
+    flex: 1;
+  }
+}
