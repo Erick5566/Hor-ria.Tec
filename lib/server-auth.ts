@@ -24,7 +24,7 @@ export async function getServerAccess() {
   if (user.error || !user.data.user) return null;
   const [context, assurance] = await Promise.all([
     client.rpc("access_context"),
-    client.auth.mfa.getAuthenticatorAssuranceLevel(token),
+    client.auth.mfa.getAuthenticatorAssuranceLevel(),
   ]);
   if (context.error || !context.data) return null;
   return {
