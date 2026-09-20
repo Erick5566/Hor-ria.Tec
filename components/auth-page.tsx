@@ -44,13 +44,14 @@ export default function AuthPage({ mode }: { mode: "login" | "signup" }) {
     const access = await supabase!.rpc("access_context");
     const context = access.data as AccessContext | null;
     const requested = search.get("next");
-    router.push(
-      context?.isSuperAdmin
-        ? "/admin"
-        : requested?.startsWith("/painel")
-          ? requested
-          : "/painel",
-    );
+    if (context?.isSuperAdmin) {
+      const destination = requested?.startsWith("/admin") ? requested : "/admin";
+      router.push(
+        `/seguranca/mfa?next=${encodeURIComponent(destination)}`,
+      );
+    } else {
+      router.push(requested?.startsWith("/painel") ? requested : "/painel");
+    }
     router.refresh();
   }
   async function submit(event: React.FormEvent<HTMLFormElement>) {
@@ -79,6 +80,7 @@ export default function AuthPage({ mode }: { mode: "login" | "signup" }) {
           "solicitacao-enviada",
           "manutencao",
           "conta-bloqueada",
+          "seguranca",
         ]);
         if (reserved.has(slug))
           throw new Error("Escolha outro endereço para a página pública.");
@@ -211,10 +213,15 @@ export default function AuthPage({ mode }: { mode: "login" | "signup" }) {
                 <input
                   name="password"
                   type="password"
-                  minLength={8}
+                  minLength={signup ? 12 : 8}
                   autoComplete={signup ? "new-password" : "current-password"}
                   required
                 />
+                {signup && (
+                  <small>
+                    Use pelo menos 12 caracteres e prefira uma senha única.
+                  </small>
+                )}
               </label>
               {!signup && (
                 <div className="auth-help-row">
