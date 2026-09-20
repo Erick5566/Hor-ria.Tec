@@ -2647,3 +2647,238 @@ tbody tr:hover td {
     min-width: 46px;
   }
 }
+
+
+/* Functional topbar interactions */
+.workspace-top-popover-wrap {
+  position: relative;
+}
+
+.workspace-date-chip,
+.workspace-alert-button,
+.workspace-profile-chip {
+  cursor: pointer;
+  font: inherit;
+}
+
+.workspace-profile-chip {
+  text-align: left;
+}
+
+.workspace-popover {
+  position: absolute;
+  z-index: 80;
+  top: calc(100% + 10px);
+  right: 0;
+  width: 300px;
+  padding: 12px;
+  color: #263e63;
+  background: rgb(255 255 255 / 97%);
+  border: 1px solid #d6e2f0;
+  border-radius: 13px;
+  box-shadow: 0 18px 48px rgb(31 70 123 / 18%);
+  backdrop-filter: blur(18px);
+}
+
+.workspace-period-popover {
+  width: 245px;
+}
+
+.workspace-period-popover > strong,
+.workspace-popover-head strong {
+  display: block;
+  color: #17365f;
+  font-size: .72rem;
+}
+
+.workspace-period-popover label {
+  display: grid;
+  gap: 6px;
+  margin-top: 11px;
+  color: #667c9c;
+  font-size: .6rem;
+  font-weight: 700;
+}
+
+.workspace-period-popover input {
+  min-height: 40px;
+  padding: 0 10px;
+  color: #2d4a72;
+  background: #f8fbff;
+  border: 1px solid #d7e3f1;
+  border-radius: 8px;
+}
+
+.workspace-period-popover > button {
+  width: 100%;
+  margin-top: 9px;
+  padding: 9px 10px;
+  color: #1b5ed0;
+  background: #edf5ff;
+  border: 1px solid #d4e5fb;
+  border-radius: 8px;
+  font-size: .62rem;
+  font-weight: 800;
+}
+
+.workspace-alert-button .workspace-alert-count {
+  position: absolute;
+  right: 5px;
+  top: 4px;
+  display: grid;
+  place-items: center;
+  width: 17px;
+  height: 17px;
+  color: #fff;
+  background: #ef3347;
+  border: 2px solid #fff;
+  border-radius: 999px;
+  font-size: .48rem;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.workspace-alert-popover {
+  width: min(360px, 88vw);
+  padding: 0;
+  overflow: hidden;
+}
+
+.workspace-popover-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 13px 14px;
+  border-bottom: 1px solid #e7edf5;
+}
+
+.workspace-popover-head small {
+  color: #8291a9;
+  font-size: .55rem;
+}
+
+.workspace-alert-list {
+  max-height: 370px;
+  overflow-y: auto;
+}
+
+.workspace-alert-item {
+  display: grid;
+  grid-template-columns: 9px minmax(0, 1fr);
+  gap: 10px;
+  padding: 12px 14px;
+  border-bottom: 1px solid #eef2f7;
+}
+
+.workspace-alert-item:last-child {
+  border-bottom: 0;
+}
+
+.workspace-alert-item:hover {
+  background: #f7fbff;
+}
+
+.workspace-alert-item > span {
+  width: 8px;
+  height: 8px;
+  margin-top: 3px;
+  background: #2f85ff;
+  border-radius: 50%;
+}
+
+.workspace-alert-item.urgent > span {
+  background: #ef4553;
+}
+
+.workspace-alert-item.warning > span {
+  background: #f2a629;
+}
+
+.workspace-alert-item.ready > span {
+  background: #21ad78;
+}
+
+.workspace-alert-item strong,
+.workspace-alert-item small {
+  display: block;
+}
+
+.workspace-alert-item strong {
+  color: #244263;
+  font-size: .64rem;
+}
+
+.workspace-alert-item small {
+  margin-top: 3px;
+  color: #7a8ba5;
+  font-size: .55rem;
+  line-height: 1.4;
+}
+
+.workspace-popover-empty {
+  margin: 0;
+  padding: 22px 14px;
+  color: #7a8ba5;
+  font-size: .62rem;
+  text-align: center;
+}
+
+.workspace-profile-menu {
+  width: 245px;
+  padding: 8px;
+}
+
+.workspace-profile-menu > div {
+  padding: 10px 10px 12px;
+  border-bottom: 1px solid #e9eef5;
+}
+
+.workspace-profile-menu > div strong,
+.workspace-profile-menu > div small {
+  display: block;
+}
+
+.workspace-profile-menu > div strong {
+  color: #17365f;
+  font-size: .68rem;
+}
+
+.workspace-profile-menu > div small {
+  margin-top: 3px;
+  overflow: hidden;
+  color: #7b8ba2;
+  font-size: .54rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.workspace-profile-menu > a,
+.workspace-profile-menu > button {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  padding: 9px 10px;
+  color: #405b7f;
+  background: transparent;
+  border: 0;
+  border-radius: 8px;
+  font-size: .62rem;
+  text-align: left;
+}
+
+.workspace-profile-menu > a:hover,
+.workspace-profile-menu > button:hover {
+  color: #145ccb;
+  background: #edf5ff;
+}
+
+@media (max-width: 760px) {
+  .workspace-popover {
+    position: fixed;
+    top: 128px;
+    right: 12px;
+    left: 12px;
+    width: auto;
+  }
+}
