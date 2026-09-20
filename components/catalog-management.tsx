@@ -1,16 +1,38 @@
 "use client";
-import { useMemo, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useWorkspace } from "./workspace";
-import { useRows, saveRow, Peca, categories, money } from "@/lib/assistencia";
-import { Servico, message } from "@/lib/supabase";
-import { ErrorBox, Empty } from "./ui";
+import { saveRow, categories, money } from "@/lib/assistencia";
+import { message, supabase } from "@/lib/supabase";
+import { ErrorBox, Empty, Pagination } from "./ui";
 
-type Service = Servico & {
-  categoria: string;
+type CatalogItem = {
+  id: string;
+  empresa_id?: string;
+  nome: string;
   preco: number;
-  descricao: string | null;
-  garantia_dias: number;
-  ativo: boolean;
+  compatibilidade?: string | null;
+  quantidade?: number;
+  custo?: number;
+  fornecedor?: string | null;
+  estoque_minimo?: number;
+  categoria?: string | null;
+  duracao?: number;
+  descricao?: string | null;
+  garantia_dias?: number;
+  ativo?: boolean;
+};
+
+type CatalogData = {
+  page: number;
+  pageSize: number;
+  total: number;
+  items: CatalogItem[];
+  metrics: {
+    total: number;
+    active: number;
+    averagePrice: number;
+    secondary: number;
+  };
 };
 
 export default function CatalogManagement({
@@ -18,78 +40,119 @@ export default function CatalogManagement({
 }: {
   stock?: boolean;
 }) {
-  const { empresa } = useWorkspace(),
-    items = useRows<Peca & Service>(stock ? "pecas" : "servicos");
-
-  const [editing, setEditing] = useState<(Peca & Service) | "new" | null>(null),
-    [query, setQuery] = useState(""),
-    [error, setError] = useState(""),
-    [busy, setBusy] = useState(false);
+  const { empresa } = useWorkspace();
+  const [data, setData] = useState<CatalogData | null>(null);
+  const [page, setPage] = useState(1);
+  const [editing, setEditing] = useState<CatalogItem | "new" | null>(null);
+  const [query, setQuery] = useState("");
+  const [debouncedQuery, setDebouncedQuery] = useState("");
+  const [error, setError] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   const current = editing && editing !== "new" ? editing : null;
-  const filtered = items.data.filter((item) =>
-    (item.nome + " " + (item.compatibilidade || item.categoria))
-      .toLowerCase()
-      .includes(query.toLowerCase()),
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      setDebouncedQuery(query.trim());
+      setPage(1);
+    }, 300);
+    return () => window.clearTimeout(timer);
+  }, [query]);
+
+  const load = useCallback(
+    async (silent = false) => {
+      if (!supabase) return;
+      if (!silent) setLoading(true);
+      try {
+        const result = await supabase.rpc("catalog_page", {
+          p_stock: stock,
+          p_page: page,
+          p_page_size: 30,
+          p_search: debouncedQuery || null,
+        });
+        if (result.error) throw result.error;
+        setData(result.data as CatalogData);
+        setError("");
+      } catch (caught) {
+        setError(message(caught as Error));
+      } finally {
+        if (!silent) setLoading(false);
+      }
+    },
+    [stock, page, debouncedQuery],
   );
 
-  const averagePrice = items.data.length
-    ? items.data.reduce((sum, item) => sum + Number(item.preco || 0), 0) / items.data.length
-    : 0;
-  const activeCount = stock
-    ? items.data.filter((item) => Number(item.quantidade) > 0).length
-    : items.data.filter((item) => item.ativo).length;
-  const categoriesCount = useMemo(
-    () =>
-      new Set(
-        items.data
-          .map((item) => (stock ? item.compatibilidade : item.categoria))
-          .filter(Boolean),
-      ).size,
-    [items.data, stock],
-  );
-  const averageDuration =
-    !stock && items.data.length
-      ? Math.round(
-          items.data.reduce((sum, item) => sum + Number(item.duracao || 0), 0) /
-            items.data.length,
-        )
-      : 0;
+  useEffect(() => {
+    void load(false);
+  }, [load]);
+
+  useEffect(() => {
+    if (!supabase || !empresa.id) return;
+    let timer: number | undefined;
+    const refreshSoon = () => {
+      window.clearTimeout(timer);
+      timer = window.setTimeout(() => void load(true), 250);
+    };
+
+    const channel = supabase
+      .channel(`catalog-${stock ? "stock" : "services"}-${empresa.id}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: stock ? "pecas" : "servicos",
+          filter: `empresa_id=eq.${empresa.id}`,
+        },
+        refreshSoon,
+      )
+      .subscribe();
+
+    return () => {
+      window.clearTimeout(timer);
+      void supabase!.removeChannel(channel);
+    };
+  }, [empresa.id, stock, load]);
 
   const metrics = [
     {
       name: stock ? "Itens cadastrados" : "Serviços cadastrados",
-      value: items.data.length,
+      value: data?.metrics.total ?? 0,
       icon: stock ? "▦" : "⌘",
       tone: "blue",
       note: "Catálogo total",
     },
     {
       name: stock ? "Com estoque" : "Serviços ativos",
-      value: activeCount,
+      value: data?.metrics.active ?? 0,
       icon: "✓",
       tone: "green",
       note: stock ? "Disponíveis agora" : "Disponíveis para atendimento",
     },
     {
       name: "Preço médio",
-      value: money(averagePrice),
+      value: money(data?.metrics.averagePrice ?? 0),
       icon: "▥",
       tone: "purple",
       note: "Valor médio do catálogo",
     },
     {
       name: stock ? "Compatibilidades" : "Duração média",
-      value: stock ? categoriesCount : `${averageDuration} min`,
+      value: stock
+        ? data?.metrics.secondary ?? 0
+        : `${data?.metrics.secondary ?? 0} min`,
       icon: stock ? "▣" : "◷",
       tone: "amber",
       note: stock ? "Grupos cadastrados" : "Tempo estimado",
     },
   ];
 
+  const items = data?.items || [];
+
   return (
     <div className="catalog-dashboard">
-      <ErrorBox error={error || items.error} />
+      <ErrorBox error={error} />
 
       <div className="dashboard-kpis catalog-kpis">
         {metrics.map((metric) => (
@@ -99,7 +162,7 @@ export default function CatalogManagement({
               <span>{metric.name}</span>
             </div>
             <div className="dashboard-kpi-value">
-              <strong>{metric.value}</strong>
+              <strong>{loading && !data ? "—" : metric.value}</strong>
               <span className="mini-spark">⌁</span>
             </div>
             <small>{metric.note}</small>
@@ -120,7 +183,11 @@ export default function CatalogManagement({
           <div className="catalog-actions">
             <input
               aria-label="Buscar"
-              placeholder={stock ? "Buscar peça ou compatibilidade..." : "Buscar serviço ou categoria..."}
+              placeholder={
+                stock
+                  ? "Buscar peça ou compatibilidade..."
+                  : "Buscar serviço ou categoria..."
+              }
               value={query}
               onChange={(event) => setQuery(event.target.value)}
             />
@@ -161,11 +228,17 @@ export default function CatalogManagement({
                     garantia_dias: Number(form.get("garantia")),
                     ativo: form.get("ativo") === "on",
                   });
-                await saveRow(stock ? "pecas" : "servicos", value, current?.id);
+
+                await saveRow(
+                  stock ? "pecas" : "servicos",
+                  value,
+                  current?.id,
+                );
                 setEditing(null);
-                await items.reload();
-              } catch (e) {
-                setError(message(e as Error));
+                if (!current) setPage(1);
+                await load(true);
+              } catch (caught) {
+                setError(message(caught as Error));
               } finally {
                 setBusy(false);
               }
@@ -174,9 +247,14 @@ export default function CatalogManagement({
             <div className="catalog-editor-head">
               <div>
                 <span className="eyebrow">CATÁLOGO</span>
-                <h2>{current ? "Editar" : "Cadastrar"} {stock ? "peça" : "serviço"}</h2>
+                <h2>
+                  {current ? "Editar" : "Cadastrar"}{" "}
+                  {stock ? "peça" : "serviço"}
+                </h2>
               </div>
-              <button type="button" onClick={() => setEditing(null)}>Fechar ×</button>
+              <button type="button" onClick={() => setEditing(null)}>
+                Fechar ×
+              </button>
             </div>
 
             <div className="form-grid">
@@ -206,7 +284,10 @@ export default function CatalogManagement({
                 <>
                   <label>
                     Compatibilidade
-                    <input name="compatibilidade" defaultValue={current?.compatibilidade} />
+                    <input
+                      name="compatibilidade"
+                      defaultValue={current?.compatibilidade || ""}
+                    />
                   </label>
                   <label>
                     Quantidade
@@ -231,7 +312,10 @@ export default function CatalogManagement({
                   </label>
                   <label>
                     Fornecedor
-                    <input name="fornecedor" defaultValue={current?.fornecedor} />
+                    <input
+                      name="fornecedor"
+                      defaultValue={current?.fornecedor || ""}
+                    />
                   </label>
                   <label>
                     Estoque mínimo
@@ -248,7 +332,10 @@ export default function CatalogManagement({
                 <>
                   <label>
                     Categoria
-                    <select name="categoria" defaultValue={current?.categoria || "Celular"}>
+                    <select
+                      name="categoria"
+                      defaultValue={current?.categoria || "Celular"}
+                    >
                       {categories.map((category) => (
                         <option key={category}>{category}</option>
                       ))}
@@ -267,7 +354,10 @@ export default function CatalogManagement({
                   </label>
                   <label>
                     Garantia padrão
-                    <select name="garantia" defaultValue={current?.garantia_dias ?? 0}>
+                    <select
+                      name="garantia"
+                      defaultValue={current?.garantia_dias ?? 0}
+                    >
                       <option value={0}>Sem garantia</option>
                       <option value={30}>30 dias</option>
                       <option value={60}>60 dias</option>
@@ -284,17 +374,29 @@ export default function CatalogManagement({
               <>
                 <label>
                   Descrição
-                  <textarea name="descricao" maxLength={1000} defaultValue={current?.descricao || ""} />
+                  <textarea
+                    name="descricao"
+                    maxLength={1000}
+                    defaultValue={current?.descricao || ""}
+                  />
                 </label>
                 <label className="check-label">
-                  <input name="ativo" type="checkbox" defaultChecked={current?.ativo ?? true} />
+                  <input
+                    name="ativo"
+                    type="checkbox"
+                    defaultChecked={current?.ativo ?? true}
+                  />
                   Serviço ativo
                 </label>
               </>
             )}
 
             <div className="form-actions">
-              <button type="button" className="outline" onClick={() => setEditing(null)}>
+              <button
+                type="button"
+                className="outline"
+                onClick={() => setEditing(null)}
+              >
                 Cancelar
               </button>
               <button className="primary" disabled={busy}>
@@ -304,73 +406,106 @@ export default function CatalogManagement({
           </form>
         )}
 
-        {items.loading ? (
+        {loading && !data ? (
           <Empty title="Carregando catálogo..." />
-        ) : !items.data.length ? (
-          <Empty title={stock ? "Nenhuma peça cadastrada" : "Nenhum serviço cadastrado"} />
+        ) : !items.length ? (
+          <Empty
+            title={
+              stock ? "Nenhuma peça cadastrada" : "Nenhum serviço cadastrado"
+            }
+          />
         ) : (
-          <div className="table-wrap dashboard-table catalog-table">
-            <table>
-              <thead>
-                <tr>
-                  <th>{stock ? "Peça" : "Serviço"}</th>
-                  <th>{stock ? "Compatibilidade" : "Categoria"}</th>
-                  <th>{stock ? "Quantidade" : "Duração"}</th>
-                  {stock && (
-                    <>
-                      <th>Custo</th>
-                      <th>Fornecedor</th>
-                      <th>Mínimo</th>
-                    </>
-                  )}
-                  <th>Preço</th>
-                  {!stock && <th>Status</th>}
-                  <th>Ação</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filtered.map((item) => (
-                  <tr key={item.id}>
-                    <td>
-                      <strong className="catalog-name">{item.nome}</strong>
-                      {stock && item.quantidade <= item.estoque_minimo && (
-                        <small className="stock-warning">Estoque baixo</small>
-                      )}
-                      {!stock && item.descricao && (
-                        <small className="catalog-description">{item.descricao}</small>
-                      )}
-                    </td>
-                    <td>{stock ? item.compatibilidade : item.categoria}</td>
-                    <td>
-                      {stock
-                        ? item.quantidade
-                        : `${item.duracao} min${item.garantia_dias ? ` · ${item.garantia_dias} dias garantia` : ""}`}
-                    </td>
+          <>
+            <div className="table-wrap dashboard-table catalog-table">
+              <table>
+                <thead>
+                  <tr>
+                    <th>{stock ? "Peça" : "Serviço"}</th>
+                    <th>{stock ? "Compatibilidade" : "Categoria"}</th>
+                    <th>{stock ? "Quantidade" : "Duração"}</th>
                     {stock && (
                       <>
-                        <td>{money(item.custo)}</td>
-                        <td>{item.fornecedor}</td>
-                        <td>{item.estoque_minimo}</td>
+                        <th>Custo</th>
+                        <th>Fornecedor</th>
+                        <th>Mínimo</th>
                       </>
                     )}
-                    <td><strong>{money(item.preco)}</strong></td>
-                    {!stock && (
-                      <td>
-                        <span className={`catalog-status ${item.ativo ? "active" : "inactive"}`}>
-                          {item.ativo ? "Ativo" : "Inativo"}
-                        </span>
-                      </td>
-                    )}
-                    <td>
-                      <button className="catalog-edit" onClick={() => setEditing(item)}>
-                        Editar
-                      </button>
-                    </td>
+                    <th>Preço</th>
+                    {!stock && <th>Status</th>}
+                    <th>Ação</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody>
+                  {items.map((item) => (
+                    <tr key={item.id}>
+                      <td>
+                        <strong className="catalog-name">{item.nome}</strong>
+                        {stock &&
+                          Number(item.quantidade || 0) <=
+                            Number(item.estoque_minimo || 0) && (
+                            <small className="stock-warning">
+                              Estoque baixo
+                            </small>
+                          )}
+                        {!stock && item.descricao && (
+                          <small className="catalog-description">
+                            {item.descricao}
+                          </small>
+                        )}
+                      </td>
+                      <td>
+                        {stock ? item.compatibilidade : item.categoria}
+                      </td>
+                      <td>
+                        {stock
+                          ? item.quantidade || 0
+                          : `${item.duracao || 0} min${
+                              item.garantia_dias
+                                ? ` · ${item.garantia_dias} dias garantia`
+                                : ""
+                            }`}
+                      </td>
+                      {stock && (
+                        <>
+                          <td>{money(item.custo || 0)}</td>
+                          <td>{item.fornecedor}</td>
+                          <td>{item.estoque_minimo || 0}</td>
+                        </>
+                      )}
+                      <td>
+                        <strong>{money(item.preco)}</strong>
+                      </td>
+                      {!stock && (
+                        <td>
+                          <span
+                            className={`catalog-status ${
+                              item.ativo ? "active" : "inactive"
+                            }`}
+                          >
+                            {item.ativo ? "Ativo" : "Inativo"}
+                          </span>
+                        </td>
+                      )}
+                      <td>
+                        <button
+                          className="catalog-edit"
+                          onClick={() => setEditing(item)}
+                        >
+                          Editar
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <Pagination
+              page={data?.page || page}
+              pageSize={data?.pageSize || 30}
+              total={data?.total || 0}
+              onPageChange={setPage}
+            />
+          </>
         )}
       </section>
 
@@ -379,14 +514,48 @@ export default function CatalogManagement({
           <div className="dashboard-card-head">
             <div>
               <h2>Oportunidades para o catálogo</h2>
-              <p>Alguns serviços comuns que podem ajudar a completar sua oferta.</p>
+              <p>
+                Alguns serviços comuns que podem ajudar a completar sua oferta.
+              </p>
             </div>
           </div>
           <div className="catalog-ideas">
-            <article><span>▣</span><div><strong>Celular</strong><small>Troca de tela, bateria, conector e desoxidação.</small></div></article>
-            <article><span>▤</span><div><strong>Notebook</strong><small>SSD, RAM, teclado, limpeza e reparo de placa.</small></div></article>
-            <article><span>⌘</span><div><strong>Console</strong><small>HDMI, limpeza, superaquecimento e controle.</small></div></article>
-            <article><span>▦</span><div><strong>Computador</strong><small>Montagem, upgrade, diagnóstico, fonte e GPU.</small></div></article>
+            <article>
+              <span>▣</span>
+              <div>
+                <strong>Celular</strong>
+                <small>
+                  Troca de tela, bateria, conector e desoxidação.
+                </small>
+              </div>
+            </article>
+            <article>
+              <span>▤</span>
+              <div>
+                <strong>Notebook</strong>
+                <small>
+                  SSD, RAM, teclado, limpeza e reparo de placa.
+                </small>
+              </div>
+            </article>
+            <article>
+              <span>⌘</span>
+              <div>
+                <strong>Console</strong>
+                <small>
+                  HDMI, limpeza, superaquecimento e controle.
+                </small>
+              </div>
+            </article>
+            <article>
+              <span>▦</span>
+              <div>
+                <strong>Computador</strong>
+                <small>
+                  Montagem, upgrade, diagnóstico, fonte e GPU.
+                </small>
+              </div>
+            </article>
           </div>
         </section>
       )}
