@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Heading, ErrorBox } from "./ui";
 import CatalogManagement from "./catalog-management";
 import CompanySettings from "./company-settings";
+import Finance from "./finance";
 import RepairBench from "./repair-bench";
 import PublicPageSettings from "./public-page-settings";
 import { useWorkspace } from "./workspace";
@@ -11,6 +12,7 @@ import { supabase, message } from "@/lib/supabase";
 const titles: Record<string, string> = {
   servicos: "Serviços",
   "mesa-reparo": "Mesa de reparo",
+  financeiro: "Financeiro",
   empresa: "Minha empresa",
   configuracoes: "Configurações",
   "pagina-cliente": "Página do cliente",
@@ -28,6 +30,7 @@ export default function AdminModule({ module }: { module: string }) {
       <Heading title={titles[module]} />
       {module === "servicos" && <CatalogManagement />}
       {module === "mesa-reparo" && <RepairBench />}
+      {module === "financeiro" && <Finance />}
       {module === "minha-pagina" && <PublicPageSettings />}
       {["empresa", "configuracoes"].includes(module) && <CompanySettings />}
       {module === "pagina-cliente" && (
