@@ -103,8 +103,6 @@ export default function PublicPortal({ slug }: { slug: string }) {
     [busy, setBusy] = useState(false),
     [receipt, setReceipt] = useState<Receipt | null>(null),
     [done, setDone] = useState(false),
-    [step, setStep] = useState(1),
-    [schedule, setSchedule] = useState(false),
     [service, setService] = useState(""),
     [day, setDay] = useState(today()),
     [slots, setSlots] = useState<string[]>([]),
@@ -134,7 +132,7 @@ export default function PublicPortal({ slug }: { slug: string }) {
     let active = true;
     setSlots([]);
     setSlot("");
-    if (service && schedule)
+    if (service)
       publicDb
         ?.rpc("horarios_disponiveis", {
           p_slug: slug,
@@ -149,18 +147,17 @@ export default function PublicPortal({ slug }: { slug: string }) {
     return () => {
       active = false;
     };
-  }, [service, day, schedule, slug]);
+  }, [service, day, slug]);
   async function submit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setError("");
-    const controls = e.currentTarget.querySelectorAll<
-      HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
-    >(
-      `[data-step="${step}"] input,[data-step="${step}"] select,[data-step="${step}"] textarea`,
-    );
-    for (const control of controls) if (!control.reportValidity()) return;
-    if (step < 3) {
-      setStep(step + 1);
+    if (!e.currentTarget.reportValidity()) return;
+    if (!service) {
+      setError("Selecione o serviço que você precisa.");
+      return;
+    }
+    if (!slot) {
+      setError("Selecione um horário disponível.");
       return;
     }
     setBusy(true);
@@ -187,8 +184,8 @@ export default function PublicPortal({ slug }: { slug: string }) {
             cor: device.cor,
           },
           p_problema: f.get("problema"),
-          p_servico: schedule ? service : null,
-          p_inicio: schedule ? slot : null,
+          p_servico: service,
+          p_inicio: slot,
           p_endereco: f.get("endereco") || null,
         });
         if (r.error) throw r.error;
@@ -285,8 +282,8 @@ export default function PublicPortal({ slug }: { slug: string }) {
             )}
             <div className="inline-actions public-hero-actions">
               {(profile.pagina?.mostrar_agendamento ?? true) && (
-                <Link className="primary" href={`/agendar/${slug}`}>
-                  {profile.pagina?.botao_primario || "Agendar atendimento"}
+                <Link className="primary" href="#agendamento">
+                  {profile.pagina?.botao_primario || "Agendar atendimento"} →
                 </Link>
               )}
               {(profile.pagina?.mostrar_acompanhamento ?? true) &&
@@ -653,66 +650,33 @@ export default function PublicPortal({ slug }: { slug: string }) {
               </details>
             </section>
           ) : (profile.pagina?.mostrar_agendamento ?? true) ? (
-            <form noValidate onSubmit={submit}>
-              <div className="public-section-heading request-heading">
-                <div>
-                  <span>ATENDIMENTO</span>
-                  <h2>Solicite uma avaliação</h2>
-                </div>
-                <p>Conte o que aconteceu com seu equipamento.</p>
+            <form
+              id="agendamento"
+              className="public-booking-modern"
+              noValidate
+              onSubmit={submit}
+            >
+              <div className="public-booking-title">
+                <span>AGENDAMENTO ONLINE</span>
+                <h2>Agende seu atendimento</h2>
+                <p>
+                  Escolha o aparelho, selecione o serviço e encontre o melhor
+                  horário para você.
+                </p>
               </div>
-              <div className="step-navigation">
-                {["Seus dados", "Equipamento", "Fotos e horário"].map(
-                  (label, i) => (
-                    <span
-                      key={label}
-                      className={step === i + 1 ? "active" : ""}
-                    >
-                      {i + 1}. {label}
-                    </span>
-                  ),
-                )}
-              </div>
-              <fieldset disabled={busy || !!receipt}>
-                <section className="panel" data-step="1" hidden={step !== 1}>
-                  <h2>1. Seus dados</h2>
-                  <div className="form-grid">
-                    <label>
-                      Nome
-                      <input
-                        name="nome"
-                        required
-                        minLength={2}
-                        maxLength={100}
-                        autoComplete="name"
-                      />
-                    </label>
-                    <label>
-                      WhatsApp
-                      <input
-                        name="telefone"
-                        type="tel"
-                        required
-                        pattern={"[+0-9 \\(\\)\\-]{8,25}"}
-                        maxLength={25}
-                        autoComplete="tel"
-                        placeholder="(11) 99999-9999"
-                      />
-                    </label>
-                    <label>
-                      E-mail (opcional)
-                      <input
-                        name="email"
-                        type="email"
-                        maxLength={200}
-                        autoComplete="email"
-                      />
-                    </label>
+
+              <ErrorBox error={error} />
+
+              <div className="public-booking-layout">
+                <section className="public-booking-card">
+                  <div className="booking-section-title">
+                    <b>1</b>
+                    <div>
+                      <h3>Selecione seu aparelho</h3>
+                      <p>Qual equipamento precisa de atendimento?</p>
+                    </div>
                   </div>
-                </section>
-                <section className="panel" data-step="2" hidden={step !== 2}>
-                  <h2>2. Equipamento e problema</h2>
-                  <p>Selecione o tipo de equipamento</p>
+
                   <DeviceCategoryCards
                     value={device.categoria}
                     onChange={(categoria) =>
@@ -725,125 +689,207 @@ export default function PublicPortal({ slug }: { slug: string }) {
                       })
                     }
                   />
-                  <DeviceFields
-                    showCategory={false}
-                    value={device}
-                    onChange={setDevice}
-                  />
-                  <label>
+
+                  <details className="booking-device-details">
+                    <summary>Adicionar detalhes do aparelho</summary>
+                    <DeviceFields
+                      showCategory={false}
+                      value={device}
+                      onChange={setDevice}
+                    />
+                  </details>
+
+                  <div className="booking-divider" />
+
+                  <div className="booking-section-title">
+                    <b>2</b>
+                    <div>
+                      <h3>Selecione o serviço</h3>
+                      <p>Escolha o atendimento que você precisa.</p>
+                    </div>
+                  </div>
+
+                  <div className="booking-service-grid">
+                    {profile.servicos.map((item) => (
+                      <button
+                        key={item.id}
+                        type="button"
+                        className={
+                          service === item.id
+                            ? "booking-service active"
+                            : "booking-service"
+                        }
+                        onClick={() => setService(item.id)}
+                      >
+                        <span>◇</span>
+                        <div>
+                          <strong>{item.nome}</strong>
+                          <small>Aproximadamente {item.duracao} min</small>
+                        </div>
+                        {service === item.id && <i>✓</i>}
+                      </button>
+                    ))}
+                  </div>
+
+                  <label className="booking-problem">
                     Conte o que está acontecendo
                     <textarea
                       name="problema"
                       required
                       minLength={3}
                       maxLength={5000}
-                      placeholder="Conte o que aconteceu e quando o problema começou."
+                      placeholder="Ex.: aparelho não liga, tela quebrada, bateria descarregando rápido..."
                     />
                   </label>
                 </section>
-                <section className="panel" data-step="3" hidden={step !== 3}>
-                  <label className="check-label">
+
+                <section className="public-booking-card booking-schedule-card">
+                  <div className="booking-section-title">
+                    <b>3</b>
+                    <div>
+                      <h3>Escolha a data e o horário</h3>
+                      <p>
+                        Veja os horários disponíveis para o serviço selecionado.
+                      </p>
+                    </div>
+                  </div>
+
+                  <label className="booking-date">
+                    Data
                     <input
-                      type="checkbox"
-                      checked={schedule}
-                      onChange={(e) => setSchedule(e.target.checked)}
+                      required
+                      type="date"
+                      min={today()}
+                      value={day}
+                      onChange={(e) => setDay(e.target.value)}
                     />
-                    Quero escolher um horário para levar o equipamento
                   </label>
-                  {schedule && (
-                    <>
-                      <div className="form-grid">
-                        <label>
-                          Serviço
-                          <select
-                            required
-                            value={service}
-                            onChange={(e) => setService(e.target.value)}
+
+                  <div className="booking-time-area">
+                    <span>Horários disponíveis</span>
+                    {!service ? (
+                      <p className="booking-helper">
+                        Escolha um serviço para consultar os horários.
+                      </p>
+                    ) : slots.length ? (
+                      <div className="booking-time-grid">
+                        {slots.map((availableSlot) => (
+                          <button
+                            type="button"
+                            key={availableSlot}
+                            className={
+                              slot === availableSlot
+                                ? "booking-time active"
+                                : "booking-time"
+                            }
+                            onClick={() => setSlot(availableSlot)}
                           >
-                            <option value="">Selecione</option>
-                            {profile.servicos.map((s) => (
-                              <option key={s.id} value={s.id}>
-                                {s.nome}
-                              </option>
-                            ))}
-                          </select>
-                        </label>
-                        <label>
-                          Dia
-                          <input
-                            required
-                            type="date"
-                            min={today()}
-                            value={day}
-                            onChange={(e) => setDay(e.target.value)}
-                          />
-                        </label>
-                        <label>
-                          Horário disponível
-                          <select
-                            required
-                            value={slot}
-                            onChange={(e) => setSlot(e.target.value)}
-                          >
-                            <option value="">
-                              {slots.length
-                                ? "Escolha um horário"
-                                : "Nenhum horário disponível"}
-                            </option>
-                            {slots.map((s) => (
-                              <option key={s} value={s}>
-                                {time(s)}
-                              </option>
-                            ))}
-                          </select>
-                        </label>
+                            {time(availableSlot)}
+                          </button>
+                        ))}
                       </div>
-                      {profile.solicitar_endereco && (
-                        <label>
-                          Endereço
-                          <input
-                            name="endereco"
-                            required
-                            minLength={5}
-                            maxLength={300}
-                          />
-                        </label>
-                      )}
-                    </>
+                    ) : (
+                      <p className="booking-helper">
+                        Nenhum horário disponível nesta data.
+                      </p>
+                    )}
+                  </div>
+
+                  <div className="booking-divider" />
+
+                  <div className="booking-client-title">
+                    <h3>Seus dados</h3>
+                    <p>
+                      Usaremos essas informações para confirmar o atendimento.
+                    </p>
+                  </div>
+
+                  <div className="booking-client-grid">
+                    <label>
+                      Nome completo
+                      <input
+                        name="nome"
+                        required
+                        minLength={2}
+                        maxLength={100}
+                        autoComplete="name"
+                        placeholder="Ex.: João Silva"
+                      />
+                    </label>
+
+                    <label>
+                      WhatsApp
+                      <input
+                        name="telefone"
+                        type="tel"
+                        required
+                        pattern={"[+0-9 \\(\\)\\-]{8,25}"}
+                        maxLength={25}
+                        autoComplete="tel"
+                        placeholder="(75) 99999-9999"
+                      />
+                    </label>
+                  </div>
+
+                  <label>
+                    E-mail <span className="optional">opcional</span>
+                    <input
+                      name="email"
+                      type="email"
+                      maxLength={200}
+                      autoComplete="email"
+                      placeholder="voce@email.com"
+                    />
+                  </label>
+
+                  {profile.solicitar_endereco && (
+                    <label>
+                      Endereço
+                      <input
+                        name="endereco"
+                        required
+                        minLength={5}
+                        maxLength={300}
+                        placeholder="Rua, número e bairro"
+                      />
+                    </label>
                   )}
-                </section>
-              </fieldset>
-              <section className="panel" data-step="3" hidden={step !== 3}>
-                <PhotoPicker publicMode value={photos} onChange={setPhotos} />
-                {profile.fotos_obrigatorias && (
-                  <p>É necessária pelo menos uma foto.</p>
-                )}
-              </section>
-              {receipt && (
-                <p className="notice">
-                  OS #{receipt.numero} criada. Conclua o envio das fotos abaixo.
-                  Código: {receipt.codigo}
-                </p>
-              )}
-              <div className="form-actions">
-                {step > 1 && !receipt && (
+
+                  <details className="booking-photo-details">
+                    <summary>
+                      Adicionar foto do aparelho
+                      {profile.fotos_obrigatorias ? " · obrigatório" : ""}
+                    </summary>
+                    <PhotoPicker
+                      publicMode
+                      value={photos}
+                      onChange={setPhotos}
+                    />
+                  </details>
+
+                  {receipt && (
+                    <p className="notice">
+                      OS #{receipt.numero} criada. Conclua o envio das fotos.
+                      Código: {receipt.codigo}
+                    </p>
+                  )}
+
                   <button
-                    type="button"
-                    disabled={busy}
-                    onClick={() => setStep(step - 1)}
+                    disabled={busy || !service || !slot}
+                    className="primary booking-confirm"
                   >
-                    ← Voltar
+                    {busy
+                      ? "Confirmando…"
+                      : receipt
+                        ? "Tentar envio das fotos novamente"
+                        : "Confirmar agendamento →"}
                   </button>
-                )}
-                <button disabled={busy} className="primary">
-                  {busy
-                    ? "Enviando…"
-                    : receipt
-                      ? "Tentar envio das fotos novamente"
-                      : step < 3
-                        ? "Continuar →"
-                        : "Solicitar atendimento"}
-                </button>
+
+                  <div className="booking-security">
+                    <span>✓ Solicitação registrada na hora</span>
+                    <span>◷ Confirmação pelo WhatsApp</span>
+                  </div>
+                </section>
               </div>
             </form>
           ) : null}
