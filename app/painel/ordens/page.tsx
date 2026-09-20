@@ -1,19 +1,16 @@
 "use client";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import {
-  useRows,
-  Ordem,
-  Cliente,
-  Equipamento,
-  Orcamento,
-  latestQuotes,
   money,
   stamp,
   statuses,
+  type Status,
 } from "@/lib/assistencia";
-import { Heading, Badge, Empty, ErrorBox } from "@/components/ui";
+import { message, supabase } from "@/lib/supabase";
+import { Heading, Badge, Empty, ErrorBox, Pagination } from "@/components/ui";
+import { useWorkspace } from "@/components/workspace";
 
 const priorityLabels = {
   baixa: "Baixa",
@@ -21,6 +18,38 @@ const priorityLabels = {
   alta: "Alta",
   urgente: "Urgente",
 } as const;
+
+type Priority = keyof typeof priorityLabels;
+
+type OrderListItem = {
+  id: string;
+  numero: number;
+  problema: string;
+  criado_em: string;
+  tecnico: string | null;
+  prioridade: Priority;
+  status: Status;
+  entrada_confirmada: boolean;
+  cliente_nome: string | null;
+  equipamento_marca: string | null;
+  equipamento_modelo: string | null;
+  quote_total: number | null;
+};
+
+type OrdersPageData = {
+  page: number;
+  pageSize: number;
+  total: number;
+  items: OrderListItem[];
+  technicians: string[];
+  metrics: {
+    open: number;
+    diagnostic: number;
+    urgent: number;
+    ready: number;
+    forecast: number;
+  };
+};
 
 function initials(name?: string | null) {
   if (!name) return "—";
@@ -30,111 +59,155 @@ function initials(name?: string | null) {
 
 export default function Orders() {
   const params = useSearchParams();
-  const os = useRows<Ordem>("ordens_servico"),
-    cs = useRows<Cliente>("clientes"),
-    eq = useRows<Equipamento>("equipamentos"),
-    qs = useRows<Orcamento>("orcamentos");
-
+  const { empresa } = useWorkspace();
   const [search, setSearch] = useState(params.get("q") || "");
+  const [debouncedSearch, setDebouncedSearch] = useState(search);
   const [status, setStatus] = useState("");
   const [technician, setTechnician] = useState("");
   const [priority, setPriority] = useState("");
   const [period, setPeriod] = useState("");
   const [sort, setSort] = useState<"recent" | "oldest" | "value">("recent");
+  const [page, setPage] = useState(1);
+  const [data, setData] = useState<OrdersPageData | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
   useEffect(() => {
-    setSearch(params.get("q") || "");
+    const next = params.get("q") || "";
+    setSearch(next);
+    setPage(1);
   }, [params]);
 
-    const quotes = latestQuotes(qs.data);
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      setDebouncedSearch(search.trim());
+      setPage(1);
+    }, 300);
+    return () => window.clearTimeout(timer);
+  }, [search]);
 
-  const technicians = useMemo(
-    () =>
-      Array.from(
-        new Set(
-          os.data
-            .map((order) => order.tecnico?.trim())
-            .filter((name): name is string => Boolean(name)),
-        ),
-      ).sort((a, b) => a.localeCompare(b)),
-    [os.data],
+  const load = useCallback(
+    async (silent = false) => {
+      if (!supabase) return;
+      if (!silent) setLoading(true);
+      try {
+        const result = await supabase.rpc("orders_list_page", {
+          p_page: page,
+          p_page_size: 30,
+          p_search: debouncedSearch || null,
+          p_status: status || null,
+          p_technician: technician || null,
+          p_priority: priority || null,
+          p_period: period ? Number(period) : null,
+          p_sort: sort,
+        });
+        if (result.error) throw result.error;
+        setData(result.data as OrdersPageData);
+        setError("");
+      } catch (caught) {
+        setError(message(caught as Error));
+      } finally {
+        if (!silent) setLoading(false);
+      }
+    },
+    [page, debouncedSearch, status, technician, priority, period, sort],
   );
 
-  const list = useMemo(() => {
-    const now = Date.now();
-    const cutoff =
-      period === "7"
-        ? now - 7 * 86400000
-        : period === "30"
-          ? now - 30 * 86400000
-          : period === "90"
-            ? now - 90 * 86400000
-            : null;
+  useEffect(() => {
+    void load(false);
+  }, [load]);
 
-    const filtered = os.data.filter((order) => {
-      if (status && order.status !== status) return false;
-      if (technician && order.tecnico !== technician) return false;
-      if (priority && order.prioridade !== priority) return false;
-      if (cutoff && new Date(order.criado_em).getTime() < cutoff) return false;
+  useEffect(() => {
+    if (!supabase || !empresa.id) return;
 
-      const customer = cs.data.find((item) => item.id === order.cliente_id);
-      const device = eq.data.find((item) => item.id === order.equipamento_id);
-      return `${order.numero} ${customer?.nome || ""} ${device?.marca || ""} ${device?.modelo || ""} ${order.problema}`
-        .toLowerCase()
-        .includes(search.toLowerCase().trim());
-    });
+    let timer: number | undefined;
+    const refreshSoon = () => {
+      window.clearTimeout(timer);
+      timer = window.setTimeout(() => void load(true), 250);
+    };
 
-    return [...filtered].sort((a, b) => {
-      if (sort === "oldest")
-        return new Date(a.criado_em).getTime() - new Date(b.criado_em).getTime();
-      if (sort === "value")
-        return Number(quotes[b.id]?.total || 0) - Number(quotes[a.id]?.total || 0);
-      return new Date(b.criado_em).getTime() - new Date(a.criado_em).getTime();
-    });
-  }, [os.data, cs.data, eq.data, status, technician, priority, period, search, sort, quotes]);
+    const channel = supabase
+      .channel(`orders-list-${empresa.id}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "ordens_servico",
+          filter: `empresa_id=eq.${empresa.id}`,
+        },
+        refreshSoon,
+      )
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "orcamentos",
+          filter: `empresa_id=eq.${empresa.id}`,
+        },
+        refreshSoon,
+      )
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "clientes",
+          filter: `empresa_id=eq.${empresa.id}`,
+        },
+        refreshSoon,
+      )
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "equipamentos",
+          filter: `empresa_id=eq.${empresa.id}`,
+        },
+        refreshSoon,
+      )
+      .subscribe();
 
-  const activeOrders = os.data.filter(
-    (order) => !["finalizado", "cancelado"].includes(order.status),
-  );
+    return () => {
+      window.clearTimeout(timer);
+      void supabase!.removeChannel(channel);
+    };
+  }, [empresa.id, load]);
+
   const metrics = [
     {
       label: "Ordens abertas",
-      value: activeOrders.length,
+      value: data?.metrics.open ?? 0,
       note: "Em andamento",
       icon: "▤",
       tone: "blue",
     },
     {
       label: "Em diagnóstico",
-      value: os.data.filter((order) =>
-        ["novo", "recebido", "em_diagnostico"].includes(order.status),
-      ).length,
+      value: data?.metrics.diagnostic ?? 0,
       note: "Aguardando análise",
       icon: "⌘",
       tone: "amber",
     },
     {
       label: "Urgentes",
-      value: activeOrders.filter((order) => order.prioridade === "urgente").length,
+      value: data?.metrics.urgent ?? 0,
       note: "Precisam de atenção",
       icon: "!",
       tone: "red",
     },
     {
       label: "Prontas para retirada",
-      value: os.data.filter((order) => order.status === "pronto_retirada").length,
+      value: data?.metrics.ready ?? 0,
       note: "Aguardando cliente",
       icon: "✓",
       tone: "green",
     },
     {
       label: "Previsão de faturamento",
-      value: money(
-        activeOrders.reduce(
-          (sum, order) => sum + Number(quotes[order.id]?.total || 0),
-          0,
-        ),
-      ),
+      value: money(data?.metrics.forecast ?? 0),
       note: "Orçamentos das OS abertas",
       icon: "▥",
       tone: "purple",
@@ -143,13 +216,16 @@ export default function Orders() {
 
   const clearFilters = () => {
     setSearch("");
+    setDebouncedSearch("");
     setStatus("");
     setTechnician("");
     setPriority("");
     setPeriod("");
+    setPage(1);
   };
 
-  const loading = os.loading || cs.loading || eq.loading || qs.loading;
+  const list = data?.items ?? [];
+  const total = data?.total ?? 0;
 
   return (
     <section className="module orders-pro">
@@ -160,14 +236,14 @@ export default function Orders() {
         href="/painel/ordens/nova"
       />
 
-      <ErrorBox error={os.error || cs.error || eq.error || qs.error} />
+      <ErrorBox error={error} />
 
       <div className="orders-summary">
         {metrics.map((metric) => (
           <article className={"orders-summary-card " + metric.tone} key={metric.label}>
             <span className="orders-summary-icon">{metric.icon}</span>
             <div>
-              <strong>{loading ? "—" : metric.value}</strong>
+              <strong>{loading && !data ? "—" : metric.value}</strong>
               <b>{metric.label}</b>
               <small>{metric.note}</small>
             </div>
@@ -197,7 +273,10 @@ export default function Orders() {
             <select
               aria-label="Filtrar status"
               value={status}
-              onChange={(event) => setStatus(event.target.value)}
+              onChange={(event) => {
+                setStatus(event.target.value);
+                setPage(1);
+              }}
             >
               <option value="">Todos os status</option>
               {Object.entries(statuses).map(([value, name]) => (
@@ -213,10 +292,13 @@ export default function Orders() {
             <select
               aria-label="Filtrar técnico"
               value={technician}
-              onChange={(event) => setTechnician(event.target.value)}
+              onChange={(event) => {
+                setTechnician(event.target.value);
+                setPage(1);
+              }}
             >
               <option value="">Todos os técnicos</option>
-              {technicians.map((name) => (
+              {(data?.technicians ?? []).map((name) => (
                 <option key={name}>{name}</option>
               ))}
             </select>
@@ -227,7 +309,10 @@ export default function Orders() {
             <select
               aria-label="Filtrar prioridade"
               value={priority}
-              onChange={(event) => setPriority(event.target.value)}
+              onChange={(event) => {
+                setPriority(event.target.value);
+                setPage(1);
+              }}
             >
               <option value="">Todas as prioridades</option>
               <option value="urgente">Urgente</option>
@@ -242,7 +327,10 @@ export default function Orders() {
             <select
               aria-label="Filtrar período"
               value={period}
-              onChange={(event) => setPeriod(event.target.value)}
+              onChange={(event) => {
+                setPeriod(event.target.value);
+                setPage(1);
+              }}
             >
               <option value="">Todo o período</option>
               <option value="7">Últimos 7 dias</option>
@@ -255,10 +343,16 @@ export default function Orders() {
 
       <section className="orders-table-card">
         <div className="orders-table-head">
-          <strong>{list.length} {list.length === 1 ? "ordem de serviço" : "ordens de serviço"}</strong>
+          <strong>{total} {total === 1 ? "ordem de serviço" : "ordens de serviço"}</strong>
           <label>
             <span>Ordenar por</span>
-            <select value={sort} onChange={(event) => setSort(event.target.value as typeof sort)}>
+            <select
+              value={sort}
+              onChange={(event) => {
+                setSort(event.target.value as typeof sort);
+                setPage(1);
+              }}
+            >
               <option value="recent">Mais recentes</option>
               <option value="oldest">Mais antigas</option>
               <option value="value">Maior valor</option>
@@ -266,7 +360,7 @@ export default function Orders() {
           </label>
         </div>
 
-        {loading ? (
+        {loading && !data ? (
           <Empty title="Carregando ordens…" />
         ) : !list.length ? (
           <Empty
@@ -294,101 +388,102 @@ export default function Orders() {
                   </tr>
                 </thead>
                 <tbody>
-                  {list.map((order) => {
-                    const customer = cs.data.find((item) => item.id === order.cliente_id);
-                    const device = eq.data.find((item) => item.id === order.equipamento_id);
-                    return (
-                      <tr key={order.id}>
-                        <td>
-                          <strong className="orders-os">#{order.numero}</strong>
-                        </td>
-                        <td>
-                          <div className="orders-person">
-                            <span>{initials(customer?.nome)}</span>
-                            <strong>{customer?.nome || "Cliente"}</strong>
-                          </div>
-                        </td>
-                        <td>
-                          <div className="orders-device">
-                            <strong>{device?.modelo || "Equipamento"}</strong>
-                            <small>{device?.marca || ""}</small>
-                          </div>
-                        </td>
-                        <td>
-                          <span className="orders-problem" title={order.problema}>
-                            {order.problema}
-                          </span>
-                        </td>
-                        <td>{stamp(order.criado_em)}</td>
-                        <td className="orders-value">
-                          {quotes[order.id] ? money(quotes[order.id].total) : "A orçar"}
-                        </td>
-                        <td>
-                          <div className="orders-tech">
-                            <span>{initials(order.tecnico)}</span>
-                            <strong>{order.tecnico || "Não atribuído"}</strong>
-                          </div>
-                        </td>
-                        <td>
-                          <span className={"orders-priority " + order.prioridade}>
-                            {priorityLabels[order.prioridade]}
-                          </span>
-                        </td>
-                        <td>
-                          <Badge status={order.status} />
-                          {!order.entrada_confirmada && (
-                            <small className="orders-review">Entrada em conferência</small>
-                          )}
-                        </td>
-                        <td>
-                          <Link className="orders-open-link" href={`/painel/ordens/${order.id}`}>
-                            Abrir →
-                          </Link>
-                        </td>
-                      </tr>
-                    );
-                  })}
+                  {list.map((order) => (
+                    <tr key={order.id}>
+                      <td>
+                        <strong className="orders-os">#{order.numero}</strong>
+                      </td>
+                      <td>
+                        <div className="orders-person">
+                          <span>{initials(order.cliente_nome)}</span>
+                          <strong>{order.cliente_nome || "Cliente"}</strong>
+                        </div>
+                      </td>
+                      <td>
+                        <div className="orders-device">
+                          <strong>{order.equipamento_modelo || "Equipamento"}</strong>
+                          <small>{order.equipamento_marca || ""}</small>
+                        </div>
+                      </td>
+                      <td>
+                        <span className="orders-problem" title={order.problema}>
+                          {order.problema}
+                        </span>
+                      </td>
+                      <td>{stamp(order.criado_em)}</td>
+                      <td className="orders-value">
+                        {order.quote_total != null ? money(order.quote_total) : "A orçar"}
+                      </td>
+                      <td>
+                        <div className="orders-tech">
+                          <span>{initials(order.tecnico)}</span>
+                          <strong>{order.tecnico || "Não atribuído"}</strong>
+                        </div>
+                      </td>
+                      <td>
+                        <span className={"orders-priority " + order.prioridade}>
+                          {priorityLabels[order.prioridade]}
+                        </span>
+                      </td>
+                      <td>
+                        <Badge status={order.status} />
+                        {!order.entrada_confirmada && (
+                          <small className="orders-review">Entrada em conferência</small>
+                        )}
+                      </td>
+                      <td>
+                        <Link className="orders-open-link" href={`/painel/ordens/${order.id}`}>
+                          Abrir →
+                        </Link>
+                      </td>
+                    </tr>
+                  ))}
                 </tbody>
               </table>
             </div>
 
             <div className="mobile-cards orders-mobile-cards">
-              {list.map((order) => {
-                const customer = cs.data.find((item) => item.id === order.cliente_id);
-                const device = eq.data.find((item) => item.id === order.equipamento_id);
-                return (
-                  <Link
-                    className="mobile-order orders-mobile-card"
-                    href={`/painel/ordens/${order.id}`}
-                    key={order.id}
-                  >
-                    <div className="orders-mobile-top">
-                      <strong>OS #{order.numero}</strong>
-                      <Badge status={order.status} />
+              {list.map((order) => (
+                <Link
+                  className="mobile-order orders-mobile-card"
+                  href={`/painel/ordens/${order.id}`}
+                  key={order.id}
+                >
+                  <div className="orders-mobile-top">
+                    <strong>OS #{order.numero}</strong>
+                    <Badge status={order.status} />
+                  </div>
+                  <div className="orders-mobile-person">
+                    <span>{initials(order.cliente_nome)}</span>
+                    <div>
+                      <strong>{order.cliente_nome || "Cliente"}</strong>
+                      <small>
+                        {order.equipamento_modelo
+                          ? `${order.equipamento_marca || ""} ${order.equipamento_modelo}`.trim()
+                          : "Equipamento"}
+                      </small>
                     </div>
-                    <div className="orders-mobile-person">
-                      <span>{initials(customer?.nome)}</span>
-                      <div>
-                        <strong>{customer?.nome || "Cliente"}</strong>
-                        <small>
-                          {device ? `${device.marca} ${device.modelo}`.trim() : "Equipamento"}
-                        </small>
-                      </div>
-                    </div>
-                    <p className="orders-mobile-problem">{order.problema}</p>
-                    <div className="orders-mobile-meta">
-                      <span className={"orders-priority " + order.prioridade}>
-                        {priorityLabels[order.prioridade]}
-                      </span>
-                      <span>{order.tecnico || "Sem técnico"}</span>
-                      <strong>
-                        {quotes[order.id] ? money(quotes[order.id].total) : "A orçar"}
-                      </strong>
-                    </div>
-                  </Link>
-                );
-              })}
+                  </div>
+                  <p className="orders-mobile-problem">{order.problema}</p>
+                  <div className="orders-mobile-meta">
+                    <span className={"orders-priority " + order.prioridade}>
+                      {priorityLabels[order.prioridade]}
+                    </span>
+                    <span>{order.tecnico || "Sem técnico"}</span>
+                    <strong>
+                      {order.quote_total != null ? money(order.quote_total) : "A orçar"}
+                    </strong>
+                  </div>
+                </Link>
+              ))}
             </div>
+
+            <Pagination
+              page={data?.page || page}
+              pageSize={data?.pageSize || 30}
+              total={total}
+              onPageChange={setPage}
+            />
           </>
         )}
       </section>
