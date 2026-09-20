@@ -72,7 +72,7 @@ export default function InventoryManagement() {
       const status = item.quantidade === 0 ? "Sem estoque" : item.quantidade <= item.estoque_minimo ? "Estoque baixo" : "Disponível";
       return <article className={`inventory-card ${item.ativo ? "" : "inactive"}`} key={item.id}>
         <div className="inventory-card-head"><span className="stock-kind">{item.tipo}</span><span className={`stock-state ${status === "Disponível" ? "available" : status === "Estoque baixo" ? "low" : "empty"}`}>{status}</span></div>
-        {item.foto_url && <img className="inventory-photo" src={item.foto_url} alt="" />}<h2>{item.nome}</h2><p>{item.categoria}{item.compatibilidade ? ` · ${item.compatibilidade}` : ""}</p>{item.descricao && <small>{item.descricao}</small>}
+        {item.foto_url && <img className="inventory-photo" src={item.foto_url} alt={`Foto de ${item.nome}`} />}<h2>{item.nome}</h2><p>{item.categoria}{item.compatibilidade ? ` · ${item.compatibilidade}` : ""}</p>{item.descricao && <small>{item.descricao}</small>}
         <div className="stock-quantity"><strong>{item.quantidade}</strong><span>{item.unidade}(s)<small>Mínimo: {item.estoque_minimo}</small></span></div>
         {(item.sku || item.codigo_barras) && <small>SKU: {item.sku || "—"} · Código: {item.codigo_barras || "—"}</small>}
         <dl><div><dt>Custo</dt><dd>{money(item.custo)}</dd></div><div><dt>Venda</dt><dd>{money(item.preco)}</dd></div><div><dt>Margem</dt><dd>{Number(item.preco) ? `${Math.round(((Number(item.preco) - Number(item.custo)) / Number(item.preco)) * 100)}%` : "—"}</dd></div></dl>
