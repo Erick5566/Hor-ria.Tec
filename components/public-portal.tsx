@@ -178,10 +178,12 @@ export default function PublicPortal({ slug }: { slug: string }) {
           },
           p_equipamento: {
             categoria: device.categoria,
-            tipo_personalizado: device.tipo_personalizado,
-            marca: device.marca,
-            modelo: device.modelo,
-            cor: device.cor,
+            tipo_personalizado:
+              device.tipo_personalizado ||
+              (device.categoria === "Outro" ? "Outro equipamento" : null),
+            marca: device.marca || "Não informada",
+            modelo: device.modelo || device.categoria || "Não informado",
+            cor: device.cor || null,
           },
           p_problema: f.get("problema"),
           p_servico: service,
@@ -369,6 +371,7 @@ export default function PublicPortal({ slug }: { slug: string }) {
                     <summary>Adicionar detalhes do aparelho</summary>
                     <DeviceFields
                       showCategory={false}
+                      required={false}
                       value={device}
                       onChange={setDevice}
                     />
