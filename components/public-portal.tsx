@@ -9,6 +9,7 @@ import { PhotoPicker } from "./photos";
 import { PendingPhoto, uploadPhotos } from "@/lib/photos";
 import { DeviceCategoryCards } from "./device-fields";
 import DeviceFields from "./device-fields";
+import Turnstile from "./turnstile";
 import { publicDb, message, Servico, today, time } from "@/lib/supabase";
 import { money } from "@/lib/assistencia";
 type Profile = {
@@ -106,7 +107,8 @@ export default function PublicPortal({ slug }: { slug: string }) {
     [service, setService] = useState(""),
     [day, setDay] = useState(today()),
     [slots, setSlots] = useState<string[]>([]),
-    [slot, setSlot] = useState("");
+    [slot, setSlot] = useState(""),
+    [turnstileToken, setTurnstileToken] = useState("");
   const [device, setDevice] = useState<Record<string, string>>({
     categoria: "Celular",
     tipo_personalizado: "",
@@ -160,6 +162,12 @@ export default function PublicPortal({ slug }: { slug: string }) {
       setError("Selecione um horário disponível.");
       return;
     }
+    const turnstileSiteKey =
+      process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY || "";
+    if (turnstileSiteKey && !turnstileToken) {
+      setError("Confirme a verificação de segurança para continuar.");
+      return;
+    }
     setBusy(true);
     const f = new FormData(e.currentTarget);
     try {
@@ -191,6 +199,7 @@ export default function PublicPortal({ slug }: { slug: string }) {
             inicio: slot,
             endereco: f.get("endereco") || null,
             website: f.get("website"),
+            turnstileToken: turnstileToken || null,
           },
         });
         if (r.error)
@@ -560,6 +569,13 @@ export default function PublicPortal({ slug }: { slug: string }) {
                       onChange={setPhotos}
                     />
                   </details>
+
+                  {process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY && (
+                    <Turnstile
+                      siteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY}
+                      onToken={setTurnstileToken}
+                    />
+                  )}
 
                   {receipt && (
                     <p className="notice">
