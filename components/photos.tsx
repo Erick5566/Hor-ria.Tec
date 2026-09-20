@@ -166,9 +166,9 @@ export function PhotoPicker({
     try {
       if (value.length + files.length > 15)
         throw new Error("Adicione até 15 fotos por envio.");
-      for (const file of files) {
-        const prepared = await preparePhoto(file),
-          preview = URL.createObjectURL(prepared);
+      const preparedFiles = await Promise.all(files.map(preparePhoto));
+      for (const prepared of preparedFiles) {
+        const preview = URL.createObjectURL(prepared);
         urls.current.push(preview);
         pending.push({
           id: crypto.randomUUID(),
@@ -256,7 +256,7 @@ export function PhotoPicker({
               onClick={() => setZoom(p.preview)}
               aria-label={`Ampliar foto ${i + 1}`}
             >
-              <img src={p.preview} alt={`Foto ${i + 1} do equipamento`} />
+              <img src={p.preview} alt={`Foto ${i + 1} do equipamento`} loading="lazy" decoding="async" />
             </button>
             <div className="photo-meta">
               {!publicMode && (
@@ -354,16 +354,30 @@ export function PhotosPanel({
         .eq("ordem_id", ordemId)
         .order("criado_em");
       if (error) throw error;
-      const signed = await Promise.all(
-        (data as Foto[]).map(async (p) => {
-          const { data, error } = await supabase!.storage
-            .from("os-fotos")
-            .createSignedUrl(p.caminho, 3600);
-          if (error) throw error;
-          return { ...p, signed: data.signedUrl };
-        }),
+      const rows = data as Foto[];
+      if (!rows.length) {
+        setPhotos([]);
+        return;
+      }
+      const signedResult = await supabase!.storage
+        .from("os-fotos")
+        .createSignedUrls(
+          rows.map((photo) => photo.caminho),
+          3600,
+        );
+      if (signedResult.error) throw signedResult.error;
+      const signedByPath = new Map(
+        (signedResult.data || []).map((item) => [
+          item.path,
+          item.signedUrl || "",
+        ]),
       );
-      setPhotos(signed);
+      setPhotos(
+        rows.map((photo) => ({
+          ...photo,
+          signed: signedByPath.get(photo.caminho) || "",
+        })),
+      );
     } catch (e) {
       setError(message(e as Error));
     }
@@ -420,7 +434,12 @@ export function PhotosPanel({
                         aria-label={`Ampliar foto de ${p.categoria}`}
                         onClick={() => setZoom(p.signed)}
                       >
-                        <img src={p.signed} alt={p.descricao || p.categoria} />
+                        <img
+                          src={p.signed}
+                          alt={p.descricao || p.categoria}
+                          loading="lazy"
+                          decoding="async"
+                        />
                       </button>
                       <div className="photo-meta">
                         <strong>{stamp(p.criado_em)}</strong>
