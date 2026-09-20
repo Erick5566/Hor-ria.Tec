@@ -382,7 +382,7 @@ export default function Overview() {
                 <span />
                 <div>
                   <b>{appointment.nome_cliente || "Cliente"}</b>
-                  <small>{appointment.finalidade || "Atendimento"}</small>
+                  <small>{appointment.descricao || "Atendimento"}</small>
                 </div>
                 <i>→</i>
               </Link>
