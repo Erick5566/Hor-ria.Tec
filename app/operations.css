@@ -6278,3 +6278,83 @@ button.danger,
     height: 34px;
   }
 }
+
+
+/* KPI trend v2 — isolated renderer to eliminate the old crossed-line artwork */
+.dashboard-reference .kpi-trend-v2 {
+  display: block;
+  width: 96px;
+  min-width: 96px;
+  height: 38px;
+  margin-left: auto;
+  color: #2688ff;
+  overflow: hidden;
+}
+
+.dashboard-reference .kpi-trend-v2 svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.dashboard-reference .kpi-trend-v2-line {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.3;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+}
+
+.dashboard-reference .kpi-trend-v2.blue,
+.dashboard-reference .kpi-trend-v2.sky {
+  color: #2688ff;
+}
+
+.dashboard-reference .kpi-trend-v2.amber {
+  color: #f2a000;
+}
+
+.dashboard-reference .kpi-trend-v2.green {
+  color: #14a977;
+}
+
+.dashboard-reference .kpi-trend-v2.purple {
+  color: #8c52ff;
+}
+
+/* The previous decorative mini-line can no longer render, even if stale markup remains. */
+.dashboard-reference .dashboard-mini-line,
+.dashboard-reference .dashboard-mini-line::before,
+.dashboard-reference .dashboard-mini-line::after {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+  opacity: 0 !important;
+  content: none !important;
+}
+
+@media (max-width: 1080px) {
+  .dashboard-reference .kpi-trend-v2 {
+    width: 88px;
+    min-width: 88px;
+    height: 36px;
+  }
+}
+
+@media (max-width: 760px) {
+  .dashboard-reference .kpi-trend-v2 {
+    width: 78px;
+    min-width: 78px;
+    height: 34px;
+  }
+}
+
+@media (max-width: 480px) {
+  .dashboard-reference .kpi-trend-v2 {
+    width: 92px;
+    min-width: 92px;
+    height: 34px;
+  }
+}

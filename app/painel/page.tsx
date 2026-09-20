@@ -54,53 +54,47 @@ function daysBetween(start: string, end: string) {
   return Math.max(0, diff / 86400000);
 }
 
-function sparkPoints(values: number[], width = 100, height = 36, padding = 3) {
+function sparkPath(values: number[], width = 100, height = 36, padding = 3) {
   const safe = values.length ? values : [0, 0];
   const min = Math.min(...safe);
   const max = Math.max(...safe);
   const range = Math.max(max - min, 1);
-  return safe
-    .map((value, index) => {
-      const x =
-        safe.length === 1
-          ? width / 2
-          : padding + (index / (safe.length - 1)) * (width - padding * 2);
-      const y =
-        max === min
-          ? height / 2
-          : height -
-            padding -
-            ((value - min) / range) * (height - padding * 2);
-      return `${x.toFixed(2)},${y.toFixed(2)}`;
-    })
+
+  const coords = safe.map((value, index) => {
+    const x =
+      safe.length === 1
+        ? width / 2
+        : padding + (index / (safe.length - 1)) * (width - padding * 2);
+    const y =
+      max === min
+        ? height / 2
+        : height -
+          padding -
+          ((value - min) / range) * (height - padding * 2);
+    return { x, y };
+  });
+
+  return coords
+    .map(
+      (point, index) =>
+        `${index === 0 ? "M" : "L"} ${point.x.toFixed(2)} ${point.y.toFixed(2)}`,
+    )
     .join(" ");
 }
 
 function KpiSparkline({
   values,
   tone,
-  id,
 }: {
   values: number[];
   tone: string;
-  id: string;
 }) {
-  const points = sparkPoints(values);
-  const firstX = points.split(" ")[0]?.split(",")[0] || "3";
-  const lastX = points.split(" ").at(-1)?.split(",")[0] || "97";
-  const areaPoints = `${firstX},36 ${points} ${lastX},36`;
+  const path = sparkPath(values);
 
   return (
-    <span className={"dashboard-kpi-sparkline " + tone} aria-hidden="true">
+    <span className={"kpi-trend-v2 " + tone} aria-hidden="true">
       <svg viewBox="0 0 100 36" preserveAspectRatio="none">
-        <defs>
-          <linearGradient id={`spark-${id}`} x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="currentColor" stopOpacity=".18" />
-            <stop offset="100%" stopColor="currentColor" stopOpacity="0" />
-          </linearGradient>
-        </defs>
-        <polygon points={areaPoints} fill={`url(#spark-${id})`} />
-        <polyline points={points} />
+        <path className="kpi-trend-v2-line" d={path} />
       </svg>
     </span>
   );
@@ -484,15 +478,7 @@ export default function Overview() {
             </div>
             <div className="dashboard-kpi-value">
               <strong>{loading ? "—" : metric.value}</strong>
-              <KpiSparkline
-                values={metric.spark}
-                tone={metric.tone}
-                id={metric.name
-                  .toLowerCase()
-                  .normalize("NFD")
-                  .replace(/[\u0300-\u036f]/g, "")
-                  .replace(/[^a-z0-9]+/g, "-")}
-              />
+              <KpiSparkline values={metric.spark} tone={metric.tone} />
             </div>
             <div className="dashboard-trend-note">
               {metric.trend !== null ? (
