@@ -8,11 +8,11 @@ import {
 } from "@/lib/device-catalog";
 
 const deviceCategoryImages: Record<string, string> = {
-  "Fone de ouvido": "/devices/fone.png",
-  "Celular": "/devices/celular.png",
-  "Notebook": "/devices/notebook.png",
-  "Tablet": "/devices/tablet.png",
-  "Outro": "/devices/outros.png",
+  "Fone de ouvido": "/devices/fone-v2.png",
+  "Celular": "/devices/celular-v2.png",
+  "Notebook": "/devices/notebook-v2.png",
+  "Tablet": "/devices/tablet-v2.png",
+  "Outro": "/devices/outros-v2.png",
 };
 
 export function DeviceGlyph({ type = "phone" }: { type?: string }) {
@@ -45,12 +45,17 @@ export function DeviceCategoryCards({
           key={category.name}
           onClick={() => onChange(category.name)}
         >
-          <img
-            className="device-card-image"
-            src={deviceCategoryImages[category.name]}
-            alt=""
-            aria-hidden="true"
-          />
+          <span className="device-card-media" aria-hidden="true">
+            <DeviceGlyph type={category.icon} />
+            <img
+              className="device-card-image"
+              src={deviceCategoryImages[category.name]}
+              alt=""
+              onError={(event) => {
+                event.currentTarget.style.display = "none";
+              }}
+            />
+          </span>
           <strong>
             {category.name === "Outro" ? "Outros" : category.name}
           </strong>
