@@ -4590,3 +4590,468 @@ button.danger,
     align-items: flex-start;
   }
 }
+
+
+/* Approved light-blue Horária visual — final layer */
+.dashboard-pro,
+.orders-pro,
+.records-dashboard,
+.quotes-dashboard,
+.agenda-dashboard,
+.module-servicos,
+.module-empresa,
+.module-configuracoes,
+.module-minha-pagina,
+.module-pagina-cliente,
+.module-perfil,
+.module-ajuda,
+.record-detail-pro,
+.order-detail-pro,
+.new-order-pro,
+.subscription-pro {
+  color: #15305b;
+}
+
+.dashboard-heading-wrap {
+  min-width: 0;
+  flex: 1;
+}
+
+.dashboard-welcome {
+  display: block;
+  margin-bottom: 2px;
+  color: #496d9f;
+  font-size: .82rem;
+  font-weight: 700;
+}
+
+.dashboard-heading-wrap .module-heading {
+  margin-bottom: 0;
+}
+
+.dashboard-heading-wrap .module-heading .eyebrow {
+  display: none;
+}
+
+.dashboard-heading-wrap .module-heading h1 {
+  margin-top: 0;
+  font-size: clamp(2.25rem, 4vw, 3.2rem);
+  color: #09162d;
+}
+
+.dashboard-heading-wrap .module-heading p {
+  color: #567095;
+  font-size: .9rem;
+}
+
+.dashboard-heading-wrap .module-heading .primary {
+  min-width: 142px;
+  min-height: 48px;
+  display: inline-grid;
+  place-items: center;
+  font-size: .76rem;
+}
+
+.dashboard-hero {
+  align-items: center;
+  gap: 14px;
+}
+
+.dashboard-callout {
+  min-width: 305px;
+  min-height: 72px;
+  padding: 12px 15px;
+  color: #17335f;
+  background: rgb(255 255 255 / 68%);
+  border: 1px solid rgb(168 197 233 / 48%);
+  border-radius: 14px;
+  box-shadow:
+    0 10px 28px rgb(54 97 151 / 8%),
+    inset 0 1px 0 rgb(255 255 255 / 80%);
+  backdrop-filter: blur(14px);
+}
+
+.dashboard-callout strong {
+  color: #17335f;
+}
+
+.dashboard-callout small {
+  color: #7587a6;
+}
+
+.dashboard-callout-icon {
+  color: #1261ff;
+  background: #e7f1ff;
+}
+
+.dashboard-kpis {
+  gap: 12px;
+}
+
+.dashboard-kpi {
+  min-height: 130px;
+  padding: 16px;
+  background:
+    linear-gradient(180deg, rgb(255 255 255 / 90%), rgb(255 255 255 / 76%));
+  border: 1px solid rgb(177 204 236 / 54%);
+  border-radius: 14px;
+  box-shadow:
+    0 12px 30px rgb(49 91 146 / 7%),
+    inset 0 1px 0 rgb(255 255 255 / 88%);
+  backdrop-filter: blur(14px);
+}
+
+.dashboard-kpi:hover {
+  transform: translateY(-2px);
+  box-shadow:
+    0 17px 38px rgb(42 89 150 / 10%),
+    inset 0 1px 0 rgb(255 255 255 / 90%);
+}
+
+.dashboard-kpi-top > span:last-child {
+  color: #25436f;
+  font-weight: 800;
+}
+
+.dashboard-kpi-value strong {
+  color: #0d1b35;
+}
+
+.dashboard-kpi > small {
+  color: #7186a7;
+}
+
+.dashboard-kpi-icon {
+  border-radius: 11px;
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 70%);
+}
+
+.dashboard-card,
+.orders-filters-card,
+.orders-table-card,
+.records-main-card,
+.quotes-main-card,
+.quotes-side-card,
+.catalog-main-card,
+.catalog-insights,
+.agenda-main-card,
+.agenda-share-card,
+.repair-summary article,
+.repair-card-pro {
+  background:
+    linear-gradient(180deg, rgb(255 255 255 / 91%), rgb(255 255 255 / 78%));
+  border-color: rgb(178 204 234 / 55%);
+  box-shadow:
+    0 12px 34px rgb(46 88 144 / 8%),
+    inset 0 1px 0 rgb(255 255 255 / 88%);
+  backdrop-filter: blur(14px);
+}
+
+.dashboard-card {
+  border-radius: 15px;
+}
+
+.dashboard-card-head h2 {
+  color: #16335f;
+}
+
+.dashboard-card-head p {
+  color: #7486a4;
+}
+
+.dashboard-card-head a {
+  color: #1261ff;
+  font-weight: 800;
+}
+
+.dashboard-filter,
+.finance-period,
+.finance-ghost {
+  color: #45648f;
+  background: rgb(247 251 255 / 86%);
+  border-color: #d6e2f0;
+}
+
+.dashboard-line-chart .dash-grid-line {
+  stroke: #dce7f4;
+}
+
+.dashboard-line-chart .dash-open-line {
+  stroke: #1261ff;
+}
+
+.dashboard-line-chart .dash-final-line {
+  stroke: #46aaf4;
+}
+
+.dashboard-chart-axis,
+.dashboard-chart-legend {
+  color: #6d82a3;
+}
+
+.dashboard-status-donut::after {
+  background: #f7fbff;
+  box-shadow: inset 0 0 0 1px #dfe8f3;
+}
+
+.dashboard-status-donut strong {
+  color: #17325c;
+}
+
+.dashboard-status-donut small {
+  color: #7b8da8;
+}
+
+.dashboard-status-legend b,
+.dashboard-performance-list strong,
+.dashboard-agenda-list b,
+.dashboard-priority-list b {
+  color: #29466e;
+}
+
+.dashboard-status-legend strong {
+  color: #17345f;
+}
+
+.dashboard-performance-list article {
+  background: rgb(245 250 255 / 78%);
+  border: 1px solid #e1eaf4;
+  border-radius: 11px;
+}
+
+.dashboard-performance-list article > span {
+  background: #e7f2ff;
+  color: #1261ff;
+}
+
+.dashboard-performance-list small {
+  color: #7287a8;
+}
+
+.dashboard-table th,
+.orders-table th,
+.records-table th,
+.quotes-table th,
+.catalog-table th,
+.finance-dashboard .finance-table th {
+  color: #637b9e;
+  background: rgb(239 246 255 / 86%);
+}
+
+.dashboard-table td,
+.orders-table td,
+.records-table td,
+.quotes-table td,
+.catalog-table td {
+  color: #365074;
+  border-bottom-color: #e8eef6;
+}
+
+.dashboard-table tbody tr:hover td,
+.orders-table tbody tr:hover td,
+.records-table tbody tr:hover td,
+.quotes-table tbody tr:hover td,
+.catalog-table tbody tr:hover td {
+  background: rgb(248 252 255 / 92%);
+}
+
+.dashboard-agenda-list > a,
+.dashboard-priority-list > a {
+  border-bottom-color: #e8eef6;
+}
+
+.dashboard-agenda-list > a > strong,
+.dashboard-priority-list > a > strong {
+  color: #19365f;
+}
+
+.dashboard-agenda-list small,
+.dashboard-priority-list small {
+  color: #7b8da9;
+}
+
+.priority-chip {
+  border-radius: 999px;
+}
+
+.orders-filters-card,
+.orders-table-card,
+.records-main-card,
+.quotes-main-card,
+.quotes-side-card,
+.catalog-main-card,
+.catalog-insights,
+.agenda-main-card,
+.agenda-share-card {
+  border-radius: 15px;
+}
+
+.orders-search input,
+.orders-filter-grid select,
+.orders-table-head select,
+.records-actions input,
+.catalog-actions input,
+.records-editor input,
+.records-editor select,
+.records-editor textarea,
+.catalog-editor input,
+.catalog-editor select,
+.catalog-editor textarea,
+.agenda-main-card input,
+.agenda-main-card select {
+  background: rgb(250 253 255 / 88%);
+  border-color: #d7e3f1;
+  color: #334e73;
+}
+
+.orders-search input:focus,
+.orders-filter-grid select:focus,
+.records-actions input:focus,
+.catalog-actions input:focus,
+.records-editor input:focus,
+.records-editor select:focus,
+.records-editor textarea:focus,
+.catalog-editor input:focus,
+.catalog-editor select:focus,
+.catalog-editor textarea:focus {
+  border-color: #6ea7f1;
+  box-shadow: 0 0 0 4px rgb(18 97 255 / 8%);
+  outline: none;
+}
+
+.records-editor,
+.catalog-editor {
+  background: rgb(247 251 255 / 86%);
+  border-color: #dce7f3;
+}
+
+.records-avatar,
+.orders-person > span,
+.orders-tech > span,
+.orders-mobile-person > span {
+  color: #155acb;
+  background: linear-gradient(145deg, #e9f3ff, #dcecff);
+}
+
+.records-edit,
+.catalog-edit,
+.orders-open-link,
+.quotes-open,
+.quote-os {
+  color: #1261ff !important;
+}
+
+.quote-status.enviado,
+.orders-priority.normal {
+  color: #1767d0;
+  background: #e9f3ff;
+}
+
+.catalog-ideas article,
+.order-detail-pro .definition-grid > div,
+.record-detail-pro .definition-grid > div,
+.subscription-pro .definition-grid > div,
+.new-order-pro .checklist label {
+  background: rgb(247 251 255 / 84%);
+  border-color: #dfe9f4;
+}
+
+.agenda-main-card .agenda-toolbar {
+  background: rgb(246 250 255 / 80%);
+}
+
+.agenda-main-card .day-group {
+  background: rgb(244 249 255 / 72%);
+}
+
+.agenda-main-card .appointment {
+  background: rgb(255 255 255 / 91%);
+  border-color: #dfe8f2;
+}
+
+.agenda-main-card .appointment:not(.blocked) {
+  border-left-color: #1261ff;
+}
+
+.agenda-share-card {
+  color: #28466f;
+}
+
+.agenda-share-card .share-icon {
+  color: #fff;
+  background: linear-gradient(145deg, #2374ff, #1159ee);
+}
+
+.repair-column-pro {
+  background: rgb(240 247 255 / 70%);
+  border-color: #d9e5f2;
+}
+
+.repair-column-pro > header {
+  background: rgb(240 247 255 / 90%);
+}
+
+.repair-card-pro {
+  border-color: #dce6f1;
+}
+
+.finance-dashboard {
+  background:
+    radial-gradient(circle at 82% 8%, rgb(104 181 228 / 12%), transparent 28rem),
+    linear-gradient(180deg, #0b1f3a 0%, #07162b 100%);
+  border: 1px solid rgb(95 145 207 / 18%);
+  box-shadow: 0 18px 44px rgb(18 57 105 / 13%);
+}
+
+.module-heading .eyebrow {
+  color: #466d9f;
+}
+
+.status-pill[data-status="pronto_retirada"] {
+  color: #1767d0;
+  background: #e9f3ff;
+}
+
+.status-pill[data-status="em_reparo"],
+.status-pill[data-status="em_testes"] {
+  color: #126748;
+  background: #e6f7ef;
+}
+
+.status-pill[data-status="finalizado"] {
+  color: #1f7e5d;
+  background: #e4f6ee;
+}
+
+.status-pill[data-status="cancelado"] {
+  color: #b94350;
+  background: #ffeaed;
+}
+
+@media (max-width: 1250px) {
+  .dashboard-callout {
+    min-width: 260px;
+  }
+}
+
+@media (max-width: 900px) {
+  .dashboard-hero {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .dashboard-callout {
+    width: 100%;
+    min-width: 0;
+  }
+}
+
+@media (max-width: 700px) {
+  .dashboard-heading-wrap .module-heading h1 {
+    font-size: 2.2rem;
+  }
+
+  .dashboard-welcome {
+    font-size: .72rem;
+  }
+}

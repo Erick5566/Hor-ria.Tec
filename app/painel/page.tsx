@@ -209,12 +209,15 @@ export default function Overview() {
   return (
     <section className="module dashboard-pro">
       <div className="dashboard-hero">
-        <Heading
-          title="Visão geral"
-          subtitle="Acompanhe sua assistência técnica em um só lugar."
-          action="+ Nova Ordem"
-          href="/painel/ordens/nova"
-        />
+        <div className="dashboard-heading-wrap">
+          <span className="dashboard-welcome">Olá, seja bem-vindo! 👋</span>
+          <Heading
+            title="Visão geral"
+            subtitle="Tudo o que importa da sua assistência técnica, em um só lugar."
+            action="+ Nova Ordem"
+            href="/painel/ordens/nova"
+          />
+        </div>
         <div className="dashboard-callout">
           <span className="dashboard-callout-icon">↗</span>
           <div>
