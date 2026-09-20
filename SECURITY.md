@@ -18,8 +18,13 @@ RPC grants for tenant isolation.
 ## Before production sales
 
 - Enable leaked-password protection in Supabase Auth.
-- Enable CAPTCHA/rate-limit protection for login/signup and the public booking
-  flow. Database flood limits are a second layer, not a CAPTCHA replacement.
+- Public booking is routed through the `public-booking` Edge Function, which
+  enforces IP/tenant rate limiting before the database call. A database flood
+  guard and the per-phone daily limit remain as additional layers.
+- Cloudflare Turnstile support is already implemented in the Edge Function and
+  becomes mandatory automatically when `TURNSTILE_SECRET_KEY` is configured.
+  The browser widget/site key must be configured at the same time.
+- Enable CAPTCHA/rate-limit protection for login/signup in Supabase Auth.
 - Enable MFA for SUPER_ADMIN.
 - Confirm automated database backups and perform a restore test.
 - Configure the final Kiwify webhook verification method from Kiwify's current

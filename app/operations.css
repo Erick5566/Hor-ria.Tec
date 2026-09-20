@@ -6866,3 +6866,14 @@ button.danger,
 /* deploy-retry-device-images */
 
 /* retry-device-cards-1789936126022 */
+
+
+.booking-honeypot {
+  position: absolute !important;
+  left: -10000px !important;
+  width: 1px !important;
+  height: 1px !important;
+  overflow: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}

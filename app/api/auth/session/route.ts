@@ -3,7 +3,15 @@ import { cookies } from "next/headers";
 import { createClient } from "@supabase/supabase-js";
 import { sessionCookie } from "@/lib/server-auth";
 
+function sameOrigin(request: Request) {
+  const origin = request.headers.get("origin");
+  return !origin || origin === new URL(request.url).origin;
+}
+
 export async function POST(request: Request) {
+  if (!sameOrigin(request))
+    return NextResponse.json({ error: "Origem inválida" }, { status: 403 });
+
   const body = (await request.json().catch(() => null)) as {
     accessToken?: string;
   } | null;
@@ -33,7 +41,10 @@ export async function POST(request: Request) {
   (await cookies()).set(sessionCookie, body.accessToken, {
     httpOnly: true,
     sameSite: "lax",
-    secure: new URL(request.url).protocol === "https:",
+    secure:
+      process.env.NODE_ENV === "production" ||
+      new URL(request.url).protocol === "https:",
+    priority: "high",
     path: "/",
     maxAge,
   });
@@ -41,10 +52,16 @@ export async function POST(request: Request) {
 }
 
 export async function DELETE(request: Request) {
+  if (!sameOrigin(request))
+    return NextResponse.json({ error: "Origem inválida" }, { status: 403 });
+
   (await cookies()).set(sessionCookie, "", {
     httpOnly: true,
     sameSite: "lax",
-    secure: new URL(request.url).protocol === "https:",
+    secure:
+      process.env.NODE_ENV === "production" ||
+      new URL(request.url).protocol === "https:",
+    priority: "high",
     path: "/",
     maxAge: 0,
   });

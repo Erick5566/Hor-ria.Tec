@@ -169,29 +169,37 @@ export default function PublicPortal({ slug }: { slug: string }) {
         );
       let created = receipt;
       if (!created) {
-        const r = await publicDb!.rpc("solicitar_reparo", {
-          p_slug: slug,
-          p_cliente: {
-            nome: f.get("nome"),
-            whatsapp: f.get("telefone"),
-            email: f.get("email"),
+        const r = await publicDb!.functions.invoke("public-booking", {
+          body: {
+            slug,
+            cliente: {
+              nome: f.get("nome"),
+              whatsapp: f.get("telefone"),
+              email: f.get("email"),
+            },
+            equipamento: {
+              categoria: device.categoria,
+              tipo_personalizado:
+                device.tipo_personalizado ||
+                (device.categoria === "Outro" ? "Outro equipamento" : null),
+              marca: device.marca || "Não informada",
+              modelo: device.modelo || device.categoria || "Não informado",
+              cor: device.cor || null,
+            },
+            problema: f.get("problema"),
+            servico: service,
+            inicio: slot,
+            endereco: f.get("endereco") || null,
+            website: f.get("website"),
           },
-          p_equipamento: {
-            categoria: device.categoria,
-            tipo_personalizado:
-              device.tipo_personalizado ||
-              (device.categoria === "Outro" ? "Outro equipamento" : null),
-            marca: device.marca || "Não informada",
-            modelo: device.modelo || device.categoria || "Não informado",
-            cor: device.cor || null,
-          },
-          p_problema: f.get("problema"),
-          p_servico: service,
-          p_inicio: slot,
-          p_endereco: f.get("endereco") || null,
         });
-        if (r.error) throw r.error;
-        created = r.data as Receipt;
+        if (r.error)
+          throw new Error("Não foi possível enviar a solicitação agora.");
+        if (!r.data?.ok)
+          throw new Error(
+            r.data?.error || "Não foi possível concluir a solicitação.",
+          );
+        created = r.data.receipt as Receipt;
         setReceipt(created);
       }
       await uploadPhotos(
@@ -333,6 +341,14 @@ export default function PublicPortal({ slug }: { slug: string }) {
               noValidate
               onSubmit={submit}
             >
+              <input
+                className="booking-honeypot"
+                name="website"
+                type="text"
+                tabIndex={-1}
+                autoComplete="off"
+                aria-hidden="true"
+              />
               <div className="public-booking-title">
                 <span>AGENDAMENTO ONLINE</span>
                 <h2>Agende seu atendimento</h2>
