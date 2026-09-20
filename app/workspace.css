@@ -3003,11 +3003,21 @@ tbody tr:hover td {
 }
 
 .workspace-date-chip {
+  position: relative;
   min-width: 205px;
-  justify-content: space-between;
+  justify-content: center;
+  padding-inline: 38px;
+  text-align: center;
+}
+
+.workspace-date-chip > span {
+  width: 100%;
+  text-align: center;
 }
 
 .workspace-date-chip .workspace-calendar-icon {
+  position: absolute;
+  left: 13px;
   color: #2259a6;
 }
 
