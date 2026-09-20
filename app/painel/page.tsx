@@ -54,6 +54,64 @@ function daysBetween(start: string, end: string) {
   return Math.max(0, diff / 86400000);
 }
 
+function sparkPoints(values: number[], width = 100, height = 36, padding = 3) {
+  const safe = values.length ? values : [0, 0];
+  const min = Math.min(...safe);
+  const max = Math.max(...safe);
+  const range = Math.max(max - min, 1);
+  return safe
+    .map((value, index) => {
+      const x =
+        safe.length === 1
+          ? width / 2
+          : padding + (index / (safe.length - 1)) * (width - padding * 2);
+      const y =
+        max === min
+          ? height / 2
+          : height -
+            padding -
+            ((value - min) / range) * (height - padding * 2);
+      return `${x.toFixed(2)},${y.toFixed(2)}`;
+    })
+    .join(" ");
+}
+
+function KpiSparkline({
+  values,
+  tone,
+  id,
+}: {
+  values: number[];
+  tone: string;
+  id: string;
+}) {
+  const points = sparkPoints(values);
+  const firstX = points.split(" ")[0]?.split(",")[0] || "3";
+  const lastX = points.split(" ").at(-1)?.split(",")[0] || "97";
+  const areaPoints = `${firstX},36 ${points} ${lastX},36`;
+
+  return (
+    <span className={"dashboard-kpi-sparkline " + tone} aria-hidden="true">
+      <svg viewBox="0 0 100 36" preserveAspectRatio="none">
+        <defs>
+          <linearGradient id={`spark-${id}`} x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="currentColor" stopOpacity=".18" />
+            <stop offset="100%" stopColor="currentColor" stopOpacity="0" />
+          </linearGradient>
+        </defs>
+        <polygon points={areaPoints} fill={`url(#spark-${id})`} />
+        <polyline points={points} />
+      </svg>
+    </span>
+  );
+}
+
+function recentDates(end: string, count = 7) {
+  return Array.from({ length: count }, (_, index) =>
+    addLocalDays(end, index - (count - 1)),
+  );
+}
+
 export default function Overview() {
   const { periodStart, periodEnd } = useWorkspace();
   const [chartDays, setChartDays] = useState<7 | 14 | 30>(30);
@@ -118,6 +176,49 @@ export default function Overview() {
     (item) => item.status === "aguardando_peca",
   ).length;
 
+  const sparkDates = recentDates(periodEnd, 7);
+  const orderSpark = sparkDates.map(
+    (date) => os.data.filter((item) => dateKey(item.criado_em) <= date).length,
+  );
+  const activeSpark = sparkDates.map(
+    (date) =>
+      os.data.filter(
+        (item) =>
+          dateKey(item.criado_em) <= date &&
+          !["finalizado", "cancelado"].includes(item.status),
+      ).length,
+  );
+  const finishedSpark = sparkDates.map(
+    (date) =>
+      os.data.filter(
+        (item) =>
+          item.status === "finalizado" &&
+          dateKey(item.atualizado_em) <= date,
+      ).length,
+  );
+  const partsSpark = sparkDates.map(
+    (date) =>
+      os.data.filter(
+        (item) =>
+          item.status === "aguardando_peca" &&
+          dateKey(item.criado_em) <= date,
+      ).length,
+  );
+  const clientSpark = sparkDates.map(
+    (date) => cs.data.filter((item) => dateKey(item.criado_em) <= date).length,
+  );
+  const revenueSpark = sparkDates.map((date) =>
+    fin.data
+      .filter(
+        (item) =>
+          item.tipo === "receita" &&
+          item.status === "pago" &&
+          Boolean(item.pago_em) &&
+          dateKey(item.pago_em || "") <= date,
+      )
+      .reduce((sum, item) => sum + Number(item.valor), 0),
+  );
+
   const metrics = [
     {
       name: "Ordens de serviço",
@@ -126,6 +227,7 @@ export default function Overview() {
       tone: "blue",
       trend: percentageDelta(periodOrders.length, previousPeriodOrders.length),
       note: "comparado ao período anterior",
+      spark: orderSpark,
     },
     {
       name: "Em andamento",
@@ -134,6 +236,7 @@ export default function Overview() {
       tone: "amber",
       trend: null,
       note: "ordens abertas agora",
+      spark: activeSpark,
     },
     {
       name: "Concluídas",
@@ -142,6 +245,7 @@ export default function Overview() {
       tone: "green",
       trend: percentageDelta(periodFinished.length, previousPeriodFinished.length),
       note: "comparado ao período anterior",
+      spark: finishedSpark,
     },
     {
       name: "Aguardando peças",
@@ -150,6 +254,7 @@ export default function Overview() {
       tone: "purple",
       trend: null,
       note: "situação atual",
+      spark: partsSpark,
     },
     {
       name: "Novos clientes",
@@ -158,6 +263,7 @@ export default function Overview() {
       tone: "sky",
       trend: percentageDelta(periodClients.length, previousPeriodClients.length),
       note: "comparado ao período anterior",
+      spark: clientSpark,
     },
     {
       name: "Faturamento do período",
@@ -166,6 +272,7 @@ export default function Overview() {
       tone: "green",
       trend: percentageDelta(periodRevenue, previousPeriodRevenue),
       note: "comparado ao período anterior",
+      spark: revenueSpark,
     },
   ];
 
@@ -377,7 +484,15 @@ export default function Overview() {
             </div>
             <div className="dashboard-kpi-value">
               <strong>{loading ? "—" : metric.value}</strong>
-              <span className="dashboard-mini-line" />
+              <KpiSparkline
+                values={metric.spark}
+                tone={metric.tone}
+                id={metric.name
+                  .toLowerCase()
+                  .normalize("NFD")
+                  .replace(/[\u0300-\u036f]/g, "")
+                  .replace(/[^a-z0-9]+/g, "-")}
+              />
             </div>
             <div className="dashboard-trend-note">
               {metric.trend !== null ? (
