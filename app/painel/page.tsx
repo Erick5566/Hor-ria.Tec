@@ -1,57 +1,77 @@
 "use client";
+
 import Link from "next/link";
-import { useState } from "react";
-import {
-  useRows,
-  Ordem,
-  Cliente,
-  Equipamento,
-  Lancamento,
-  money,
-} from "@/lib/assistencia";
-import { Agendamento, today, time } from "@/lib/supabase";
-import { Empty, Badge, ErrorBox } from "@/components/ui";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useWorkspace } from "@/components/workspace";
+import { Badge, Empty, ErrorBox } from "@/components/ui";
+import { money } from "@/lib/assistencia";
+import { message, supabase, time } from "@/lib/supabase";
 
-function dateKey(value: string) {
-  return value.slice(0, 10);
-}
-
-function addLocalDays(value: string, days: number) {
-  const date = new Date(value + "T12:00:00");
-  date.setDate(date.getDate() + days);
-  return new Intl.DateTimeFormat("en-CA", {
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  }).format(date);
-}
-
-function rangeDays(start: string, end: string) {
-  return Math.max(
-    1,
-    Math.round(
-      (new Date(end + "T12:00:00").getTime() -
-        new Date(start + "T12:00:00").getTime()) /
-        86400000,
-    ) + 1,
-  );
-}
-
-function inRange(value: string | null | undefined, start: string, end: string) {
-  if (!value) return false;
-  const key = value.slice(0, 10);
-  return key >= start && key <= end;
-}
+type DashboardData = {
+  metrics: {
+    periodOrders: number;
+    previousPeriodOrders: number;
+    periodFinished: number;
+    previousPeriodFinished: number;
+    periodClients: number;
+    previousPeriodClients: number;
+    periodRevenue: number;
+    previousPeriodRevenue: number;
+    inProgress: number;
+    awaitingParts: number;
+  };
+  spark: {
+    orders: number[];
+    active: number[];
+    finished: number[];
+    parts: number[];
+    clients: number[];
+    revenue: number[];
+  };
+  trend: Array<{
+    key: string;
+    opened: number;
+    active: number;
+    finalized: number;
+  }>;
+  status: {
+    concluidas: number;
+    andamento: number;
+    pecas: number;
+    orcamento: number;
+    canceladas: number;
+    outros: number;
+  };
+  performance: {
+    completionRate: number;
+    averageRepairDays: number | null;
+  };
+  latestOrders: Array<{
+    id: string;
+    numero: number;
+    status: string;
+    criado_em: string;
+    cliente_nome: string;
+    equipamento_modelo: string;
+  }>;
+  todayAgenda: Array<{
+    id: string;
+    inicio: string;
+    nome_cliente: string | null;
+    descricao: string | null;
+  }>;
+  priorities: Array<{
+    id: string;
+    numero: number;
+    prioridade: "baixa" | "normal" | "alta" | "urgente";
+    prazo_previsto: string;
+    equipamento_modelo: string;
+  }>;
+};
 
 function percentageDelta(current: number, previous: number) {
   if (!previous) return current ? 100 : 0;
   return Math.round(((current - previous) / previous) * 100);
-}
-
-function daysBetween(start: string, end: string) {
-  const diff = new Date(end).getTime() - new Date(start).getTime();
-  return Math.max(0, diff / 86400000);
 }
 
 function sparkPath(values: number[], width = 100, height = 36, padding = 3) {
@@ -60,25 +80,20 @@ function sparkPath(values: number[], width = 100, height = 36, padding = 3) {
   const max = Math.max(...safe);
   const range = Math.max(max - min, 1);
 
-  const coords = safe.map((value, index) => {
-    const x =
-      safe.length === 1
-        ? width / 2
-        : padding + (index / (safe.length - 1)) * (width - padding * 2);
-    const y =
-      max === min
-        ? height / 2
-        : height -
-          padding -
-          ((value - min) / range) * (height - padding * 2);
-    return { x, y };
-  });
-
-  return coords
-    .map(
-      (point, index) =>
-        `${index === 0 ? "M" : "L"} ${point.x.toFixed(2)} ${point.y.toFixed(2)}`,
-    )
+  return safe
+    .map((value, index) => {
+      const x =
+        safe.length === 1
+          ? width / 2
+          : padding + (index / (safe.length - 1)) * (width - padding * 2);
+      const y =
+        max === min
+          ? height / 2
+          : height -
+            padding -
+            ((value - min) / range) * (height - padding * 2);
+      return `${index === 0 ? "M" : "L"} ${x.toFixed(2)} ${y.toFixed(2)}`;
+    })
     .join(" ");
 }
 
@@ -89,223 +104,191 @@ function KpiSparkline({
   values: number[];
   tone: string;
 }) {
-  const path = sparkPath(values);
-
   return (
     <span className={"kpi-trend-v2 " + tone} aria-hidden="true">
       <svg viewBox="0 0 100 36" preserveAspectRatio="none">
-        <path className="kpi-trend-v2-line" d={path} />
+        <path className="kpi-trend-v2-line" d={sparkPath(values)} />
       </svg>
     </span>
   );
 }
 
-function recentDates(end: string, count = 7) {
-  return Array.from({ length: count }, (_, index) =>
-    addLocalDays(end, index - (count - 1)),
-  );
+function formatShortDate(value: string) {
+  return new Date(value + "T12:00:00").toLocaleDateString("pt-BR", {
+    day: "2-digit",
+    month: "2-digit",
+  });
 }
 
 export default function Overview() {
-  const { periodStart, periodEnd } = useWorkspace();
-  const [chartDays, setChartDays] = useState<7 | 14 | 30>(30);
+  const { empresa, periodStart, periodEnd } = useWorkspace();
+  const [data, setData] = useState<DashboardData | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
   const [statusFilter, setStatusFilter] = useState("todos");
 
-  const os = useRows<Ordem>("ordens_servico"),
-    cs = useRows<Cliente>("clientes"),
-    eq = useRows<Equipamento>("equipamentos"),
-    agenda = useRows<Agendamento>("agendamentos"),
-    fin = useRows<Lancamento>("financeiro");
-
-  const day = today();
-  const selectedDays = rangeDays(periodStart, periodEnd);
-  const previousEnd = addLocalDays(periodStart, -1);
-  const previousStart = addLocalDays(previousEnd, -(selectedDays - 1));
-
-  const periodOrders = os.data.filter((item) =>
-    inRange(item.criado_em, periodStart, periodEnd),
-  );
-  const previousPeriodOrders = os.data.filter((item) =>
-    inRange(item.criado_em, previousStart, previousEnd),
-  );
-  const periodFinished = os.data.filter(
-    (item) =>
-      item.status === "finalizado" &&
-      inRange(item.atualizado_em, periodStart, periodEnd),
-  );
-  const previousPeriodFinished = os.data.filter(
-    (item) =>
-      item.status === "finalizado" &&
-      inRange(item.atualizado_em, previousStart, previousEnd),
-  );
-  const periodClients = cs.data.filter((item) =>
-    inRange(item.criado_em, periodStart, periodEnd),
-  );
-  const previousPeriodClients = cs.data.filter((item) =>
-    inRange(item.criado_em, previousStart, previousEnd),
-  );
-
-  const periodRevenue = fin.data
-    .filter(
-      (item) =>
-        item.tipo === "receita" &&
-        item.status === "pago" &&
-        inRange(item.pago_em, periodStart, periodEnd),
-    )
-    .reduce((sum, item) => sum + Number(item.valor), 0);
-  const previousPeriodRevenue = fin.data
-    .filter(
-      (item) =>
-        item.tipo === "receita" &&
-        item.status === "pago" &&
-        inRange(item.pago_em, previousStart, previousEnd),
-    )
-    .reduce((sum, item) => sum + Number(item.valor), 0);
-
-  const openOrders = periodOrders.filter(
-    (item) => !["finalizado", "cancelado"].includes(item.status),
-  );
-  const inProgress = openOrders.length;
-  const awaitingParts = periodOrders.filter(
-    (item) => item.status === "aguardando_peca",
-  ).length;
-
-  const sparkDates = recentDates(periodEnd, 7);
-  const orderSpark = sparkDates.map(
-    (date) => os.data.filter((item) => dateKey(item.criado_em) <= date).length,
-  );
-  const activeSpark = sparkDates.map(
-    (date) =>
-      os.data.filter(
-        (item) =>
-          dateKey(item.criado_em) <= date &&
-          !["finalizado", "cancelado"].includes(item.status),
-      ).length,
-  );
-  const finishedSpark = sparkDates.map(
-    (date) =>
-      os.data.filter(
-        (item) =>
-          item.status === "finalizado" &&
-          dateKey(item.atualizado_em) <= date,
-      ).length,
-  );
-  const partsSpark = sparkDates.map(
-    (date) =>
-      os.data.filter(
-        (item) =>
-          item.status === "aguardando_peca" &&
-          dateKey(item.criado_em) <= date,
-      ).length,
-  );
-  const clientSpark = sparkDates.map(
-    (date) => cs.data.filter((item) => dateKey(item.criado_em) <= date).length,
-  );
-  const revenueSpark = sparkDates.map((date) =>
-    fin.data
-      .filter(
-        (item) =>
-          item.tipo === "receita" &&
-          item.status === "pago" &&
-          Boolean(item.pago_em) &&
-          dateKey(item.pago_em || "") <= date,
-      )
-      .reduce((sum, item) => sum + Number(item.valor), 0),
-  );
-
-  const metrics = [
-    {
-      name: "Ordens de serviço",
-      value: periodOrders.length,
-      icon: "▤",
-      tone: "blue",
-      trend: percentageDelta(periodOrders.length, previousPeriodOrders.length),
-      note: "comparado ao período anterior",
-      spark: orderSpark,
+  const load = useCallback(
+    async (silent = false) => {
+      if (!supabase) return;
+      if (!silent) setLoading(true);
+      try {
+        const result = await supabase.rpc("dashboard_overview", {
+          p_start: periodStart,
+          p_end: periodEnd,
+        });
+        if (result.error) throw result.error;
+        setData(result.data as DashboardData);
+        setError("");
+      } catch (e) {
+        setError(message(e as Error));
+      } finally {
+        if (!silent) setLoading(false);
+      }
     },
-    {
-      name: "Em andamento",
-      value: inProgress,
-      icon: "⌘",
-      tone: "amber",
-      trend: null,
-      note: "ordens abertas agora",
-      spark: activeSpark,
-    },
-    {
-      name: "Concluídas",
-      value: periodFinished.length,
-      icon: "✓",
-      tone: "green",
-      trend: percentageDelta(periodFinished.length, previousPeriodFinished.length),
-      note: "comparado ao período anterior",
-      spark: finishedSpark,
-    },
-    {
-      name: "Aguardando peças",
-      value: awaitingParts,
-      icon: "◷",
-      tone: "purple",
-      trend: null,
-      note: "situação atual",
-      spark: partsSpark,
-    },
-    {
-      name: "Novos clientes",
-      value: periodClients.length,
-      icon: "♙",
-      tone: "sky",
-      trend: percentageDelta(periodClients.length, previousPeriodClients.length),
-      note: "comparado ao período anterior",
-      spark: clientSpark,
-    },
-    {
-      name: "Faturamento do período",
-      value: money(periodRevenue),
-      icon: "＄",
-      tone: "green",
-      trend: percentageDelta(periodRevenue, previousPeriodRevenue),
-      note: "comparado ao período anterior",
-      spark: revenueSpark,
-    },
-  ];
+    [periodStart, periodEnd],
+  );
 
-  const effectiveChartDays = Math.min(chartDays, selectedDays);
-  const chartAnchor = new Date(periodEnd + "T12:00:00");
+  useEffect(() => {
+    void load(false);
+  }, [load]);
 
-  const trendData = Array.from({ length: effectiveChartDays }, (_, index) => {
-    const date = new Date(chartAnchor);
-    date.setDate(date.getDate() - (effectiveChartDays - 1 - index));
-    const key = new Intl.DateTimeFormat("en-CA", {
-      year: "numeric",
-      month: "2-digit",
-      day: "2-digit",
-    }).format(date);
+  useEffect(() => {
+    if (!supabase || !empresa.id) return;
 
-    const opened = periodOrders.filter(
-      (item) => dateKey(item.criado_em) <= key,
-    ).length;
-    const finalized = periodFinished.filter(
-      (item) => dateKey(item.atualizado_em) <= key,
-    ).length;
-
-    return {
-      key,
-      label: date.toLocaleDateString("pt-BR", {
-        day: "2-digit",
-        month: "2-digit",
-      }),
-      opened,
-      active: Math.max(0, opened - finalized),
-      finalized,
+    let timer: number | undefined;
+    const refreshSoon = () => {
+      window.clearTimeout(timer);
+      timer = window.setTimeout(() => void load(true), 250);
     };
-  });
 
+    const channel = supabase
+      .channel(`dashboard-${empresa.id}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "ordens_servico",
+          filter: `empresa_id=eq.${empresa.id}`,
+        },
+        refreshSoon,
+      )
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "clientes",
+          filter: `empresa_id=eq.${empresa.id}`,
+        },
+        refreshSoon,
+      )
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "financeiro",
+          filter: `empresa_id=eq.${empresa.id}`,
+        },
+        refreshSoon,
+      )
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "agendamentos",
+          filter: `empresa_id=eq.${empresa.id}`,
+        },
+        refreshSoon,
+      )
+      .subscribe();
+
+    return () => {
+      window.clearTimeout(timer);
+      void supabase!.removeChannel(channel);
+    };
+  }, [empresa.id, load]);
+
+  const metrics = useMemo(() => {
+    const m = data?.metrics;
+    const spark = data?.spark;
+    return [
+      {
+        name: "Ordens de serviço",
+        value: m?.periodOrders ?? 0,
+        icon: "▤",
+        tone: "blue",
+        trend: percentageDelta(
+          m?.periodOrders ?? 0,
+          m?.previousPeriodOrders ?? 0,
+        ),
+        note: "comparado ao período anterior",
+        spark: spark?.orders ?? [],
+      },
+      {
+        name: "Em andamento",
+        value: m?.inProgress ?? 0,
+        icon: "⌘",
+        tone: "amber",
+        trend: null,
+        note: "ordens abertas agora",
+        spark: spark?.active ?? [],
+      },
+      {
+        name: "Concluídas",
+        value: m?.periodFinished ?? 0,
+        icon: "✓",
+        tone: "green",
+        trend: percentageDelta(
+          m?.periodFinished ?? 0,
+          m?.previousPeriodFinished ?? 0,
+        ),
+        note: "comparado ao período anterior",
+        spark: spark?.finished ?? [],
+      },
+      {
+        name: "Aguardando peças",
+        value: m?.awaitingParts ?? 0,
+        icon: "◷",
+        tone: "purple",
+        trend: null,
+        note: "situação atual",
+        spark: spark?.parts ?? [],
+      },
+      {
+        name: "Novos clientes",
+        value: m?.periodClients ?? 0,
+        icon: "♙",
+        tone: "sky",
+        trend: percentageDelta(
+          m?.periodClients ?? 0,
+          m?.previousPeriodClients ?? 0,
+        ),
+        note: "comparado ao período anterior",
+        spark: spark?.clients ?? [],
+      },
+      {
+        name: "Faturamento do período",
+        value: money(m?.periodRevenue ?? 0),
+        icon: "＄",
+        tone: "green",
+        trend: percentageDelta(
+          m?.periodRevenue ?? 0,
+          m?.previousPeriodRevenue ?? 0,
+        ),
+        note: "comparado ao período anterior",
+        spark: spark?.revenue ?? [],
+      },
+    ];
+  }, [data]);
+
+  const trendData = data?.trend ?? [];
   const maxTrend = Math.max(
     1,
     ...trendData.flatMap((item) => [item.opened, item.active, item.finalized]),
   );
-
   const trendPoints = (key: "opened" | "active" | "finalized") =>
     trendData
       .map((item, index) => {
@@ -315,59 +298,42 @@ export default function Overview() {
       })
       .join(" ");
 
-  const statusGroups = [
+  const allStatusData = [
     {
       key: "concluidas",
       label: "Concluídas",
       color: "#25b47e",
-      match: (item: Ordem) => item.status === "finalizado",
+      count: data?.status.concluidas ?? 0,
     },
     {
       key: "andamento",
       label: "Em andamento",
       color: "#2d8cff",
-      match: (item: Ordem) =>
-        !["finalizado", "cancelado", "aguardando_peca", "aguardando_orcamento", "orcamento_enviado", "aguardando_aprovacao"].includes(
-          item.status,
-        ),
+      count: data?.status.andamento ?? 0,
     },
     {
       key: "pecas",
       label: "Aguardando peças",
       color: "#f5b83d",
-      match: (item: Ordem) => item.status === "aguardando_peca",
+      count: data?.status.pecas ?? 0,
     },
     {
       key: "orcamento",
       label: "Aguardando orçamento",
       color: "#8e58e9",
-      match: (item: Ordem) =>
-        ["aguardando_orcamento", "orcamento_enviado", "aguardando_aprovacao"].includes(
-          item.status,
-        ),
+      count: data?.status.orcamento ?? 0,
     },
     {
       key: "canceladas",
       label: "Canceladas",
       color: "#ef4b76",
-      match: (item: Ordem) => item.status === "cancelado",
+      count: data?.status.canceladas ?? 0,
     },
-  ];
-
-  const statusWithCounts = statusGroups.map((group) => ({
-    key: group.key,
-    label: group.label,
-    color: group.color,
-    count: periodOrders.filter(group.match).length,
-  }));
-  const groupedCount = statusWithCounts.reduce((sum, item) => sum + item.count, 0);
-  const allStatusData = [
-    ...statusWithCounts,
     {
       key: "outros",
       label: "Outros",
       color: "#99a8bd",
-      count: Math.max(0, periodOrders.length - groupedCount),
+      count: data?.status.outros ?? 0,
     },
   ];
   const statusData =
@@ -387,57 +353,22 @@ export default function Overview() {
     })
     .join(",")})`;
 
-  const completionRate = periodOrders.length
-    ? Math.round(
-        (periodOrders.filter((item) => item.status === "finalizado").length /
-          periodOrders.length) *
-          100,
-      )
-    : 0;
-
-  const repairDurations = periodOrders
-    .filter((item) => item.status === "finalizado")
-    .map((item) =>
-      daysBetween(item.iniciado_em || item.criado_em, item.atualizado_em),
-    )
-    .filter((value) => Number.isFinite(value));
-  const averageRepairDays = repairDurations.length
-    ? (
-        repairDurations.reduce((sum, value) => sum + value, 0) /
-        repairDurations.length
-      ).toFixed(1)
-    : "—";
-
-  const latestOrders = [...periodOrders]
-    .sort((a, b) => b.criado_em.localeCompare(a.criado_em))
-    .slice(0, 6);
-
-  const todayAgenda = agenda.data
-    .filter((item) => !item.bloqueio && dateKey(item.inicio) === day)
-    .sort((a, b) => a.inicio.localeCompare(b.inicio))
-    .slice(0, 6);
-
-  const priorities = openOrders
-    .filter((item) => item.prazo_previsto)
-    .sort((a, b) => {
-      const priority = { urgente: 0, alta: 1, normal: 2, baixa: 3 };
-      return (
-        priority[a.prioridade] - priority[b.prioridade] ||
-        (a.prazo_previsto || "").localeCompare(b.prazo_previsto || "")
-      );
-    })
-    .slice(0, 6);
-
-  const rows = [os, cs, eq, agenda, fin];
-  const error = rows.find((item) => item.error)?.error;
-  const loading = rows.some((item) => item.loading);
-
-  const priorityLabel: Record<Ordem["prioridade"], string> = {
+  const priorityLabel: Record<
+    DashboardData["priorities"][number]["prioridade"],
+    string
+  > = {
     urgente: "Urgente",
     alta: "Alta",
     normal: "Normal",
     baixa: "Baixa",
   };
+
+  const today = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "America/Sao_Paulo",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(new Date());
 
   return (
     <section className="module dashboard-pro dashboard-reference">
@@ -477,7 +408,7 @@ export default function Overview() {
               <span>{metric.name}</span>
             </div>
             <div className="dashboard-kpi-value">
-              <strong>{loading ? "—" : metric.value}</strong>
+              <strong>{loading && !data ? "—" : metric.value}</strong>
               <KpiSparkline values={metric.spark} tone={metric.tone} />
             </div>
             <div className="dashboard-trend-note">
@@ -501,16 +432,6 @@ export default function Overview() {
               <h2>▥ Evolução de ordens de serviço</h2>
               <p>Acompanhe o volume de ordens ao longo do tempo.</p>
             </div>
-            <select
-              className="dashboard-filter"
-              aria-label="Período do gráfico"
-              value={chartDays}
-              onChange={(event) => setChartDays(Number(event.target.value) as 7 | 14 | 30)}
-            >
-              <option value={7}>7 dias</option>
-              <option value={14}>14 dias</option>
-              <option value={30}>30 dias</option>
-            </select>
           </div>
 
           <div className="dashboard-line-chart dashboard-line-chart-reference">
@@ -519,12 +440,6 @@ export default function Overview() {
               preserveAspectRatio="none"
               aria-label="Evolução das ordens"
             >
-              <defs>
-                <linearGradient id="referenceArea" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#176dff" stopOpacity=".23" />
-                  <stop offset="100%" stopColor="#176dff" stopOpacity="0" />
-                </linearGradient>
-              </defs>
               {[18, 36, 54, 72, 90].map((y) => (
                 <line
                   key={y}
@@ -535,10 +450,6 @@ export default function Overview() {
                   className="dash-grid-line"
                 />
               ))}
-              <polygon
-                points={"0,88 " + trendPoints("opened") + " 100,88"}
-                fill="url(#referenceArea)"
-              />
               <polyline points={trendPoints("opened")} className="dash-open-line" />
               <polyline points={trendPoints("active")} className="dash-active-line" />
               <polyline
@@ -549,9 +460,12 @@ export default function Overview() {
 
             <div className="dashboard-chart-axis">
               {trendData
-                .filter((_, index) => index % 6 === 0 || index === trendData.length - 1)
+                .filter(
+                  (_, index) =>
+                    index % 6 === 0 || index === trendData.length - 1,
+                )
                 .map((item) => (
-                  <span key={item.key}>{item.label}</span>
+                  <span key={item.key}>{formatShortDate(item.key)}</span>
                 ))}
             </div>
 
@@ -606,34 +520,25 @@ export default function Overview() {
 
         <section className="dashboard-card dashboard-performance">
           <div className="dashboard-card-head">
-            <div>
-              <h2>▥ Desempenho da assistência</h2>
-            </div>
-            <select
-              className="dashboard-filter"
-              aria-label="Período de desempenho"
-              value={chartDays}
-              onChange={(event) => setChartDays(Number(event.target.value) as 7 | 14 | 30)}
-            >
-              <option value={7}>Últimos 7 dias</option>
-              <option value={14}>Últimos 14 dias</option>
-              <option value={30}>Últimos 30 dias</option>
-            </select>
+            <div><h2>▥ Desempenho da assistência</h2></div>
           </div>
-
           <div className="dashboard-performance-list">
             <article>
               <span>◷</span>
               <div>
                 <small>Tempo médio de reparo</small>
-                <strong>{averageRepairDays === "—" ? "—" : averageRepairDays + " dias"}</strong>
+                <strong>
+                  {data?.performance.averageRepairDays == null
+                    ? "—"
+                    : data.performance.averageRepairDays + " dias"}
+                </strong>
               </div>
             </article>
             <article>
               <span>✓</span>
               <div>
                 <small>Taxa de conclusão</small>
-                <strong>{completionRate}%</strong>
+                <strong>{data?.performance.completionRate ?? 0}%</strong>
               </div>
             </article>
             <article>
@@ -654,7 +559,7 @@ export default function Overview() {
             <div><h2>▤ Últimas ordens de serviço</h2></div>
             <Link href="/painel/ordens">Ver todas</Link>
           </div>
-          {latestOrders.length ? (
+          {data?.latestOrders.length ? (
             <div className="table-wrap dashboard-table">
               <table>
                 <thead>
@@ -668,13 +573,13 @@ export default function Overview() {
                   </tr>
                 </thead>
                 <tbody>
-                  {latestOrders.map((order) => (
+                  {data.latestOrders.map((order) => (
                     <tr key={order.id}>
                       <td>#{order.numero}</td>
-                      <td>{cs.data.find((item) => item.id === order.cliente_id)?.nome || "Cliente"}</td>
-                      <td>{eq.data.find((item) => item.id === order.equipamento_id)?.modelo || "Equipamento"}</td>
+                      <td>{order.cliente_nome}</td>
+                      <td>{order.equipamento_modelo}</td>
                       <td><Badge status={order.status} /></td>
-                      <td>{new Date(order.criado_em).toLocaleDateString("pt-BR")} {new Date(order.criado_em).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}</td>
+                      <td>{new Date(order.criado_em).toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" })}</td>
                       <td><Link href={"/painel/ordens/" + order.id}>⋮</Link></td>
                     </tr>
                   ))}
@@ -695,7 +600,7 @@ export default function Overview() {
             <Link href="/painel/agenda">Ver agenda</Link>
           </div>
           <div className="dashboard-agenda-list">
-            {todayAgenda.map((appointment) => (
+            {data?.todayAgenda.map((appointment) => (
               <Link href="/painel/agenda" key={appointment.id}>
                 <strong>{time(appointment.inicio)}</strong>
                 <span />
@@ -707,7 +612,7 @@ export default function Overview() {
                 <em>⋮</em>
               </Link>
             ))}
-            {!todayAgenda.length && <Empty title="Nenhum atendimento hoje." />}
+            {!data?.todayAgenda.length && <Empty title="Nenhum atendimento hoje." />}
           </div>
         </section>
 
@@ -717,37 +622,31 @@ export default function Overview() {
             <Link href="/painel/mesa-reparo">Ver todos</Link>
           </div>
           <div className="dashboard-priority-list">
-            {priorities.map((order) => {
-              const deadline = order.prazo_previsto
-                ? Math.ceil(
-                    (new Date(order.prazo_previsto).getTime() -
-                      new Date(day + "T00:00:00").getTime()) /
-                      86400000,
-                  )
-                : null;
+            {data?.priorities.map((order) => {
+              const deadline = Math.ceil(
+                (new Date(order.prazo_previsto).getTime() -
+                  new Date(today + "T00:00:00").getTime()) /
+                  86400000,
+              );
               return (
                 <Link href={"/painel/ordens/" + order.id} key={order.id}>
                   <strong>#{order.numero}</strong>
-                  <div>
-                    <b>{eq.data.find((item) => item.id === order.equipamento_id)?.modelo || "Equipamento"}</b>
-                  </div>
+                  <div><b>{order.equipamento_modelo}</b></div>
                   <span className={"priority-chip " + order.prioridade}>
                     {priorityLabel[order.prioridade]}
                   </span>
-                  <em className={deadline !== null && deadline <= 0 ? "deadline-hot" : ""}>
-                    {deadline === null
-                      ? "—"
-                      : deadline <= 0
-                        ? "Hoje"
-                        : deadline === 1
-                          ? "1 dia"
-                          : `${deadline} dias`}
+                  <em className={deadline <= 0 ? "deadline-hot" : ""}>
+                    {deadline <= 0
+                      ? "Hoje"
+                      : deadline === 1
+                        ? "1 dia"
+                        : `${deadline} dias`}
                   </em>
                   <i>⋮</i>
                 </Link>
               );
             })}
-            {!priorities.length && <Empty title="Nenhuma prioridade pendente." />}
+            {!data?.priorities.length && <Empty title="Nenhuma prioridade pendente." />}
           </div>
         </section>
       </div>
