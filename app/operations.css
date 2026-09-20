@@ -3941,3 +3941,156 @@ button.danger,
     align-items: flex-start;
   }
 }
+
+
+/* Unified detail pages and flows */
+.record-detail-pro .tabs,
+.order-detail-pro .tabs {
+  gap: 6px;
+  padding: 5px;
+  margin: 18px 0;
+  background: #f4f7fb;
+  border: 1px solid #dfe6f0;
+  border-radius: 11px;
+}
+
+.record-detail-pro .tabs button,
+.order-detail-pro .tabs button {
+  padding: 10px 14px;
+  color: #617089;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  font-size: .7rem;
+  font-weight: 700;
+}
+
+.record-detail-pro .tabs button.active,
+.order-detail-pro .tabs button.active {
+  color: #fff;
+  background: #3a4da1;
+  box-shadow: 0 5px 14px rgb(58 77 161 / 18%);
+}
+
+.record-detail-pro .list-line {
+  padding: 14px 4px;
+  border-bottom-color: #e8edf4;
+}
+
+.record-detail-pro .list-line:hover {
+  background: #fbfdff;
+}
+
+.record-detail-pro .definition-grid > div,
+.order-detail-pro .definition-grid > div,
+.subscription-pro .definition-grid > div {
+  padding: 14px;
+  background: #f8fafd;
+  border: 1px solid #e3e8f0;
+  border-radius: 10px;
+}
+
+.record-detail-pro .definition-grid dt,
+.order-detail-pro .definition-grid dt,
+.subscription-pro .definition-grid dt {
+  color: #79869b;
+}
+
+.record-detail-pro .definition-grid dd,
+.order-detail-pro .definition-grid dd,
+.subscription-pro .definition-grid dd {
+  color: #27344e;
+  font-weight: 700;
+}
+
+.order-detail-pro > .toolbar {
+  padding: 12px 14px;
+  margin: 10px 0 0;
+  background: #fff;
+  border: 1px solid #dfe6ef;
+  border-radius: 11px;
+  box-shadow: 0 6px 18px rgb(40 40 40 / 4%);
+}
+
+.order-detail-pro .status-pill {
+  border: 0;
+  border-radius: 999px;
+  font-weight: 800;
+}
+
+.order-detail-pro .notice,
+.new-order-pro .notice,
+.subscription-pro .notice {
+  border-radius: 11px;
+}
+
+.new-order-pro .step-navigation {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+  padding: 8px;
+  margin-bottom: 18px;
+  background: #f4f7fb;
+  border: 1px solid #dfe6f0;
+  border-radius: 12px;
+}
+
+.new-order-pro .step-navigation span {
+  min-width: 0;
+  padding: 11px 12px;
+  color: #7a879c;
+  background: transparent;
+  border-radius: 9px;
+  font-size: .68rem;
+  font-weight: 700;
+  text-align: center;
+}
+
+.new-order-pro .step-navigation span.active {
+  color: #fff;
+  background: #3a4da1;
+  box-shadow: 0 5px 14px rgb(58 77 161 / 18%);
+}
+
+.new-order-pro > form.panel {
+  max-width: 980px;
+  margin-inline: auto;
+  padding: 24px;
+}
+
+.new-order-pro .checklist {
+  gap: 9px;
+}
+
+.new-order-pro .checklist label {
+  padding: 10px 12px;
+  color: #4f5d76;
+  background: #f8fafd;
+  border: 1px solid #e1e7f0;
+  border-radius: 9px;
+}
+
+.subscription-pro .subscription-card {
+  max-width: 900px;
+}
+
+.subscription-pro .definition-grid {
+  gap: 12px;
+}
+
+@media (max-width: 700px) {
+  .new-order-pro .step-navigation {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .record-detail-pro .tabs,
+  .order-detail-pro .tabs {
+    overflow-x: auto;
+    flex-wrap: nowrap;
+  }
+
+  .record-detail-pro .tabs button,
+  .order-detail-pro .tabs button {
+    white-space: nowrap;
+  }
+}
