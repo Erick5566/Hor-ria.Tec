@@ -70,6 +70,7 @@ export type Empresa = {
   slogan?: string;
   google_maps_url?: string;
   google_business_url?: string;
+  prazo_resposta_horas?: number;
 };
 export type Agendamento = {
   id: string;
