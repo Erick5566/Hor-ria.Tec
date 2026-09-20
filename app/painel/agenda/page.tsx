@@ -215,7 +215,7 @@ export default function Painel() {
     (_, i) => shift(view === "mes" ? date.slice(0, 7) + "-01" : date, i),
   );
   return (
-    <div className="agenda-container">
+    <div className="agenda-container agenda-pro">
       <main className="legacy-agenda">
         {error && (
           <div className="notice" role="alert">
@@ -242,9 +242,9 @@ export default function Painel() {
           <div className="dashboard-content">
             <div className="page-heading">
               <div>
-                <span className="eyebrow">ESPAÇO PARA UM BOM DIA</span>
+                <span className="eyebrow">OPERAÇÃO ORGANIZADA</span>
                 <h1>
-                  Minha agenda<span className="green-dot">.</span>
+                  Agenda<span className="green-dot">.</span>
                 </h1>
                 <p>Organize os horários. Cuide de cada atendimento.</p>
               </div>
