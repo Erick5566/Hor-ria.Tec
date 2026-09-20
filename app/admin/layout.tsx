@@ -27,6 +27,14 @@ export default async function AdminLayout({
           <Link href="/admin/configuracoes">Configurações</Link>
           <Link href="/admin/auditoria">Auditoria</Link>
         </nav>
+        {access.context.company && (
+          <div className="admin-quick-links">
+            <Link href="/painel">Abrir meu painel</Link>
+            <Link href={`/${access.context.company.slug}`} target="_blank">
+              Ver página pública ↗
+            </Link>
+          </div>
+        )}
         <footer>
           <SignOutButton />
         </footer>
@@ -36,7 +44,23 @@ export default async function AdminLayout({
           <span>
             Horária <b>/ Administração privada</b>
           </span>
-          <span className="admin-role">SUPER_ADMIN</span>
+          <div className="admin-header-actions">
+            {access.context.company && (
+              <>
+                <Link href="/painel" className="admin-header-link">
+                  Meu painel
+                </Link>
+                <Link
+                  href={`/${access.context.company.slug}`}
+                  target="_blank"
+                  className="admin-header-link public"
+                >
+                  Página pública ↗
+                </Link>
+              </>
+            )}
+            <span className="admin-role">SUPER_ADMIN</span>
+          </div>
         </header>
         {children}
       </main>
