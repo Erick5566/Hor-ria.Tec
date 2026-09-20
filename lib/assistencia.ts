@@ -421,6 +421,12 @@ export function useRows<T>(table: string) {
     ]);
     if (!realtimeTables.has(table) || !supabase) return;
 
+    let refreshTimer: number | undefined;
+    const refreshSoon = () => {
+      window.clearTimeout(refreshTimer);
+      refreshTimer = window.setTimeout(() => void reload(), 250);
+    };
+
     const channel = supabase
       .channel(`rows-${table}-${empresa.id}-${crypto.randomUUID()}`)
       .on(
@@ -431,11 +437,12 @@ export function useRows<T>(table: string) {
           table,
           filter: `empresa_id=eq.${empresa.id}`,
         },
-        () => void reload(),
+        refreshSoon,
       )
       .subscribe();
 
     return () => {
+      window.clearTimeout(refreshTimer);
       void supabase!.removeChannel(channel);
     };
   }, [table, empresa.id, reload]);
