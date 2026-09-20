@@ -295,7 +295,10 @@ export function PhotoPicker({
               <button
                 type="button"
                 disabled={p.uploaded}
-                onClick={() => onChange(value.filter((x) => x.id !== p.id))}
+                onClick={() => {
+                  if (!window.confirm("Remover esta foto do rascunho?")) return;
+                  onChange(value.filter((x) => x.id !== p.id));
+                }}
               >
                 Remover foto
               </button>
