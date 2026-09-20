@@ -1,22 +1,53 @@
 "use client";
-import { useMemo, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import {
-  useRows,
-  Cliente,
-  Equipamento,
-  Ordem,
-  Lancamento,
+  type Cliente,
+  type Equipamento,
+  type Status,
   money,
   saveRow,
   phone,
   stamp,
-  Venda,
 } from "@/lib/assistencia";
 import { useWorkspace } from "./workspace";
-import { Heading, Empty, ErrorBox, Badge } from "./ui";
-import { message } from "@/lib/supabase";
+import { Heading, Empty, ErrorBox, Badge, Pagination } from "./ui";
+import { message, supabase } from "@/lib/supabase";
 import DeviceFields from "./device-fields";
+
+type ClientItem = Cliente & {
+  equipment_count: number;
+  service_count: number;
+  latest_order_at: string | null;
+  relationship_total: number;
+};
+
+type DeviceItem = Equipamento & {
+  cliente_nome: string | null;
+  order_count: number;
+  latest_status: Status | null;
+};
+
+type RecordsPageData = {
+  page: number;
+  pageSize: number;
+  total: number;
+  items: Array<ClientItem | DeviceItem>;
+  metrics: {
+    total: number;
+    withEquipment?: number;
+    withOpenOrder?: number;
+    relationship?: number;
+    inService?: number;
+    finishedRepairs?: number;
+    categories?: number;
+  };
+};
+
+type CustomerOption = {
+  id: string;
+  nome: string;
+};
 
 export default function Records({
   kind,
@@ -24,107 +55,142 @@ export default function Records({
   kind: "clientes" | "equipamentos";
 }) {
   const { empresa } = useWorkspace();
-  const customers = useRows<Cliente>("clientes"),
-    devices = useRows<Equipamento>("equipamentos"),
-    orders = useRows<Ordem>("ordens_servico"),
-    fin = useRows<Lancamento>("financeiro");
-  const sales = useRows<Venda>("vendas");
-
-  const [search, setSearch] = useState(""),
-    [editing, setEditing] = useState<Cliente | Equipamento | null>(null),
-    [open, setOpen] = useState(false),
-    [busy, setBusy] = useState(false),
-    [error, setError] = useState(""),
-    [deviceDraft, setDeviceDraft] = useState<Record<string, string>>({
-      categoria: "Celular",
-      tipo_personalizado: "",
-      marca: "",
-      modelo: "",
-      cor: "",
-    });
-
   const isClient = kind === "clientes";
-  const source = isClient ? customers.data : devices.data;
-  const list = source.filter((record) =>
-    JSON.stringify(record).toLowerCase().includes(search.toLowerCase()),
+
+  const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+  const [page, setPage] = useState(1);
+  const [data, setData] = useState<RecordsPageData | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [editing, setEditing] = useState<ClientItem | DeviceItem | null>(null);
+  const [open, setOpen] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
+  const [customerOptions, setCustomerOptions] = useState<CustomerOption[]>([]);
+  const [customersLoading, setCustomersLoading] = useState(false);
+  const [deviceDraft, setDeviceDraft] = useState<Record<string, string>>({
+    categoria: "Celular",
+    tipo_personalizado: "",
+    marca: "",
+    modelo: "",
+    cor: "",
+  });
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      setDebouncedSearch(search.trim());
+      setPage(1);
+    }, 300);
+    return () => window.clearTimeout(timer);
+  }, [search]);
+
+  const load = useCallback(
+    async (silent = false) => {
+      if (!supabase) return;
+      if (!silent) setLoading(true);
+      try {
+        const result = await supabase.rpc("records_list_page", {
+          p_kind: kind,
+          p_page: page,
+          p_page_size: 30,
+          p_search: debouncedSearch || null,
+        });
+        if (result.error) throw result.error;
+        setData(result.data as RecordsPageData);
+        setError("");
+      } catch (caught) {
+        setError(message(caught as Error));
+      } finally {
+        if (!silent) setLoading(false);
+      }
+    },
+    [kind, page, debouncedSearch],
   );
 
-  const openOrders = orders.data.filter(
-    (order) => !["finalizado", "cancelado"].includes(order.status),
-  );
-  const relationshipRevenue = fin.data
-    .filter((item) => item.tipo === "receita" && item.status === "pago")
-    .reduce((sum, item) => sum + Number(item.valor), 0);
-  const salesRevenue = sales.data
-    .filter((sale) => sale.status === "finalizada")
-    .reduce((sum, sale) => sum + Number(sale.total), 0);
+  useEffect(() => {
+    void load(false);
+  }, [load]);
 
-  const categoriesCount = useMemo(
-    () => new Set(devices.data.map((item) => item.categoria).filter(Boolean)).size,
-    [devices.data],
-  );
+  useEffect(() => {
+    if (!supabase || !empresa.id) return;
 
-  const metrics = isClient
-    ? [
+    let timer: number | undefined;
+    const refreshSoon = () => {
+      window.clearTimeout(timer);
+      timer = window.setTimeout(() => void load(true), 250);
+    };
+
+    const tables = isClient
+      ? ["clientes", "equipamentos", "ordens_servico", "financeiro", "vendas"]
+      : ["equipamentos", "clientes", "ordens_servico"];
+
+    let channel = supabase.channel(`records-${kind}-${empresa.id}`);
+    for (const table of tables) {
+      channel = channel.on(
+        "postgres_changes",
         {
-          name: "Clientes cadastrados",
-          value: customers.data.length,
-          icon: "♙",
-          tone: "blue",
-          note: "Base total de clientes",
+          event: "*",
+          schema: "public",
+          table,
+          filter: `empresa_id=eq.${empresa.id}`,
         },
-        {
-          name: "Clientes com equipamentos",
-          value: new Set(devices.data.map((item) => item.cliente_id)).size,
-          icon: "▣",
-          tone: "purple",
-          note: "Com aparelhos cadastrados",
-        },
-        {
-          name: "Com atendimento aberto",
-          value: new Set(openOrders.map((item) => item.cliente_id)).size,
-          icon: "▤",
-          tone: "amber",
-          note: "Em atendimento agora",
-        },
-        {
-          name: "Relacionamento gerado",
-          value: money(relationshipRevenue + salesRevenue),
-          icon: "▥",
-          tone: "green",
-          note: "Receitas e vendas registradas",
-        },
-      ]
-    : [
-        {
-          name: "Equipamentos",
-          value: devices.data.length,
-          icon: "▣",
-          tone: "blue",
-          note: "Total cadastrado",
-        },
-        {
-          name: "Em atendimento",
-          value: new Set(openOrders.map((item) => item.equipamento_id)).size,
-          icon: "⌘",
-          tone: "amber",
-          note: "Com OS aberta",
-        },
-        {
-          name: "Reparos finalizados",
-          value: orders.data.filter((item) => item.status === "finalizado").length,
-          icon: "✓",
-          tone: "green",
-          note: "Ordens concluídas",
-        },
-        {
-          name: "Categorias",
-          value: categoriesCount,
-          icon: "▦",
-          tone: "purple",
-          note: "Tipos de equipamento",
-        },
-      ];
+        refreshSoon,
+      );
+    }
+    channel.subscribe();
+
+    return () => {
+      window.clearTimeout(timer);
+      void supabase!.removeChannel(channel);
+    };
+  }, [empresa.id, kind, isClient, load]);
+
+  const loadCustomerOptions = useCallback(async () => {
+    if (isClient || !supabase || customerOptions.length || customersLoading)
+      return;
+
+    setCustomersLoading(true);
+    try {
+      const all: CustomerOption[] = [];
+      for (let offset = 0; ; offset += 1000) {
+        const result = await supabase
+          .from("clientes")
+          .select("id,nome")
+          .eq("empresa_id", empresa.id)
+          .order("nome")
+          .range(offset, offset + 999);
+        if (result.error) throw result.error;
+        all.push(...((result.data || []) as CustomerOption[]));
+        if ((result.data || []).length < 1000) break;
+      }
+      setCustomerOptions(all);
+    } catch (caught) {
+      setError(message(caught as Error));
+    } finally {
+      setCustomersLoading(false);
+    }
+  }, [
+    isClient,
+    empresa.id,
+    customerOptions.length,
+    customersLoading,
+  ]);
+
+  function openEditor(record: ClientItem | DeviceItem | null) {
+    setEditing(record);
+    if (!isClient) {
+      const current = record as DeviceItem | null;
+      setDeviceDraft({
+        categoria: current?.categoria || "Celular",
+        tipo_personalizado: current?.tipo_personalizado || "",
+        marca: current?.marca || "",
+        modelo: current?.modelo || "",
+        cor: current?.cor || "",
+      });
+      void loadCustomerOptions();
+    }
+    setOpen(true);
+  }
 
   async function save(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -139,13 +205,79 @@ export default function Records({
       await saveRow(kind, value, editing?.id);
       setOpen(false);
       setEditing(null);
-      await (isClient ? customers : devices).reload();
-    } catch (e) {
-      setError(message(e as Error));
+      if (!editing) setPage(1);
+      await load(true);
+    } catch (caught) {
+      setError(message(caught as Error));
     } finally {
       setBusy(false);
     }
   }
+
+  const metrics = isClient
+    ? [
+        {
+          name: "Clientes cadastrados",
+          value: data?.metrics.total ?? 0,
+          icon: "♙",
+          tone: "blue",
+          note: "Base total de clientes",
+        },
+        {
+          name: "Clientes com equipamentos",
+          value: data?.metrics.withEquipment ?? 0,
+          icon: "▣",
+          tone: "purple",
+          note: "Com aparelhos cadastrados",
+        },
+        {
+          name: "Com atendimento aberto",
+          value: data?.metrics.withOpenOrder ?? 0,
+          icon: "▤",
+          tone: "amber",
+          note: "Em atendimento agora",
+        },
+        {
+          name: "Relacionamento gerado",
+          value: money(data?.metrics.relationship ?? 0),
+          icon: "▥",
+          tone: "green",
+          note: "Receitas e vendas registradas",
+        },
+      ]
+    : [
+        {
+          name: "Equipamentos",
+          value: data?.metrics.total ?? 0,
+          icon: "▣",
+          tone: "blue",
+          note: "Total cadastrado",
+        },
+        {
+          name: "Em atendimento",
+          value: data?.metrics.inService ?? 0,
+          icon: "⌘",
+          tone: "amber",
+          note: "Com OS aberta",
+        },
+        {
+          name: "Reparos finalizados",
+          value: data?.metrics.finishedRepairs ?? 0,
+          icon: "✓",
+          tone: "green",
+          note: "Ordens concluídas",
+        },
+        {
+          name: "Categorias",
+          value: data?.metrics.categories ?? 0,
+          icon: "▦",
+          tone: "purple",
+          note: "Tipos de equipamento",
+        },
+      ];
+
+  const list = data?.items ?? [];
+  const total = data?.total ?? 0;
 
   return (
     <section className={`module dashboard-pro records-dashboard records-${kind}`}>
@@ -163,23 +295,20 @@ export default function Records({
         <div className="dashboard-callout">
           <span className="dashboard-callout-icon">{isClient ? "♙" : "▣"}</span>
           <div>
-            <strong>{isClient ? "Conheça melhor cada cliente" : "Controle cada equipamento"}</strong>
-            <small>{isClient ? "Histórico, atendimentos e relacionamento." : "Do cadastro ao reparo finalizado."}</small>
+            <strong>
+              {isClient ? "Conheça melhor cada cliente" : "Controle cada equipamento"}
+            </strong>
+            <small>
+              {isClient
+                ? "Histórico, atendimentos e relacionamento."
+                : "Do cadastro ao reparo finalizado."}
+            </small>
           </div>
           <span>→</span>
         </div>
       </div>
 
-      <ErrorBox
-        error={
-          error ||
-          customers.error ||
-          devices.error ||
-          orders.error ||
-          fin.error ||
-          sales.error
-        }
-      />
+      <ErrorBox error={error} />
 
       <div className="dashboard-kpis records-kpis">
         {metrics.map((metric) => (
@@ -189,7 +318,7 @@ export default function Records({
               <span>{metric.name}</span>
             </div>
             <div className="dashboard-kpi-value">
-              <strong>{metric.value}</strong>
+              <strong>{loading && !data ? "—" : metric.value}</strong>
               <span className="mini-spark">⌁</span>
             </div>
             <small>{metric.note}</small>
@@ -201,30 +330,25 @@ export default function Records({
         <div className="dashboard-card-head records-card-head">
           <div>
             <h2>{isClient ? "Base de clientes" : "Equipamentos cadastrados"}</h2>
-            <p>{list.length} {list.length === 1 ? "registro encontrado" : "registros encontrados"}.</p>
+            <p>
+              {total} {total === 1 ? "registro encontrado" : "registros encontrados"}.
+            </p>
           </div>
           <div className="records-actions">
             <input
               aria-label="Buscar registros"
-              placeholder={isClient ? "Buscar cliente ou WhatsApp..." : "Buscar modelo, série, IMEI..."}
+              placeholder={
+                isClient
+                  ? "Buscar cliente ou WhatsApp..."
+                  : "Buscar modelo, série, IMEI..."
+              }
               value={search}
               onChange={(event) => setSearch(event.target.value)}
             />
             <button
               id="novo-registro"
               className="primary"
-              onClick={() => {
-                setEditing(null);
-                if (!isClient)
-                  setDeviceDraft({
-                    categoria: "Celular",
-                    tipo_personalizado: "",
-                    marca: "",
-                    modelo: "",
-                    cor: "",
-                  });
-                setOpen(true);
-              }}
+              onClick={() => openEditor(null)}
             >
               + {isClient ? "Novo cliente" : "Novo equipamento"}
             </button>
@@ -236,9 +360,14 @@ export default function Records({
             <div className="records-editor-head">
               <div>
                 <span className="eyebrow">CADASTRO</span>
-                <h2>{editing ? "Editar" : "Cadastrar"} {isClient ? "cliente" : "equipamento"}</h2>
+                <h2>
+                  {editing ? "Editar" : "Cadastrar"}{" "}
+                  {isClient ? "cliente" : "equipamento"}
+                </h2>
               </div>
-              <button type="button" onClick={() => setOpen(false)}>Fechar ×</button>
+              <button type="button" onClick={() => setOpen(false)}>
+                Fechar ×
+              </button>
             </div>
             <div className="form-grid">
               {isClient ? (
@@ -258,7 +387,9 @@ export default function Records({
                         type={type}
                         required={["nome", "whatsapp"].includes(name)}
                         defaultValue={String(
-                          (editing as Cliente | null)?.[name as keyof Cliente] || "",
+                          (editing as ClientItem | null)?.[
+                            name as keyof ClientItem
+                          ] || "",
                         )}
                         maxLength={120}
                       />
@@ -269,7 +400,9 @@ export default function Records({
                     <textarea
                       name="observacoes"
                       maxLength={1000}
-                      defaultValue={(editing as Cliente | null)?.observacoes || ""}
+                      defaultValue={
+                        (editing as ClientItem | null)?.observacoes || ""
+                      }
                     />
                   </label>
                 </>
@@ -280,17 +413,37 @@ export default function Records({
                     <select
                       name="cliente_id"
                       required
-                      defaultValue={(editing as Equipamento | null)?.cliente_id || ""}
+                      defaultValue={
+                        (editing as DeviceItem | null)?.cliente_id || ""
+                      }
+                      disabled={customersLoading}
                     >
-                      <option value="">Selecione o cliente</option>
-                      {customers.data.map((customer) => (
-                        <option value={customer.id} key={customer.id}>{customer.nome}</option>
+                      <option value="">
+                        {customersLoading
+                          ? "Carregando clientes..."
+                          : "Selecione o cliente"}
+                      </option>
+                      {customerOptions.map((customer) => (
+                        <option value={customer.id} key={customer.id}>
+                          {customer.nome}
+                        </option>
                       ))}
                     </select>
                   </label>
                   <DeviceFields value={deviceDraft} onChange={setDeviceDraft} />
-                  {["categoria", "tipo_personalizado", "marca", "modelo", "cor"].map((name) => (
-                    <input key={name} type="hidden" name={name} value={deviceDraft[name] || ""} />
+                  {[
+                    "categoria",
+                    "tipo_personalizado",
+                    "marca",
+                    "modelo",
+                    "cor",
+                  ].map((name) => (
+                    <input
+                      key={name}
+                      type="hidden"
+                      name={name}
+                      value={deviceDraft[name] || ""}
+                    />
                   ))}
                   {[
                     ["numero_serie", "Número de série"],
@@ -302,7 +455,9 @@ export default function Records({
                       <input
                         name={name}
                         defaultValue={String(
-                          (editing as Equipamento | null)?.[name as keyof Equipamento] || "",
+                          (editing as DeviceItem | null)?.[
+                            name as keyof DeviceItem
+                          ] || "",
                         )}
                         maxLength={120}
                       />
@@ -312,105 +467,144 @@ export default function Records({
               )}
             </div>
             <div className="form-actions">
-              <button type="button" className="outline" onClick={() => setOpen(false)}>Cancelar</button>
-              <button className="primary" disabled={busy}>{busy ? "Salvando..." : "Salvar"}</button>
+              <button
+                type="button"
+                className="outline"
+                onClick={() => setOpen(false)}
+              >
+                Cancelar
+              </button>
+              <button className="primary" disabled={busy}>
+                {busy ? "Salvando..." : "Salvar"}
+              </button>
             </div>
           </form>
         )}
 
-        {list.length ? (
-          <div className="table-wrap dashboard-table records-table">
-            <table>
-              <thead>
-                <tr>
-                  {(isClient
-                    ? ["Nome", "WhatsApp", "Equipamentos", "Serviços", "Último atendimento", "Total gasto", "Ações"]
-                    : ["Equipamento", "Categoria", "Cliente", "Série / IMEI", "Ordens", "Status atual", "Ações"]
-                  ).map((column) => <th key={column}>{column}</th>)}
-                </tr>
-              </thead>
-              <tbody>
-                {list.map((record) => {
-                  const client = record as Cliente;
-                  const device = record as Equipamento;
-                  const relatedOrders = orders.data.filter((order) =>
-                    isClient ? order.cliente_id === record.id : order.equipamento_id === record.id,
-                  );
-                  const total = fin.data
-                    .filter(
-                      (item) =>
-                        item.tipo === "receita" &&
-                        item.status === "pago" &&
-                        relatedOrders.some((order) => order.id === item.ordem_id),
-                    )
-                    .reduce((sum, item) => sum + Number(item.valor), 0);
-                  const purchases = isClient
-                    ? sales.data.filter(
-                        (sale) => sale.cliente_id === client.id && sale.status === "finalizada",
-                      )
-                    : [];
-                  const relationshipTotal =
-                    total + purchases.reduce((sum, sale) => sum + Number(sale.total), 0);
-                  const latestOrder = [...relatedOrders].sort((a, b) =>
-                    b.criado_em.localeCompare(a.criado_em),
-                  )[0];
+        {loading && !data ? (
+          <Empty title="Carregando registros…" />
+        ) : list.length ? (
+          <>
+            <div className="table-wrap dashboard-table records-table">
+              <table>
+                <thead>
+                  <tr>
+                    {(isClient
+                      ? [
+                          "Nome",
+                          "WhatsApp",
+                          "Equipamentos",
+                          "Serviços",
+                          "Último atendimento",
+                          "Total gasto",
+                          "Ações",
+                        ]
+                      : [
+                          "Equipamento",
+                          "Categoria",
+                          "Cliente",
+                          "Série / IMEI",
+                          "Ordens",
+                          "Status atual",
+                          "Ações",
+                        ]
+                    ).map((column) => (
+                      <th key={column}>{column}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {list.map((record) => {
+                    const client = record as ClientItem;
+                    const device = record as DeviceItem;
 
-                  return (
-                    <tr key={record.id}>
-                      <td>
-                        <Link className="records-name" href={`/painel/${kind}/${record.id}`}>
-                          <span className="records-avatar">
-                            {(isClient ? client.nome : device.modelo || device.marca).slice(0, 2).toUpperCase()}
-                          </span>
-                          <strong>{isClient ? client.nome : `${device.marca} ${device.modelo}`}</strong>
-                        </Link>
-                      </td>
-                      {isClient ? (
-                        <>
-                          <td>{client.whatsapp}</td>
-                          <td>{devices.data.filter((item) => item.cliente_id === client.id).length}</td>
-                          <td>{relatedOrders.filter((order) => order.status === "finalizado").length}</td>
-                          <td>{latestOrder ? stamp(latestOrder.criado_em) : "—"}</td>
-                          <td><strong>{money(relationshipTotal)}</strong></td>
-                        </>
-                      ) : (
-                        <>
-                          <td>{device.categoria === "Outro" ? device.tipo_personalizado || "Outro" : device.categoria}</td>
-                          <td>{customers.data.find((item) => item.id === device.cliente_id)?.nome || "—"}</td>
-                          <td>{device.numero_serie || "—"}<small>{device.imei}</small></td>
-                          <td>{relatedOrders.length}</td>
-                          <td>{latestOrder ? <Badge status={latestOrder.status} /> : <span className="subtle">Sem OS</span>}</td>
-                        </>
-                      )}
-                      <td>
-                        <button
-                          className="records-edit"
-                          onClick={() => {
-                            setEditing(record);
-                            if (!isClient) {
-                              const currentDevice = record as Equipamento;
-                              setDeviceDraft({
-                                categoria: currentDevice.categoria,
-                                tipo_personalizado: currentDevice.tipo_personalizado || "",
-                                marca: currentDevice.marca,
-                                modelo: currentDevice.modelo,
-                                cor: currentDevice.cor || "",
-                              });
-                            }
-                            setOpen(true);
-                          }}
-                        >
-                          Editar
-                        </button>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
+                    return (
+                      <tr key={record.id}>
+                        <td>
+                          <Link
+                            className="records-name"
+                            href={`/painel/${kind}/${record.id}`}
+                          >
+                            <span className="records-avatar">
+                              {(isClient
+                                ? client.nome
+                                : device.modelo || device.marca
+                              )
+                                .slice(0, 2)
+                                .toUpperCase()}
+                            </span>
+                            <strong>
+                              {isClient
+                                ? client.nome
+                                : `${device.marca} ${device.modelo}`}
+                            </strong>
+                          </Link>
+                        </td>
+                        {isClient ? (
+                          <>
+                            <td>{client.whatsapp}</td>
+                            <td>{client.equipment_count}</td>
+                            <td>{client.service_count}</td>
+                            <td>
+                              {client.latest_order_at
+                                ? stamp(client.latest_order_at)
+                                : "—"}
+                            </td>
+                            <td>
+                              <strong>{money(client.relationship_total)}</strong>
+                            </td>
+                          </>
+                        ) : (
+                          <>
+                            <td>
+                              {device.categoria === "Outro"
+                                ? device.tipo_personalizado || "Outro"
+                                : device.categoria}
+                            </td>
+                            <td>{device.cliente_nome || "—"}</td>
+                            <td>
+                              {device.numero_serie || "—"}
+                              <small>{device.imei}</small>
+                            </td>
+                            <td>{device.order_count}</td>
+                            <td>
+                              {device.latest_status ? (
+                                <Badge status={device.latest_status} />
+                              ) : (
+                                <span className="subtle">Sem OS</span>
+                              )}
+                            </td>
+                          </>
+                        )}
+                        <td>
+                          <button
+                            className="records-edit"
+                            onClick={() => openEditor(record)}
+                          >
+                            Editar
+                          </button>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+            <Pagination
+              page={data?.page || page}
+              pageSize={data?.pageSize || 30}
+              total={total}
+              onPageChange={setPage}
+            />
+          </>
         ) : (
-          <Empty title={isClient ? "Nenhum cliente cadastrado." : "Nenhum equipamento cadastrado."} />
+          <Empty
+            title={
+              isClient
+                ? "Nenhum cliente cadastrado."
+                : "Nenhum equipamento cadastrado."
+            }
+          />
         )}
       </section>
     </section>
