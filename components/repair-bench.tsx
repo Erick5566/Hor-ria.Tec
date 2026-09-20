@@ -1,5 +1,5 @@
 "use client";
-import { useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import {
   MesaReparo,
@@ -168,7 +168,7 @@ export default function RepairBench() {
           .toLowerCase()
           .includes(query.toLowerCase());
       }),
-    [benchData.items, clients.data, devices.data, bench, technician, query],
+    [benchData.items, bench, technician, query],
   );
 
   const urgentCount = visible.filter((order) => order.prioridade === "urgente").length;
