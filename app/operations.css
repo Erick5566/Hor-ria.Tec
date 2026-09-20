@@ -2481,24 +2481,3 @@ button.danger,
     display: none;
   }
 }
-
-
-/* Reliable photo picker controls */
-.upload-actions {
-  position: relative;
-}
-
-.upload-actions .photo-hidden-input {
-  position: fixed !important;
-  width: 1px !important;
-  height: 1px !important;
-  opacity: 0 !important;
-  pointer-events: none !important;
-  overflow: hidden !important;
-  clip-path: inset(50%) !important;
-}
-
-.upload-actions button {
-  position: relative;
-  z-index: 1;
-}
