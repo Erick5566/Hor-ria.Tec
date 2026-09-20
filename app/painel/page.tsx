@@ -17,10 +17,31 @@ function dateKey(value: string) {
   return value.slice(0, 10);
 }
 
-function monthBefore(month: string) {
-  const [year, value] = month.split("-").map(Number);
-  const date = new Date(year, value - 2, 1);
-  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
+function addLocalDays(value: string, days: number) {
+  const date = new Date(value + "T12:00:00");
+  date.setDate(date.getDate() + days);
+  return new Intl.DateTimeFormat("en-CA", {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(date);
+}
+
+function rangeDays(start: string, end: string) {
+  return Math.max(
+    1,
+    Math.round(
+      (new Date(end + "T12:00:00").getTime() -
+        new Date(start + "T12:00:00").getTime()) /
+        86400000,
+    ) + 1,
+  );
+}
+
+function inRange(value: string | null | undefined, start: string, end: string) {
+  if (!value) return false;
+  const key = value.slice(0, 10);
+  return key >= start && key <= end;
 }
 
 function percentageDelta(current: number, previous: number) {
@@ -34,7 +55,7 @@ function daysBetween(start: string, end: string) {
 }
 
 export default function Overview() {
-  const { selectedMonth } = useWorkspace();
+  const { periodStart, periodEnd } = useWorkspace();
   const [chartDays, setChartDays] = useState<7 | 14 | 30>(30);
   const [statusFilter, setStatusFilter] = useState("todos");
 
@@ -45,59 +66,66 @@ export default function Overview() {
     fin = useRows<Lancamento>("financeiro");
 
   const day = today();
-  const month = selectedMonth;
-  const previousMonth = monthBefore(month);
+  const selectedDays = rangeDays(periodStart, periodEnd);
+  const previousEnd = addLocalDays(periodStart, -1);
+  const previousStart = addLocalDays(previousEnd, -(selectedDays - 1));
 
-  const openOrders = os.data.filter(
-    (item) => !["finalizado", "cancelado"].includes(item.status),
+  const periodOrders = os.data.filter((item) =>
+    inRange(item.criado_em, periodStart, periodEnd),
   );
-  const monthOrders = os.data.filter((item) => item.criado_em.startsWith(month));
-  const previousMonthOrders = os.data.filter((item) =>
-    item.criado_em.startsWith(previousMonth),
+  const previousPeriodOrders = os.data.filter((item) =>
+    inRange(item.criado_em, previousStart, previousEnd),
   );
-  const monthFinished = os.data.filter(
-    (item) => item.status === "finalizado" && item.atualizado_em.startsWith(month),
-  );
-  const previousMonthFinished = os.data.filter(
+  const periodFinished = os.data.filter(
     (item) =>
       item.status === "finalizado" &&
-      item.atualizado_em.startsWith(previousMonth),
+      inRange(item.atualizado_em, periodStart, periodEnd),
   );
-  const monthClients = cs.data.filter((item) => item.criado_em.startsWith(month));
-  const previousMonthClients = cs.data.filter((item) =>
-    item.criado_em.startsWith(previousMonth),
+  const previousPeriodFinished = os.data.filter(
+    (item) =>
+      item.status === "finalizado" &&
+      inRange(item.atualizado_em, previousStart, previousEnd),
+  );
+  const periodClients = cs.data.filter((item) =>
+    inRange(item.criado_em, periodStart, periodEnd),
+  );
+  const previousPeriodClients = cs.data.filter((item) =>
+    inRange(item.criado_em, previousStart, previousEnd),
   );
 
-  const monthRevenue = fin.data
+  const periodRevenue = fin.data
     .filter(
       (item) =>
         item.tipo === "receita" &&
         item.status === "pago" &&
-        item.pago_em?.startsWith(month),
+        inRange(item.pago_em, periodStart, periodEnd),
     )
     .reduce((sum, item) => sum + Number(item.valor), 0);
-  const previousMonthRevenue = fin.data
+  const previousPeriodRevenue = fin.data
     .filter(
       (item) =>
         item.tipo === "receita" &&
         item.status === "pago" &&
-        item.pago_em?.startsWith(previousMonth),
+        inRange(item.pago_em, previousStart, previousEnd),
     )
     .reduce((sum, item) => sum + Number(item.valor), 0);
 
+  const openOrders = periodOrders.filter(
+    (item) => !["finalizado", "cancelado"].includes(item.status),
+  );
   const inProgress = openOrders.length;
-  const awaitingParts = os.data.filter(
+  const awaitingParts = periodOrders.filter(
     (item) => item.status === "aguardando_peca",
   ).length;
 
   const metrics = [
     {
       name: "Ordens de serviço",
-      value: monthOrders.length,
+      value: periodOrders.length,
       icon: "▤",
       tone: "blue",
-      trend: percentageDelta(monthOrders.length, previousMonthOrders.length),
-      note: "em relação ao mês anterior",
+      trend: percentageDelta(periodOrders.length, previousPeriodOrders.length),
+      note: "comparado ao período anterior",
     },
     {
       name: "Em andamento",
@@ -109,11 +137,11 @@ export default function Overview() {
     },
     {
       name: "Concluídas",
-      value: monthFinished.length,
+      value: periodFinished.length,
       icon: "✓",
       tone: "green",
-      trend: percentageDelta(monthFinished.length, previousMonthFinished.length),
-      note: "em relação ao mês anterior",
+      trend: percentageDelta(periodFinished.length, previousPeriodFinished.length),
+      note: "comparado ao período anterior",
     },
     {
       name: "Aguardando peças",
@@ -125,39 +153,39 @@ export default function Overview() {
     },
     {
       name: "Novos clientes",
-      value: monthClients.length,
+      value: periodClients.length,
       icon: "♙",
       tone: "sky",
-      trend: percentageDelta(monthClients.length, previousMonthClients.length),
-      note: "em relação ao mês anterior",
+      trend: percentageDelta(periodClients.length, previousPeriodClients.length),
+      note: "comparado ao período anterior",
     },
     {
-      name: "Faturamento do mês",
-      value: money(monthRevenue),
+      name: "Faturamento do período",
+      value: money(periodRevenue),
       icon: "＄",
       tone: "green",
-      trend: percentageDelta(monthRevenue, previousMonthRevenue),
-      note: "em relação ao mês anterior",
+      trend: percentageDelta(periodRevenue, previousPeriodRevenue),
+      note: "comparado ao período anterior",
     },
   ];
 
-  const chartAnchor = (() => {
-    if (selectedMonth === day.slice(0, 7)) return new Date(day + "T12:00:00");
-    const [year, value] = selectedMonth.split("-").map(Number);
-    return new Date(year, value, 0, 12, 0, 0);
-  })();
+  const effectiveChartDays = Math.min(chartDays, selectedDays);
+  const chartAnchor = new Date(periodEnd + "T12:00:00");
 
-  const trendData = Array.from({ length: chartDays }, (_, index) => {
+  const trendData = Array.from({ length: effectiveChartDays }, (_, index) => {
     const date = new Date(chartAnchor);
-    date.setDate(date.getDate() - (chartDays - 1 - index));
-    const key = date.toISOString().slice(0, 10);
-    const endOfDay = key + "T23:59:59";
+    date.setDate(date.getDate() - (effectiveChartDays - 1 - index));
+    const key = new Intl.DateTimeFormat("en-CA", {
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+    }).format(date);
 
-    const opened = os.data.filter((item) => item.criado_em <= endOfDay).length;
-    const finalized = os.data.filter(
-      (item) =>
-        item.status === "finalizado" &&
-        item.atualizado_em <= endOfDay,
+    const opened = periodOrders.filter(
+      (item) => dateKey(item.criado_em) <= key,
+    ).length;
+    const finalized = periodFinished.filter(
+      (item) => dateKey(item.atualizado_em) <= key,
     ).length;
 
     return {
@@ -186,7 +214,6 @@ export default function Overview() {
       })
       .join(" ");
 
-  const periodOrders = os.data.filter((item) => item.criado_em.startsWith(month));
   const statusGroups = [
     {
       key: "concluidas",
@@ -280,7 +307,7 @@ export default function Overview() {
       ).toFixed(1)
     : "—";
 
-  const latestOrders = [...os.data]
+  const latestOrders = [...periodOrders]
     .sort((a, b) => b.criado_em.localeCompare(a.criado_em))
     .slice(0, 6);
 
@@ -379,9 +406,9 @@ export default function Overview() {
               value={chartDays}
               onChange={(event) => setChartDays(Number(event.target.value) as 7 | 14 | 30)}
             >
-              <option value={7}>Últimos 7 dias</option>
-              <option value={14}>Últimos 14 dias</option>
-              <option value={30}>Últimos 30 dias</option>
+              <option value={7}>7 dias</option>
+              <option value={14}>14 dias</option>
+              <option value={30}>30 dias</option>
             </select>
           </div>
 

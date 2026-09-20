@@ -25,6 +25,9 @@ type WorkspaceValue = {
   access: AccessContext;
   selectedMonth: string;
   setSelectedMonth: (month: string) => void;
+  periodStart: string;
+  periodEnd: string;
+  setPeriod: (start: string, end: string) => void;
   refresh: () => Promise<void>;
 };
 type WorkspaceAlert = {
@@ -32,17 +35,45 @@ type WorkspaceAlert = {
   title: string;
   text: string;
   href: string;
-  tone: "urgent" | "warning" | "ready";
+  tone: "urgent" | "warning" | "ready" | "approval";
+  createdAt: string;
 };
 
-function localMonth() {
+function localDate() {
   return new Intl.DateTimeFormat("en-CA", {
     timeZone: "America/Sao_Paulo",
     year: "numeric",
     month: "2-digit",
-  })
-    .format(new Date())
-    .slice(0, 7);
+    day: "2-digit",
+  }).format(new Date());
+}
+
+function localMonth() {
+  return localDate().slice(0, 7);
+}
+
+function rangeForMonth(month = localMonth()) {
+  const [year, value] = month.split("-").map(Number);
+  const end = new Date(Date.UTC(year, value, 0)).toISOString().slice(0, 10);
+  return { start: month + "-01", end };
+}
+
+function dateFromLocal(value: string) {
+  return new Date(value + "T12:00:00");
+}
+
+function formatShortDate(value: string) {
+  return dateFromLocal(value).toLocaleDateString("pt-BR");
+}
+
+function addDays(value: string, days: number) {
+  const date = dateFromLocal(value);
+  date.setDate(date.getDate() + days);
+  return new Intl.DateTimeFormat("en-CA", {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(date);
 }
 
 const Context = createContext<WorkspaceValue | null>(null);
@@ -92,13 +123,32 @@ export default function Workspace({
     [error, setError] = useState(""),
     [open, setOpen] = useState(false),
     [globalSearch, setGlobalSearch] = useState(""),
-    [selectedMonth, setSelectedMonth] = useState(localMonth()),
+    [selectedMonth, setSelectedMonthState] = useState(localMonth()),
+    [periodStart, setPeriodStart] = useState(() => rangeForMonth().start),
+    [periodEnd, setPeriodEnd] = useState(() => rangeForMonth().end),
     [periodOpen, setPeriodOpen] = useState(false),
     [alertsOpen, setAlertsOpen] = useState(false),
     [profileOpen, setProfileOpen] = useState(false),
-    [alerts, setAlerts] = useState<WorkspaceAlert[]>([]);
+    [alerts, setAlerts] = useState<WorkspaceAlert[]>([]),
+    [readAlertIds, setReadAlertIds] = useState<Set<string>>(new Set());
   const router = useRouter(),
     path = usePathname();
+
+  const setPeriod = useCallback((start: string, end: string) => {
+    if (!start || !end) return;
+    const normalizedStart = start <= end ? start : end;
+    const normalizedEnd = start <= end ? end : start;
+    setPeriodStart(normalizedStart);
+    setPeriodEnd(normalizedEnd);
+    setSelectedMonthState(normalizedStart.slice(0, 7));
+  }, []);
+
+  const setSelectedMonth = useCallback((month: string) => {
+    const next = rangeForMonth(month || localMonth());
+    setSelectedMonthState((month || localMonth()).slice(0, 7));
+    setPeriodStart(next.start);
+    setPeriodEnd(next.end);
+  }, []);
   const refresh = useCallback(async () => {
     if (!supabase) return;
     try {
@@ -173,14 +223,14 @@ export default function Workspace({
     return () => window.removeEventListener("keydown", close);
   }, []);
 
-  useEffect(() => {
-    if (!empresa?.id || !supabase) return;
-    let active = true;
-    async function loadAlerts() {
-      const { data, error } = await supabase!
+  const loadAlerts = useCallback(async () => {
+    if (!empresa?.id || !supabase || !userId) return;
+
+    const [ordersResult, quotesResult, readsResult] = await Promise.all([
+      supabase
         .from("ordens_servico")
-        .select("id,numero,status,prioridade,prazo_previsto")
-        .eq("empresa_id", empresa!.id)
+        .select("id,numero,status,prioridade,prazo_previsto,atualizado_em")
+        .eq("empresa_id", empresa.id)
         .in("status", [
           "novo",
           "recebido",
@@ -194,56 +244,199 @@ export default function Workspace({
           "em_testes",
           "pronto_retirada",
         ])
-        .order("prazo_previsto", { ascending: true, nullsFirst: false })
-        .limit(40);
-      if (error || !active) return;
+        .order("atualizado_em", { ascending: false })
+        .limit(60),
+      supabase
+        .from("orcamentos")
+        .select("id,ordem_id,status,criado_em")
+        .eq("empresa_id", empresa.id)
+        .in("status", ["enviado", "alteracao_solicitada"])
+        .order("criado_em", { ascending: false })
+        .limit(40),
+      supabase
+        .from("notification_reads")
+        .select("notification_id")
+        .eq("empresa_id", empresa.id)
+        .eq("usuario_id", userId),
+    ]);
 
-      const today = new Intl.DateTimeFormat("en-CA", {
-        timeZone: "America/Sao_Paulo",
-      }).format(new Date());
+    if (ordersResult.error) {
+      setError(message(ordersResult.error));
+      return;
+    }
 
-      const next: WorkspaceAlert[] = [];
-      for (const order of data || []) {
-        if (order.prioridade === "urgente") {
+    const today = localDate();
+    const next: WorkspaceAlert[] = [];
+    const orders = ordersResult.data || [];
+
+    for (const order of orders) {
+      if (order.prioridade === "urgente") {
+        next.push({
+          id: "urgent-" + order.id,
+          title: `OS #${order.numero} urgente`,
+          text: "Prioridade urgente: revise esta ordem o quanto antes.",
+          href: `/painel/ordens/${order.id}`,
+          tone: "urgent",
+          createdAt: order.atualizado_em,
+        });
+      }
+
+      if (order.prazo_previsto && order.prazo_previsto.slice(0, 10) < today) {
+        next.push({
+          id: "late-" + order.id,
+          title: `OS #${order.numero} com prazo vencido`,
+          text: "O prazo previsto desta ordem já passou.",
+          href: `/painel/ordens/${order.id}`,
+          tone: "warning",
+          createdAt: order.prazo_previsto,
+        });
+      }
+
+      if (order.status === "pronto_retirada") {
+        next.push({
+          id: "ready-" + order.id,
+          title: `OS #${order.numero} pronta para retirada`,
+          text: "O equipamento já pode ser entregue ao cliente.",
+          href: `/painel/ordens/${order.id}`,
+          tone: "ready",
+          createdAt: order.atualizado_em,
+        });
+      }
+
+      if (["orcamento_enviado", "aguardando_aprovacao"].includes(order.status)) {
+        next.push({
+          id: "approval-" + order.id,
+          title: `OS #${order.numero} aguardando aprovação`,
+          text: "Há um orçamento aguardando resposta do cliente.",
+          href: `/painel/ordens/${order.id}`,
+          tone: "approval",
+          createdAt: order.atualizado_em,
+        });
+      }
+    }
+
+    if (!quotesResult.error) {
+      for (const quote of quotesResult.data || []) {
+        if (quote.status === "alteracao_solicitada") {
+          const order = orders.find((item) => item.id === quote.ordem_id);
           next.push({
-            id: "urgent-" + order.id,
-            title: `OS #${order.numero} urgente`,
-            text: "Esta ordem está marcada como prioridade urgente.",
-            href: `/painel/ordens/${order.id}`,
-            tone: "urgent",
-          });
-        }
-        if (
-          order.prazo_previsto &&
-          order.prazo_previsto.slice(0, 10) < today
-        ) {
-          next.push({
-            id: "late-" + order.id,
-            title: `OS #${order.numero} atrasada`,
-            text: "O prazo previsto desta ordem já passou.",
-            href: `/painel/ordens/${order.id}`,
+            id: "quote-change-" + quote.id,
+            title: order
+              ? `Alteração solicitada na OS #${order.numero}`
+              : "Alteração solicitada em orçamento",
+            text: "O cliente pediu uma alteração no orçamento.",
+            href: `/painel/ordens/${quote.ordem_id}`,
             tone: "warning",
-          });
-        }
-        if (order.status === "pronto_retirada") {
-          next.push({
-            id: "ready-" + order.id,
-            title: `OS #${order.numero} pronta`,
-            text: "Equipamento pronto para retirada.",
-            href: `/painel/ordens/${order.id}`,
-            tone: "ready",
+            createdAt: quote.criado_em,
           });
         }
       }
-      setAlerts(next.slice(0, 12));
     }
+
+    const deduped = Array.from(
+      new Map(next.map((item) => [item.id, item])).values(),
+    )
+      .sort(
+        (a, b) =>
+          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+      )
+      .slice(0, 30);
+
+    setAlerts(deduped);
+    setReadAlertIds(
+      new Set((readsResult.data || []).map((row) => row.notification_id)),
+    );
+  }, [empresa?.id, userId]);
+
+  useEffect(() => {
+    if (!empresa?.id || !supabase || !userId) return;
     void loadAlerts();
+
+    const channel = supabase
+      .channel(`workspace-alerts-${empresa.id}-${userId}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "ordens_servico",
+          filter: `empresa_id=eq.${empresa.id}`,
+        },
+        () => void loadAlerts(),
+      )
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "orcamentos",
+          filter: `empresa_id=eq.${empresa.id}`,
+        },
+        () => void loadAlerts(),
+      )
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "notification_reads",
+          filter: `empresa_id=eq.${empresa.id}`,
+        },
+        () => void loadAlerts(),
+      )
+      .subscribe();
+
     const timer = window.setInterval(loadAlerts, 60000);
     return () => {
-      active = false;
       window.clearInterval(timer);
+      void supabase!.removeChannel(channel);
     };
-  }, [empresa?.id]);
+  }, [empresa?.id, userId, loadAlerts]);
+
+  async function markAlertRead(alertId: string) {
+    if (!empresa?.id || !userId || !supabase || readAlertIds.has(alertId))
+      return;
+    setReadAlertIds((current) => new Set([...current, alertId]));
+    const result = await supabase.from("notification_reads").upsert(
+      {
+        empresa_id: empresa.id,
+        usuario_id: userId,
+        notification_id: alertId,
+        read_at: new Date().toISOString(),
+      },
+      { onConflict: "empresa_id,usuario_id,notification_id" },
+    );
+    if (result.error) {
+      setReadAlertIds((current) => {
+        const next = new Set(current);
+        next.delete(alertId);
+        return next;
+      });
+      setError(message(result.error));
+    }
+  }
+
+  async function markAllAlertsRead() {
+    if (!empresa?.id || !userId || !supabase) return;
+    const unread = alerts.filter((alert) => !readAlertIds.has(alert.id));
+    if (!unread.length) return;
+    const ids = unread.map((alert) => alert.id);
+    setReadAlertIds((current) => new Set([...current, ...ids]));
+    const result = await supabase.from("notification_reads").upsert(
+      unread.map((alert) => ({
+        empresa_id: empresa.id,
+        usuario_id: userId,
+        notification_id: alert.id,
+        read_at: new Date().toISOString(),
+      })),
+      { onConflict: "empresa_id,usuario_id,notification_id" },
+    );
+    if (result.error) {
+      await loadAlerts();
+      setError(message(result.error));
+    }
+  }
+
   if (!configured) return <MissingConfig />;
   const title =
     menu
@@ -374,13 +567,9 @@ export default function Workspace({
     setGlobalSearch("");
   }
 
-  const [periodYear, periodMonth] = selectedMonth.split("-").map(Number);
-  const monthStart = new Date(periodYear, periodMonth - 1, 1);
-  const monthEnd = new Date(periodYear, periodMonth, 0);
   const periodLabel =
-    monthStart.toLocaleDateString("pt-BR") +
-    " - " +
-    monthEnd.toLocaleDateString("pt-BR");
+    formatShortDate(periodStart) + " - " + formatShortDate(periodEnd);
+  const unreadAlerts = alerts.filter((alert) => !readAlertIds.has(alert.id));
 
   return (
     <div className="workspace">
@@ -492,33 +681,86 @@ export default function Workspace({
                   setProfileOpen(false);
                 }}
               >
-                <b aria-hidden="true">▣</b>
+                <svg
+                  aria-hidden="true"
+                  viewBox="0 0 24 24"
+                  className="workspace-calendar-icon"
+                >
+                  <path d="M7 2v3M17 2v3M3.5 9h17M5.5 4h13a2 2 0 0 1 2 2v13a2 2 0 0 1-2 2h-13a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2Z" />
+                </svg>
                 {periodLabel}
                 <i aria-hidden="true">⌄</i>
               </button>
               {periodOpen && (
                 <div className="workspace-popover workspace-period-popover">
-                  <strong>Período do painel</strong>
-                  <label>
-                    Mês
-                    <input
-                      type="month"
-                      value={selectedMonth}
-                      onChange={(event) => {
-                        setSelectedMonth(event.target.value || localMonth());
+                  <div className="workspace-popover-head">
+                    <strong>Período do painel</strong>
+                    <small>Atualiza os indicadores</small>
+                  </div>
+                  <div className="workspace-period-presets">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const today = localDate();
+                        setPeriod(today, today);
                         setPeriodOpen(false);
                       }}
-                    />
-                  </label>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setSelectedMonth(localMonth());
-                      setPeriodOpen(false);
-                    }}
-                  >
-                    Voltar ao mês atual
-                  </button>
+                    >
+                      Hoje
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const today = localDate();
+                        setPeriod(addDays(today, -6), today);
+                        setPeriodOpen(false);
+                      }}
+                    >
+                      Últimos 7 dias
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const today = localDate();
+                        setPeriod(addDays(today, -29), today);
+                        setPeriodOpen(false);
+                      }}
+                    >
+                      Últimos 30 dias
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const range = rangeForMonth();
+                        setPeriod(range.start, range.end);
+                        setPeriodOpen(false);
+                      }}
+                    >
+                      Este mês
+                    </button>
+                  </div>
+                  <div className="workspace-date-range">
+                    <label>
+                      Data inicial
+                      <input
+                        type="date"
+                        value={periodStart}
+                        onChange={(event) =>
+                          setPeriod(event.target.value, periodEnd)
+                        }
+                      />
+                    </label>
+                    <label>
+                      Data final
+                      <input
+                        type="date"
+                        value={periodEnd}
+                        onChange={(event) =>
+                          setPeriod(periodStart, event.target.value)
+                        }
+                      />
+                    </label>
+                  </div>
                 </div>
               )}
             </div>
@@ -535,39 +777,81 @@ export default function Workspace({
                   setProfileOpen(false);
                 }}
               >
-                ♢
-                {alerts.length > 0 && (
+                <svg
+                  className="workspace-bell-icon"
+                  aria-hidden="true"
+                  viewBox="0 0 24 24"
+                >
+                  <path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9ZM10 21h4" />
+                </svg>
+                {unreadAlerts.length > 0 && (
                   <span className="workspace-alert-count">
-                    {Math.min(alerts.length, 9)}
+                    {Math.min(unreadAlerts.length, 9)}
                   </span>
                 )}
               </button>
               {alertsOpen && (
                 <div className="workspace-popover workspace-alert-popover">
                   <div className="workspace-popover-head">
-                    <strong>Notificações</strong>
-                    <small>{alerts.length} avisos</small>
+                    <div>
+                      <strong>Notificações</strong>
+                      <small>
+                        {unreadAlerts.length
+                          ? `${unreadAlerts.length} não lidas`
+                          : "Tudo em dia"}
+                      </small>
+                    </div>
+                    {unreadAlerts.length > 0 && (
+                      <button
+                        className="workspace-mark-all"
+                        type="button"
+                        onClick={() => void markAllAlertsRead()}
+                      >
+                        Marcar todas como lidas
+                      </button>
+                    )}
                   </div>
                   {alerts.length ? (
                     <div className="workspace-alert-list">
-                      {alerts.map((alert) => (
-                        <Link
-                          href={alert.href}
-                          key={alert.id}
-                          className={"workspace-alert-item " + alert.tone}
-                          onClick={() => setAlertsOpen(false)}
-                        >
-                          <span />
-                          <div>
-                            <strong>{alert.title}</strong>
-                            <small>{alert.text}</small>
-                          </div>
-                        </Link>
-                      ))}
+                      {alerts.map((alert) => {
+                        const read = readAlertIds.has(alert.id);
+                        return (
+                          <Link
+                            href={alert.href}
+                            key={alert.id}
+                            className={
+                              "workspace-alert-item " +
+                              alert.tone +
+                              (read ? " is-read" : " is-unread")
+                            }
+                            onClick={() => {
+                              void markAlertRead(alert.id);
+                              setAlertsOpen(false);
+                            }}
+                          >
+                            <span />
+                            <div>
+                              <strong>{alert.title}</strong>
+                              <small>{alert.text}</small>
+                              <time>
+                                {new Date(alert.createdAt).toLocaleString(
+                                  "pt-BR",
+                                  {
+                                    dateStyle: "short",
+                                    timeStyle: "short",
+                                    timeZone: "America/Sao_Paulo",
+                                  },
+                                )}
+                              </time>
+                            </div>
+                            {!read && <b aria-label="Não lida" />}
+                          </Link>
+                        );
+                      })}
                     </div>
                   ) : (
                     <p className="workspace-popover-empty">
-                      Nenhum aviso importante agora.
+                      Nenhuma notificação agora.
                     </p>
                   )}
                 </div>
@@ -659,7 +943,20 @@ export default function Workspace({
         ) : !userId ? null : !empresa ? (
           <Setup done={refresh} />
         ) : (
-          <Context.Provider value={{ empresa, userId, email, access, selectedMonth, setSelectedMonth, refresh }}>
+          <Context.Provider
+            value={{
+              empresa,
+              userId,
+              email,
+              access,
+              selectedMonth,
+              setSelectedMonth,
+              periodStart,
+              periodEnd,
+              setPeriod,
+              refresh,
+            }}
+          >
             {children}
           </Context.Provider>
         )}

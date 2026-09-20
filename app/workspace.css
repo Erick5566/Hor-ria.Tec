@@ -2987,3 +2987,232 @@ tbody tr:hover td {
     padding-left: 38px;
   }
 }
+
+
+/* Realtime calendar range + notification bell */
+.workspace-calendar-icon,
+.workspace-bell-icon {
+  width: 18px;
+  height: 18px;
+  flex: 0 0 18px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.workspace-date-chip {
+  min-width: 205px;
+  justify-content: space-between;
+}
+
+.workspace-date-chip .workspace-calendar-icon {
+  color: #2259a6;
+}
+
+.workspace-period-popover {
+  width: min(340px, 88vw);
+  padding: 0;
+  overflow: hidden;
+}
+
+.workspace-period-presets {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  padding: 12px 14px 6px;
+}
+
+.workspace-period-presets button {
+  min-height: 38px;
+  padding: 8px 10px;
+  color: #31557f;
+  background: #f5f9ff;
+  border: 1px solid #dbe7f5;
+  border-radius: 9px;
+  font-size: .6rem;
+  font-weight: 800;
+}
+
+.workspace-period-presets button:hover {
+  color: #fff;
+  background: #1761f6;
+  border-color: #1761f6;
+}
+
+.workspace-date-range {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 9px;
+  padding: 8px 14px 14px;
+}
+
+.workspace-date-range label {
+  display: grid;
+  gap: 5px;
+  color: #607695;
+  font-size: .56rem;
+  font-weight: 800;
+}
+
+.workspace-date-range input {
+  width: 100%;
+  min-height: 40px;
+  padding: 0 9px;
+  color: #2f4b70;
+  background: #fff;
+  border: 1px solid #d8e4f2;
+  border-radius: 8px;
+  font: inherit;
+}
+
+.workspace-alert-button {
+  font-size: 0;
+}
+
+.workspace-alert-button .workspace-bell-icon {
+  color: #173b69;
+}
+
+.workspace-alert-button:hover,
+.workspace-date-chip:hover {
+  background: #fff;
+  border-color: #9fc2ee;
+}
+
+.workspace-alert-button .workspace-alert-count {
+  right: 4px;
+  top: 3px;
+  width: 18px;
+  height: 18px;
+  font-size: .49rem;
+}
+
+.workspace-popover-head > div {
+  min-width: 0;
+}
+
+.workspace-mark-all {
+  padding: 0;
+  color: #1761d2;
+  background: transparent;
+  border: 0;
+  font-size: .54rem;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.workspace-mark-all:hover {
+  text-decoration: underline;
+}
+
+.workspace-alert-item {
+  position: relative;
+  grid-template-columns: 9px minmax(0, 1fr) 8px;
+}
+
+.workspace-alert-item.approval > span {
+  background: #7f5af0;
+}
+
+.workspace-alert-item.is-read {
+  opacity: .62;
+  background: #fbfcfe;
+}
+
+.workspace-alert-item.is-unread {
+  background: #f7fbff;
+}
+
+.workspace-alert-item > b {
+  width: 7px;
+  height: 7px;
+  align-self: center;
+  background: #1761f6;
+  border-radius: 50%;
+}
+
+.workspace-alert-item time {
+  display: block;
+  margin-top: 5px;
+  color: #9aa7b9;
+  font-size: .49rem;
+}
+
+@media (max-width: 920px) {
+  .workspace-date-chip {
+    display: inline-flex;
+    min-width: 44px;
+    width: 44px;
+    padding: 0;
+    justify-content: center;
+    font-size: 0;
+  }
+
+  .workspace-date-chip i {
+    display: none;
+  }
+
+  .workspace-date-chip .workspace-calendar-icon {
+    width: 19px;
+    height: 19px;
+  }
+}
+
+@media (max-width: 760px) {
+  .workspace-top {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .workspace-top-context {
+    gap: 7px;
+  }
+
+  .workspace-date-chip,
+  .workspace-alert-button {
+    display: inline-grid;
+    width: 42px;
+    min-width: 42px;
+    height: 42px;
+    min-height: 42px;
+    place-items: center;
+    padding: 0;
+  }
+
+  .workspace-date-chip {
+    display: inline-flex;
+  }
+
+  .workspace-period-popover,
+  .workspace-alert-popover {
+    position: fixed;
+    top: 126px;
+    right: 10px;
+    left: 10px;
+    width: auto;
+    max-height: calc(100dvh - 145px);
+  }
+
+  .workspace-alert-list {
+    max-height: calc(100dvh - 220px);
+  }
+}
+
+@media (max-width: 520px) {
+  .workspace-alert-button {
+    display: grid;
+  }
+
+  .workspace-profile-chip {
+    display: none;
+  }
+
+  .workspace-top-context {
+    flex: 0 0 auto;
+  }
+
+  .workspace-date-range {
+    grid-template-columns: 1fr;
+  }
+}
