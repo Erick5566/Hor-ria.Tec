@@ -6826,8 +6826,27 @@ button.danger,
   font-size: .64rem;
 }
 
+.public-booking-card .device-card-image {
+  display: block;
+  width: 52px;
+  height: 52px;
+  object-fit: contain;
+  object-position: center;
+  pointer-events: none;
+  user-select: none;
+}
+
+.public-booking-card .category-cards button.selected .device-card-image {
+  transform: scale(1.04);
+}
+
 @media (max-width: 560px) {
   .public-booking-card .category-cards {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .public-booking-card .device-card-image {
+    width: 46px;
+    height: 46px;
   }
 }
