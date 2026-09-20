@@ -4,7 +4,9 @@ import { createClient } from "@supabase/supabase-js";
 const base =
   process.env.NEXT_PUBLIC_SITE_URL ||
   process.env.NEXT_PUBLIC_APP_URL ||
-  "https://hor-ria-tec.vercel.app";
+  (process.env.VERCEL_PROJECT_PRODUCTION_URL
+    ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
+    : "https://hor-ria-tec.vercel.app");
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const now = new Date();
