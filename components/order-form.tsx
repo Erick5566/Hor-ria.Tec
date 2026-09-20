@@ -114,7 +114,7 @@ export default function OrderForm() {
     }
   }
   return (
-    <section className="module">
+    <section className="module unified-pro new-order-pro">
       <Heading
         title="Nova ordem de serviço"
         subtitle="Documente a entrada do equipamento e inicie o atendimento."
