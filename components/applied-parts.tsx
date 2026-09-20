@@ -1,6 +1,6 @@
 "use client";
-import { useState } from "react";
-import { useRows, Peca, stamp, money } from "@/lib/assistencia";
+import { useCallback, useEffect, useState } from "react";
+import { stamp, money } from "@/lib/assistencia";
 import { supabase, message } from "@/lib/supabase";
 import { ErrorBox, Empty } from "./ui";
 
@@ -16,6 +16,19 @@ type AppliedPart = {
   criado_em: string;
 };
 
+type StockOption = {
+  id: string;
+  nome: string;
+  quantidade: number;
+  custo: number;
+  preco: number;
+};
+
+type AppliedPartsData = {
+  applied: AppliedPart[];
+  stock: StockOption[];
+};
+
 export default function AppliedParts({
   orderIds,
   readOnly = false,
@@ -23,14 +36,37 @@ export default function AppliedParts({
   orderIds: string[];
   readOnly?: boolean;
 }) {
-  const stock = useRows<Peca>("pecas"),
-    applied = useRows<AppliedPart>("pecas_aplicadas");
-  const [error, setError] = useState(""),
-    [busy, setBusy] = useState(false),
-    [stockId, setStockId] = useState("");
-  const visible = applied.data.filter((item) =>
-    orderIds.includes(item.ordem_id),
-  );
+  const orderId = orderIds[0];
+  const [data, setData] = useState<AppliedPartsData>({
+    applied: [],
+    stock: [],
+  });
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [stockId, setStockId] = useState("");
+
+  const load = useCallback(async () => {
+    if (!orderId || !supabase) return;
+    setLoading(true);
+    try {
+      const result = await supabase.rpc("applied_parts_options", {
+        p_order: orderId,
+      });
+      if (result.error) throw result.error;
+      setData(result.data as AppliedPartsData);
+      setError("");
+    } catch (caught) {
+      setError(message(caught as Error));
+    } finally {
+      setLoading(false);
+    }
+  }, [orderId]);
+
+  useEffect(() => {
+    void load();
+  }, [load]);
+
   return (
     <section className="panel">
       <h2>Peças aplicadas</h2>
@@ -38,19 +74,21 @@ export default function AppliedParts({
         Registre cada componente realmente usado no reparo. O vínculo com o
         estoque é opcional.
       </p>
-      <ErrorBox error={error || stock.error || applied.error} />
+
+      <ErrorBox error={error} />
+
       {!readOnly && (
         <form
           onSubmit={async (event) => {
             event.preventDefault();
             setBusy(true);
             setError("");
-            const form = event.currentTarget,
-              values = new FormData(form);
+            const form = event.currentTarget;
+            const values = new FormData(form);
             const result = await supabase!.rpc(
               "registrar_peca_aplicada_valores",
               {
-                p_ordem: orderIds[0],
+                p_ordem: orderId,
                 p_nome: values.get("nome"),
                 p_quantidade: Number(values.get("quantidade")),
                 p_peca: stockId || null,
@@ -59,11 +97,12 @@ export default function AppliedParts({
                 p_mao_obra: Number(values.get("mao_obra")),
               },
             );
+
             if (result.error) setError(message(result.error));
             else {
               form.reset();
               setStockId("");
-              await Promise.all([stock.reload(), applied.reload()]);
+              await load();
             }
             setBusy(false);
           }}
@@ -79,6 +118,7 @@ export default function AppliedParts({
                 placeholder="Ex.: Conector USB-C compatível"
               />
             </label>
+
             <label>
               Quantidade
               <input
@@ -90,39 +130,45 @@ export default function AppliedParts({
                 required
               />
             </label>
+
             <label>
               Vincular ao estoque (opcional)
               <select
                 value={stockId}
+                disabled={loading}
                 onChange={(event) => {
                   const id = event.target.value;
                   setStockId(id);
-                  const selected = stock.data.find((part) => part.id === id);
+                  const selected = data.stock.find((part) => part.id === id);
+
                   const input = event.currentTarget.form?.elements.namedItem(
                     "nome",
                   ) as HTMLInputElement | null;
                   if (selected && input && !input.value)
                     input.value = selected.nome;
+
                   const cost = event.currentTarget.form?.elements.namedItem(
                     "custo",
                   ) as HTMLInputElement | null;
                   const sale = event.currentTarget.form?.elements.namedItem(
                     "venda",
                   ) as HTMLInputElement | null;
+
                   if (selected && cost) cost.value = String(selected.custo);
                   if (selected && sale) sale.value = String(selected.preco);
                 }}
               >
-                <option value="">Sem vínculo</option>
-                {stock.data
-                  .filter((part) => part.quantidade > 0)
-                  .map((part) => (
-                    <option key={part.id} value={part.id}>
-                      {part.nome} · {part.quantidade} disponíveis
-                    </option>
-                  ))}
+                <option value="">
+                  {loading ? "Carregando estoque..." : "Sem vínculo"}
+                </option>
+                {data.stock.map((part) => (
+                  <option key={part.id} value={part.id}>
+                    {part.nome} · {part.quantidade} disponíveis
+                  </option>
+                ))}
               </select>
             </label>
+
             <label>
               Custo unitário
               <input
@@ -134,6 +180,7 @@ export default function AppliedParts({
                 required
               />
             </label>
+
             <label>
               Valor cobrado pela peça
               <input
@@ -145,6 +192,7 @@ export default function AppliedParts({
                 required
               />
             </label>
+
             <label>
               Mão de obra
               <input
@@ -157,36 +205,45 @@ export default function AppliedParts({
               />
             </label>
           </div>
-          <button disabled={busy} className="outline">
+
+          <button disabled={busy || loading} className="outline">
             {busy ? "Registrando…" : "Registrar peça aplicada"}
           </button>
+
           <p className="hint">
             Ao vincular uma peça cadastrada, a quantidade é baixada do estoque
             automaticamente.
           </p>
         </form>
       )}
-      {!visible.length && <Empty title="Nenhuma peça aplicada registrada." />}
-      {visible.map((item) => (
-        <div className="list-line" key={item.id}>
-          <span>
-            {item.nome} · {item.quantidade} unidade(s)
-            {item.peca_id ? " · Estoque atualizado" : ""}
-            <small>
-              Custo: {money(Number(item.custo_unitario) * item.quantidade)} ·
-              Peça: {money(Number(item.valor_venda_unitario) * item.quantidade)}{" "}
-              · Mão de obra: {money(item.mao_obra)} · Margem estimada:{" "}
-              {money(
-                (Number(item.valor_venda_unitario) -
-                  Number(item.custo_unitario)) *
-                  item.quantidade +
-                  Number(item.mao_obra),
-              )}
-            </small>
-          </span>
-          <small>{stamp(item.criado_em)}</small>
-        </div>
-      ))}
+
+      {loading ? (
+        <p>Carregando peças aplicadas…</p>
+      ) : !data.applied.length ? (
+        <Empty title="Nenhuma peça aplicada registrada." />
+      ) : (
+        data.applied.map((item) => (
+          <div className="list-line" key={item.id}>
+            <span>
+              {item.nome} · {item.quantidade} unidade(s)
+              {item.peca_id ? " · Estoque atualizado" : ""}
+              <small>
+                Custo: {money(Number(item.custo_unitario) * item.quantidade)} ·
+                Peça:{" "}
+                {money(Number(item.valor_venda_unitario) * item.quantidade)} ·
+                Mão de obra: {money(item.mao_obra)} · Margem estimada:{" "}
+                {money(
+                  (Number(item.valor_venda_unitario) -
+                    Number(item.custo_unitario)) *
+                    item.quantidade +
+                    Number(item.mao_obra),
+                )}
+              </small>
+            </span>
+            <small>{stamp(item.criado_em)}</small>
+          </div>
+        ))
+      )}
     </section>
   );
 }
