@@ -4,6 +4,7 @@ import AdminModule from "@/components/admin-module";
 const betaModules = [
   "servicos",
   "mesa-reparo",
+  "financeiro",
   "empresa",
   "configuracoes",
   "pagina-cliente",
