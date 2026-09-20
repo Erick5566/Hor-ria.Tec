@@ -1,79 +1,155 @@
 "use client";
-import { useState } from "react";
-import {
-  Ordem,
-  Lancamento,
-  Equipamento,
-  useRows,
-  money,
-  statuses,
-} from "@/lib/assistencia";
-import { today } from "@/lib/supabase";
+import { useCallback, useEffect, useState } from "react";
+import { money, statuses, type Status } from "@/lib/assistencia";
+import { message, supabase, today } from "@/lib/supabase";
 import { ErrorBox } from "./ui";
+import { useWorkspace } from "./workspace";
+
+type ReportRow = {
+  id: string;
+  numero: number;
+  criado_em: string;
+  status: Status;
+  equipamento_modelo: string;
+};
+
+type ReportsData = {
+  metrics: {
+    orders: number;
+    income: number;
+    cost: number;
+  };
+  statuses: Partial<Record<Status, number>>;
+  rows: ReportRow[];
+};
+
 export default function Reports() {
-  const orders = useRows<Ordem>("ordens_servico"),
-    fin = useRows<Lancamento>("financeiro"),
-    eq = useRows<Equipamento>("equipamentos");
+  const { empresa } = useWorkspace();
   const [month, setMonth] = useState(today().slice(0, 7));
-  const rows = orders.data.filter((o) => o.criado_em.slice(0, 7) === month),
-    paid = fin.data.filter(
-      (x) => x.status === "pago" && x.pago_em?.startsWith(month),
-    ),
-    income = paid
-      .filter((x) => x.tipo === "receita")
-      .reduce((n, x) => n + Number(x.valor), 0),
-    cost = paid
-      .filter((x) => x.tipo === "despesa")
-      .reduce((n, x) => n + Number(x.valor), 0);
+  const [data, setData] = useState<ReportsData | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  const load = useCallback(
+    async (silent = false) => {
+      if (!supabase) return;
+      if (!silent) setLoading(true);
+      try {
+        const result = await supabase.rpc("reports_month_overview", {
+          p_month: month,
+        });
+        if (result.error) throw result.error;
+        setData(result.data as ReportsData);
+        setError("");
+      } catch (caught) {
+        setError(message(caught as Error));
+      } finally {
+        if (!silent) setLoading(false);
+      }
+    },
+    [month],
+  );
+
+  useEffect(() => {
+    void load(false);
+  }, [load]);
+
+  useEffect(() => {
+    if (!supabase || !empresa.id) return;
+
+    let timer: number | undefined;
+    const refreshSoon = () => {
+      window.clearTimeout(timer);
+      timer = window.setTimeout(() => void load(true), 300);
+    };
+
+    const channel = supabase
+      .channel(`reports-${empresa.id}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "ordens_servico",
+          filter: `empresa_id=eq.${empresa.id}`,
+        },
+        refreshSoon,
+      )
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "financeiro",
+          filter: `empresa_id=eq.${empresa.id}`,
+        },
+        refreshSoon,
+      )
+      .subscribe();
+
+    return () => {
+      window.clearTimeout(timer);
+      void supabase!.removeChannel(channel);
+    };
+  }, [empresa.id, load]);
+
   function exportCSV() {
-    const cell = (s: unknown) =>
+    const cell = (value: unknown) =>
       '"' +
-      String(s ?? "")
+      String(value ?? "")
         .replace(/^[=+@-]/, "'$&")
         .replaceAll('"', '""') +
       '"';
+
     const csv = [
       ["OS", "Entrada", "Equipamento", "Status"],
-      ...rows.map((o) => [
-        o.numero,
-        o.criado_em,
-        eq.data.find((e) => e.id === o.equipamento_id)?.modelo,
-        statuses[o.status],
+      ...(data?.rows || []).map((row) => [
+        row.numero,
+        row.criado_em,
+        row.equipamento_modelo,
+        statuses[row.status],
       ]),
     ]
-      .map((r) => r.map(cell).join(";"))
+      .map((row) => row.map(cell).join(";"))
       .join("\r\n");
+
     const url = URL.createObjectURL(
       new Blob(["\ufeff" + csv], { type: "text/csv;charset=utf-8" }),
     );
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `horaria-ordens-${month}.csv`;
-    a.click();
+    const anchor = document.createElement("a");
+    anchor.href = url;
+    anchor.download = `horaria-ordens-${month}.csv`;
+    anchor.click();
     setTimeout(() => URL.revokeObjectURL(url), 1000);
   }
+
+  const income = Number(data?.metrics.income || 0);
+  const cost = Number(data?.metrics.cost || 0);
+
   return (
     <>
-      <ErrorBox error={orders.error || fin.error || eq.error} />
+      <ErrorBox error={error} />
+
       <div className="toolbar">
         <label>
           Mês
           <input
             type="month"
             value={month}
-            onChange={(e) => setMonth(e.target.value)}
+            onChange={(event) => setMonth(event.target.value)}
           />
         </label>
-        <button disabled={orders.loading || eq.loading} onClick={exportCSV}>
+        <button disabled={loading || !data?.rows.length} onClick={exportCSV}>
           Exportar ordens em CSV
         </button>
       </div>
+
       <div className="metrics">
         {[
-          ["Ordens recebidas", rows.length],
-          ["Receitas", money(income)],
-          ["Despesas", money(cost)],
-          ["Saldo do mês", money(income - cost)],
+          ["Ordens recebidas", loading && !data ? "—" : data?.metrics.orders || 0],
+          ["Receitas", loading && !data ? "—" : money(income)],
+          ["Despesas", loading && !data ? "—" : money(cost)],
+          ["Saldo do mês", loading && !data ? "—" : money(income - cost)],
         ].map(([label, value]) => (
           <section className="panel" key={label}>
             <span>{label}</span>
@@ -81,12 +157,15 @@ export default function Reports() {
           </section>
         ))}
       </div>
+
       <section className="panel">
         <h2>Situação das ordens recebidas no mês</h2>
         {Object.entries(statuses).map(([key, label]) => (
           <div className="list-line" key={key}>
             <span>{label}</span>
-            <strong>{rows.filter((o) => o.status === key).length}</strong>
+            <strong>
+              {data?.statuses?.[key as Status] || 0}
+            </strong>
           </div>
         ))}
       </section>
