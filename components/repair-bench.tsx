@@ -2,10 +2,7 @@
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import {
-  Cliente,
-  Equipamento,
   MesaReparo,
-  Ordem,
   Status,
   useRows,
 } from "@/lib/assistencia";
@@ -79,12 +76,33 @@ function relativeDeadline(value: string | null) {
   return `Prazo em ${days} dias`;
 }
 
+type BenchOrder = {
+  id: string;
+  numero: number;
+  problema: string;
+  status: Status;
+  prioridade: "baixa" | "normal" | "alta" | "urgente";
+  tecnico: string | null;
+  mesa_id: string | null;
+  prazo_previsto: string | null;
+  cliente_nome: string | null;
+  equipamento_marca: string | null;
+  equipamento_modelo: string | null;
+};
+
+type BenchData = {
+  items: BenchOrder[];
+  technicians: string[];
+};
+
 export default function RepairBench() {
   const { empresa } = useWorkspace();
-  const orders = useRows<Ordem>("ordens_servico");
-  const clients = useRows<Cliente>("clientes");
-  const devices = useRows<Equipamento>("equipamentos");
   const benches = useRows<MesaReparo>("mesas_reparo");
+  const [benchData, setBenchData] = useState<BenchData>({
+    items: [],
+    technicians: [],
+  });
+  const [loadingBench, setLoadingBench] = useState(true);
 
   const [query, setQuery] = useState("");
   const [bench, setBench] = useState("");
@@ -93,31 +111,64 @@ export default function RepairBench() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
 
-  const technicians = useMemo(
-    () =>
-      Array.from(
-        new Set(
-          orders.data
-            .map((order) => order.tecnico?.trim())
-            .filter((name): name is string => Boolean(name)),
-        ),
-      ).sort((a, b) => a.localeCompare(b)),
-    [orders.data],
-  );
+  const loadBench = useCallback(async (silent = false) => {
+    if (!supabase) return;
+    if (!silent) setLoadingBench(true);
+    try {
+      const result = await supabase.rpc("repair_bench_data");
+      if (result.error) throw result.error;
+      setBenchData(result.data as BenchData);
+      setError("");
+    } catch (caught) {
+      setError(message(caught as Error));
+    } finally {
+      if (!silent) setLoadingBench(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    void loadBench(false);
+  }, [loadBench]);
+
+  useEffect(() => {
+    if (!supabase || !empresa.id) return;
+    let timer: number | undefined;
+    const refreshSoon = () => {
+      window.clearTimeout(timer);
+      timer = window.setTimeout(() => void loadBench(true), 250);
+    };
+    const channel = supabase
+      .channel(`repair-bench-${empresa.id}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "ordens_servico",
+          filter: `empresa_id=eq.${empresa.id}`,
+        },
+        refreshSoon,
+      )
+      .subscribe();
+    return () => {
+      window.clearTimeout(timer);
+      void supabase!.removeChannel(channel);
+    };
+  }, [empresa.id, loadBench]);
+
+  const technicians = benchData.technicians;
 
   const visible = useMemo(
     () =>
-      orders.data.filter((order) => {
+      benchData.items.filter((order) => {
         if (["finalizado", "cancelado"].includes(order.status)) return false;
         if (bench && order.mesa_id !== bench) return false;
         if (technician && order.tecnico !== technician) return false;
-        const client = clients.data.find((item) => item.id === order.cliente_id);
-        const device = devices.data.find((item) => item.id === order.equipamento_id);
-        return `${order.numero} ${order.problema} ${client?.nome} ${device?.marca} ${device?.modelo}`
+        return `${order.numero} ${order.problema} ${order.cliente_nome || ""} ${order.equipamento_marca || ""} ${order.equipamento_modelo || ""}`
           .toLowerCase()
           .includes(query.toLowerCase());
       }),
-    [orders.data, clients.data, devices.data, bench, technician, query],
+    [benchData.items, clients.data, devices.data, bench, technician, query],
   );
 
   const urgentCount = visible.filter((order) => order.prioridade === "urgente").length;
@@ -130,7 +181,7 @@ export default function RepairBench() {
   ).length;
 
   async function move(
-    order: Ordem,
+    order: BenchOrder,
     status: Status,
     mesaId = order.mesa_id,
     priority = order.prioridade,
@@ -144,14 +195,14 @@ export default function RepairBench() {
       p_prioridade: priority,
     });
     if (result.error) setError(message(result.error));
-    else await orders.reload();
+    else await loadBench(true);
     setBusy(false);
   }
 
   return (
     <div className="repair-pro">
       <ErrorBox
-        error={error || orders.error || clients.error || devices.error || benches.error}
+        error={error || benches.error}
       />
 
       <div className="repair-pro-toolbar">
@@ -282,6 +333,16 @@ export default function RepairBench() {
         </section>
       )}
 
+      {loadingBench && !benchData.items.length && (
+        <div className="module-inline-loading" aria-live="polite">
+          <span />
+          <div>
+            <strong>Carregando mesa de reparo…</strong>
+            <small>Buscando somente as OS em andamento.</small>
+          </div>
+        </div>
+      )}
+
       <div className="repair-board repair-board-pro">
         {columns.map((column) => {
           const cards = visible.filter((order) => column.statuses.includes(order.status));
@@ -291,7 +352,7 @@ export default function RepairBench() {
               key={column.title}
               onDragOver={(event) => event.preventDefault()}
               onDrop={(event) => {
-                const order = orders.data.find(
+                const order = benchData.items.find(
                   (item) => item.id === event.dataTransfer.getData("text/order-id"),
                 );
                 if (order) void move(order, column.target);
@@ -307,8 +368,6 @@ export default function RepairBench() {
 
               <div className="repair-column-cards">
                 {cards.map((order) => {
-                  const client = clients.data.find((item) => item.id === order.cliente_id);
-                  const device = devices.data.find((item) => item.id === order.equipamento_id);
                   const benchName =
                     benches.data.find((item) => item.id === order.mesa_id)?.nome || "Sem mesa";
                   const overdue = (daysUntil(order.prazo_previsto) ?? 0) < 0;
@@ -329,9 +388,9 @@ export default function RepairBench() {
                         </span>
                       </div>
 
-                      <strong className="repair-customer">{client?.nome || "Cliente"}</strong>
+                      <strong className="repair-customer">{order.cliente_nome || "Cliente"}</strong>
                       <span className="repair-device">
-                        {device ? `${device.marca} ${device.modelo}`.trim() : "Equipamento"}
+                        {`${order.equipamento_marca || ""} ${order.equipamento_modelo || ""}`.trim() || "Equipamento"}
                       </span>
                       <p className="repair-problem">{order.problema}</p>
 
