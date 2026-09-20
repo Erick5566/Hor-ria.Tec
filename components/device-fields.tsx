@@ -51,10 +51,12 @@ export default function DeviceFields({
   value,
   onChange,
   showCategory = true,
+  required = true,
 }: {
   value: Record<string, string>;
   onChange: (value: Record<string, string>) => void;
   showCategory?: boolean;
+  required?: boolean;
 }) {
   const categoryName = value.categoria || "Celular",
     catalog = getEquipmentCategory(categoryName);
@@ -121,7 +123,7 @@ export default function DeviceFields({
         <label>
           Tipo do equipamento
           <input
-            required
+            required={required}
             minLength={2}
             maxLength={120}
             value={value.tipo_personalizado || ""}
@@ -134,7 +136,7 @@ export default function DeviceFields({
         <label>
           Marca
           <input
-            required
+            required={required}
             maxLength={100}
             value={value.marca || ""}
             onChange={(event) =>
@@ -146,7 +148,7 @@ export default function DeviceFields({
         <label>
           Modelo
           <input
-            required
+            required={required}
             maxLength={120}
             value={value.modelo || ""}
             onChange={(event) =>
@@ -177,7 +179,7 @@ export default function DeviceFields({
           <label>
             Digite a marca
             <input
-              required
+              required={required}
               autoComplete="off"
               maxLength={100}
               value={value.marca || ""}
@@ -203,7 +205,7 @@ export default function DeviceFields({
             <label>
               Marca
               <input
-                required
+                required={required}
                 autoComplete="off"
                 placeholder={`Pesquisar marca de ${categoryName.toLowerCase()}`}
                 value={value.marca || ""}
@@ -257,7 +259,7 @@ export default function DeviceFields({
           <label>
             Digite o modelo
             <input
-              required
+              required={required}
               autoComplete="off"
               maxLength={120}
               value={value.modelo || ""}
@@ -284,7 +286,7 @@ export default function DeviceFields({
             <label>
               Modelo
               <input
-                required
+                required={required}
                 autoComplete="off"
                 disabled={!selectedBrand}
                 placeholder={
