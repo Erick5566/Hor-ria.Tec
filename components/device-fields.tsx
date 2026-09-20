@@ -23,6 +23,35 @@ export function DeviceGlyph({ type = "phone" }: { type?: string }) {
   );
 }
 
+function DeviceCardMedia({
+  name,
+  icon,
+}: {
+  name: string;
+  icon: string;
+}) {
+  const [failed, setFailed] = useState(false);
+
+  return (
+    <span className="device-card-media" aria-hidden="true">
+      {failed ? (
+        <DeviceGlyph type={icon} />
+      ) : (
+        <img
+          className="device-card-image"
+          src={deviceCategoryImages[name]}
+          alt=""
+          width={56}
+          height={56}
+          loading="eager"
+          decoding="async"
+          onError={() => setFailed(true)}
+        />
+      )}
+    </span>
+  );
+}
+
 export function DeviceCategoryCards({
   value,
   onChange,
@@ -45,17 +74,10 @@ export function DeviceCategoryCards({
           key={category.name}
           onClick={() => onChange(category.name)}
         >
-          <span className="device-card-media" aria-hidden="true">
-            <DeviceGlyph type={category.icon} />
-            <img
-              className="device-card-image"
-              src={deviceCategoryImages[category.name]}
-              alt=""
-              onError={(event) => {
-                event.currentTarget.style.display = "none";
-              }}
-            />
-          </span>
+          <DeviceCardMedia
+            name={category.name}
+            icon={category.icon}
+          />
           <strong>
             {category.name === "Outro" ? "Outros" : category.name}
           </strong>
