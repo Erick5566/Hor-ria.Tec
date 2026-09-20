@@ -5951,3 +5951,106 @@ button.danger,
     min-height: 56px;
   }
 }
+
+
+/* Final hero action sizing: productivity card matches the blue button exactly */
+.dashboard-reference .dashboard-hero {
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+}
+
+.dashboard-reference .dashboard-hero-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+  width: auto;
+}
+
+.dashboard-reference .dashboard-hero-actions .dashboard-new-order,
+.dashboard-reference .dashboard-hero-actions .dashboard-callout {
+  width: 188px;
+  min-width: 188px;
+  max-width: 188px;
+  height: 70px;
+  min-height: 70px;
+  max-height: 70px;
+  margin: 0;
+  box-sizing: border-box;
+  align-self: center;
+}
+
+.dashboard-reference .dashboard-hero-actions .dashboard-new-order {
+  justify-content: center;
+  padding: 0 16px;
+}
+
+.dashboard-reference .dashboard-hero-actions .dashboard-callout {
+  display: grid;
+  grid-template-columns: 34px minmax(0, 1fr) 14px;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 11px;
+}
+
+.dashboard-reference .dashboard-hero-actions .dashboard-callout-icon {
+  width: 34px;
+  height: 34px;
+  flex: 0 0 34px;
+  font-size: 15px;
+}
+
+.dashboard-reference .dashboard-hero-actions .dashboard-callout strong {
+  display: -webkit-box;
+  overflow: hidden;
+  font-size: .61rem;
+  line-height: 1.18;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.dashboard-reference .dashboard-hero-actions .dashboard-callout small {
+  display: none;
+}
+
+@media (max-width: 1080px) {
+  .dashboard-reference .dashboard-hero {
+    grid-template-columns: 1fr;
+  }
+
+  .dashboard-reference .dashboard-hero-actions {
+    justify-self: end;
+  }
+}
+
+@media (max-width: 760px) {
+  .dashboard-reference .dashboard-hero-actions {
+    width: 100%;
+    justify-content: flex-start;
+  }
+
+  .dashboard-reference .dashboard-hero-actions .dashboard-new-order,
+  .dashboard-reference .dashboard-hero-actions .dashboard-callout {
+    width: calc(50% - 5px);
+    min-width: 0;
+    max-width: none;
+    height: 62px;
+    min-height: 62px;
+    max-height: 62px;
+  }
+}
+
+@media (max-width: 480px) {
+  .dashboard-reference .dashboard-hero-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .dashboard-reference .dashboard-hero-actions .dashboard-new-order,
+  .dashboard-reference .dashboard-hero-actions .dashboard-callout {
+    width: 100%;
+    height: 56px;
+    min-height: 56px;
+    max-height: none;
+  }
+}
