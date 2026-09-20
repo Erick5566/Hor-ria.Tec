@@ -77,3 +77,49 @@ export function Field({
     </label>
   );
 }
+
+
+export function Pagination({
+  page,
+  pageSize,
+  total,
+  onPageChange,
+}: {
+  page: number;
+  pageSize: number;
+  total: number;
+  onPageChange: (page: number) => void;
+}) {
+  const pages = Math.max(1, Math.ceil(total / pageSize));
+  if (pages <= 1) return null;
+
+  const start = total ? (page - 1) * pageSize + 1 : 0;
+  const end = Math.min(total, page * pageSize);
+
+  return (
+    <nav className="data-pagination" aria-label="Paginação">
+      <span>
+        {start}–{end} de {total}
+      </span>
+      <div>
+        <button
+          type="button"
+          onClick={() => onPageChange(Math.max(1, page - 1))}
+          disabled={page <= 1}
+        >
+          ← Anterior
+        </button>
+        <strong>
+          Página {page} de {pages}
+        </strong>
+        <button
+          type="button"
+          onClick={() => onPageChange(Math.min(pages, page + 1))}
+          disabled={page >= pages}
+        >
+          Próxima →
+        </button>
+      </div>
+    </nav>
+  );
+}
