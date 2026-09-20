@@ -108,6 +108,14 @@ export const menu = [
     ],
   ],
 ] as const;
+
+const eagerMenuRoutes = new Set([
+  "/painel",
+  "/painel/ordens",
+  "/painel/ordens/nova",
+  "/painel/clientes",
+]);
+
 export default function Workspace({
   children,
   initialAccess,
@@ -655,6 +663,13 @@ export default function Workspace({
                   <Link
                     key={href}
                     href={href}
+                    prefetch={eagerMenuRoutes.has(href)}
+                    onMouseEnter={() => {
+                      if (!eagerMenuRoutes.has(href)) router.prefetch(href);
+                    }}
+                    onFocus={() => {
+                      if (!eagerMenuRoutes.has(href)) router.prefetch(href);
+                    }}
                     className={href === activeMenuHref ? "current" : ""}
                   >
                     <span aria-hidden="true">{icon}</span>
