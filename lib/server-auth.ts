@@ -22,12 +22,16 @@ export async function getServerAccess() {
   if (!client) return null;
   const user = await client.auth.getUser(token);
   if (user.error || !user.data.user) return null;
-  const context = await client.rpc("access_context");
+  const [context, assurance] = await Promise.all([
+    client.rpc("access_context"),
+    client.auth.mfa.getAuthenticatorAssuranceLevel(token),
+  ]);
   if (context.error || !context.data) return null;
   return {
     token,
     user: user.data.user,
     context: context.data as AccessContext,
+    aal: assurance.error ? "aal1" : assurance.data.currentLevel || "aal1",
     client,
   };
 }
