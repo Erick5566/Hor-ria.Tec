@@ -27,6 +27,24 @@ export default function Setup({ done }: { done: () => void }) {
     setError("");
     const f = new FormData(e.currentTarget);
     try {
+      const slug = String(f.get("slug"));
+      const reserved = new Set([
+        "painel",
+        "agendar",
+        "acompanhar",
+        "api",
+        "admin",
+        "entrar",
+        "cadastro",
+        "privacidade",
+        "recuperar-senha",
+        "redefinir-senha",
+        "solicitacao-enviada",
+        "manutencao",
+        "conta-bloqueada",
+      ]);
+      if (reserved.has(slug))
+        throw new Error("Escolha outro endereço para a página pública.");
       const { error } = await supabase!.rpc("configurar_empresa", {
         p_nome: f.get("nome"),
         p_slug: f.get("slug"),
