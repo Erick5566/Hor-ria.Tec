@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import Link from "next/link";
 import {
   useRows,
@@ -14,9 +14,10 @@ import {
   Venda,
 } from "@/lib/assistencia";
 import { useWorkspace } from "./workspace";
-import { Heading, Empty, ErrorBox } from "./ui";
+import { Heading, Empty, ErrorBox, Badge } from "./ui";
 import { message } from "@/lib/supabase";
 import DeviceFields from "./device-fields";
+
 export default function Records({
   kind,
 }: {
@@ -28,6 +29,7 @@ export default function Records({
     orders = useRows<Ordem>("ordens_servico"),
     fin = useRows<Lancamento>("financeiro");
   const sales = useRows<Venda>("vendas");
+
   const [search, setSearch] = useState(""),
     [editing, setEditing] = useState<Cliente | Equipamento | null>(null),
     [open, setOpen] = useState(false),
@@ -40,20 +42,100 @@ export default function Records({
       modelo: "",
       cor: "",
     });
+
   const isClient = kind === "clientes";
-  const list = (isClient ? customers.data : devices.data).filter((r) =>
-    JSON.stringify(r).toLowerCase().includes(search.toLowerCase()),
+  const source = isClient ? customers.data : devices.data;
+  const list = source.filter((record) =>
+    JSON.stringify(record).toLowerCase().includes(search.toLowerCase()),
   );
+
+  const openOrders = orders.data.filter(
+    (order) => !["finalizado", "cancelado"].includes(order.status),
+  );
+  const relationshipRevenue = fin.data
+    .filter((item) => item.tipo === "receita" && item.status === "pago")
+    .reduce((sum, item) => sum + Number(item.valor), 0);
+  const salesRevenue = sales.data
+    .filter((sale) => sale.status === "finalizada")
+    .reduce((sum, sale) => sum + Number(sale.total), 0);
+
+  const categoriesCount = useMemo(
+    () => new Set(devices.data.map((item) => item.categoria).filter(Boolean)).size,
+    [devices.data],
+  );
+
+  const metrics = isClient
+    ? [
+        {
+          name: "Clientes cadastrados",
+          value: customers.data.length,
+          icon: "♙",
+          tone: "blue",
+          note: "Base total de clientes",
+        },
+        {
+          name: "Clientes com equipamentos",
+          value: new Set(devices.data.map((item) => item.cliente_id)).size,
+          icon: "▣",
+          tone: "purple",
+          note: "Com aparelhos cadastrados",
+        },
+        {
+          name: "Com atendimento aberto",
+          value: new Set(openOrders.map((item) => item.cliente_id)).size,
+          icon: "▤",
+          tone: "amber",
+          note: "Em atendimento agora",
+        },
+        {
+          name: "Relacionamento gerado",
+          value: money(relationshipRevenue + salesRevenue),
+          icon: "▥",
+          tone: "green",
+          note: "Receitas e vendas registradas",
+        },
+      ]
+    : [
+        {
+          name: "Equipamentos",
+          value: devices.data.length,
+          icon: "▣",
+          tone: "blue",
+          note: "Total cadastrado",
+        },
+        {
+          name: "Em atendimento",
+          value: new Set(openOrders.map((item) => item.equipamento_id)).size,
+          icon: "⌘",
+          tone: "amber",
+          note: "Com OS aberta",
+        },
+        {
+          name: "Reparos finalizados",
+          value: orders.data.filter((item) => item.status === "finalizado").length,
+          icon: "✓",
+          tone: "green",
+          note: "Ordens concluídas",
+        },
+        {
+          name: "Categorias",
+          value: categoriesCount,
+          icon: "▦",
+          tone: "purple",
+          note: "Tipos de equipamento",
+        },
+      ];
+
   async function save(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    const f = new FormData(e.currentTarget);
+    const form = new FormData(e.currentTarget);
     setBusy(true);
     setError("");
     try {
       const value: Record<string, unknown> = { empresa_id: empresa.id };
-      for (const [key, v] of f.entries()) value[key] = String(v).trim() || null;
-      if (isClient) value.whatsapp = phone(String(f.get("whatsapp")));
-      else value.marca = String(f.get("marca") || "");
+      for (const [key, v] of form.entries()) value[key] = String(v).trim() || null;
+      if (isClient) value.whatsapp = phone(String(form.get("whatsapp")));
+      else value.marca = String(form.get("marca") || "");
       await saveRow(kind, value, editing?.id);
       setOpen(false);
       setEditing(null);
@@ -64,16 +146,30 @@ export default function Records({
       setBusy(false);
     }
   }
+
   return (
-    <section className={`module unified-pro records-pro records-${kind}`}>
-      <Heading
-        title={isClient ? "Clientes" : "Equipamentos"}
-        subtitle={
-          isClient
-            ? "Relacionamentos e histórico de atendimento."
-            : "Identificação, reparos e histórico de cada equipamento."
-        }
-      />
+    <section className={`module dashboard-pro records-dashboard records-${kind}`}>
+      <div className="dashboard-hero">
+        <Heading
+          title={isClient ? "Clientes" : "Equipamentos"}
+          subtitle={
+            isClient
+              ? "Relacionamentos, histórico e valor gerado em um só lugar."
+              : "Acompanhe aparelhos, reparos e histórico técnico com clareza."
+          }
+          action={`+ ${isClient ? "Novo cliente" : "Novo equipamento"}`}
+          href="#novo-registro"
+        />
+        <div className="dashboard-callout">
+          <span className="dashboard-callout-icon">{isClient ? "♙" : "▣"}</span>
+          <div>
+            <strong>{isClient ? "Conheça melhor cada cliente" : "Controle cada equipamento"}</strong>
+            <small>{isClient ? "Histórico, atendimentos e relacionamento." : "Do cadastro ao reparo finalizado."}</small>
+          </div>
+          <span>→</span>
+        </div>
+      </div>
+
       <ErrorBox
         error={
           error ||
@@ -84,42 +180,66 @@ export default function Records({
           sales.error
         }
       />
-      <section className="panel">
-        <div className="toolbar">
-          <input
-            aria-label="Buscar registros"
-            placeholder={
-              isClient
-                ? "Buscar cliente ou WhatsApp…"
-                : "Buscar modelo, série, IMEI…"
-            }
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-          />
-          <button
-            className="primary"
-            onClick={() => {
-              setEditing(null);
-              if (!isClient)
-                setDeviceDraft({
-                  categoria: "Celular",
-                  tipo_personalizado: "",
-                  marca: "",
-                  modelo: "",
-                  cor: "",
-                });
-              setOpen(true);
-            }}
-          >
-            + {isClient ? "Novo cliente" : "Novo equipamento"}
-          </button>
+
+      <div className="dashboard-kpis records-kpis">
+        {metrics.map((metric) => (
+          <article key={metric.name} className={"dashboard-kpi " + metric.tone}>
+            <div className="dashboard-kpi-top">
+              <span className="dashboard-kpi-icon">{metric.icon}</span>
+              <span>{metric.name}</span>
+            </div>
+            <div className="dashboard-kpi-value">
+              <strong>{metric.value}</strong>
+              <span className="mini-spark">⌁</span>
+            </div>
+            <small>{metric.note}</small>
+          </article>
+        ))}
+      </div>
+
+      <section className="dashboard-card records-main-card">
+        <div className="dashboard-card-head records-card-head">
+          <div>
+            <h2>{isClient ? "Base de clientes" : "Equipamentos cadastrados"}</h2>
+            <p>{list.length} {list.length === 1 ? "registro encontrado" : "registros encontrados"}.</p>
+          </div>
+          <div className="records-actions">
+            <input
+              aria-label="Buscar registros"
+              placeholder={isClient ? "Buscar cliente ou WhatsApp..." : "Buscar modelo, série, IMEI..."}
+              value={search}
+              onChange={(event) => setSearch(event.target.value)}
+            />
+            <button
+              id="novo-registro"
+              className="primary"
+              onClick={() => {
+                setEditing(null);
+                if (!isClient)
+                  setDeviceDraft({
+                    categoria: "Celular",
+                    tipo_personalizado: "",
+                    marca: "",
+                    modelo: "",
+                    cor: "",
+                  });
+                setOpen(true);
+              }}
+            >
+              + {isClient ? "Novo cliente" : "Novo equipamento"}
+            </button>
+          </div>
         </div>
+
         {open && (
-          <form onSubmit={save} className="panel" key={editing?.id || "new"}>
-            <h2>
-              {editing ? "Editar" : "Cadastrar"}{" "}
-              {isClient ? "cliente" : "equipamento"}
-            </h2>
+          <form onSubmit={save} className="records-editor" key={editing?.id || "new"}>
+            <div className="records-editor-head">
+              <div>
+                <span className="eyebrow">CADASTRO</span>
+                <h2>{editing ? "Editar" : "Cadastrar"} {isClient ? "cliente" : "equipamento"}</h2>
+              </div>
+              <button type="button" onClick={() => setOpen(false)}>Fechar ×</button>
+            </div>
             <div className="form-grid">
               {isClient ? (
                 <>
@@ -138,9 +258,7 @@ export default function Records({
                         type={type}
                         required={["nome", "whatsapp"].includes(name)}
                         defaultValue={String(
-                          (editing as Cliente | null)?.[
-                            name as keyof Cliente
-                          ] || "",
+                          (editing as Cliente | null)?.[name as keyof Cliente] || "",
                         )}
                         maxLength={120}
                       />
@@ -151,9 +269,7 @@ export default function Records({
                     <textarea
                       name="observacoes"
                       maxLength={1000}
-                      defaultValue={
-                        (editing as Cliente | null)?.observacoes || ""
-                      }
+                      defaultValue={(editing as Cliente | null)?.observacoes || ""}
                     />
                   </label>
                 </>
@@ -164,32 +280,17 @@ export default function Records({
                     <select
                       name="cliente_id"
                       required
-                      defaultValue={
-                        (editing as Equipamento | null)?.cliente_id || ""
-                      }
+                      defaultValue={(editing as Equipamento | null)?.cliente_id || ""}
                     >
                       <option value="">Selecione o cliente</option>
-                      {customers.data.map((c) => (
-                        <option value={c.id} key={c.id}>
-                          {c.nome}
-                        </option>
+                      {customers.data.map((customer) => (
+                        <option value={customer.id} key={customer.id}>{customer.nome}</option>
                       ))}
                     </select>
                   </label>
                   <DeviceFields value={deviceDraft} onChange={setDeviceDraft} />
-                  {[
-                    "categoria",
-                    "tipo_personalizado",
-                    "marca",
-                    "modelo",
-                    "cor",
-                  ].map((name) => (
-                    <input
-                      key={name}
-                      type="hidden"
-                      name={name}
-                      value={deviceDraft[name] || ""}
-                    />
+                  {["categoria", "tipo_personalizado", "marca", "modelo", "cor"].map((name) => (
+                    <input key={name} type="hidden" name={name} value={deviceDraft[name] || ""} />
                   ))}
                   {[
                     ["numero_serie", "Número de série"],
@@ -200,11 +301,8 @@ export default function Records({
                       {label}
                       <input
                         name={name}
-                        required={name === "modelo"}
                         defaultValue={String(
-                          (editing as Equipamento | null)?.[
-                            name as keyof Equipamento
-                          ] || "",
+                          (editing as Equipamento | null)?.[name as keyof Equipamento] || "",
                         )}
                         maxLength={120}
                       />
@@ -214,139 +312,89 @@ export default function Records({
               )}
             </div>
             <div className="form-actions">
-              <button
-                type="button"
-                className="outline"
-                onClick={() => setOpen(false)}
-              >
-                Cancelar
-              </button>
-              <button className="primary" disabled={busy}>
-                Salvar
-              </button>
+              <button type="button" className="outline" onClick={() => setOpen(false)}>Cancelar</button>
+              <button className="primary" disabled={busy}>{busy ? "Salvando..." : "Salvar"}</button>
             </div>
           </form>
         )}
+
         {list.length ? (
-          <div className="table-wrap">
+          <div className="table-wrap dashboard-table records-table">
             <table>
               <thead>
                 <tr>
                   {(isClient
-                    ? [
-                        "Nome",
-                        "WhatsApp",
-                        "Equipamentos",
-                        "Serviços",
-                        "Último atendimento",
-                        "Total gasto",
-                        "Ações",
-                      ]
-                    : [
-                        "Equipamento",
-                        "Categoria",
-                        "Cliente",
-                        "Série / IMEI",
-                        "Ordens",
-                        "Ações",
-                      ]
-                  ).map((c) => (
-                    <th key={c}>{c}</th>
-                  ))}
+                    ? ["Nome", "WhatsApp", "Equipamentos", "Serviços", "Último atendimento", "Total gasto", "Ações"]
+                    : ["Equipamento", "Categoria", "Cliente", "Série / IMEI", "Ordens", "Status atual", "Ações"]
+                  ).map((column) => <th key={column}>{column}</th>)}
                 </tr>
               </thead>
               <tbody>
-                {list.map((r) => {
-                  const c = r as Cliente,
-                    d = r as Equipamento;
-                  const os = orders.data.filter((o) =>
-                    isClient
-                      ? o.cliente_id === r.id
-                      : o.equipamento_id === r.id,
+                {list.map((record) => {
+                  const client = record as Cliente;
+                  const device = record as Equipamento;
+                  const relatedOrders = orders.data.filter((order) =>
+                    isClient ? order.cliente_id === record.id : order.equipamento_id === record.id,
                   );
                   const total = fin.data
                     .filter(
-                      (f) =>
-                        f.tipo === "receita" &&
-                        f.status === "pago" &&
-                        os.some((o) => o.id === f.ordem_id),
+                      (item) =>
+                        item.tipo === "receita" &&
+                        item.status === "pago" &&
+                        relatedOrders.some((order) => order.id === item.ordem_id),
                     )
-                    .reduce((n, f) => n + Number(f.valor), 0);
+                    .reduce((sum, item) => sum + Number(item.valor), 0);
                   const purchases = isClient
                     ? sales.data.filter(
-                        (sale) =>
-                          sale.cliente_id === c.id &&
-                          sale.status === "finalizada",
+                        (sale) => sale.cliente_id === client.id && sale.status === "finalizada",
                       )
                     : [];
                   const relationshipTotal =
-                    total +
-                    purchases.reduce(
-                      (sum, sale) => sum + Number(sale.total),
-                      0,
-                    );
+                    total + purchases.reduce((sum, sale) => sum + Number(sale.total), 0);
+                  const latestOrder = [...relatedOrders].sort((a, b) =>
+                    b.criado_em.localeCompare(a.criado_em),
+                  )[0];
+
                   return (
-                    <tr key={r.id}>
+                    <tr key={record.id}>
                       <td>
-                        <Link href={`/painel/${kind}/${r.id}`}>
-                          {isClient ? c.nome : `${d.marca} ${d.modelo}`}
+                        <Link className="records-name" href={`/painel/${kind}/${record.id}`}>
+                          <span className="records-avatar">
+                            {(isClient ? client.nome : device.modelo || device.marca).slice(0, 2).toUpperCase()}
+                          </span>
+                          <strong>{isClient ? client.nome : `${device.marca} ${device.modelo}`}</strong>
                         </Link>
                       </td>
                       {isClient ? (
                         <>
-                          <td>{c.whatsapp}</td>
-                          <td>
-                            {
-                              devices.data.filter((e) => e.cliente_id === c.id)
-                                .length
-                            }
-                          </td>
-                          <td>
-                            {os.filter((o) => o.status === "finalizado").length}
-                          </td>
-                          <td>
-                            {os.length
-                              ? stamp(
-                                  os.sort((a, b) =>
-                                    b.criado_em.localeCompare(a.criado_em),
-                                  )[0].criado_em,
-                                )
-                              : "—"}
-                          </td>
-                          <td>{money(relationshipTotal)}</td>
+                          <td>{client.whatsapp}</td>
+                          <td>{devices.data.filter((item) => item.cliente_id === client.id).length}</td>
+                          <td>{relatedOrders.filter((order) => order.status === "finalizado").length}</td>
+                          <td>{latestOrder ? stamp(latestOrder.criado_em) : "—"}</td>
+                          <td><strong>{money(relationshipTotal)}</strong></td>
                         </>
                       ) : (
                         <>
-                          <td>
-                            {d.categoria === "Outro"
-                              ? d.tipo_personalizado || "Outro"
-                              : d.categoria}
-                          </td>
-                          <td>
-                            {
-                              customers.data.find((c) => c.id === d.cliente_id)
-                                ?.nome
-                            }
-                          </td>
-                          <td>
-                            {d.numero_serie || "—"}
-                            <small>{d.imei}</small>
-                          </td>
-                          <td>{os.length}</td>
+                          <td>{device.categoria === "Outro" ? device.tipo_personalizado || "Outro" : device.categoria}</td>
+                          <td>{customers.data.find((item) => item.id === device.cliente_id)?.nome || "—"}</td>
+                          <td>{device.numero_serie || "—"}<small>{device.imei}</small></td>
+                          <td>{relatedOrders.length}</td>
+                          <td>{latestOrder ? <Badge status={latestOrder.status} /> : <span className="subtle">Sem OS</span>}</td>
                         </>
                       )}
                       <td>
                         <button
+                          className="records-edit"
                           onClick={() => {
-                            setEditing(r);
+                            setEditing(record);
                             if (!isClient) {
-                              const d = r as Equipamento;
+                              const currentDevice = record as Equipamento;
                               setDeviceDraft({
-                                categoria: d.categoria,
-                                tipo_personalizado: d.tipo_personalizado || "",
-                                marca: d.marca,
-                                modelo: d.modelo,
-                                cor: d.cor || "",
+                                categoria: currentDevice.categoria,
+                                tipo_personalizado: currentDevice.tipo_personalizado || "",
+                                marca: currentDevice.marca,
+                                modelo: currentDevice.modelo,
+                                cor: currentDevice.cor || "",
                               });
                             }
                             setOpen(true);
@@ -362,13 +410,7 @@ export default function Records({
             </table>
           </div>
         ) : (
-          <Empty
-            title={
-              isClient
-                ? "Nenhum cliente cadastrado."
-                : "Nenhum equipamento cadastrado."
-            }
-          />
+          <Empty title={isClient ? "Nenhum cliente cadastrado." : "Nenhum equipamento cadastrado."} />
         )}
       </section>
     </section>
