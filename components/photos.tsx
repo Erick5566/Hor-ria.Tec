@@ -151,7 +151,6 @@ export function PhotoPicker({
     [zoom, setZoom] = useState(""),
     [cameraOpen, setCameraOpen] = useState(false);
   const fallbackCamera = useRef<HTMLInputElement>(null);
-  const galleryInput = useRef<HTMLInputElement>(null);
   const urls = useRef<string[]>([]);
   useEffect(
     () => () => {
@@ -208,31 +207,16 @@ export function PhotoPicker({
           type="button"
           disabled={busy}
           onClick={() => {
-            if (
-              typeof navigator !== "undefined" &&
-              navigator.mediaDevices?.getUserMedia
-            ) {
-              setCameraOpen(true);
-            } else {
-              fallbackCamera.current?.click();
-            }
+            if (navigator.mediaDevices) setCameraOpen(true);
+            else fallbackCamera.current?.click();
           }}
         >
           ◎ Tirar foto
         </button>
-
-        <button
-          className="outline"
-          type="button"
-          disabled={busy}
-          onClick={() => galleryInput.current?.click()}
-        >
-          + Adicionar fotos
-        </button>
-
         <input
           ref={fallbackCamera}
-          className="photo-hidden-input"
+          className="camera-fallback-input"
+          style={{ display: "none" }}
           type="file"
           accept="image/*"
           capture="environment"
@@ -242,19 +226,20 @@ export function PhotoPicker({
             e.target.value = "";
           }}
         />
-
-        <input
-          ref={galleryInput}
-          className="photo-hidden-input"
-          type="file"
-          accept="image/*"
-          multiple
-          disabled={busy}
-          onChange={(e) => {
-            choose(e.target.files);
-            e.target.value = "";
-          }}
-        />
+        <label className="outline">
+          + Adicionar fotos
+          <input
+            style={{ display: "none" }}
+            type="file"
+            accept="image/*"
+            multiple
+            disabled={busy}
+            onChange={(e) => {
+              choose(e.target.files);
+              e.target.value = "";
+            }}
+          />
+        </label>
       </div>
       <p className="hint">
         Frente · Traseira · Laterais · Tela · Conectores · Acessórios · Área
