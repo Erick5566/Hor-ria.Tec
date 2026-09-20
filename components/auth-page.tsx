@@ -63,6 +63,26 @@ export default function AuthPage({ mode }: { mode: "login" | "signup" }) {
         email: String(form.get("email")),
         password: String(form.get("password")),
       };
+      if (signup) {
+        const slug = String(form.get("slug"));
+        const reserved = new Set([
+          "painel",
+          "agendar",
+          "acompanhar",
+          "api",
+          "admin",
+          "entrar",
+          "cadastro",
+          "privacidade",
+          "recuperar-senha",
+          "redefinir-senha",
+          "solicitacao-enviada",
+          "manutencao",
+          "conta-bloqueada",
+        ]);
+        if (reserved.has(slug))
+          throw new Error("Escolha outro endereço para a página pública.");
+      }
       const result = signup
         ? await supabase!.auth.signUp({
             ...credentials,
@@ -83,7 +103,9 @@ export default function AuthPage({ mode }: { mode: "login" | "signup" }) {
         );
     } catch (error) {
       setNotice(
-        error instanceof Error && error.message.includes("vagas")
+        error instanceof Error &&
+        (error.message.includes("vagas") ||
+          error.message.includes("Escolha outro endereço"))
           ? error.message
           : "Não foi possível concluir. Confira os dados e tente novamente.",
       );
