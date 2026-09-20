@@ -51,7 +51,8 @@ export default async function Home() {
             </Link>
           </div>
           <div className="privacy">
-            ◈ &nbsp; Cada empresa acessa somente o próprio espaço.
+            ◈ &nbsp; Cada empresa acessa somente o próprio espaço.{" "}
+            <Link href="/privacidade">Política de privacidade</Link>
           </div>
         </div>
       </section>
