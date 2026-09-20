@@ -31,6 +31,7 @@ type Profile = {
   google_business?: string;
   google_avaliacao?: string;
   horario?: Record<string, [string, string]>;
+  prazo_resposta_horas?: number;
   aparencia?: {
     primaria: string;
     secundaria: string;
@@ -299,7 +300,10 @@ export default function PublicPortal({ slug }: { slug: string }) {
             </div>
             <div className="public-trust-strip" aria-label="Compromissos de atendimento">
               <span>✓ Solicitação registrada na hora</span>
-              <span>◷ Retorno durante o horário de atendimento</span>
+              <span>
+                ◷ Retorno em até {profile.prazo_resposta_horas || 4}{" "}
+                {profile.prazo_resposta_horas === 1 ? "hora útil" : "horas úteis"}
+              </span>
               <span>▣ Acompanhamento online do reparo</span>
             </div>
           </header>
@@ -462,9 +466,11 @@ export default function PublicPortal({ slug }: { slug: string }) {
                 <details>
                   <summary>Quando recebo uma resposta?</summary>
                   <p>
-                    A solicitação é registrada imediatamente. A equipe responde
-                    pelo contato informado durante o horário de atendimento da
-                    assistência.
+                    A solicitação é registrada imediatamente. A equipe informa
+                    retorno em até {profile.prazo_resposta_horas || 4}{" "}
+                    {profile.prazo_resposta_horas === 1
+                      ? "hora útil"
+                      : "horas úteis"} durante o horário de atendimento.
                   </p>
                 </details>
                 <details>
