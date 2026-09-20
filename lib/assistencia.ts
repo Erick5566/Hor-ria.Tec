@@ -304,25 +304,108 @@ export async function rows<T>(table: string, empresaId: string): Promise<T[]> {
     if (data.length < 1000) return all;
   }
 }
+type RowCacheEntry = {
+  data: unknown[];
+  fetchedAt: number;
+  ready: boolean;
+  inFlight?: Promise<unknown[]>;
+};
+
+const ROW_CACHE_TTL_MS = 30_000;
+const rowCache = new Map<string, RowCacheEntry>();
+
+function rowCacheKey(table: string, empresaId: string) {
+  return `${empresaId}:${table}`;
+}
+
+async function cachedRows<T>(
+  table: string,
+  empresaId: string,
+  force = false,
+): Promise<T[]> {
+  const key = rowCacheKey(table, empresaId);
+  const current = rowCache.get(key);
+  const fresh =
+    current?.ready &&
+    Date.now() - current.fetchedAt < ROW_CACHE_TTL_MS;
+
+  if (!force && fresh) return current.data as T[];
+  if (current?.inFlight) return current.inFlight as Promise<T[]>;
+
+  const request = rows<T>(table, empresaId)
+    .then((data) => {
+      rowCache.set(key, {
+        data,
+        fetchedAt: Date.now(),
+        ready: true,
+      });
+      return data;
+    })
+    .catch((error) => {
+      if (current?.ready) {
+        rowCache.set(key, {
+          data: current.data,
+          fetchedAt: current.fetchedAt,
+          ready: true,
+        });
+      } else {
+        rowCache.delete(key);
+      }
+      throw error;
+    });
+
+  rowCache.set(key, {
+    data: current?.data || [],
+    fetchedAt: current?.fetchedAt || 0,
+    ready: current?.ready || false,
+    inFlight: request as Promise<unknown[]>,
+  });
+
+  return request;
+}
+
 export function useRows<T>(table: string) {
   const { empresa } = useWorkspace();
-  const [data, setData] = useState<T[]>([]),
-    [loading, setLoading] = useState(true),
+  const key = rowCacheKey(table, empresa.id);
+  const initialCache = rowCache.get(key);
+  const [data, setData] = useState<T[]>(
+      () => (initialCache?.ready ? (initialCache.data as T[]) : []),
+    ),
+    [loading, setLoading] = useState(!initialCache?.ready),
     [error, setError] = useState("");
+
+  const load = useCallback(
+    async (force = false) => {
+      const cached = rowCache.get(rowCacheKey(table, empresa.id));
+      if (!cached?.ready) setLoading(true);
+      try {
+        setData(await cachedRows<T>(table, empresa.id, force));
+        setError("");
+      } catch (e) {
+        setError(message(e as Error));
+      } finally {
+        setLoading(false);
+      }
+    },
+    [table, empresa.id],
+  );
+
   const reload = useCallback(async () => {
-    setLoading(true);
-    try {
-      setData(await rows<T>(table, empresa.id));
-      setError("");
-    } catch (e) {
-      setError(message(e as Error));
-    } finally {
-      setLoading(false);
-    }
-  }, [table, empresa.id]);
+    await load(true);
+  }, [load]);
+
   useEffect(() => {
-    reload();
-  }, [reload]);
+    const cached = rowCache.get(key);
+    if (cached?.ready) {
+      setData(cached.data as T[]);
+      setLoading(false);
+    } else {
+      setData([]);
+      setLoading(true);
+    }
+    void load(false);
+  }, [key, load]);
+
   useEffect(() => {
     const realtimeTables = new Set([
       "agendamentos",
@@ -354,6 +437,7 @@ export function useRows<T>(table: string) {
       void supabase!.removeChannel(channel);
     };
   }, [table, empresa.id, reload]);
+
   return { data, loading, error, reload };
 }
 export async function saveRow(
