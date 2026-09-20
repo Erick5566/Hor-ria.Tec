@@ -5,12 +5,12 @@ export default function SubscriptionPage() {
   const { access } = useWorkspace();
   const subscription = access.subscription;
   return (
-    <section className="module">
+    <section className="module unified-pro subscription-pro">
       <Heading
         title="Assinatura da Horária"
         subtitle="Situação de acesso e ciclo da sua empresa."
       />
-      <section className="panel">
+      <section className="panel subscription-card">
         <dl className="definition-grid">
           <div>
             <dt>Status</dt>

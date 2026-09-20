@@ -44,7 +44,7 @@ export default function RecordDetail({
     orders.some((o) => o.id === h.ordem_id),
   );
   return (
-    <section className="module">
+    <section className={`module unified-pro record-detail-pro record-${kind}`}>
       <Link href={`/painel/${kind}`} className="subtle">
         ← {kind === "clientes" ? "Clientes" : "Equipamentos"}
       </Link>

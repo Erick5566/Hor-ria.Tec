@@ -83,7 +83,7 @@ export default function OrderDetail({
     }
   }
   return (
-    <section className="module">
+    <section className="module unified-pro order-detail-pro">
       <Link className="subtle" href="/painel/ordens">
         ← Ordens de serviço
       </Link>

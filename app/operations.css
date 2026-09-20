@@ -3422,3 +3422,675 @@ button.danger,
     grid-column: auto;
   }
 }
+
+
+/* Horária Unified Workspace — remaining modules */
+.unified-pro {
+  --h-surface: #ffffff;
+  --h-surface-soft: #f7f9fc;
+  --h-border: #dfe5ef;
+  --h-text: #1f2a44;
+  --h-muted: #6f7b91;
+  --h-primary: #3a4da1;
+  --h-secondary: #68b5e4;
+}
+
+.unified-pro .module-heading {
+  margin-bottom: 22px;
+}
+
+.unified-pro .module-heading .eyebrow {
+  color: #3a4da1;
+  font-weight: 800;
+  letter-spacing: .12em;
+}
+
+.unified-pro .module-heading h1 {
+  color: #18233c;
+  letter-spacing: -.035em;
+}
+
+.unified-pro .module-heading p {
+  max-width: 720px;
+  color: #738097;
+}
+
+.unified-pro > .panel,
+.unified-pro .panel {
+  background: var(--h-surface);
+  border-color: var(--h-border);
+  border-radius: 15px;
+  box-shadow: 0 8px 24px rgb(40 40 40 / 5%);
+}
+
+.unified-pro .panel .panel {
+  background: #fbfcff;
+  box-shadow: none;
+}
+
+.unified-pro .panel h2,
+.unified-pro .panel h3 {
+  color: var(--h-text);
+}
+
+.unified-pro .panel p,
+.unified-pro .hint,
+.unified-pro .subtle {
+  color: var(--h-muted);
+}
+
+.unified-pro .toolbar {
+  gap: 10px;
+  padding: 0 0 17px;
+  margin-bottom: 0;
+  border-bottom: 1px solid #e9edf4;
+}
+
+.unified-pro .toolbar input,
+.unified-pro .toolbar select,
+.unified-pro input:not([type="checkbox"]):not([type="radio"]):not([type="color"]),
+.unified-pro select,
+.unified-pro textarea {
+  color: #33415d;
+  background: #fbfcff;
+  border-color: #d8e0ec;
+  border-radius: 9px;
+}
+
+.unified-pro .toolbar input {
+  flex: 1 1 300px;
+  max-width: 440px;
+  min-height: 44px;
+}
+
+.unified-pro .toolbar select {
+  min-height: 44px;
+}
+
+.unified-pro label {
+  color: #536078;
+  font-size: .74rem;
+  font-weight: 700;
+}
+
+.unified-pro input:focus,
+.unified-pro select:focus,
+.unified-pro textarea:focus {
+  border-color: #68b5e4;
+  box-shadow: 0 0 0 3px rgb(104 181 228 / 13%);
+  outline: none;
+}
+
+.unified-pro .primary {
+  color: #fff;
+  background: #3a4da1;
+  border-color: #3a4da1;
+  box-shadow: 0 6px 16px rgb(58 77 161 / 16%);
+}
+
+.unified-pro .primary:hover {
+  background: #4459b5;
+  border-color: #4459b5;
+}
+
+.unified-pro .outline,
+.unified-pro button:not(.primary):not(.danger) {
+  color: #42516d;
+  background: #fff;
+  border-color: #d7dfeb;
+}
+
+.unified-pro .outline:hover,
+.unified-pro button:not(.primary):not(.danger):hover {
+  color: #3a4da1;
+  border-color: #9eb6dd;
+  background: #f7faff;
+}
+
+.unified-pro .table-wrap {
+  margin-top: 16px;
+  border: 1px solid #e1e7f0;
+  border-radius: 12px;
+  overflow: auto;
+}
+
+.unified-pro table {
+  min-width: 760px;
+}
+
+.unified-pro th {
+  color: #68758c;
+  background: #f6f8fb;
+  border-bottom: 1px solid #e1e7f0;
+  font-size: .64rem;
+  letter-spacing: .035em;
+}
+
+.unified-pro td {
+  color: #3c4962;
+  border-bottom-color: #edf0f5;
+}
+
+.unified-pro tbody tr {
+  transition: background .15s ease;
+}
+
+.unified-pro tbody tr:hover td {
+  background: #fbfdff;
+}
+
+.unified-pro td a {
+  color: #3556bb;
+  text-underline-offset: 3px;
+}
+
+.unified-pro .empty-state {
+  margin: 16px 0 0;
+  padding: 42px 24px;
+  color: #7a879c;
+  background: #f8fafd;
+  border: 1px dashed #ced8e6;
+  border-radius: 12px;
+}
+
+.unified-pro .empty-state strong {
+  color: #3e4b65;
+}
+
+.unified-pro .form-grid {
+  gap: 14px;
+}
+
+.unified-pro .form-actions {
+  padding-top: 16px;
+  border-top: 1px solid #edf0f5;
+}
+
+.records-pro .records-panel {
+  padding: 18px;
+}
+
+.records-pro .records-toolbar {
+  display: grid;
+  grid-template-columns: minmax(280px, 1fr) auto;
+}
+
+.records-pro .records-toolbar input {
+  width: 100%;
+  max-width: none;
+}
+
+.records-pro td:first-child a {
+  color: #263858;
+  font-weight: 800;
+}
+
+.records-pro td small {
+  color: #8792a4;
+}
+
+.quotes-pro .quotes-panel {
+  padding: 18px;
+}
+
+.quotes-pro .quotes-panel td:first-child a {
+  color: #3156c7;
+  font-weight: 800;
+}
+
+.quotes-pro .quotes-panel td:nth-child(4) {
+  color: #273751;
+  font-weight: 800;
+}
+
+.quotes-pro .quotes-panel td:last-child {
+  font-weight: 800;
+  color: #3a4da1;
+}
+
+/* Services, settings, profile and client-page modules */
+.module-servicos > .panel,
+.module-empresa > .panel,
+.module-configuracoes > .panel,
+.module-minha-pagina > .panel,
+.module-pagina-cliente > .panel,
+.module-perfil > .panel,
+.module-ajuda > .panel {
+  position: relative;
+  overflow: hidden;
+}
+
+.module-servicos > .panel::before,
+.module-empresa > .panel::before,
+.module-configuracoes > .panel::before,
+.module-minha-pagina > .panel::before,
+.module-pagina-cliente > .panel::before,
+.module-perfil > .panel::before,
+.module-ajuda > .panel::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto;
+  height: 3px;
+  background: linear-gradient(90deg, #3a4da1, #68b5e4);
+}
+
+.module-servicos .category-cards button,
+.module-servicos .service-card,
+.module-servicos .catalog-card,
+.module-minha-pagina .toggle,
+.module-empresa .toggle,
+.module-configuracoes .toggle {
+  border-color: #dce4ef;
+  background: #fff;
+  box-shadow: 0 5px 16px rgb(40 40 40 / 4%);
+}
+
+.module-minha-pagina .editor-panel,
+.module-empresa .editor-panel,
+.module-configuracoes .editor-panel {
+  border-left-color: #3a4da1;
+}
+
+.module-minha-pagina .preview-toolbar,
+.module-empresa .preview-toolbar {
+  color: #34435f;
+  background: #f6f8fc;
+  border-color: #dce3ed;
+}
+
+.module-minha-pagina .preview-toolbar button.selected,
+.module-empresa .preview-toolbar button.selected,
+.module-configuracoes .preset-grid button.selected {
+  color: #fff;
+  background: #3a4da1;
+  border-color: #3a4da1;
+}
+
+.module-pagina-cliente .inline-actions {
+  margin: 20px 0;
+}
+
+.module-ajuda ol {
+  display: grid;
+  gap: 10px;
+  padding-left: 22px;
+}
+
+.module-ajuda li {
+  padding-left: 5px;
+  color: #4e5d75;
+  line-height: 1.6;
+}
+
+.module-perfil form {
+  max-width: 520px;
+  display: grid;
+  gap: 14px;
+}
+
+/* Agenda refresh to the same Horária visual language */
+.agenda-pro {
+  min-height: 100%;
+  color: #27344f;
+  background:
+    radial-gradient(circle at 88% 4%, rgb(104 181 228 / 8%), transparent 28rem),
+    #f1f1f1;
+}
+
+.agenda-pro .dashboard-content {
+  max-width: 1550px;
+  margin: 0 auto;
+}
+
+.agenda-pro .page-heading {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  gap: 10px;
+  align-items: end;
+  margin-bottom: 22px;
+}
+
+.agenda-pro .page-heading .eyebrow {
+  color: #3a4da1;
+  font-weight: 800;
+  letter-spacing: .12em;
+}
+
+.agenda-pro .page-heading h1 {
+  color: #18233c;
+  letter-spacing: -.04em;
+}
+
+.agenda-pro .page-heading p {
+  color: #738097;
+}
+
+.agenda-pro .green-dot {
+  color: #68b5e4;
+}
+
+.agenda-pro .stats {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+  margin-bottom: 18px;
+}
+
+.agenda-pro .stat {
+  min-height: 118px;
+  padding: 20px;
+  color: #1e2a44;
+  background: #fff;
+  border: 1px solid #e0e6ef;
+  border-radius: 15px;
+  box-shadow: 0 8px 22px rgb(40 40 40 / 5%);
+}
+
+.agenda-pro .stat span {
+  color: #637089;
+}
+
+.agenda-pro .stat span b {
+  color: #3a4da1;
+}
+
+.agenda-pro .stat strong {
+  color: #17233d;
+}
+
+.agenda-pro .stat small {
+  color: #8591a5;
+}
+
+.agenda-pro .agenda.card,
+.agenda-pro .share-bar,
+.agenda-pro .modal.card {
+  background: #fff;
+  border: 1px solid #e0e6ef;
+  border-radius: 15px;
+  box-shadow: 0 8px 24px rgb(40 40 40 / 5%);
+}
+
+.agenda-pro .agenda-toolbar {
+  border-bottom-color: #e8edf4;
+}
+
+.agenda-pro .agenda-toolbar button,
+.agenda-pro .date-control input {
+  color: #46546e;
+  background: #fbfcff;
+  border-color: #d9e1ec;
+}
+
+.agenda-pro .segmented {
+  background: #f3f6fa;
+  border-color: #d9e1ec;
+}
+
+.agenda-pro .segmented button.selected {
+  color: #fff;
+  background: #3a4da1;
+  border-color: #3a4da1;
+}
+
+.agenda-pro .day-group {
+  border-color: #e2e7ef;
+  background: #fbfcfe;
+}
+
+.agenda-pro .day-group > h3 {
+  color: #34415c;
+}
+
+.agenda-pro .appointment {
+  background: #fff;
+  border-color: #dfe6ef;
+  box-shadow: 0 5px 16px rgb(40 40 40 / 4%);
+}
+
+.agenda-pro .appointment:not(.blocked) {
+  border-left: 3px solid #68b5e4;
+}
+
+.agenda-pro .appointment.blocked {
+  border-left: 3px solid #a7b0bf;
+  background: #f7f8fa;
+}
+
+.agenda-pro .appointment-time strong,
+.agenda-pro .appointment-title strong {
+  color: #23314d;
+}
+
+.agenda-pro .appointment p,
+.agenda-pro .appointment details {
+  color: #6f7c92;
+}
+
+.agenda-pro .badge {
+  border-radius: 999px;
+  border: 0;
+  font-weight: 800;
+}
+
+.agenda-pro .badge.aguardando {
+  color: #3a4da1;
+  background: #eef2ff;
+}
+
+.agenda-pro .badge.em_atendimento {
+  color: #b36a00;
+  background: #fff1d8;
+}
+
+.agenda-pro .badge.concluido {
+  color: #218260;
+  background: #e7f8f0;
+}
+
+.agenda-pro .badge.bloqueio {
+  color: #667187;
+  background: #e9edf3;
+}
+
+.agenda-pro .text-button {
+  color: #3a4da1;
+}
+
+.agenda-pro .share-bar {
+  color: #33425f;
+}
+
+.agenda-pro .share-icon {
+  color: #fff;
+  background: #3a4da1;
+}
+
+.agenda-pro .empty {
+  color: #7c899d;
+}
+
+@media (max-width: 1000px) {
+  .agenda-pro .page-heading {
+    grid-template-columns: 1fr auto;
+  }
+  .agenda-pro .page-heading > div {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 760px) {
+  .records-pro .records-toolbar,
+  .agenda-pro .page-heading {
+    grid-template-columns: 1fr;
+  }
+
+  .records-pro .records-toolbar .primary,
+  .agenda-pro .page-heading button {
+    width: 100%;
+  }
+
+  .agenda-pro .stats {
+    grid-template-columns: 1fr;
+  }
+
+  .unified-pro {
+    padding-inline: 16px;
+  }
+
+  .unified-pro .module-heading {
+    align-items: flex-start;
+  }
+}
+
+
+/* Unified detail pages and flows */
+.record-detail-pro .tabs,
+.order-detail-pro .tabs {
+  gap: 6px;
+  padding: 5px;
+  margin: 18px 0;
+  background: #f4f7fb;
+  border: 1px solid #dfe6f0;
+  border-radius: 11px;
+}
+
+.record-detail-pro .tabs button,
+.order-detail-pro .tabs button {
+  padding: 10px 14px;
+  color: #617089;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  font-size: .7rem;
+  font-weight: 700;
+}
+
+.record-detail-pro .tabs button.active,
+.order-detail-pro .tabs button.active {
+  color: #fff;
+  background: #3a4da1;
+  box-shadow: 0 5px 14px rgb(58 77 161 / 18%);
+}
+
+.record-detail-pro .list-line {
+  padding: 14px 4px;
+  border-bottom-color: #e8edf4;
+}
+
+.record-detail-pro .list-line:hover {
+  background: #fbfdff;
+}
+
+.record-detail-pro .definition-grid > div,
+.order-detail-pro .definition-grid > div,
+.subscription-pro .definition-grid > div {
+  padding: 14px;
+  background: #f8fafd;
+  border: 1px solid #e3e8f0;
+  border-radius: 10px;
+}
+
+.record-detail-pro .definition-grid dt,
+.order-detail-pro .definition-grid dt,
+.subscription-pro .definition-grid dt {
+  color: #79869b;
+}
+
+.record-detail-pro .definition-grid dd,
+.order-detail-pro .definition-grid dd,
+.subscription-pro .definition-grid dd {
+  color: #27344e;
+  font-weight: 700;
+}
+
+.order-detail-pro > .toolbar {
+  padding: 12px 14px;
+  margin: 10px 0 0;
+  background: #fff;
+  border: 1px solid #dfe6ef;
+  border-radius: 11px;
+  box-shadow: 0 6px 18px rgb(40 40 40 / 4%);
+}
+
+.order-detail-pro .status-pill {
+  border: 0;
+  border-radius: 999px;
+  font-weight: 800;
+}
+
+.order-detail-pro .notice,
+.new-order-pro .notice,
+.subscription-pro .notice {
+  border-radius: 11px;
+}
+
+.new-order-pro .step-navigation {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+  padding: 8px;
+  margin-bottom: 18px;
+  background: #f4f7fb;
+  border: 1px solid #dfe6f0;
+  border-radius: 12px;
+}
+
+.new-order-pro .step-navigation span {
+  min-width: 0;
+  padding: 11px 12px;
+  color: #7a879c;
+  background: transparent;
+  border-radius: 9px;
+  font-size: .68rem;
+  font-weight: 700;
+  text-align: center;
+}
+
+.new-order-pro .step-navigation span.active {
+  color: #fff;
+  background: #3a4da1;
+  box-shadow: 0 5px 14px rgb(58 77 161 / 18%);
+}
+
+.new-order-pro > form.panel {
+  max-width: 980px;
+  margin-inline: auto;
+  padding: 24px;
+}
+
+.new-order-pro .checklist {
+  gap: 9px;
+}
+
+.new-order-pro .checklist label {
+  padding: 10px 12px;
+  color: #4f5d76;
+  background: #f8fafd;
+  border: 1px solid #e1e7f0;
+  border-radius: 9px;
+}
+
+.subscription-pro .subscription-card {
+  max-width: 900px;
+}
+
+.subscription-pro .definition-grid {
+  gap: 12px;
+}
+
+@media (max-width: 700px) {
+  .new-order-pro .step-navigation {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .record-detail-pro .tabs,
+  .order-detail-pro .tabs {
+    overflow-x: auto;
+    flex-wrap: nowrap;
+  }
+
+  .record-detail-pro .tabs button,
+  .order-detail-pro .tabs button {
+    white-space: nowrap;
+  }
+}
