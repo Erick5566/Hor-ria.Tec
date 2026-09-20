@@ -5,7 +5,9 @@ import { getPublicProfile, publicDescription } from "@/lib/public-profile";
 const base =
   process.env.NEXT_PUBLIC_SITE_URL ||
   process.env.NEXT_PUBLIC_APP_URL ||
-  "https://hor-ria-tec.vercel.app";
+  (process.env.VERCEL_PROJECT_PRODUCTION_URL
+    ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
+    : "https://hor-ria-tec.vercel.app");
 
 export async function generateMetadata({
   params,
