@@ -45,7 +45,7 @@ export type AccessContext = {
 
 export const defaultFeatures: FeatureFlags = {
   aiEnabled: false,
-  financialEnabled: false,
+  financialEnabled: true,
   stockEnabled: false,
   whatsappEnabled: false,
   appointmentsEnabled: true,
