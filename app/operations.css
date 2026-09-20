@@ -237,7 +237,7 @@
 .upload-actions label {
   position: relative;
 }
-.upload-actions input[type="file"] {
+.upload-actions label input[type="file"] {
   position: absolute !important;
   inset: 0 !important;
   width: 100% !important;
@@ -245,6 +245,14 @@
   opacity: 0 !important;
   display: block !important;
   cursor: pointer;
+}
+
+.upload-actions .camera-fallback-input {
+  display: none !important;
+  position: static !important;
+  width: 0 !important;
+  height: 0 !important;
+  pointer-events: none !important;
 }
 .upload-actions label:focus-within {
   outline: 3px solid #4a5c6a;

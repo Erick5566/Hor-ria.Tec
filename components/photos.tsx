@@ -215,6 +215,7 @@ export function PhotoPicker({
         </button>
         <input
           ref={fallbackCamera}
+          className="camera-fallback-input"
           style={{ display: "none" }}
           type="file"
           accept="image/*"
