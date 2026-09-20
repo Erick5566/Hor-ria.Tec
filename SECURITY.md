@@ -25,7 +25,8 @@ RPC grants for tenant isolation.
   becomes mandatory automatically when `TURNSTILE_SECRET_KEY` is configured.
   The browser widget/site key must be configured at the same time.
 - Enable CAPTCHA/rate-limit protection for login/signup in Supabase Auth.
-- Enable MFA for SUPER_ADMIN.
+- SUPER_ADMIN is forced through Supabase TOTP MFA. Admin RPCs must require an
+  `aal2` JWT at the database guard, not only in the UI.
 - Confirm automated database backups and perform a restore test.
 - Configure the final Kiwify webhook verification method from Kiwify's current
   official documentation before treating billing as production-ready.
@@ -46,3 +47,12 @@ RPC grants for tenant isolation.
   after the frontend Edge Function rollout is confirmed in production.
 - Quote totals are recalculated in PostgreSQL from server-validated line items;
   the browser-provided total is never trusted.
+
+
+## Role boundaries
+
+- OWNER and ADMIN can access finance, reports and company settings.
+- TECHNICIAN and ATTENDANT keep operational access but do not receive finance,
+  reports or company-configuration navigation.
+- Financial RLS and subscription visibility are manager-only after the
+  production rollout migration is applied.

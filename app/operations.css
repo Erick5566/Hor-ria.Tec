@@ -7188,3 +7188,22 @@ button.danger,
     min-height: 48px;
   }
 }
+
+
+/* Super admin MFA */
+.mfa-page{min-height:100vh;display:grid;place-items:center;padding:28px;background:radial-gradient(circle at 18% 10%,rgb(104 181 228 / 13%),transparent 30rem),#eef1f4}
+.mfa-shell{width:min(720px,100%);display:grid;gap:18px}
+.mfa-card{padding:clamp(24px,5vw,42px);background:#fff;border:1px solid #dce3eb;border-radius:22px;box-shadow:0 24px 70px rgb(20 36 58 / 12%)}
+.mfa-card h1{margin:10px 0;color:#13233c;font-size:clamp(1.7rem,5vw,2.45rem)}
+.mfa-card>p{color:#68768d;line-height:1.65}
+.mfa-security-badge{display:inline-flex;align-items:center;gap:8px;padding:7px 10px;color:#284c78;background:#eaf3ff;border-radius:999px;font-size:.7rem;font-weight:800}
+.mfa-setup{display:grid;gap:18px;margin-top:22px}
+.mfa-qr{width:min(240px,100%);margin:0 auto;padding:12px;background:#fff;border:1px solid #dce3eb;border-radius:14px}
+.mfa-secret{display:grid;gap:5px;padding:12px 14px;background:#f6f8fb;border:1px solid #e1e6ed;border-radius:10px}
+.mfa-secret code{overflow-wrap:anywhere;color:#263b5d;font-size:.8rem}
+.mfa-code-form{display:grid;gap:12px;margin-top:20px}
+.mfa-code-form input{min-height:52px;text-align:center;letter-spacing:.32em;font-size:1.12rem;font-weight:800}
+.mfa-note{color:#748197;font-size:.76rem;line-height:1.55}
+.mfa-error{padding:12px 14px;color:#87353d;background:#f9e9eb;border:1px solid #efc9cd;border-radius:10px}
+.mfa-actions{display:flex;gap:10px;flex-wrap:wrap}
+@media(max-width:560px){.mfa-page{padding:12px}.mfa-card{padding:22px 17px;border-radius:16px}.mfa-actions{display:grid}}

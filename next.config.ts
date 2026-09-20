@@ -52,6 +52,7 @@ const config: NextConfig = {
       { source: "/cadastro", headers: noStoreHeaders },
       { source: "/recuperar-senha", headers: noStoreHeaders },
       { source: "/redefinir-senha", headers: noStoreHeaders },
+      { source: "/seguranca/:path*", headers: noStoreHeaders },
       { source: "/acompanhar/:path*", headers: noStoreHeaders },
     ];
   },

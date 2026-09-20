@@ -653,7 +653,13 @@ export default function Workspace({
                     !(
                       (href === "/painel/agenda" &&
                         !access.company?.featureFlags.appointmentsEnabled) ||
-                      (href === "/painel/minha-pagina" &&
+                      ([
+                        "/painel/financeiro",
+                        "/painel/relatorios",
+                        "/painel/configuracoes",
+                        "/painel/minha-pagina",
+                        "/painel/empresa",
+                      ].includes(href) &&
                         !["OWNER", "ADMIN"].includes(
                           access.company?.role || "",
                         ))
