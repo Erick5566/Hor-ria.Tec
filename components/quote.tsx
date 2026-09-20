@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useState, useCallback } from "react";
 import { supabase, message, today, shift, Servico } from "@/lib/supabase";
-import { Item, Orcamento, Peca, money, useRows } from "@/lib/assistencia";
+import { Item, Orcamento, money } from "@/lib/assistencia";
 import { ErrorBox, Empty } from "./ui";
 export default function Quote({
   ordemId,
@@ -18,13 +18,17 @@ export default function Quote({
     [editing, setEditing] = useState(false),
     [services, setServices] = useState<Item[]>([]),
     [parts, setParts] = useState<Item[]>([]),
+    [catalog, setCatalog] = useState<(Servico & { preco: number })[]>([]),
+    [stock, setStock] = useState<
+      { id: string; nome: string; preco: number; quantidade: number }[]
+    >([]),
+    [catalogLoaded, setCatalogLoaded] = useState(false),
+    [catalogLoading, setCatalogLoading] = useState(false),
     [labor, setLabor] = useState(0),
     [discount, setDiscount] = useState(0),
     [validity, setValidity] = useState(shift(today(), 7)),
     [error, setError] = useState(""),
     [busy, setBusy] = useState(false);
-  const catalog = useRows<Servico & { preco: number }>("servicos"),
-    stock = useRows<Peca>("pecas");
   const latest = quotes[0];
   const load = useCallback(async () => {
     const { data, error } = await supabase!
@@ -42,12 +46,51 @@ export default function Quote({
     [...services, ...parts].reduce((n, i) => n + i.quantidade * i.valor, 0) +
     labor -
     discount;
-  function start() {
+  async function ensureCatalog() {
+    if (catalogLoaded || catalogLoading) return;
+    setCatalogLoading(true);
+    try {
+      const [servicesResult, stockResult] = await Promise.all([
+        supabase!
+          .from("servicos")
+          .select("id,nome,preco,duracao,categoria,descricao,garantia_dias,ativo")
+          .eq("ativo", true)
+          .order("nome"),
+        supabase!
+          .from("pecas")
+          .select("id,nome,preco,quantidade")
+          .eq("ativo", true)
+          .gt("quantidade", 0)
+          .order("nome"),
+      ]);
+      if (servicesResult.error || stockResult.error)
+        throw servicesResult.error || stockResult.error;
+      setCatalog(
+        (servicesResult.data || []) as (Servico & { preco: number })[],
+      );
+      setStock(
+        (stockResult.data || []) as {
+          id: string;
+          nome: string;
+          preco: number;
+          quantidade: number;
+        }[],
+      );
+      setCatalogLoaded(true);
+    } catch (caught) {
+      setError(message(caught as Error));
+    } finally {
+      setCatalogLoading(false);
+    }
+  }
+
+  async function start() {
     setServices(latest?.servicos || []);
     setParts(latest?.pecas || []);
     setLabor(Number(latest?.mao_obra) || 0);
     setDiscount(Number(latest?.desconto) || 0);
     setEditing(true);
+    await ensureCatalog();
   }
   async function save(e: React.FormEvent) {
     e.preventDefault();
@@ -177,7 +220,7 @@ export default function Quote({
           {latest ? "Criar nova versão" : "+ Criar orçamento"}
         </button>
       </div>
-      <ErrorBox error={error || catalog.error || stock.error} />
+      <ErrorBox error={error} />
       {editing ? (
         <form onSubmit={save}>
           <div className="form-grid">
@@ -185,8 +228,9 @@ export default function Quote({
               Adicionar serviço cadastrado
               <select
                 value=""
+                disabled={catalogLoading}
                 onChange={(e) => {
-                  const s = catalog.data.find((s) => s.id === e.target.value);
+                  const s = catalog.find((s) => s.id === e.target.value);
                   if (s)
                     setServices([
                       ...services,
@@ -199,8 +243,10 @@ export default function Quote({
                     ]);
                 }}
               >
-                <option value="">Selecione</option>
-                {catalog.data.map((s) => (
+                <option value="">
+                  {catalogLoading ? "Carregando serviços..." : "Selecione"}
+                </option>
+                {catalog.map((s) => (
                   <option key={s.id} value={s.id}>
                     {s.nome}
                   </option>
@@ -211,8 +257,9 @@ export default function Quote({
               Adicionar peça do estoque
               <select
                 value=""
+                disabled={catalogLoading}
                 onChange={(e) => {
-                  const p = stock.data.find((p) => p.id === e.target.value);
+                  const p = stock.find((p) => p.id === e.target.value);
                   if (p)
                     setParts([
                       ...parts,
@@ -225,8 +272,10 @@ export default function Quote({
                     ]);
                 }}
               >
-                <option value="">Selecione</option>
-                {stock.data.map((p) => (
+                <option value="">
+                  {catalogLoading ? "Carregando estoque..." : "Selecione"}
+                </option>
+                {stock.map((p) => (
                   <option key={p.id} value={p.id}>
                     {p.nome} · {p.quantidade} em estoque
                   </option>
