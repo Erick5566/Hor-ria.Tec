@@ -1,128 +1,101 @@
 "use client";
-import { useEffect, useState, useCallback } from "react";
-import { useRouter } from "next/navigation";
-import { Brand, MissingConfig } from "@/components/brand";
-import Setup from "@/components/setup";
-import AppointmentForm from "@/components/appointment-form";
-import { Heading } from "@/components/ui";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import dynamic from "next/dynamic";
+import { Heading } from "@/components/ui";
+import { useWorkspace } from "@/components/workspace";
 import {
   supabase,
-  configured,
-  Empresa,
-  Servico,
-  Agendamento,
+  type Agendamento,
   message,
   today,
   time,
   dateLabel,
   shift,
 } from "@/lib/supabase";
+
+const AppointmentForm = dynamic(() => import("@/components/appointment-form"), {
+  loading: () => (
+    <div className="module-inline-loading">
+      <span />
+      <div>
+        <strong>Carregando formulário…</strong>
+        <small>Preparando opções de atendimento.</small>
+      </div>
+    </div>
+  ),
+});
+
+type AgendaItem = Agendamento & {
+  servico_nome?: string | null;
+  ordem_id?: string | null;
+  finalidade?: string | null;
+};
+
 const labels = {
   aguardando: "Aguardando",
   em_atendimento: "Em atendimento",
   concluido: "Concluído",
 };
+
+function periodBounds(date: string, view: "dia" | "semana" | "mes") {
+  const start = view === "mes" ? date.slice(0, 7) + "-01" : date;
+  if (view === "dia") return { start, end: shift(start, 1) };
+  if (view === "semana") return { start, end: shift(start, 7) };
+  const days = new Date(
+    Number(start.slice(0, 4)),
+    Number(start.slice(5, 7)),
+    0,
+  ).getDate();
+  return { start, end: shift(start, days) };
+}
+
 export default function Painel() {
-  const router = useRouter();
-  const [empresa, setEmpresa] = useState<Empresa | null>(null),
-    [services, setServices] = useState<Servico[]>([]),
-    [bookings, setBookings] = useState<Agendamento[]>([]),
-    [loading, setLoading] = useState(true),
-    [ready, setReady] = useState(false),
-    [error, setError] = useState(""),
-    [date, setDate] = useState(today()),
-    [view, setView] = useState<"dia" | "semana" | "mes">("dia"),
-    [adding, setAdding] = useState(false),
-    [blocking, setBlocking] = useState(false),
-    [busy, setBusy] = useState(false);
-  const load = useCallback(async () => {
-    if (!supabase) return;
-    setError("");
-    try {
-      const {
-        data: { user },
-        error: authError,
-      } = await supabase.auth.getUser();
-      if (authError || !user) {
-        router.replace("/");
-        return;
-      }
-      const { data, error } = await supabase
-        .from("empresas")
-        .select("*")
-        .eq("dono_id", user.id)
-        .maybeSingle();
-      if (error) throw error;
-      setEmpresa(data);
-      if (data) {
-        const result = await supabase
-          .from("servicos")
-          .select("*")
-          .eq("empresa_id", data.id)
-          .order("nome");
-        if (result.error) throw result.error;
-        setServices(result.data);
-      }
-      setReady(true);
-    } catch (e) {
-      setError(message(e as Error));
-    } finally {
-      setLoading(false);
-    }
-  }, [router]);
-  useEffect(() => {
-    load();
-    const subscription = supabase?.auth.onAuthStateChange((event) => {
-      if (event === "SIGNED_OUT") router.replace("/");
-    });
-    return () => subscription?.data.subscription.unsubscribe();
-  }, [load, router]);
+  const { empresa } = useWorkspace();
+  const [bookings, setBookings] = useState<AgendaItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [date, setDate] = useState(today());
+  const [view, setView] = useState<"dia" | "semana" | "mes">("dia");
+  const [adding, setAdding] = useState(false);
+  const [blocking, setBlocking] = useState(false);
+  const [busy, setBusy] = useState(false);
+
+  const bounds = useMemo(() => periodBounds(date, view), [date, view]);
+
   const refresh = useCallback(
     async (quiet = false) => {
-      if (!empresa || !supabase) return;
+      if (!supabase) return;
       if (!quiet) setLoading(true);
       try {
-        const { data, error } = await supabase
-          .from("agendamentos")
-          .select("*")
-          .eq("empresa_id", empresa.id)
-          .gte(
-            "inicio",
-            (view === "mes" ? date.slice(0, 7) + "-01" : date) +
-              "T00:00:00-03:00",
-          )
-          .lt(
-            "inicio",
-            (view === "mes"
-              ? shift(
-                  date.slice(0, 7) + "-01",
-                  new Date(
-                    Number(date.slice(0, 4)),
-                    Number(date.slice(5, 7)),
-                    0,
-                  ).getDate(),
-                )
-              : shift(date, view === "dia" ? 1 : 7)) + "T00:00:00-03:00",
-          )
-          .order("inicio");
-        if (error) throw error;
-        setBookings(data);
-      } catch (e) {
-        setError(message(e as Error));
+        const result = await supabase.rpc("agenda_period", {
+          p_start: bounds.start,
+          p_end_exclusive: bounds.end,
+        });
+        if (result.error) throw result.error;
+        setBookings((result.data || []) as AgendaItem[]);
+        setError("");
+      } catch (caught) {
+        setError(message(caught as Error));
       } finally {
-        setLoading(false);
+        if (!quiet) setLoading(false);
       }
     },
-    [empresa, date, view],
+    [bounds.start, bounds.end],
   );
+
   useEffect(() => {
-    refresh();
+    void refresh(false);
   }, [refresh]);
+
   useEffect(() => {
-    if (!empresa || !supabase) return;
-    const client = supabase;
-    const channel = client
+    if (!supabase || !empresa.id) return;
+    let timer: number | undefined;
+    const refreshSoon = () => {
+      window.clearTimeout(timer);
+      timer = window.setTimeout(() => void refresh(true), 250);
+    };
+    const channel = supabase
       .channel(`agenda-painel-${empresa.id}`)
       .on(
         "postgres_changes",
@@ -132,74 +105,76 @@ export default function Painel() {
           table: "agendamentos",
           filter: `empresa_id=eq.${empresa.id}`,
         },
-        () => {
-          void refresh(true);
-        },
+        refreshSoon,
       )
       .subscribe();
     return () => {
-      void client.removeChannel(channel);
+      window.clearTimeout(timer);
+      void supabase!.removeChannel(channel);
     };
-  }, [empresa, refresh]);
-  if (!configured) return <MissingConfig />;
-  async function status(a: Agendamento) {
+  }, [empresa.id, refresh]);
+
+  async function status(a: AgendaItem) {
     setBusy(true);
     setError("");
     try {
-      const { error } = await supabase!
+      const result = await supabase!
         .from("agendamentos")
         .update({
           status: a.status === "aguardando" ? "em_atendimento" : "concluido",
         })
         .eq("id", a.id);
-      if (error) throw error;
-      await refresh();
-    } catch (e) {
-      setError(message(e as Error));
+      if (result.error) throw result.error;
+      await refresh(true);
+    } catch (caught) {
+      setError(message(caught as Error));
     } finally {
       setBusy(false);
     }
   }
-  async function block(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault();
-    const f = new FormData(e.currentTarget);
+
+  async function block(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const form = new FormData(event.currentTarget);
     setBusy(true);
     setError("");
     try {
-      const day = f.get("dia");
-      const { error } = await supabase!.from("agendamentos").insert({
-        empresa_id: empresa!.id,
+      const day = form.get("dia");
+      const result = await supabase!.from("agendamentos").insert({
+        empresa_id: empresa.id,
         bloqueio: true,
-        inicio: `${day}T${f.get("inicio")}:00-03:00`,
-        fim: `${day}T${f.get("fim")}:00-03:00`,
-        descricao: f.get("motivo"),
+        inicio: `${day}T${form.get("inicio")}:00-03:00`,
+        fim: `${day}T${form.get("fim")}:00-03:00`,
+        descricao: form.get("motivo"),
       });
-      if (error) throw error;
+      if (result.error) throw result.error;
       setBlocking(false);
-      await refresh();
-    } catch (e) {
-      setError(message(e as Error));
+      await refresh(true);
+    } catch (caught) {
+      setError(message(caught as Error));
     } finally {
       setBusy(false);
     }
   }
+
   async function unblock(id: string) {
     setBusy(true);
     try {
-      const { error } = await supabase!
+      const result = await supabase!
         .from("agendamentos")
         .delete()
         .eq("id", id)
         .eq("bloqueio", true);
-      if (error) throw error;
-      await refresh();
-    } catch (e) {
-      setError(message(e as Error));
+      if (result.error) throw result.error;
+      await refresh(true);
+    } catch (caught) {
+      setError(message(caught as Error));
     } finally {
       setBusy(false);
     }
   }
-  const appointments = bookings.filter((a) => !a.bloqueio);
+
+  const appointments = bookings.filter((item) => !item.bloqueio);
   const days = Array.from(
     {
       length:
@@ -213,277 +188,254 @@ export default function Painel() {
                 0,
               ).getDate(),
     },
-    (_, i) => shift(view === "mes" ? date.slice(0, 7) + "-01" : date, i),
+    (_, index) =>
+      shift(view === "mes" ? date.slice(0, 7) + "-01" : date, index),
   );
+
+  const byDay = useMemo(() => {
+    const formatter = new Intl.DateTimeFormat("en-CA", {
+      timeZone: "America/Sao_Paulo",
+    });
+    const map = new Map<string, AgendaItem[]>();
+    for (const booking of bookings) {
+      const key = formatter.format(new Date(booking.inicio));
+      const group = map.get(key);
+      if (group) group.push(booking);
+      else map.set(key, [booking]);
+    }
+    return map;
+  }, [bookings]);
+
   return (
     <div className="agenda-container agenda-pro">
       <main className="legacy-agenda">
         {error && (
           <div className="notice" role="alert">
-            {error}{" "}
-            <button
-              onClick={() => {
-                load();
-                refresh();
-              }}
-            >
-              Tentar novamente
-            </button>
+            {error} <button onClick={() => void refresh(false)}>Tentar novamente</button>
           </div>
         )}
-        {!ready ? (
-          <div className="empty">
-            {loading
-              ? "Carregando sua agenda…"
-              : "Não foi possível carregar a agenda."}
-          </div>
-        ) : !empresa ? (
-          <Setup done={load} />
-        ) : (
-          <section className="module dashboard-pro agenda-dashboard">
-            <div className="dashboard-hero agenda-dashboard-hero">
-              <Heading
-                title="Agenda"
-                subtitle="Organize horários, acompanhe atendimentos e mantenha o dia sob controle."
-              />
-              <div className="agenda-hero-actions">
-                <button className="primary" onClick={() => setAdding(!adding)}>
-                  {adding ? "Fechar formulário" : "+ Novo atendimento"}
-                </button>
-                <button className="outline" onClick={() => setBlocking(true)}>
-                  ⊘ Bloquear horário
-                </button>
-              </div>
+
+        <section className="module dashboard-pro agenda-dashboard">
+          <div className="dashboard-hero agenda-dashboard-hero">
+            <Heading
+              title="Agenda"
+              subtitle="Organize horários, acompanhe atendimentos e mantenha o dia sob controle."
+            />
+            <div className="agenda-hero-actions">
+              <button className="primary" onClick={() => setAdding(!adding)}>
+                {adding ? "Fechar formulário" : "+ Novo atendimento"}
+              </button>
+              <button className="outline" onClick={() => setBlocking(true)}>
+                ⊘ Bloquear horário
+              </button>
             </div>
-            {adding && (
-              <AppointmentForm
-                done={() => {
-                  setAdding(false);
-                  refresh();
-                }}
-              />
-            )}
-            <section className="dashboard-kpis agenda-kpis">
-              <article className="dashboard-kpi blue">
-                <div className="dashboard-kpi-top">
-                  <span className="dashboard-kpi-icon">▦</span>
-                  <span>Agendamentos</span>
-                </div>
-                <div className="dashboard-kpi-value">
-                  <strong>{appointments.length}</strong>
-                  <span className="mini-spark">⌁</span>
-                </div>
-                <small>
-                  {view === "dia"
-                    ? "No dia selecionado"
-                    : view === "mes"
-                      ? "No mês selecionado"
-                      : "Nos próximos 7 dias"}
-                </small>
-              </article>
-              <article className="dashboard-kpi amber">
-                <div className="dashboard-kpi-top">
-                  <span className="dashboard-kpi-icon">◷</span>
-                  <span>Em atendimento</span>
-                </div>
-                <div className="dashboard-kpi-value">
-                  <strong>{appointments.filter((item) => item.status === "em_atendimento").length}</strong>
-                  <span className="mini-spark">⌁</span>
-                </div>
-                <small>Atendimentos em execução</small>
-              </article>
-              <article className="dashboard-kpi green">
-                <div className="dashboard-kpi-top">
-                  <span className="dashboard-kpi-icon">✓</span>
-                  <span>Concluídos</span>
-                </div>
-                <div className="dashboard-kpi-value">
-                  <strong>{appointments.filter((item) => item.status === "concluido").length}</strong>
-                  <span className="mini-spark">⌁</span>
-                </div>
-                <small>Atendimentos finalizados</small>
-              </article>
-              <article className="dashboard-kpi purple">
-                <div className="dashboard-kpi-top">
-                  <span className="dashboard-kpi-icon">⊘</span>
-                  <span>Horários bloqueados</span>
-                </div>
-                <div className="dashboard-kpi-value">
-                  <strong>{bookings.filter((item) => item.bloqueio).length}</strong>
-                  <span className="mini-spark">⌁</span>
-                </div>
-                <small>Períodos indisponíveis</small>
-              </article>
-            </section>
-            <section className="agenda card dashboard-card agenda-main-card">
-              <div className="agenda-toolbar">
-                <div className="date-control">
-                  <button
-                    aria-label="Período anterior"
-                    onClick={() =>
-                      setDate(
-                        view === "mes"
-                          ? shift(date.slice(0, 7) + "-01", -1)
-                          : shift(date, view === "dia" ? -1 : -7),
-                      )
-                    }
-                  >
-                    ‹
-                  </button>
-                  <input
-                    aria-label="Data da agenda"
-                    type="date"
-                    value={date}
-                    onChange={(e) => e.target.value && setDate(e.target.value)}
-                  />
-                  <button
-                    aria-label="Próximo período"
-                    onClick={() =>
-                      setDate(
-                        view === "mes"
-                          ? shift(date.slice(0, 7) + "-01", days.length)
-                          : shift(date, view === "dia" ? 1 : 7),
-                      )
-                    }
-                  >
-                    ›
-                  </button>
-                  <button className="today" onClick={() => setDate(today())}>
-                    Hoje
-                  </button>
-                </div>
-                <div className="segmented">
-                  <button
-                    className={view === "mes" ? "selected" : ""}
-                    onClick={() => setView("mes")}
-                  >
-                    Mês
-                  </button>
-                  <button
-                    className={view === "dia" ? "selected" : ""}
-                    onClick={() => setView("dia")}
-                  >
-                    Dia
-                  </button>
-                  <button
-                    className={view === "semana" ? "selected" : ""}
-                    onClick={() => setView("semana")}
-                  >
-                    Semana
-                  </button>
-                </div>
-                <button aria-label="Atualizar agenda" onClick={() => refresh()}>
-                  ↻
-                </button>
+          </div>
+
+          {adding && (
+            <AppointmentForm
+              done={() => {
+                setAdding(false);
+                void refresh(true);
+              }}
+            />
+          )}
+
+          <section className="dashboard-kpis agenda-kpis">
+            <article className="dashboard-kpi blue">
+              <div className="dashboard-kpi-top">
+                <span className="dashboard-kpi-icon">▦</span>
+                <span>Agendamentos</span>
               </div>
-              {loading ? (
-                <div className="empty">Atualizando agenda…</div>
-              ) : (
-                <div
-                  className={
-                    view === "semana"
-                      ? "week-grid"
-                      : view === "mes"
-                        ? "month-grid"
-                        : ""
+              <div className="dashboard-kpi-value">
+                <strong>{appointments.length}</strong>
+                <span className="mini-spark">⌁</span>
+              </div>
+              <small>
+                {view === "dia"
+                  ? "No dia selecionado"
+                  : view === "mes"
+                    ? "No mês selecionado"
+                    : "Nos próximos 7 dias"}
+              </small>
+            </article>
+            <article className="dashboard-kpi amber">
+              <div className="dashboard-kpi-top">
+                <span className="dashboard-kpi-icon">◷</span>
+                <span>Em atendimento</span>
+              </div>
+              <div className="dashboard-kpi-value">
+                <strong>
+                  {appointments.filter((item) => item.status === "em_atendimento").length}
+                </strong>
+                <span className="mini-spark">⌁</span>
+              </div>
+              <small>Atendimentos em execução</small>
+            </article>
+            <article className="dashboard-kpi green">
+              <div className="dashboard-kpi-top">
+                <span className="dashboard-kpi-icon">✓</span>
+                <span>Concluídos</span>
+              </div>
+              <div className="dashboard-kpi-value">
+                <strong>
+                  {appointments.filter((item) => item.status === "concluido").length}
+                </strong>
+                <span className="mini-spark">⌁</span>
+              </div>
+              <small>Atendimentos finalizados</small>
+            </article>
+            <article className="dashboard-kpi purple">
+              <div className="dashboard-kpi-top">
+                <span className="dashboard-kpi-icon">⊘</span>
+                <span>Horários bloqueados</span>
+              </div>
+              <div className="dashboard-kpi-value">
+                <strong>{bookings.filter((item) => item.bloqueio).length}</strong>
+                <span className="mini-spark">⌁</span>
+              </div>
+              <small>Períodos indisponíveis</small>
+            </article>
+          </section>
+
+          <section className="agenda card dashboard-card agenda-main-card">
+            <div className="agenda-toolbar">
+              <div className="date-control">
+                <button
+                  aria-label="Período anterior"
+                  onClick={() =>
+                    setDate(
+                      view === "mes"
+                        ? shift(date.slice(0, 7) + "-01", -1)
+                        : shift(date, view === "dia" ? -1 : -7),
+                    )
                   }
                 >
-                  {days.map((day) => (
+                  ‹
+                </button>
+                <input
+                  aria-label="Data da agenda"
+                  type="date"
+                  value={date}
+                  onChange={(event) =>
+                    event.target.value && setDate(event.target.value)
+                  }
+                />
+                <button
+                  aria-label="Próximo período"
+                  onClick={() =>
+                    setDate(
+                      view === "mes"
+                        ? shift(date.slice(0, 7) + "-01", days.length)
+                        : shift(date, view === "dia" ? 1 : 7),
+                    )
+                  }
+                >
+                  ›
+                </button>
+                <button className="today" onClick={() => setDate(today())}>
+                  Hoje
+                </button>
+              </div>
+
+              <div className="segmented">
+                {(["mes", "dia", "semana"] as const).map((value) => (
+                  <button
+                    key={value}
+                    className={view === value ? "selected" : ""}
+                    onClick={() => setView(value)}
+                  >
+                    {value === "mes" ? "Mês" : value === "dia" ? "Dia" : "Semana"}
+                  </button>
+                ))}
+              </div>
+
+              <button aria-label="Atualizar agenda" onClick={() => void refresh(false)}>
+                ↻
+              </button>
+            </div>
+
+            {loading ? (
+              <div className="empty">Atualizando agenda…</div>
+            ) : (
+              <div
+                className={
+                  view === "semana"
+                    ? "week-grid"
+                    : view === "mes"
+                      ? "month-grid"
+                      : ""
+                }
+              >
+                {days.map((day) => {
+                  const dayBookings = byDay.get(day) || [];
+                  return (
                     <section className="day-group" key={day}>
                       <h3>{dateLabel(day)}</h3>
-                      {bookings
-                        .filter(
-                          (a) =>
-                            new Intl.DateTimeFormat("en-CA", {
-                              timeZone: "America/Sao_Paulo",
-                            }).format(new Date(a.inicio)) === day,
-                        )
-                        .map((a) => (
-                          <article
-                            className={`appointment ${a.bloqueio ? "blocked" : ""}`}
-                            key={a.id}
-                          >
-                            <div className="appointment-time">
-                              <strong>{time(a.inicio)}</strong>
-                              <small>{time(a.fim)}</small>
+                      {dayBookings.map((a) => (
+                        <article
+                          className={`appointment ${a.bloqueio ? "blocked" : ""}`}
+                          key={a.id}
+                        >
+                          <div className="appointment-time">
+                            <strong>{time(a.inicio)}</strong>
+                            <small>{time(a.fim)}</small>
+                          </div>
+                          <div className="appointment-body">
+                            <div className="appointment-title">
+                              <strong>
+                                {a.bloqueio ? "Horário bloqueado" : a.nome_cliente}
+                              </strong>
+                              <span
+                                className={`badge ${a.bloqueio ? "bloqueio" : a.status}`}
+                              >
+                                {a.bloqueio ? "Indisponível" : labels[a.status]}
+                              </span>
                             </div>
-                            <div className="appointment-body">
-                              <div className="appointment-title">
-                                <strong>
-                                  {a.bloqueio
-                                    ? "Horário bloqueado"
-                                    : a.nome_cliente}
-                                </strong>
-                                <span
-                                  className={`badge ${a.bloqueio ? "bloqueio" : a.status}`}
-                                >
-                                  {a.bloqueio
-                                    ? "Indisponível"
-                                    : labels[a.status]}
-                                </span>
-                              </div>
-                              <p>
-                                {a.bloqueio
-                                  ? a.descricao || "Pausa na agenda"
-                                  : services.find((s) => s.id === a.servico_id)
-                                      ?.nome}
-                              </p>
-                              {!a.bloqueio && (
-                                <details>
-                                  <summary>Ver detalhes do cliente</summary>
-                                  <p>{a.telefone}</p>
-                                  {a.endereco && <p>{a.endereco}</p>}
-                                  {a.descricao && <p>{a.descricao}</p>}
-                                  <p>
-                                    {
-                                      (
-                                        a as Agendamento & {
-                                          finalidade?: string;
-                                        }
-                                      ).finalidade
-                                    }
-                                  </p>
-                                  {(a as Agendamento & { ordem_id?: string })
-                                    .ordem_id && (
-                                    <Link
-                                      href={`/painel/ordens/${(a as Agendamento & { ordem_id?: string }).ordem_id}`}
-                                    >
-                                      Abrir ordem de serviço
-                                    </Link>
-                                  )}
-                                </details>
-                              )}
-                            </div>
-                            {a.bloqueio ? (
+                            <p>
+                              {a.bloqueio
+                                ? a.descricao || "Pausa na agenda"
+                                : a.servico_nome || "Atendimento"}
+                            </p>
+                            {!a.bloqueio && (
+                              <details>
+                                <summary>Ver detalhes do cliente</summary>
+                                <p>{a.telefone}</p>
+                                {a.endereco && <p>{a.endereco}</p>}
+                                {a.descricao && <p>{a.descricao}</p>}
+                                {a.finalidade && <p>{a.finalidade}</p>}
+                                {a.ordem_id && (
+                                  <Link href={`/painel/ordens/${a.ordem_id}`}>
+                                    Abrir ordem de serviço
+                                  </Link>
+                                )}
+                              </details>
+                            )}
+                          </div>
+                          {a.bloqueio ? (
+                            <button
+                              className="text-button"
+                              disabled={busy}
+                              onClick={() => void unblock(a.id)}
+                            >
+                              Liberar horário
+                            </button>
+                          ) : (
+                            a.status !== "concluido" && (
                               <button
                                 className="text-button"
                                 disabled={busy}
-                                onClick={() => unblock(a.id)}
+                                onClick={() => void status(a)}
                               >
-                                Liberar horário
+                                {a.status === "aguardando"
+                                  ? "Iniciar atendimento"
+                                  : "Concluir"}{" "}
+                                <span>→</span>
                               </button>
-                            ) : (
-                              a.status !== "concluido" && (
-                                <button
-                                  className="text-button"
-                                  disabled={busy}
-                                  onClick={() => status(a)}
-                                >
-                                  {a.status === "aguardando"
-                                    ? "Iniciar atendimento"
-                                    : "Concluir"}{" "}
-                                  <span>→</span>
-                                </button>
-                              )
-                            )}
-                          </article>
-                        ))}
-                      {!bookings.some(
-                        (a) =>
-                          new Intl.DateTimeFormat("en-CA", {
-                            timeZone: "America/Sao_Paulo",
-                          }).format(new Date(a.inicio)) === day,
-                      ) && (
+                            )
+                          )}
+                        </article>
+                      ))}
+                      {!dayBookings.length && (
                         <div className="empty">
                           <span className="empty-icon">▦</span>
                           <strong>Um espaço livre por aqui.</strong>
@@ -491,27 +443,29 @@ export default function Painel() {
                         </div>
                       )}
                     </section>
-                  ))}
-                </div>
-              )}
-            </section>
-            <section className="share-bar dashboard-card agenda-share-card">
-              <span className="share-icon">↗</span>
-              <div>
-                <strong>Sua agenda, a um link de distância.</strong>
-                <p>Compartilhe sua página e receba agendamentos.</p>
+                  );
+                })}
               </div>
-              <a
-                className="outline"
-                href={`/agendar/${empresa.slug}`}
-                target="_blank"
-                rel="noreferrer"
-              >
-                Abrir página pública ↗
-              </a>
-            </section>
+            )}
           </section>
-        )}
+
+          <section className="share-bar dashboard-card agenda-share-card">
+            <span className="share-icon">↗</span>
+            <div>
+              <strong>Sua agenda, a um link de distância.</strong>
+              <p>Compartilhe sua página e receba agendamentos.</p>
+            </div>
+            <a
+              className="outline"
+              href={`/agendar/${empresa.slug}`}
+              target="_blank"
+              rel="noreferrer"
+            >
+              Abrir página pública ↗
+            </a>
+          </section>
+        </section>
+
         {blocking && (
           <div className="modal-backdrop">
             <section
@@ -558,11 +512,6 @@ export default function Painel() {
                     placeholder="Ex.: Almoço, compromisso pessoal"
                   />
                 </label>
-                {error && (
-                  <p className="notice" role="alert">
-                    {error}
-                  </p>
-                )}
                 <button disabled={busy} className="primary">
                   {busy ? "Salvando…" : "Bloquear horário"}
                 </button>
