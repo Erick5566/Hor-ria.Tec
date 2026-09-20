@@ -324,20 +324,32 @@ export function useRows<T>(table: string) {
     reload();
   }, [reload]);
   useEffect(() => {
-    if (table !== "agendamentos") return;
-    const channel = supabase!
-      .channel(`agenda-${empresa.id}-${crypto.randomUUID()}`)
+    const realtimeTables = new Set([
+      "agendamentos",
+      "ordens_servico",
+      "orcamentos",
+      "clientes",
+      "equipamentos",
+      "financeiro",
+      "pecas",
+      "servicos",
+    ]);
+    if (!realtimeTables.has(table) || !supabase) return;
+
+    const channel = supabase
+      .channel(`rows-${table}-${empresa.id}-${crypto.randomUUID()}`)
       .on(
         "postgres_changes",
         {
           event: "*",
           schema: "public",
-          table: "agendamentos",
+          table,
           filter: `empresa_id=eq.${empresa.id}`,
         },
-        () => reload(),
+        () => void reload(),
       )
       .subscribe();
+
     return () => {
       void supabase!.removeChannel(channel);
     };
