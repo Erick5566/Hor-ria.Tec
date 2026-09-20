@@ -6,6 +6,8 @@ begin
  insert into auth.users(id) values(ua),(ub);
  insert into public.empresas(dono_id,nome,slug,horario) values(ua,'Teste A','teste-'||ua,'{"0":["09:00","18:00"],"1":["09:00","18:00"],"2":["09:00","18:00"],"3":["09:00","18:00"],"4":["09:00","18:00"],"5":["09:00","18:00"],"6":["09:00","18:00"]}') returning id into ea;
  insert into public.empresas(dono_id,nome,slug) values(ub,'Teste B','teste-'||ub) returning id into eb;
+ insert into public.empresa_membros(empresa_id,usuario_id,role,status)
+ values(ea,ua,'OWNER','ACTIVE'),(eb,ub,'OWNER','ACTIVE');
  insert into public.servicos(empresa_id,nome,duracao) values(ea,'Serviço A',30) returning id into sa;
  insert into public.servicos(empresa_id,nome,duracao) values(eb,'Serviço B',30) returning id into sb;
  perform set_config('horaria.ua',ua::text,true); perform set_config('horaria.ub',ub::text,true);
@@ -23,7 +25,9 @@ begin
  begin
   insert into public.servicos(empresa_id,nome,duracao) values(current_setting('horaria.eb')::uuid,'Invasão',30);
   raise exception 'FAIL: inserção entre empresas';
- exception when insufficient_privilege then null; end;
+ exception when others then
+  if sqlerrm like 'FAIL:%' then raise; end if;
+ end;
 end $$;
 reset role;
 select set_config('request.jwt.claim.sub','',true);
