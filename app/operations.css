@@ -5858,3 +5858,96 @@ button.danger,
     justify-self: stretch;
   }
 }
+
+
+/* Dashboard hero actions: equal proportion, side by side */
+.dashboard-reference .dashboard-hero {
+  grid-template-columns: minmax(0, 1fr) minmax(500px, .95fr);
+}
+
+.dashboard-reference .dashboard-hero-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  width: 100%;
+  min-width: 0;
+  align-items: stretch;
+}
+
+.dashboard-reference .dashboard-hero-actions .dashboard-new-order,
+.dashboard-reference .dashboard-hero-actions .dashboard-callout {
+  width: 100%;
+  min-width: 0;
+  max-width: none;
+  min-height: 70px;
+  height: 70px;
+  margin: 0;
+  justify-self: stretch;
+  align-self: stretch;
+  box-sizing: border-box;
+}
+
+.dashboard-reference .dashboard-hero-actions .dashboard-new-order {
+  padding-inline: 16px;
+}
+
+.dashboard-reference .dashboard-hero-actions .dashboard-callout {
+  padding: 11px 13px;
+}
+
+@media (max-width: 1280px) {
+  .dashboard-reference .dashboard-hero {
+    grid-template-columns: 1fr;
+  }
+
+  .dashboard-reference .dashboard-heading-wrap {
+    grid-column: 1;
+  }
+
+  .dashboard-reference .dashboard-hero-actions {
+    width: min(100%, 650px);
+    justify-self: end;
+  }
+}
+
+@media (max-width: 760px) {
+  .dashboard-reference .dashboard-hero-actions {
+    width: 100%;
+    grid-template-columns: 1fr 1fr;
+    gap: 9px;
+    justify-self: stretch;
+  }
+
+  .dashboard-reference .dashboard-hero-actions .dashboard-new-order,
+  .dashboard-reference .dashboard-hero-actions .dashboard-callout {
+    min-height: 62px;
+    height: 62px;
+  }
+
+  .dashboard-reference .dashboard-hero-actions .dashboard-callout strong {
+    font-size: .62rem;
+  }
+
+  .dashboard-reference .dashboard-hero-actions .dashboard-callout small {
+    display: none;
+  }
+
+  .dashboard-reference .dashboard-hero-actions .dashboard-callout-icon {
+    width: 34px;
+    height: 34px;
+    flex-basis: 34px;
+    font-size: 15px;
+  }
+}
+
+@media (max-width: 480px) {
+  .dashboard-reference .dashboard-hero-actions {
+    grid-template-columns: 1fr;
+  }
+
+  .dashboard-reference .dashboard-hero-actions .dashboard-new-order,
+  .dashboard-reference .dashboard-hero-actions .dashboard-callout {
+    height: auto;
+    min-height: 56px;
+  }
+}
