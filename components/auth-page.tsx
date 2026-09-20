@@ -194,6 +194,11 @@ export default function AuthPage({ mode }: { mode: "login" | "signup" }) {
                   required
                 />
               </label>
+              {!signup && (
+                <div className="auth-help-row">
+                  <Link href="/recuperar-senha">Esqueci minha senha</Link>
+                </div>
+              )}
               <button className="primary" disabled={busy}>
                 {busy ? "Aguarde…" : signup ? "Criar conta →" : "Entrar →"}
               </button>
@@ -211,7 +216,8 @@ export default function AuthPage({ mode }: { mode: "login" | "signup" }) {
             </Link>
           </p>
           <div className="privacy">
-            ◈ &nbsp; Seus dados ficam isolados por empresa.
+            ◈ &nbsp; Seus dados ficam isolados por empresa.{" "}
+            <Link href="/privacidade">Política de privacidade</Link>
           </div>
         </div>
       </section>
