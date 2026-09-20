@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useWorkspace } from "@/components/workspace";
 import { Badge, Empty, ErrorBox } from "@/components/ui";
-import { money } from "@/lib/assistencia";
+import { money, type Status } from "@/lib/assistencia";
 import { message, supabase, time } from "@/lib/supabase";
 
 type DashboardData = {
@@ -49,7 +49,7 @@ type DashboardData = {
   latestOrders: Array<{
     id: string;
     numero: number;
-    status: string;
+    status: Status;
     criado_em: string;
     cliente_nome: string;
     equipamento_modelo: string;
