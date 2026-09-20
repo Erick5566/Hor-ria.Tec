@@ -1,14 +1,42 @@
 "use client";
 import { useState } from "react";
+import dynamic from "next/dynamic";
 import Link from "next/link";
 import { Heading, ErrorBox } from "./ui";
-import CatalogManagement from "./catalog-management";
-import CompanySettings from "./company-settings";
-import Finance from "./finance";
-import RepairBench from "./repair-bench";
-import PublicPageSettings from "./public-page-settings";
-import InventoryManagement from "./inventory-management";
-import Reports from "./reports";
+
+function ModuleLoading() {
+  return (
+    <div className="module-inline-loading" aria-live="polite">
+      <span />
+      <div>
+        <strong>Carregando módulo…</strong>
+        <small>Preparando somente o que esta tela precisa.</small>
+      </div>
+    </div>
+  );
+}
+
+const CatalogManagement = dynamic(() => import("./catalog-management"), {
+  loading: ModuleLoading,
+});
+const CompanySettings = dynamic(() => import("./company-settings"), {
+  loading: ModuleLoading,
+});
+const Finance = dynamic(() => import("./finance"), {
+  loading: ModuleLoading,
+});
+const RepairBench = dynamic(() => import("./repair-bench"), {
+  loading: ModuleLoading,
+});
+const PublicPageSettings = dynamic(() => import("./public-page-settings"), {
+  loading: ModuleLoading,
+});
+const InventoryManagement = dynamic(() => import("./inventory-management"), {
+  loading: ModuleLoading,
+});
+const Reports = dynamic(() => import("./reports"), {
+  loading: ModuleLoading,
+});
 import { useWorkspace } from "./workspace";
 import { supabase, message } from "@/lib/supabase";
 const titles: Record<string, string> = {
