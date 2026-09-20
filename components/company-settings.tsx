@@ -92,6 +92,7 @@ export default function CompanySettings() {
               cor_secundaria: colors.secondary,
               cor_botao: colors.button,
               tema_publico: f.get("tema_publico"),
+              prazo_resposta_horas: Number(f.get("prazo_resposta_horas") || 4),
               fotos_obrigatorias: f.get("fotos") === "on",
               solicitar_endereco: f.get("solicitar_endereco") === "on",
               horario: hours,
@@ -322,6 +323,26 @@ export default function CompanySettings() {
           </button>
         </div>
       </div>
+      <h2>Compromisso de resposta</h2>
+      <div className="form-grid">
+        <label>
+          Prazo informado ao cliente
+          <select
+            name="prazo_resposta_horas"
+            defaultValue={String(empresa.prazo_resposta_horas || 4)}
+          >
+            <option value="1">Até 1 hora útil</option>
+            <option value="2">Até 2 horas úteis</option>
+            <option value="4">Até 4 horas úteis</option>
+            <option value="8">Até 8 horas úteis</option>
+            <option value="24">Até 24 horas</option>
+            <option value="48">Até 48 horas</option>
+          </select>
+        </label>
+      </div>
+      <p className="hint">
+        Esse prazo aparece na página pública como compromisso de retorno.
+      </p>
       <h2>Fotos e atendimento</h2>
       <label className="check-label">
         <input
