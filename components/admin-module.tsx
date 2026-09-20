@@ -5,26 +5,14 @@ import { Heading, ErrorBox } from "./ui";
 import CatalogManagement from "./catalog-management";
 import CompanySettings from "./company-settings";
 import Finance from "./finance";
-import Reports from "./reports";
-import InventoryManagement from "./inventory-management";
 import RepairBench from "./repair-bench";
-import Sales from "./sales";
-import UsedDevices from "./used-devices";
-import Showcase from "./showcase";
-import AfterSales from "./after-sales";
 import PublicPageSettings from "./public-page-settings";
 import { useWorkspace } from "./workspace";
 import { supabase, message } from "@/lib/supabase";
 const titles: Record<string, string> = {
   servicos: "Serviços",
   "mesa-reparo": "Mesa de reparo",
-  vendas: "Vendas",
-  seminovos: "Seminovos e trocas",
-  vitrine: "Vitrine",
-  "pos-venda": "Pós-venda",
-  estoque: "Peças / estoque",
   financeiro: "Financeiro",
-  relatorios: "Relatórios",
   empresa: "Minha empresa",
   configuracoes: "Configurações",
   "pagina-cliente": "Página do cliente",
@@ -42,14 +30,8 @@ export default function AdminModule({ module }: { module: string }) {
       <Heading title={titles[module]} />
       {module === "servicos" && <CatalogManagement />}
       {module === "mesa-reparo" && <RepairBench />}
-      {module === "vendas" && <Sales />}
-      {module === "seminovos" && <UsedDevices />}
-      {module === "vitrine" && <Showcase />}
-      {module === "pos-venda" && <AfterSales />}
-      {module === "minha-pagina" && <PublicPageSettings />}
-      {module === "estoque" && <InventoryManagement />}
       {module === "financeiro" && <Finance />}
-      {module === "relatorios" && <Reports />}
+      {module === "minha-pagina" && <PublicPageSettings />}
       {["empresa", "configuracoes"].includes(module) && <CompanySettings />}
       {module === "pagina-cliente" && (
         <section className="panel">
@@ -150,11 +132,10 @@ export default function AdminModule({ module }: { module: string }) {
             consulta pública mostra somente o andamento e o orçamento; senha do
             aparelho e diagnóstico interno não são exibidos.
           </p>
-          <h3>Agenda e financeiro</h3>
+          <h3>Agenda</h3>
           <p>
-            Vincule recebimentos e retiradas à ordem na agenda. Registre
-            receitas e despesas no financeiro para acompanhar valores
-            efetivamente recebidos.
+            Vincule recebimentos e retiradas à ordem na agenda para manter a
+            operação organizada e evitar retrabalho.
           </p>
           <Link className="primary" href="/painel/ordens/nova">
             Criar uma ordem

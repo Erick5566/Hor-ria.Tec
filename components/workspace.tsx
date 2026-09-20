@@ -42,19 +42,13 @@ export const menu = [
       ["Clientes", "/painel/clientes", "♙"],
       ["Equipamentos", "/painel/equipamentos", "▣"],
       ["Orçamentos", "/painel/orcamentos", "▧"],
-      ["Vendas", "/painel/vendas", "▰"],
-      ["Seminovos e trocas", "/painel/seminovos", "◇"],
-      ["Pós-venda", "/painel/pos-venda", "↻"],
     ],
   ],
   [
     "GESTÃO",
     [
       ["Serviços", "/painel/servicos", "⌘"],
-      ["Produtos e estoque", "/painel/estoque", "⬡"],
-      ["Vitrine", "/painel/vitrine", "▱"],
       ["Financeiro", "/painel/financeiro", "＄"],
-      ["Relatórios", "/painel/relatorios", "▥"],
     ],
   ],
   [
@@ -197,17 +191,6 @@ export default function Workspace({
                     !(
                       (href === "/painel/agenda" &&
                         !access.company?.featureFlags.appointmentsEnabled) ||
-                      (href === "/painel/estoque" &&
-                        !access.company?.featureFlags.stockEnabled) ||
-                      (href === "/painel/financeiro" &&
-                        !access.company?.featureFlags.financialEnabled) ||
-                      (href === "/painel/vendas" &&
-                        (!access.company?.featureFlags.stockEnabled ||
-                          !access.company?.featureFlags.financialEnabled)) ||
-                      (href === "/painel/seminovos" &&
-                        !access.company?.featureFlags.stockEnabled) ||
-                      (href === "/painel/vitrine" &&
-                        !access.company?.featureFlags.stockEnabled) ||
                       (href === "/painel/minha-pagina" &&
                         !["OWNER", "ADMIN"].includes(
                           access.company?.role || "",
