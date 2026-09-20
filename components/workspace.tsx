@@ -44,7 +44,13 @@ export const menu = [
       ["Orçamentos", "/painel/orcamentos", "▧"],
     ],
   ],
-  ["GESTÃO", [["Serviços", "/painel/servicos", "⌘"]]],
+  [
+    "GESTÃO",
+    [
+      ["Serviços", "/painel/servicos", "⌘"],
+      ["Financeiro", "/painel/financeiro", "＄"],
+    ],
+  ],
   [
     "CONFIGURAÇÕES",
     [
