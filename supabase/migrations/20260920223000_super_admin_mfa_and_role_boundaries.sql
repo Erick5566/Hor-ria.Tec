@@ -82,3 +82,31 @@ with check(
   private.has_company_role(empresa_id,array['OWNER','ADMIN','TECHNICIAN'])
   and private.feature_enabled(empresa_id,'stockEnabled')
 );
+
+
+-- Mask financial data in SECURITY DEFINER read RPCs for non-managers.
+do $$
+declare
+  def text;
+  signature regprocedure;
+begin
+  foreach signature in array array[
+    'public.dashboard_overview(date,date)'::regprocedure,
+    'public.finance_overview_page(integer,integer,uuid)'::regprocedure,
+    'public.reports_month_overview(text)'::regprocedure
+  ]
+  loop
+    select pg_get_functiondef(signature) into def;
+
+    if position('private.can_manage_company(v_empresa)' in def)=0 then
+      def := replace(
+        def,
+        'where f.empresa_id = v_empresa',
+        'where f.empresa_id = v_empresa
+            and private.can_manage_company(v_empresa)'
+      );
+      execute def;
+    end if;
+  end loop;
+end
+$$;
