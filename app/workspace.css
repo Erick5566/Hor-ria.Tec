@@ -3216,3 +3216,35 @@ tbody tr:hover td {
     grid-template-columns: 1fr;
   }
 }
+
+
+/* Breadcrumbs */
+.workspace-breadcrumbs {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 34px;
+  padding: 7px 30px 0;
+  color: #7c8da7;
+  font-size: .58rem;
+  font-weight: 700;
+}
+
+.workspace-breadcrumbs a {
+  color: #3868a7;
+}
+
+.workspace-breadcrumbs a:hover {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.workspace-breadcrumbs span[aria-current="page"] {
+  color: #6b7f9f;
+}
+
+@media (max-width: 760px) {
+  .workspace-breadcrumbs {
+    padding: 6px 14px 0;
+  }
+}
