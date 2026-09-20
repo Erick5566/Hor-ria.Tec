@@ -15,6 +15,8 @@ export default async function PanelLayout({
 }) {
   const access = await getServerAccess();
   if (!access) redirect("/entrar?next=/painel");
+  if (access.context.isSuperAdmin && access.aal !== "aal2")
+    redirect("/seguranca/mfa?next=/painel");
   if (access.context.isSuperAdmin && !access.context.company)
     redirect("/admin");
   if (access.context.globalMaintenance)
