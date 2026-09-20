@@ -305,6 +305,269 @@ export default function PublicPortal({ slug }: { slug: string }) {
             </div>
           </header>
           <ErrorBox error={error} />
+          {done && receipt ? (
+            <section className="panel">
+              <h2>Solicitação recebida</h2>
+              <p>
+                OS #{receipt.numero}. A assistência analisará o problema
+                informado.
+              </p>
+              <p>
+                Guarde o link individual abaixo para consultar o reparo e
+                responder ao orçamento.
+              </p>
+              <Link className="primary" href={`/acompanhar/${receipt.token}`}>
+                Acompanhar reparo
+              </Link>
+              <details>
+                <summary>Consultar com código e telefone</summary>
+                <strong className="tracking-code">{receipt.codigo}</strong>
+              </details>
+            </section>
+          ) : (profile.pagina?.mostrar_agendamento ?? true) ? (
+            <form
+              id="agendamento"
+              className="public-booking-modern"
+              noValidate
+              onSubmit={submit}
+            >
+              <div className="public-booking-title">
+                <span>AGENDAMENTO ONLINE</span>
+                <h2>Agende seu atendimento</h2>
+                <p>
+                  Escolha o aparelho, selecione o serviço e encontre o melhor
+                  horário para você.
+                </p>
+              </div>
+
+              <ErrorBox error={error} />
+
+              <div className="public-booking-layout">
+                <section className="public-booking-card">
+                  <div className="booking-section-title">
+                    <b>1</b>
+                    <div>
+                      <h3>Selecione seu aparelho</h3>
+                      <p>Qual equipamento precisa de atendimento?</p>
+                    </div>
+                  </div>
+
+                  <DeviceCategoryCards
+                    value={device.categoria}
+                    onChange={(categoria) =>
+                      setDevice({
+                        categoria,
+                        tipo_personalizado: "",
+                        marca: "",
+                        modelo: "",
+                        cor: "",
+                      })
+                    }
+                  />
+
+                  <details className="booking-device-details">
+                    <summary>Adicionar detalhes do aparelho</summary>
+                    <DeviceFields
+                      showCategory={false}
+                      value={device}
+                      onChange={setDevice}
+                    />
+                  </details>
+
+                  <div className="booking-divider" />
+
+                  <div className="booking-section-title">
+                    <b>2</b>
+                    <div>
+                      <h3>Selecione o serviço</h3>
+                      <p>Escolha o atendimento que você precisa.</p>
+                    </div>
+                  </div>
+
+                  <div className="booking-service-grid">
+                    {profile.servicos.map((item) => (
+                      <button
+                        key={item.id}
+                        type="button"
+                        className={
+                          service === item.id
+                            ? "booking-service active"
+                            : "booking-service"
+                        }
+                        onClick={() => setService(item.id)}
+                      >
+                        <span>◇</span>
+                        <div>
+                          <strong>{item.nome}</strong>
+                          <small>Aproximadamente {item.duracao} min</small>
+                        </div>
+                        {service === item.id && <i>✓</i>}
+                      </button>
+                    ))}
+                  </div>
+
+                  <label className="booking-problem">
+                    Conte o que está acontecendo
+                    <textarea
+                      name="problema"
+                      required
+                      minLength={3}
+                      maxLength={5000}
+                      placeholder="Ex.: aparelho não liga, tela quebrada, bateria descarregando rápido..."
+                    />
+                  </label>
+                </section>
+
+                <section className="public-booking-card booking-schedule-card">
+                  <div className="booking-section-title">
+                    <b>3</b>
+                    <div>
+                      <h3>Escolha a data e o horário</h3>
+                      <p>
+                        Veja os horários disponíveis para o serviço selecionado.
+                      </p>
+                    </div>
+                  </div>
+
+                  <label className="booking-date">
+                    Data
+                    <input
+                      required
+                      type="date"
+                      min={today()}
+                      value={day}
+                      onChange={(e) => setDay(e.target.value)}
+                    />
+                  </label>
+
+                  <div className="booking-time-area">
+                    <span>Horários disponíveis</span>
+                    {!service ? (
+                      <p className="booking-helper">
+                        Escolha um serviço para consultar os horários.
+                      </p>
+                    ) : slots.length ? (
+                      <div className="booking-time-grid">
+                        {slots.map((availableSlot) => (
+                          <button
+                            type="button"
+                            key={availableSlot}
+                            className={
+                              slot === availableSlot
+                                ? "booking-time active"
+                                : "booking-time"
+                            }
+                            onClick={() => setSlot(availableSlot)}
+                          >
+                            {time(availableSlot)}
+                          </button>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="booking-helper">
+                        Nenhum horário disponível nesta data.
+                      </p>
+                    )}
+                  </div>
+
+                  <div className="booking-divider" />
+
+                  <div className="booking-client-title">
+                    <h3>Seus dados</h3>
+                    <p>
+                      Usaremos essas informações para confirmar o atendimento.
+                    </p>
+                  </div>
+
+                  <div className="booking-client-grid">
+                    <label>
+                      Nome completo
+                      <input
+                        name="nome"
+                        required
+                        minLength={2}
+                        maxLength={100}
+                        autoComplete="name"
+                        placeholder="Ex.: João Silva"
+                      />
+                    </label>
+
+                    <label>
+                      WhatsApp
+                      <input
+                        name="telefone"
+                        type="tel"
+                        required
+                        pattern={"[+0-9 \\(\\)\\-]{8,25}"}
+                        maxLength={25}
+                        autoComplete="tel"
+                        placeholder="(75) 99999-9999"
+                      />
+                    </label>
+                  </div>
+
+                  <label>
+                    E-mail <span className="optional">opcional</span>
+                    <input
+                      name="email"
+                      type="email"
+                      maxLength={200}
+                      autoComplete="email"
+                      placeholder="voce@email.com"
+                    />
+                  </label>
+
+                  {profile.solicitar_endereco && (
+                    <label>
+                      Endereço
+                      <input
+                        name="endereco"
+                        required
+                        minLength={5}
+                        maxLength={300}
+                        placeholder="Rua, número e bairro"
+                      />
+                    </label>
+                  )}
+
+                  <details className="booking-photo-details">
+                    <summary>
+                      Adicionar foto do aparelho
+                      {profile.fotos_obrigatorias ? " · obrigatório" : ""}
+                    </summary>
+                    <PhotoPicker
+                      publicMode
+                      value={photos}
+                      onChange={setPhotos}
+                    />
+                  </details>
+
+                  {receipt && (
+                    <p className="notice">
+                      OS #{receipt.numero} criada. Conclua o envio das fotos.
+                      Código: {receipt.codigo}
+                    </p>
+                  )}
+
+                  <button
+                    disabled={busy || !service || !slot}
+                    className="primary booking-confirm"
+                  >
+                    {busy
+                      ? "Confirmando…"
+                      : receipt
+                        ? "Tentar envio das fotos novamente"
+                        : "Confirmar agendamento →"}
+                  </button>
+
+                  <div className="booking-security">
+                    <span>✓ Solicitação registrada na hora</span>
+                    <span>◷ Confirmação pelo WhatsApp</span>
+                  </div>
+                </section>
+              </div>
+            </form>
+          ) : null}
           <div className="public-sections">
             {(profile.pagina?.mostrar_como_funciona ?? true) && (
               <section
@@ -630,269 +893,6 @@ export default function PublicPortal({ slug }: { slug: string }) {
               </section>
             )}
           </div>
-          {done && receipt ? (
-            <section className="panel">
-              <h2>Solicitação recebida</h2>
-              <p>
-                OS #{receipt.numero}. A assistência analisará o problema
-                informado.
-              </p>
-              <p>
-                Guarde o link individual abaixo para consultar o reparo e
-                responder ao orçamento.
-              </p>
-              <Link className="primary" href={`/acompanhar/${receipt.token}`}>
-                Acompanhar reparo
-              </Link>
-              <details>
-                <summary>Consultar com código e telefone</summary>
-                <strong className="tracking-code">{receipt.codigo}</strong>
-              </details>
-            </section>
-          ) : (profile.pagina?.mostrar_agendamento ?? true) ? (
-            <form
-              id="agendamento"
-              className="public-booking-modern"
-              noValidate
-              onSubmit={submit}
-            >
-              <div className="public-booking-title">
-                <span>AGENDAMENTO ONLINE</span>
-                <h2>Agende seu atendimento</h2>
-                <p>
-                  Escolha o aparelho, selecione o serviço e encontre o melhor
-                  horário para você.
-                </p>
-              </div>
-
-              <ErrorBox error={error} />
-
-              <div className="public-booking-layout">
-                <section className="public-booking-card">
-                  <div className="booking-section-title">
-                    <b>1</b>
-                    <div>
-                      <h3>Selecione seu aparelho</h3>
-                      <p>Qual equipamento precisa de atendimento?</p>
-                    </div>
-                  </div>
-
-                  <DeviceCategoryCards
-                    value={device.categoria}
-                    onChange={(categoria) =>
-                      setDevice({
-                        categoria,
-                        tipo_personalizado: "",
-                        marca: "",
-                        modelo: "",
-                        cor: "",
-                      })
-                    }
-                  />
-
-                  <details className="booking-device-details">
-                    <summary>Adicionar detalhes do aparelho</summary>
-                    <DeviceFields
-                      showCategory={false}
-                      value={device}
-                      onChange={setDevice}
-                    />
-                  </details>
-
-                  <div className="booking-divider" />
-
-                  <div className="booking-section-title">
-                    <b>2</b>
-                    <div>
-                      <h3>Selecione o serviço</h3>
-                      <p>Escolha o atendimento que você precisa.</p>
-                    </div>
-                  </div>
-
-                  <div className="booking-service-grid">
-                    {profile.servicos.map((item) => (
-                      <button
-                        key={item.id}
-                        type="button"
-                        className={
-                          service === item.id
-                            ? "booking-service active"
-                            : "booking-service"
-                        }
-                        onClick={() => setService(item.id)}
-                      >
-                        <span>◇</span>
-                        <div>
-                          <strong>{item.nome}</strong>
-                          <small>Aproximadamente {item.duracao} min</small>
-                        </div>
-                        {service === item.id && <i>✓</i>}
-                      </button>
-                    ))}
-                  </div>
-
-                  <label className="booking-problem">
-                    Conte o que está acontecendo
-                    <textarea
-                      name="problema"
-                      required
-                      minLength={3}
-                      maxLength={5000}
-                      placeholder="Ex.: aparelho não liga, tela quebrada, bateria descarregando rápido..."
-                    />
-                  </label>
-                </section>
-
-                <section className="public-booking-card booking-schedule-card">
-                  <div className="booking-section-title">
-                    <b>3</b>
-                    <div>
-                      <h3>Escolha a data e o horário</h3>
-                      <p>
-                        Veja os horários disponíveis para o serviço selecionado.
-                      </p>
-                    </div>
-                  </div>
-
-                  <label className="booking-date">
-                    Data
-                    <input
-                      required
-                      type="date"
-                      min={today()}
-                      value={day}
-                      onChange={(e) => setDay(e.target.value)}
-                    />
-                  </label>
-
-                  <div className="booking-time-area">
-                    <span>Horários disponíveis</span>
-                    {!service ? (
-                      <p className="booking-helper">
-                        Escolha um serviço para consultar os horários.
-                      </p>
-                    ) : slots.length ? (
-                      <div className="booking-time-grid">
-                        {slots.map((availableSlot) => (
-                          <button
-                            type="button"
-                            key={availableSlot}
-                            className={
-                              slot === availableSlot
-                                ? "booking-time active"
-                                : "booking-time"
-                            }
-                            onClick={() => setSlot(availableSlot)}
-                          >
-                            {time(availableSlot)}
-                          </button>
-                        ))}
-                      </div>
-                    ) : (
-                      <p className="booking-helper">
-                        Nenhum horário disponível nesta data.
-                      </p>
-                    )}
-                  </div>
-
-                  <div className="booking-divider" />
-
-                  <div className="booking-client-title">
-                    <h3>Seus dados</h3>
-                    <p>
-                      Usaremos essas informações para confirmar o atendimento.
-                    </p>
-                  </div>
-
-                  <div className="booking-client-grid">
-                    <label>
-                      Nome completo
-                      <input
-                        name="nome"
-                        required
-                        minLength={2}
-                        maxLength={100}
-                        autoComplete="name"
-                        placeholder="Ex.: João Silva"
-                      />
-                    </label>
-
-                    <label>
-                      WhatsApp
-                      <input
-                        name="telefone"
-                        type="tel"
-                        required
-                        pattern={"[+0-9 \\(\\)\\-]{8,25}"}
-                        maxLength={25}
-                        autoComplete="tel"
-                        placeholder="(75) 99999-9999"
-                      />
-                    </label>
-                  </div>
-
-                  <label>
-                    E-mail <span className="optional">opcional</span>
-                    <input
-                      name="email"
-                      type="email"
-                      maxLength={200}
-                      autoComplete="email"
-                      placeholder="voce@email.com"
-                    />
-                  </label>
-
-                  {profile.solicitar_endereco && (
-                    <label>
-                      Endereço
-                      <input
-                        name="endereco"
-                        required
-                        minLength={5}
-                        maxLength={300}
-                        placeholder="Rua, número e bairro"
-                      />
-                    </label>
-                  )}
-
-                  <details className="booking-photo-details">
-                    <summary>
-                      Adicionar foto do aparelho
-                      {profile.fotos_obrigatorias ? " · obrigatório" : ""}
-                    </summary>
-                    <PhotoPicker
-                      publicMode
-                      value={photos}
-                      onChange={setPhotos}
-                    />
-                  </details>
-
-                  {receipt && (
-                    <p className="notice">
-                      OS #{receipt.numero} criada. Conclua o envio das fotos.
-                      Código: {receipt.codigo}
-                    </p>
-                  )}
-
-                  <button
-                    disabled={busy || !service || !slot}
-                    className="primary booking-confirm"
-                  >
-                    {busy
-                      ? "Confirmando…"
-                      : receipt
-                        ? "Tentar envio das fotos novamente"
-                        : "Confirmar agendamento →"}
-                  </button>
-
-                  <div className="booking-security">
-                    <span>✓ Solicitação registrada na hora</span>
-                    <span>◷ Confirmação pelo WhatsApp</span>
-                  </div>
-                </section>
-              </div>
-            </form>
-          ) : null}
           <footer className="powered-by">
             <img
               className="brand-logo"
