@@ -37,7 +37,7 @@ using (usuario_id = auth.uid() and private.can_access_company(empresa_id));
 create index if not exists notification_reads_user_company_idx
   on public.notification_reads(usuario_id, empresa_id, read_at desc);
 
-do $
+do $body$
 declare
   t text;
 begin
@@ -72,4 +72,4 @@ begin
       end if;
     end loop;
   end if;
-end $;
+end $body$;
