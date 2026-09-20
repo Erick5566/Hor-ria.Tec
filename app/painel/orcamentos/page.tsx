@@ -14,13 +14,13 @@ export default function Quotes() {
     os = useRows<Ordem>("ordens_servico"),
     cs = useRows<Cliente>("clientes");
   return (
-    <section className="module">
+    <section className="module unified-pro quotes-pro">
       <Heading
         title="Orçamentos"
         subtitle="Propostas e decisões dos seus clientes."
       />
       <ErrorBox error={qs.error || os.error || cs.error} />
-      <section className="panel">
+      <section className="panel quotes-panel">
         <div className="table-wrap">
           <table>
             <thead>
