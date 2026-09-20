@@ -325,11 +325,13 @@ async function cachedRows<T>(
 ): Promise<T[]> {
   const key = rowCacheKey(table, empresaId);
   const current = rowCache.get(key);
-  const fresh =
-    current?.ready &&
-    Date.now() - current.fetchedAt < ROW_CACHE_TTL_MS;
 
-  if (!force && fresh) return current.data as T[];
+  if (
+    !force &&
+    current?.ready &&
+    Date.now() - current.fetchedAt < ROW_CACHE_TTL_MS
+  )
+    return current.data as T[];
   if (current?.inFlight) return current.inFlight as Promise<T[]>;
 
   const request = rows<T>(table, empresaId)
