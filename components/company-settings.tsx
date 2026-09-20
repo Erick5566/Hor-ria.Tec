@@ -46,7 +46,21 @@ export default function CompanySettings() {
               "Escolha cores com contraste suficiente para textos brancos.",
             );
           if (
-            ["painel", "agendar", "acompanhar", "api"].includes(
+            [
+              "painel",
+              "agendar",
+              "acompanhar",
+              "api",
+              "admin",
+              "entrar",
+              "cadastro",
+              "privacidade",
+              "recuperar-senha",
+              "redefinir-senha",
+              "solicitacao-enviada",
+              "manutencao",
+              "conta-bloqueada",
+            ].includes(
               String(f.get("slug")),
             )
           )
