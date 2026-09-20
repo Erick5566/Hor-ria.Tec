@@ -415,7 +415,7 @@ export default function PublicPortal({ slug }: { slug: string }) {
                       name="problema"
                       required
                       minLength={3}
-                      maxLength={5000}
+                      maxLength={2000}
                       placeholder="Ex.: aparelho não liga, tela quebrada, bateria descarregando rápido..."
                     />
                   </label>
