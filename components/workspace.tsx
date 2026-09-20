@@ -23,8 +23,28 @@ type WorkspaceValue = {
   userId: string;
   email: string;
   access: AccessContext;
+  selectedMonth: string;
+  setSelectedMonth: (month: string) => void;
   refresh: () => Promise<void>;
 };
+type WorkspaceAlert = {
+  id: string;
+  title: string;
+  text: string;
+  href: string;
+  tone: "urgent" | "warning" | "ready";
+};
+
+function localMonth() {
+  return new Intl.DateTimeFormat("en-CA", {
+    timeZone: "America/Sao_Paulo",
+    year: "numeric",
+    month: "2-digit",
+  })
+    .format(new Date())
+    .slice(0, 7);
+}
+
 const Context = createContext<WorkspaceValue | null>(null);
 export function useWorkspace() {
   const value = useContext(Context);
@@ -71,7 +91,12 @@ export default function Workspace({
     [loading, setLoading] = useState(true),
     [error, setError] = useState(""),
     [open, setOpen] = useState(false),
-    [globalSearch, setGlobalSearch] = useState("");
+    [globalSearch, setGlobalSearch] = useState(""),
+    [selectedMonth, setSelectedMonth] = useState(localMonth()),
+    [periodOpen, setPeriodOpen] = useState(false),
+    [alertsOpen, setAlertsOpen] = useState(false),
+    [profileOpen, setProfileOpen] = useState(false),
+    [alerts, setAlerts] = useState<WorkspaceAlert[]>([]);
   const router = useRouter(),
     path = usePathname();
   const refresh = useCallback(async () => {
@@ -137,11 +162,76 @@ export default function Workspace({
   }, [path]);
   useEffect(() => {
     const close = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setOpen(false);
+      if (e.key === "Escape") {
+        setOpen(false);
+        setPeriodOpen(false);
+        setAlertsOpen(false);
+        setProfileOpen(false);
+      }
     };
     window.addEventListener("keydown", close);
     return () => window.removeEventListener("keydown", close);
   }, []);
+
+  useEffect(() => {
+    if (!empresa?.id || !supabase) return;
+    let active = true;
+    async function loadAlerts() {
+      const { data, error } = await supabase!
+        .from("ordens_servico")
+        .select("id,numero,status,prioridade,prazo_previsto")
+        .eq("empresa_id", empresa!.id)
+        .not("status", "in", '("finalizado","cancelado")')
+        .order("prazo_previsto", { ascending: true, nullsFirst: false })
+        .limit(40);
+      if (error || !active) return;
+
+      const today = new Intl.DateTimeFormat("en-CA", {
+        timeZone: "America/Sao_Paulo",
+      }).format(new Date());
+
+      const next: WorkspaceAlert[] = [];
+      for (const order of data || []) {
+        if (order.prioridade === "urgente") {
+          next.push({
+            id: "urgent-" + order.id,
+            title: `OS #${order.numero} urgente`,
+            text: "Esta ordem está marcada como prioridade urgente.",
+            href: `/painel/ordens/${order.id}`,
+            tone: "urgent",
+          });
+        }
+        if (
+          order.prazo_previsto &&
+          order.prazo_previsto.slice(0, 10) < today
+        ) {
+          next.push({
+            id: "late-" + order.id,
+            title: `OS #${order.numero} atrasada`,
+            text: "O prazo previsto desta ordem já passou.",
+            href: `/painel/ordens/${order.id}`,
+            tone: "warning",
+          });
+        }
+        if (order.status === "pronto_retirada") {
+          next.push({
+            id: "ready-" + order.id,
+            title: `OS #${order.numero} pronta`,
+            text: "Equipamento pronto para retirada.",
+            href: `/painel/ordens/${order.id}`,
+            tone: "ready",
+          });
+        }
+      }
+      setAlerts(next.slice(0, 12));
+    }
+    void loadAlerts();
+    const timer = window.setInterval(loadAlerts, 60000);
+    return () => {
+      active = false;
+      window.clearInterval(timer);
+    };
+  }, [empresa?.id]);
   if (!configured) return <MissingConfig />;
   const title =
     menu
@@ -153,8 +243,10 @@ export default function Workspace({
 
   function submitGlobalSearch(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    const query = globalSearch.trim().toLowerCase();
+    const raw = globalSearch.trim();
+    const query = raw.toLowerCase();
     if (!query) return;
+
     const destinations = [
       { words: ["cliente", "clientes"], href: "/painel/clientes" },
       { words: ["equipamento", "equipamentos", "aparelho"], href: "/painel/equipamentos" },
@@ -170,12 +262,18 @@ export default function Workspace({
     const destination = destinations.find((item) =>
       item.words.some((word) => query.includes(word)),
     );
-    router.push(destination?.href || "/painel/ordens");
+
+    if (destination) {
+      router.push(destination.href);
+    } else {
+      router.push("/painel/ordens?q=" + encodeURIComponent(raw));
+    }
     setGlobalSearch("");
   }
-  const now = new Date();
-  const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
-  const monthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+
+  const [periodYear, periodMonth] = selectedMonth.split("-").map(Number);
+  const monthStart = new Date(periodYear, periodMonth - 1, 1);
+  const monthEnd = new Date(periodYear, periodMonth, 0);
   const periodLabel =
     monthStart.toLocaleDateString("pt-BR") +
     " - " +
@@ -280,22 +378,147 @@ export default function Workspace({
             />
           </form>
           <div className="workspace-top-context">
-            <span className="workspace-date-chip">
-              <b aria-hidden="true">▣</b>
-              {periodLabel}
-              <i aria-hidden="true">⌄</i>
-            </span>
-            <button className="workspace-alert-button" aria-label="Notificações" type="button">
-              ♢
-              <span />
-            </button>
-            <div className="workspace-profile-chip">
-              <span>{empresa?.nome?.slice(0, 2).toUpperCase() || "H"}</span>
-              <div>
-                <strong>{empresa?.nome || "Sua assistência"}</strong>
-                <small>Gestor da loja</small>
-              </div>
-              <b>⌄</b>
+            <div className="workspace-top-popover-wrap">
+              <button
+                className="workspace-date-chip"
+                type="button"
+                aria-expanded={periodOpen}
+                onClick={() => {
+                  setPeriodOpen(!periodOpen);
+                  setAlertsOpen(false);
+                  setProfileOpen(false);
+                }}
+              >
+                <b aria-hidden="true">▣</b>
+                {periodLabel}
+                <i aria-hidden="true">⌄</i>
+              </button>
+              {periodOpen && (
+                <div className="workspace-popover workspace-period-popover">
+                  <strong>Período do painel</strong>
+                  <label>
+                    Mês
+                    <input
+                      type="month"
+                      value={selectedMonth}
+                      onChange={(event) => {
+                        setSelectedMonth(event.target.value || localMonth());
+                        setPeriodOpen(false);
+                      }}
+                    />
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSelectedMonth(localMonth());
+                      setPeriodOpen(false);
+                    }}
+                  >
+                    Voltar ao mês atual
+                  </button>
+                </div>
+              )}
+            </div>
+
+            <div className="workspace-top-popover-wrap">
+              <button
+                className="workspace-alert-button"
+                aria-label="Notificações"
+                aria-expanded={alertsOpen}
+                type="button"
+                onClick={() => {
+                  setAlertsOpen(!alertsOpen);
+                  setPeriodOpen(false);
+                  setProfileOpen(false);
+                }}
+              >
+                ♢
+                {alerts.length > 0 && (
+                  <span className="workspace-alert-count">
+                    {Math.min(alerts.length, 9)}
+                  </span>
+                )}
+              </button>
+              {alertsOpen && (
+                <div className="workspace-popover workspace-alert-popover">
+                  <div className="workspace-popover-head">
+                    <strong>Notificações</strong>
+                    <small>{alerts.length} avisos</small>
+                  </div>
+                  {alerts.length ? (
+                    <div className="workspace-alert-list">
+                      {alerts.map((alert) => (
+                        <Link
+                          href={alert.href}
+                          key={alert.id}
+                          className={"workspace-alert-item " + alert.tone}
+                          onClick={() => setAlertsOpen(false)}
+                        >
+                          <span />
+                          <div>
+                            <strong>{alert.title}</strong>
+                            <small>{alert.text}</small>
+                          </div>
+                        </Link>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="workspace-popover-empty">
+                      Nenhum aviso importante agora.
+                    </p>
+                  )}
+                </div>
+              )}
+            </div>
+
+            <div className="workspace-top-popover-wrap">
+              <button
+                className="workspace-profile-chip"
+                type="button"
+                aria-expanded={profileOpen}
+                onClick={() => {
+                  setProfileOpen(!profileOpen);
+                  setPeriodOpen(false);
+                  setAlertsOpen(false);
+                }}
+              >
+                <span>{empresa?.nome?.slice(0, 2).toUpperCase() || "H"}</span>
+                <div>
+                  <strong>{empresa?.nome || "Sua assistência"}</strong>
+                  <small>Gestor da loja</small>
+                </div>
+                <b>⌄</b>
+              </button>
+              {profileOpen && (
+                <div className="workspace-popover workspace-profile-menu">
+                  <div>
+                    <strong>{empresa?.nome || "Sua assistência"}</strong>
+                    <small>{email}</small>
+                  </div>
+                  <Link href="/painel/perfil" onClick={() => setProfileOpen(false)}>
+                    ♙ Meu perfil
+                  </Link>
+                  <Link href="/painel/configuracoes" onClick={() => setProfileOpen(false)}>
+                    ⚙ Configurações
+                  </Link>
+                  <Link href="/painel/empresa" onClick={() => setProfileOpen(false)}>
+                    ▢ Minha assistência
+                  </Link>
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      const result = await supabase!.auth.signOut();
+                      if (result.error) setError(message(result.error));
+                      else {
+                        await syncServerSession(null);
+                        router.replace("/");
+                      }
+                    }}
+                  >
+                    ↪ Sair
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         </header>
@@ -333,7 +556,7 @@ export default function Workspace({
         ) : !userId ? null : !empresa ? (
           <Setup done={refresh} />
         ) : (
-          <Context.Provider value={{ empresa, userId, email, access, refresh }}>
+          <Context.Provider value={{ empresa, userId, email, access, selectedMonth, setSelectedMonth, refresh }}>
             {children}
           </Context.Provider>
         )}
