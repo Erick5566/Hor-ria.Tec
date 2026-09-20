@@ -2416,3 +2416,60 @@ button.danger,
     overflow-x: auto;
   }
 }
+
+
+/* Admin shortcuts to own SaaS and public client page */
+.admin-quick-links {
+  display: grid;
+  gap: 8px;
+  margin: 20px 0 0;
+  padding-top: 18px;
+  border-top: 1px solid rgb(255 255 255 / 10%);
+}
+
+.admin-quick-links a {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 42px;
+  padding: 10px 12px;
+  color: #e6edf7;
+  background: rgb(255 255 255 / 5%);
+  border: 1px solid rgb(255 255 255 / 8%);
+  border-radius: 10px;
+  font-size: 0.76rem;
+  font-weight: 700;
+}
+
+.admin-quick-links a:hover {
+  background: rgb(104 181 228 / 12%);
+  border-color: rgb(104 181 228 / 25%);
+}
+
+.admin-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.admin-header-link {
+  padding: 8px 11px;
+  color: #3a4da1;
+  background: #eef2ff;
+  border: 1px solid #cfd7ee;
+  border-radius: 9px;
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+.admin-header-link.public {
+  color: #256b98;
+  background: #eef8fd;
+  border-color: #cfe5f2;
+}
+
+@media (max-width: 700px) {
+  .admin-header-link {
+    display: none;
+  }
+}
