@@ -37,33 +37,39 @@ using (usuario_id = auth.uid() and private.can_access_company(empresa_id));
 create index if not exists notification_reads_user_company_idx
   on public.notification_reads(usuario_id, empresa_id, read_at desc);
 
-do $$
+do $
 declare
   t text;
 begin
-  foreach t in array array[
-    'ordens_servico',
-    'orcamentos',
-    'agendamentos',
-    'notification_reads',
-    'clientes',
-    'equipamentos',
-    'financeiro',
-    'pecas',
-    'servicos'
-  ]
-  loop
-    if not exists (
-      select 1
-      from pg_publication_tables
-      where pubname = 'supabase_realtime'
-        and schemaname = 'public'
-        and tablename = t
-    ) then
-      execute format(
-        'alter publication supabase_realtime add table public.%I',
-        t
-      );
-    end if;
-  end loop;
-end $$;
+  if exists (
+    select 1
+    from pg_publication
+    where pubname = 'supabase_realtime'
+  ) then
+    foreach t in array array[
+      'ordens_servico',
+      'orcamentos',
+      'agendamentos',
+      'notification_reads',
+      'clientes',
+      'equipamentos',
+      'financeiro',
+      'pecas',
+      'servicos'
+    ]
+    loop
+      if not exists (
+        select 1
+        from pg_publication_tables
+        where pubname = 'supabase_realtime'
+          and schemaname = 'public'
+          and tablename = t
+      ) then
+        execute format(
+          'alter publication supabase_realtime add table public.%I',
+          t
+        );
+      end if;
+    end loop;
+  end if;
+end $;
