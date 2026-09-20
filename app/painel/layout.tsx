@@ -27,5 +27,26 @@ export default async function PanelLayout({
     ["SUSPENDED", "CANCELED", "PENDING_DELETION"].includes(company.status)
   )
     redirect(`/conta-bloqueada?status=${company.status}`);
-  return <Workspace initialAccess={access.context}>{children}</Workspace>;
+
+  let initialEmpresa = null;
+  if (company) {
+    const companyResult = await access.client
+      .from("empresas")
+      .select("*")
+      .eq("id", company.id)
+      .maybeSingle();
+    if (companyResult.error) throw companyResult.error;
+    initialEmpresa = companyResult.data;
+  }
+
+  return (
+    <Workspace
+      initialAccess={access.context}
+      initialEmpresa={initialEmpresa}
+      initialUserId={access.user.id}
+      initialEmail={access.user.email || ""}
+    >
+      {children}
+    </Workspace>
+  );
 }
