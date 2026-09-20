@@ -7,12 +7,16 @@ import CompanySettings from "./company-settings";
 import Finance from "./finance";
 import RepairBench from "./repair-bench";
 import PublicPageSettings from "./public-page-settings";
+import InventoryManagement from "./inventory-management";
+import Reports from "./reports";
 import { useWorkspace } from "./workspace";
 import { supabase, message } from "@/lib/supabase";
 const titles: Record<string, string> = {
   servicos: "Serviços",
   "mesa-reparo": "Mesa de reparo",
   financeiro: "Financeiro",
+  estoque: "Estoque",
+  relatorios: "Relatórios",
   empresa: "Minha empresa",
   configuracoes: "Configurações",
   "pagina-cliente": "Página do cliente",
@@ -26,11 +30,13 @@ export default function AdminModule({ module }: { module: string }) {
     [error, setError] = useState(""),
     [busy, setBusy] = useState(false);
   return (
-    <section className="module">
+    <section className={`module module-${module}`}>
       <Heading title={titles[module]} />
       {module === "servicos" && <CatalogManagement />}
       {module === "mesa-reparo" && <RepairBench />}
       {module === "financeiro" && <Finance />}
+      {module === "estoque" && <InventoryManagement />}
+      {module === "relatorios" && <Reports />}
       {module === "minha-pagina" && <PublicPageSettings />}
       {["empresa", "configuracoes"].includes(module) && <CompanySettings />}
       {module === "pagina-cliente" && (
