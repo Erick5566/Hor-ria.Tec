@@ -6879,3 +6879,312 @@ button.danger,
 }
 
 /* manual-production-deploy-2026-09-20-1844 */
+
+
+/* Detailed customer quote */
+.customer-quote-card {
+  overflow: hidden;
+  border-top: 5px solid #253745;
+}
+.customer-quote-head,
+.quote-current-head,
+.quote-editor-title,
+.quote-review-title,
+.customer-quote-section-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+}
+.customer-quote-head {
+  align-items: flex-start;
+  padding-bottom: 18px;
+  border-bottom: 1px solid #d7dcdf;
+}
+.customer-quote-head small,
+.customer-quote-head h2,
+.customer-quote-head p {
+  margin: 0;
+}
+.customer-quote-head small {
+  color: #4a5c6a;
+  font-size: .68rem;
+  font-weight: 800;
+  letter-spacing: .12em;
+}
+.customer-quote-head h2 {
+  margin-top: 6px;
+}
+.customer-quote-head p {
+  margin-top: 6px;
+  color: #4a5c6a;
+}
+.customer-quote-status {
+  display: inline-flex;
+  align-items: center;
+  min-height: 30px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  color: #253745;
+  background: #e3e7e6;
+  font-size: .7rem;
+  font-weight: 800;
+  white-space: nowrap;
+}
+.customer-quote-status.aprovado {
+  color: #185e45;
+  background: #e2f4eb;
+}
+.customer-quote-status.recusado {
+  color: #8a2831;
+  background: #f9e7e9;
+}
+.customer-quote-status.alteracao_solicitada {
+  color: #8a5d13;
+  background: #fff0d8;
+}
+.customer-quote-section,
+.quote-review-block,
+.quote-editor-block {
+  margin-top: 20px;
+}
+.customer-quote-section-head,
+.quote-review-title,
+.quote-editor-title {
+  padding-bottom: 9px;
+  border-bottom: 1px solid #dde2e4;
+}
+.customer-quote-section-head span,
+.quote-review-title span,
+.quote-editor-title > strong {
+  color: #253745;
+  font-weight: 800;
+}
+.customer-quote-lines,
+.quote-review-block {
+  display: grid;
+  gap: 0;
+}
+.customer-quote-line,
+.quote-review-line {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 13px 0;
+  border-bottom: 1px solid #e7eaeb;
+}
+.customer-quote-line > div,
+.quote-review-line > span {
+  min-width: 0;
+}
+.customer-quote-line strong,
+.customer-quote-line small,
+.quote-review-line strong,
+.quote-review-line small {
+  display: block;
+}
+.customer-quote-line small,
+.quote-review-line small {
+  margin-top: 4px;
+  color: #61717c;
+  font-size: .74rem;
+}
+.customer-quote-line b,
+.quote-review-line b {
+  white-space: nowrap;
+}
+.customer-quote-summary,
+.quote-editor-summary {
+  display: grid;
+  gap: 9px;
+  margin-top: 22px;
+  padding: 17px;
+  border-radius: 13px;
+  background: #e7eae9;
+}
+.customer-quote-summary > div,
+.quote-editor-summary > div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+.customer-quote-summary span,
+.quote-editor-summary span {
+  color: #4a5c6a;
+}
+.customer-quote-summary .discount strong,
+.quote-editor-summary .discount strong {
+  color: #285b47;
+}
+.customer-quote-summary .grand-total,
+.quote-editor-summary .grand-total {
+  margin-top: 4px;
+  padding-top: 13px;
+  border-top: 1px solid #bac2c3;
+}
+.customer-quote-summary .grand-total span,
+.quote-editor-summary .grand-total span {
+  color: #06141b;
+  font-weight: 800;
+}
+.customer-quote-summary .grand-total strong,
+.quote-editor-summary .grand-total strong {
+  color: #06141b;
+  font-size: 1.35rem;
+}
+.customer-quote-decision {
+  display: grid;
+  gap: 16px;
+  margin-top: 22px;
+  padding-top: 20px;
+  border-top: 1px solid #d7dcdf;
+}
+.customer-quote-guidance {
+  padding: 13px 15px;
+  border-radius: 10px;
+  background: #f0f3f2;
+}
+.customer-quote-guidance strong,
+.customer-quote-guidance p {
+  display: block;
+  margin: 0;
+}
+.customer-quote-guidance p {
+  margin-top: 5px;
+  color: #4a5c6a;
+  font-size: .85rem;
+}
+.customer-quote-actions {
+  display: grid;
+  grid-template-columns: 1.35fr 1fr auto;
+  gap: 10px;
+}
+.customer-quote-actions button {
+  min-height: 45px;
+}
+.quote-reject {
+  color: #8b3239;
+  background: transparent;
+  border: 1px solid #d8afb2;
+}
+.customer-quote-response {
+  margin-top: 20px;
+  padding: 15px;
+  border-radius: 11px;
+  background: #e8ecea;
+}
+.customer-quote-response.aprovado {
+  background: #e4f4eb;
+}
+.customer-quote-response.recusado {
+  background: #f9e9ea;
+}
+.customer-quote-response.alteracao_solicitada {
+  background: #fff1da;
+}
+.customer-quote-response p {
+  margin-bottom: 0;
+}
+.quote-detail-panel .panel-head {
+  align-items: flex-start;
+}
+.quote-detail-panel .panel-head p {
+  margin: 5px 0 0;
+  color: #6b7787;
+}
+.quote-editor-notice {
+  display: grid;
+  gap: 4px;
+  margin-bottom: 18px;
+  padding: 13px 15px;
+  border: 1px solid #dbe3ed;
+  border-radius: 10px;
+  background: #f7f9fc;
+}
+.quote-editor-notice span,
+.quote-editor-empty {
+  color: #6b7787;
+  font-size: .75rem;
+}
+.quote-editor-form {
+  margin-top: 18px;
+}
+.quote-item {
+  grid-template-columns: minmax(150px, 1fr) 80px 120px 120px auto;
+}
+.quote-item-total {
+  align-self: end;
+  min-height: 42px;
+  display: grid;
+  align-content: center;
+  padding: 6px 10px;
+  border: 1px solid #dbe2eb;
+  border-radius: 8px;
+  background: #f8fafd;
+}
+.quote-item-total small,
+.quote-item-total strong {
+  display: block;
+}
+.quote-item-total small {
+  color: #8490a1;
+  font-size: .58rem;
+}
+.quote-item-total strong {
+  color: #2d3b56;
+  font-size: .72rem;
+}
+.quote-cost-fields {
+  margin-top: 20px;
+}
+.quote-editor-summary.compact {
+  margin-top: 18px;
+}
+.quote-current-head {
+  padding-bottom: 15px;
+  border-bottom: 1px solid #e2e6eb;
+}
+.quote-current-head strong,
+.quote-current-head small {
+  display: block;
+}
+.quote-current-head small {
+  margin-top: 4px;
+  color: #7b8798;
+}
+.quote-manual-response,
+.quote-history {
+  margin-top: 18px;
+}
+.quote-manual-response > p {
+  color: #6d798a;
+  font-size: .78rem;
+}
+.booking-turnstile {
+  margin: 12px 0;
+}
+
+@media (max-width: 760px) {
+  .customer-quote-head,
+  .quote-current-head {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+  .customer-quote-actions {
+    grid-template-columns: 1fr;
+  }
+  .customer-quote-actions button {
+    width: 100%;
+  }
+  .quote-item {
+    grid-template-columns: 1fr 1fr;
+  }
+  .quote-item > :first-child {
+    grid-column: 1 / -1;
+  }
+  .quote-item-total {
+    min-height: 48px;
+  }
+}

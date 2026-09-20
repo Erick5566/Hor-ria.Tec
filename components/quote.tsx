@@ -3,6 +3,25 @@ import { useEffect, useState, useCallback } from "react";
 import { supabase, message, today, shift, Servico } from "@/lib/supabase";
 import { Item, Orcamento, money } from "@/lib/assistencia";
 import { ErrorBox, Empty } from "./ui";
+
+function quoteStatus(status: string) {
+  const labels: Record<string, string> = {
+    rascunho: "Rascunho",
+    enviado: "Enviado ao cliente",
+    aprovado: "Aprovado",
+    recusado: "Recusado",
+    alteracao_solicitada: "Alteração solicitada",
+  };
+  return labels[status] || status.replaceAll("_", " ");
+}
+
+function subtotal(items: Item[]) {
+  return items.reduce(
+    (sum, item) => sum + Number(item.quantidade) * Number(item.valor),
+    0,
+  );
+}
+
 export default function Quote({
   ordemId,
   trackingToken,
@@ -29,7 +48,13 @@ export default function Quote({
     [validity, setValidity] = useState(shift(today(), 7)),
     [error, setError] = useState(""),
     [busy, setBusy] = useState(false);
+
   const latest = quotes[0];
+  const servicesSubtotal = subtotal(services);
+  const partsSubtotal = subtotal(parts);
+  const gross = servicesSubtotal + partsSubtotal + labor;
+  const total = gross - discount;
+
   const load = useCallback(async () => {
     const { data, error } = await supabase!
       .from("orcamentos")
@@ -39,13 +64,11 @@ export default function Quote({
     if (error) setError(message(error));
     else setQuotes(data as Orcamento[]);
   }, [ordemId]);
+
   useEffect(() => {
     load();
   }, [load]);
-  const total =
-    [...services, ...parts].reduce((n, i) => n + i.quantidade * i.valor, 0) +
-    labor -
-    discount;
+
   async function ensureCatalog() {
     if (catalogLoaded || catalogLoading) return;
     setCatalogLoading(true);
@@ -89,11 +112,13 @@ export default function Quote({
     setParts(latest?.pecas || []);
     setLabor(Number(latest?.mao_obra) || 0);
     setDiscount(Number(latest?.desconto) || 0);
+    setValidity(shift(today(), 7));
     setEditing(true);
     await ensureCatalog();
   }
-  async function save(e: React.FormEvent) {
-    e.preventDefault();
+
+  async function save(event: React.FormEvent) {
+    event.preventDefault();
     setBusy(true);
     setError("");
     try {
@@ -109,41 +134,51 @@ export default function Quote({
       setEditing(false);
       await load();
       onChanged();
-    } catch (e) {
-      setError(message(e as Error));
+    } catch (caught) {
+      setError(message(caught as Error));
     } finally {
       setBusy(false);
     }
   }
-  async function action(name: string, decision?: string) {
+
+  async function recordCustomerDecision(decision: string) {
     if (!latest) return;
     setBusy(true);
     setError("");
     try {
-      const { error } = await supabase!.rpc(
-        name,
-        decision
-          ? {
-              p_orcamento: latest.id,
-              p_decisao: decision,
-              p_observacao: "Resposta registrada pela assistência",
-            }
-          : { p_orcamento: latest.id },
-      );
+      const { error } = await supabase!.rpc("responder_orcamento", {
+        p_orcamento: latest.id,
+        p_decisao: decision,
+        p_observacao: "Resposta registrada manualmente pela assistência",
+      });
       if (error) throw error;
       await load();
       onChanged();
-    } catch (e) {
-      setError(message(e as Error));
+    } catch (caught) {
+      setError(message(caught as Error));
     } finally {
       setBusy(false);
     }
   }
-  const editor = (items: Item[], set: (x: Item[]) => void, label: string) => (
-    <div>
-      <h3>{label}</h3>
-      {items.map((item, i) => (
-        <div className="quote-item" key={i}>
+
+  const editor = (
+    items: Item[],
+    set: (items: Item[]) => void,
+    label: string,
+  ) => (
+    <div className="quote-editor-block">
+      <div className="quote-editor-title">
+        <h3>{label}</h3>
+        <strong>{money(subtotal(items))}</strong>
+      </div>
+      {items.length === 0 && (
+        <p className="quote-editor-empty">
+          Nenhum item adicionado. Você pode selecionar um cadastro acima ou
+          inserir manualmente.
+        </p>
+      )}
+      {items.map((item, index) => (
+        <div className="quote-item" key={index}>
           <label>
             Descrição
             <input
@@ -151,10 +186,12 @@ export default function Quote({
               minLength={2}
               maxLength={200}
               value={item.nome}
-              onChange={(e) =>
+              onChange={(event) =>
                 set(
-                  items.map((v, j) =>
-                    j === i ? { ...v, nome: e.target.value } : v,
+                  items.map((value, itemIndex) =>
+                    itemIndex === index
+                      ? { ...value, nome: event.target.value }
+                      : value,
                   ),
                 )
               }
@@ -168,10 +205,12 @@ export default function Quote({
               min={1}
               max={1000}
               value={item.quantidade}
-              onChange={(e) =>
+              onChange={(event) =>
                 set(
-                  items.map((v, j) =>
-                    j === i ? { ...v, quantidade: Number(e.target.value) } : v,
+                  items.map((value, itemIndex) =>
+                    itemIndex === index
+                      ? { ...value, quantidade: Number(event.target.value) }
+                      : value,
                   ),
                 )
               }
@@ -183,21 +222,30 @@ export default function Quote({
               required
               type="number"
               min={0}
+              max={10000000}
               step="0.01"
               value={item.valor}
-              onChange={(e) =>
+              onChange={(event) =>
                 set(
-                  items.map((v, j) =>
-                    j === i ? { ...v, valor: Number(e.target.value) } : v,
+                  items.map((value, itemIndex) =>
+                    itemIndex === index
+                      ? { ...value, valor: Number(event.target.value) }
+                      : value,
                   ),
                 )
               }
             />
           </label>
+          <div className="quote-item-total">
+            <small>Subtotal</small>
+            <strong>
+              {money(Number(item.quantidade) * Number(item.valor))}
+            </strong>
+          </div>
           <button
             type="button"
             aria-label={`Remover ${item.nome || label}`}
-            onClick={() => set(items.filter((_, j) => i !== j))}
+            onClick={() => set(items.filter((_, itemIndex) => index !== itemIndex))}
           >
             ×
           </button>
@@ -208,37 +256,55 @@ export default function Quote({
         className="outline"
         onClick={() => set([...items, { nome: "", quantidade: 1, valor: 0 }])}
       >
-        + Adicionar item
+        + Adicionar item manualmente
       </button>
     </div>
   );
+
+  const latestServicesSubtotal = latest ? subtotal(latest.servicos) : 0;
+  const latestPartsSubtotal = latest ? subtotal(latest.pecas) : 0;
+
   return (
-    <section className="panel">
+    <section className="panel quote-detail-panel">
       <div className="panel-head">
-        <h2>Orçamento</h2>
+        <div>
+          <h2>Orçamento detalhado</h2>
+          <p>Informe serviços, peças, mão de obra, desconto e validade.</p>
+        </div>
         <button className="outline" onClick={start}>
           {latest ? "Criar nova versão" : "+ Criar orçamento"}
         </button>
       </div>
       <ErrorBox error={error} />
+
       {editing ? (
-        <form onSubmit={save}>
+        <form className="quote-editor-form" onSubmit={save}>
+          <div className="quote-editor-notice">
+            <strong>O cliente verá exatamente estes valores.</strong>
+            <span>
+              Ao salvar, esta versão será enviada para aprovação e a notificação
+              de WhatsApp será enfileirada automaticamente.
+            </span>
+          </div>
+
           <div className="form-grid">
             <label>
               Adicionar serviço cadastrado
               <select
                 value=""
                 disabled={catalogLoading}
-                onChange={(e) => {
-                  const s = catalog.find((s) => s.id === e.target.value);
-                  if (s)
+                onChange={(event) => {
+                  const service = catalog.find(
+                    (item) => item.id === event.target.value,
+                  );
+                  if (service)
                     setServices([
                       ...services,
                       {
-                        nome: s.nome,
-                        valor: Number(s.preco),
+                        nome: service.nome,
+                        valor: Number(service.preco),
                         quantidade: 1,
-                        servico_id: s.id,
+                        servico_id: service.id,
                       },
                     ]);
                 }}
@@ -246,9 +312,9 @@ export default function Quote({
                 <option value="">
                   {catalogLoading ? "Carregando serviços..." : "Selecione"}
                 </option>
-                {catalog.map((s) => (
-                  <option key={s.id} value={s.id}>
-                    {s.nome}
+                {catalog.map((service) => (
+                  <option key={service.id} value={service.id}>
+                    {service.nome} · {money(Number(service.preco))}
                   </option>
                 ))}
               </select>
@@ -258,16 +324,18 @@ export default function Quote({
               <select
                 value=""
                 disabled={catalogLoading}
-                onChange={(e) => {
-                  const p = stock.find((p) => p.id === e.target.value);
-                  if (p)
+                onChange={(event) => {
+                  const part = stock.find(
+                    (item) => item.id === event.target.value,
+                  );
+                  if (part)
                     setParts([
                       ...parts,
                       {
-                        nome: p.nome,
-                        valor: Number(p.preco),
+                        nome: part.nome,
+                        valor: Number(part.preco),
                         quantidade: 1,
-                        peca_id: p.id,
+                        peca_id: part.id,
                       },
                     ]);
                 }}
@@ -275,25 +343,29 @@ export default function Quote({
                 <option value="">
                   {catalogLoading ? "Carregando estoque..." : "Selecione"}
                 </option>
-                {stock.map((p) => (
-                  <option key={p.id} value={p.id}>
-                    {p.nome} · {p.quantidade} em estoque
+                {stock.map((part) => (
+                  <option key={part.id} value={part.id}>
+                    {part.nome} · {money(Number(part.preco))} ·{" "}
+                    {part.quantidade} em estoque
                   </option>
                 ))}
               </select>
             </label>
           </div>
+
           {editor(services, setServices, "Serviços")}
-          {editor(parts, setParts, "Peças")}
-          <div className="form-grid">
+          {editor(parts, setParts, "Peças e materiais")}
+
+          <div className="form-grid quote-cost-fields">
             <label>
               Mão de obra
               <input
                 type="number"
                 min={0}
+                max={10000000}
                 step="0.01"
                 value={labor}
-                onChange={(e) => setLabor(Number(e.target.value))}
+                onChange={(event) => setLabor(Number(event.target.value))}
               />
             </label>
             <label>
@@ -302,9 +374,9 @@ export default function Quote({
                 type="number"
                 min={0}
                 step="0.01"
-                max={Math.max(0, total + discount)}
+                max={Math.max(0, gross)}
                 value={discount}
-                onChange={(e) => setDiscount(Number(e.target.value))}
+                onChange={(event) => setDiscount(Number(event.target.value))}
               />
             </label>
             <label>
@@ -313,12 +385,36 @@ export default function Quote({
                 required
                 type="date"
                 min={today()}
+                max={shift(today(), 90)}
                 value={validity}
-                onChange={(e) => setValidity(e.target.value)}
+                onChange={(event) => setValidity(event.target.value)}
               />
             </label>
           </div>
-          <div className="total-line">Total: {money(total)}</div>
+
+          <div className="quote-editor-summary">
+            <div>
+              <span>Serviços</span>
+              <strong>{money(servicesSubtotal)}</strong>
+            </div>
+            <div>
+              <span>Peças e materiais</span>
+              <strong>{money(partsSubtotal)}</strong>
+            </div>
+            <div>
+              <span>Mão de obra</span>
+              <strong>{money(labor)}</strong>
+            </div>
+            <div>
+              <span>Desconto</span>
+              <strong>- {money(discount)}</strong>
+            </div>
+            <div className="grand-total">
+              <span>Total que o cliente receberá</span>
+              <strong>{money(total)}</strong>
+            </div>
+          </div>
+
           <div className="form-actions">
             <button
               type="button"
@@ -328,88 +424,155 @@ export default function Quote({
               Cancelar
             </button>
             <button className="primary" disabled={busy || total < 0}>
-              Salvar versão
+              {busy ? "Enviando…" : "Salvar e enviar ao cliente →"}
             </button>
           </div>
         </form>
       ) : latest ? (
-        <>
-          <p>
-            Versão {latest.versao} · {latest.status} · Validade:{" "}
-            {latest.validade.slice(0, 10).split("-").reverse().join("/")}
-          </p>
-          <table>
-            <thead>
-              <tr>
-                <th>Descrição</th>
-                <th>Qtd.</th>
-                <th>Valor</th>
-              </tr>
-            </thead>
-            <tbody>
-              {[...latest.servicos, ...latest.pecas].map((i, n) => (
-                <tr key={n}>
-                  <td>{i.nome}</td>
-                  <td>{i.quantidade}</td>
-                  <td>{money(i.valor * i.quantidade)}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-          <p>
-            Mão de obra: {money(latest.mao_obra)} · Desconto:{" "}
-            {money(latest.desconto)}
-          </p>
-          <div className="total-line">{money(latest.total)}</div>
-          {latest.resposta && <p>{latest.resposta}</p>}
-          <div className="inline-actions">
-            {latest.status === "enviado" && (
-              <>
-                {[
-                  ["aprovado", "Aprovar"],
-                  ["recusado", "Recusar"],
-                  ["alteracao_solicitada", "Solicitar alteração"],
-                ].map(([decision, label]) => (
-                  <button
-                    key={decision}
-                    disabled={busy}
-                    onClick={() => action("responder_orcamento", decision)}
-                  >
-                    {label}
-                  </button>
-                ))}
-              </>
-            )}
+        <div className="quote-current">
+          <div className="quote-current-head">
+            <div>
+              <strong>Versão {latest.versao}</strong>
+              <small>
+                Validade:{" "}
+                {latest.validade.slice(0, 10).split("-").reverse().join("/")}
+              </small>
+            </div>
+            <span className={`quote-status ${latest.status}`}>
+              {quoteStatus(latest.status)}
+            </span>
           </div>
-          {latest.status === "enviado" && (
-            <div className="notice">
-              <p>
-                Orçamento publicado e notificação automática enfileirada. O
-                cliente também pode acessar pelo link seguro abaixo.
-              </p>
-              <a
-                className="outline"
-                target="_blank"
-                rel="noreferrer"
-                href={`https://wa.me/${telefone.length <= 11 ? "55" : ""}${telefone}?text=${encodeURIComponent(`Seu orçamento está disponível: ${typeof window === "undefined" ? "" : window.location.origin}/acompanhar/${trackingToken}`)}`}
-              >
-                Reenviar manualmente pelo WhatsApp ↗
-              </a>
+
+          {latest.servicos.length > 0 && (
+            <div className="quote-review-block">
+              <div className="quote-review-title">
+                <strong>Serviços</strong>
+                <span>{money(latestServicesSubtotal)}</span>
+              </div>
+              {latest.servicos.map((item, index) => (
+                <div className="quote-review-line" key={`service-${index}`}>
+                  <span>
+                    <strong>{item.nome}</strong>
+                    <small>
+                      {item.quantidade} × {money(Number(item.valor))}
+                    </small>
+                  </span>
+                  <b>{money(Number(item.quantidade) * Number(item.valor))}</b>
+                </div>
+              ))}
             </div>
           )}
-        </>
+
+          {latest.pecas.length > 0 && (
+            <div className="quote-review-block">
+              <div className="quote-review-title">
+                <strong>Peças e materiais</strong>
+                <span>{money(latestPartsSubtotal)}</span>
+              </div>
+              {latest.pecas.map((item, index) => (
+                <div className="quote-review-line" key={`part-${index}`}>
+                  <span>
+                    <strong>{item.nome}</strong>
+                    <small>
+                      {item.quantidade} × {money(Number(item.valor))}
+                    </small>
+                  </span>
+                  <b>{money(Number(item.quantidade) * Number(item.valor))}</b>
+                </div>
+              ))}
+            </div>
+          )}
+
+          <div className="quote-editor-summary compact">
+            <div>
+              <span>Serviços</span>
+              <strong>{money(latestServicesSubtotal)}</strong>
+            </div>
+            <div>
+              <span>Peças e materiais</span>
+              <strong>{money(latestPartsSubtotal)}</strong>
+            </div>
+            <div>
+              <span>Mão de obra</span>
+              <strong>{money(Number(latest.mao_obra))}</strong>
+            </div>
+            <div>
+              <span>Desconto</span>
+              <strong>- {money(Number(latest.desconto))}</strong>
+            </div>
+            <div className="grand-total">
+              <span>Total do trabalho</span>
+              <strong>{money(Number(latest.total))}</strong>
+            </div>
+          </div>
+
+          {latest.resposta && (
+            <div className="notice">
+              <strong>Observação da resposta</strong>
+              <p>{latest.resposta}</p>
+            </div>
+          )}
+
+          {latest.status === "enviado" && (
+            <>
+              <div className="notice">
+                <p>
+                  O cliente recebeu o valor total e pode abrir o link para ver
+                  serviços, peças, mão de obra, desconto e responder.
+                </p>
+                <a
+                  className="outline"
+                  target="_blank"
+                  rel="noreferrer"
+                  href={`https://wa.me/${telefone.length <= 11 ? "55" : ""}${telefone}?text=${encodeURIComponent(
+                    `Seu orçamento da OS está disponível. Total: ${money(
+                      Number(latest.total),
+                    )}. Veja os detalhes e responda: ${
+                      typeof window === "undefined" ? "" : window.location.origin
+                    }/acompanhar/${trackingToken}`,
+                  )}`}
+                >
+                  Reenviar orçamento pelo WhatsApp ↗
+                </a>
+              </div>
+
+              <details className="quote-manual-response">
+                <summary>Registrar manualmente a resposta do cliente</summary>
+                <p>
+                  Use apenas quando o cliente responder fora do link, por
+                  exemplo por telefone ou presencialmente.
+                </p>
+                <div className="inline-actions">
+                  <button
+                    disabled={busy}
+                    onClick={() => recordCustomerDecision("aprovado")}
+                  >
+                    Registrar aprovação
+                  </button>
+                  <button
+                    disabled={busy}
+                    onClick={() => recordCustomerDecision("recusado")}
+                  >
+                    Registrar recusa
+                  </button>
+                </div>
+              </details>
+            </>
+          )}
+        </div>
       ) : (
         <Empty title="Esta ordem ainda não tem orçamento." />
       )}
+
       {quotes.length > 1 && (
-        <details>
+        <details className="quote-history">
           <summary>Versões anteriores ({quotes.length - 1})</summary>
-          {quotes.slice(1).map((q) => (
-            <div className="list-line" key={q.id}>
+          {quotes.slice(1).map((quote) => (
+            <div className="list-line" key={quote.id}>
               <span>
-                Versão {q.versao} · {q.status}
+                Versão {quote.versao} · {quoteStatus(quote.status)}
               </span>
-              <strong>{money(q.total)}</strong>
+              <strong>{money(Number(quote.total))}</strong>
             </div>
           ))}
         </details>

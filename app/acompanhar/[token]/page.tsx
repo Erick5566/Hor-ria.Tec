@@ -3,7 +3,7 @@ import { use, useCallback, useEffect, useState } from "react";
 import { Brand } from "@/components/brand";
 import TrackingResult, { Repair } from "@/components/tracking-result";
 import { ErrorBox } from "@/components/ui";
-import { message, publicDb } from "@/lib/supabase";
+import { publicDb } from "@/lib/supabase";
 
 export default function DirectTracking({
   params,
@@ -15,39 +15,59 @@ export default function DirectTracking({
     [error, setError] = useState(""),
     [busy, setBusy] = useState(true),
     [note, setNote] = useState("");
+
   const load = useCallback(async () => {
-    const result = await publicDb!.rpc("acompanhar_por_token", {
-      p_token: token,
+    const result = await publicDb!.functions.invoke("public-tracking", {
+      body: { action: "lookup-token", token },
     });
-    if (result.error) throw result.error;
-    if (!result.data)
-      throw new Error("Este link de acompanhamento não é válido.");
-    setData(result.data as Repair);
+    if (result.error)
+      throw new Error("Não foi possível consultar o atendimento agora.");
+    if (!result.data?.ok || !result.data.data)
+      throw new Error(
+        result.data?.error || "Este link de acompanhamento não é válido.",
+      );
+    setData(result.data.data as Repair);
   }, [token]);
+
   useEffect(() => {
     load()
-      .catch((reason) => setError(message(reason)))
+      .catch((reason) => setError((reason as Error).message))
       .finally(() => setBusy(false));
   }, [load]);
+
   async function respond(decision: string) {
     if (!data?.orcamento) return;
+    if (decision === "alteracao_solicitada" && note.trim().length < 3) {
+      setError("Explique o que você gostaria de alterar no orçamento.");
+      return;
+    }
     setBusy(true);
     setError("");
     try {
-      const result = await publicDb!.rpc("responder_orcamento_link", {
-        p_orcamento: data.orcamento.id,
-        p_decisao: decision,
-        p_observacao: note,
-        p_token: token,
+      const result = await publicDb!.functions.invoke("public-tracking", {
+        body: {
+          action: "respond-token",
+          token,
+          quoteId: data.orcamento.id,
+          decision,
+          note: note.trim(),
+        },
       });
-      if (result.error) throw result.error;
-      await load();
+      if (result.error)
+        throw new Error("Não foi possível registrar sua resposta agora.");
+      if (!result.data?.ok || !result.data.data)
+        throw new Error(
+          result.data?.error || "Não foi possível registrar sua resposta.",
+        );
+      setData(result.data.data as Repair);
+      setNote("");
     } catch (reason) {
-      setError(message(reason as Error));
+      setError((reason as Error).message);
     } finally {
       setBusy(false);
     }
   }
+
   return (
     <main className="public-portal">
       <Brand />

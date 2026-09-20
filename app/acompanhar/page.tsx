@@ -3,7 +3,8 @@ import { useState } from "react";
 import { Brand } from "@/components/brand";
 import { ErrorBox } from "@/components/ui";
 import TrackingResult, { Repair } from "@/components/tracking-result";
-import { publicDb, message } from "@/lib/supabase";
+import { publicDb } from "@/lib/supabase";
+
 export default function Tracking() {
   const [code, setCode] = useState(""),
     [phone, setPhone] = useState(""),
@@ -11,37 +12,59 @@ export default function Tracking() {
     [error, setError] = useState(""),
     [busy, setBusy] = useState(false),
     [note, setNote] = useState("");
+
   async function load() {
-    const r = await publicDb!.rpc("consultar_reparo", {
-      p_codigo: code.trim(),
-      p_telefone: phone,
+    const result = await publicDb!.functions.invoke("public-tracking", {
+      body: {
+        action: "lookup-code",
+        code: code.trim().toUpperCase(),
+        phone,
+      },
     });
-    if (r.error) throw r.error;
-    if (!r.data)
+    if (result.error)
+      throw new Error("Não foi possível consultar o atendimento agora.");
+    if (!result.data?.ok || !result.data.data)
       throw new Error(
-        "Não encontramos uma ordem com esses dados. Confira o código e o telefone.",
+        result.data?.error ||
+          "Não encontramos uma ordem com esses dados. Confira o código e o telefone.",
       );
-    setData(r.data);
+    setData(result.data.data as Repair);
   }
+
   async function respond(decision: string) {
+    if (!data?.orcamento) return;
+    if (decision === "alteracao_solicitada" && note.trim().length < 3) {
+      setError("Explique o que você gostaria de alterar no orçamento.");
+      return;
+    }
     setBusy(true);
     setError("");
     try {
-      const r = await publicDb!.rpc("responder_orcamento", {
-        p_orcamento: data!.orcamento!.id,
-        p_decisao: decision,
-        p_observacao: note,
-        p_codigo: code.trim(),
-        p_telefone: phone,
+      const result = await publicDb!.functions.invoke("public-tracking", {
+        body: {
+          action: "respond-code",
+          code: code.trim().toUpperCase(),
+          phone,
+          quoteId: data.orcamento.id,
+          decision,
+          note: note.trim(),
+        },
       });
-      if (r.error) throw r.error;
-      await load();
-    } catch (e) {
-      setError(message(e as Error));
+      if (result.error)
+        throw new Error("Não foi possível registrar sua resposta agora.");
+      if (!result.data?.ok || !result.data.data)
+        throw new Error(
+          result.data?.error || "Não foi possível registrar sua resposta.",
+        );
+      setData(result.data.data as Repair);
+      setNote("");
+    } catch (reason) {
+      setError((reason as Error).message);
     } finally {
       setBusy(false);
     }
   }
+
   return (
     <main className="public-portal">
       <Brand />
@@ -52,15 +75,15 @@ export default function Tracking() {
       </p>
       <form
         className="panel"
-        onSubmit={async (e) => {
-          e.preventDefault();
+        onSubmit={async (event) => {
+          event.preventDefault();
           setBusy(true);
           setError("");
           setData(null);
           try {
             await load();
-          } catch (e) {
-            setError(message(e as Error));
+          } catch (reason) {
+            setError((reason as Error).message);
           } finally {
             setBusy(false);
           }
@@ -75,8 +98,8 @@ export default function Tracking() {
               maxLength={16}
               autoCapitalize="characters"
               value={code}
-              onChange={(e) => {
-                setCode(e.target.value.toUpperCase());
+              onChange={(event) => {
+                setCode(event.target.value.toUpperCase());
                 setData(null);
               }}
             />
@@ -86,16 +109,18 @@ export default function Tracking() {
             <input
               required
               type="tel"
+              minLength={8}
+              maxLength={25}
               value={phone}
-              onChange={(e) => {
-                setPhone(e.target.value);
+              onChange={(event) => {
+                setPhone(event.target.value);
                 setData(null);
               }}
             />
           </label>
         </div>
         <button className="primary" disabled={busy}>
-          Consultar reparo
+          {busy ? "Consultando…" : "Consultar reparo"}
         </button>
       </form>
       <ErrorBox error={error} />

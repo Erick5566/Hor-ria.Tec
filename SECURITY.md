@@ -33,3 +33,16 @@ RPC grants for tenant isolation.
   by email is promised.
 - Run supabase/tests/tenant_isolation.sql and
   supabase/tests/security_surface.sql after permission changes.
+
+
+## Public tracking and quote approval
+
+- Customer tracking and quote decisions are routed through the `public-tracking`
+  Edge Function.
+- Lookup and response attempts are rate-limited by hashed IP and hashed resource
+  identifier. Raw IP addresses and tracking tokens are not stored in the
+  rate-limit table.
+- Direct anonymous execution of tracking/quote-response RPCs is removed only
+  after the frontend Edge Function rollout is confirmed in production.
+- Quote totals are recalculated in PostgreSQL from server-validated line items;
+  the browser-provided total is never trusted.
