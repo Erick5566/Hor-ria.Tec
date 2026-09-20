@@ -66,16 +66,6 @@ function formatShortDate(value: string) {
   return dateFromLocal(value).toLocaleDateString("pt-BR");
 }
 
-function addDays(value: string, days: number) {
-  const date = dateFromLocal(value);
-  date.setDate(date.getDate() + days);
-  return new Intl.DateTimeFormat("en-CA", {
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  }).format(date);
-}
-
 const Context = createContext<WorkspaceValue | null>(null);
 export function useWorkspace() {
   const value = useContext(Context);
@@ -124,9 +114,8 @@ export default function Workspace({
     [open, setOpen] = useState(false),
     [globalSearch, setGlobalSearch] = useState(""),
     [selectedMonth, setSelectedMonthState] = useState(localMonth()),
-    [periodStart, setPeriodStart] = useState(() => rangeForMonth().start),
-    [periodEnd, setPeriodEnd] = useState(() => rangeForMonth().end),
-    [periodOpen, setPeriodOpen] = useState(false),
+    [periodStart, setPeriodStart] = useState(localDate()),
+    [periodEnd, setPeriodEnd] = useState(localDate()),
     [alertsOpen, setAlertsOpen] = useState(false),
     [profileOpen, setProfileOpen] = useState(false),
     [alerts, setAlerts] = useState<WorkspaceAlert[]>([]),
@@ -210,11 +199,22 @@ export default function Workspace({
   useEffect(() => {
     setOpen(false);
   }, [path]);
+
+  useEffect(() => {
+    const syncToday = () => {
+      const current = localDate();
+      setPeriodStart(current);
+      setPeriodEnd(current);
+      setSelectedMonthState(current.slice(0, 7));
+    };
+    syncToday();
+    const timer = window.setInterval(syncToday, 60000);
+    return () => window.clearInterval(timer);
+  }, []);
   useEffect(() => {
     const close = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
         setOpen(false);
-        setPeriodOpen(false);
         setAlertsOpen(false);
         setProfileOpen(false);
       }
@@ -567,8 +567,7 @@ export default function Workspace({
     setGlobalSearch("");
   }
 
-  const periodLabel =
-    formatShortDate(periodStart) + " - " + formatShortDate(periodEnd);
+  const periodLabel = formatShortDate(periodStart);
   const unreadAlerts = alerts.filter((alert) => !readAlertIds.has(alert.id));
 
   return (
@@ -670,99 +669,15 @@ export default function Workspace({
             />
           </form>
           <div className="workspace-top-context">
-            <div className="workspace-top-popover-wrap">
-              <button
-                className="workspace-date-chip"
-                type="button"
-                aria-expanded={periodOpen}
-                onClick={() => {
-                  setPeriodOpen(!periodOpen);
-                  setAlertsOpen(false);
-                  setProfileOpen(false);
-                }}
+            <div className="workspace-date-chip workspace-date-live" aria-label="Data atual">
+              <svg
+                aria-hidden="true"
+                viewBox="0 0 24 24"
+                className="workspace-calendar-icon"
               >
-                <svg
-                  aria-hidden="true"
-                  viewBox="0 0 24 24"
-                  className="workspace-calendar-icon"
-                >
-                  <path d="M7 2v3M17 2v3M3.5 9h17M5.5 4h13a2 2 0 0 1 2 2v13a2 2 0 0 1-2 2h-13a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2Z" />
-                </svg>
-                {periodLabel}
-                <i aria-hidden="true">⌄</i>
-              </button>
-              {periodOpen && (
-                <div className="workspace-popover workspace-period-popover">
-                  <div className="workspace-popover-head">
-                    <strong>Período do painel</strong>
-                    <small>Atualiza os indicadores</small>
-                  </div>
-                  <div className="workspace-period-presets">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        const today = localDate();
-                        setPeriod(today, today);
-                        setPeriodOpen(false);
-                      }}
-                    >
-                      Hoje
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        const today = localDate();
-                        setPeriod(addDays(today, -6), today);
-                        setPeriodOpen(false);
-                      }}
-                    >
-                      Últimos 7 dias
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        const today = localDate();
-                        setPeriod(addDays(today, -29), today);
-                        setPeriodOpen(false);
-                      }}
-                    >
-                      Últimos 30 dias
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        const range = rangeForMonth();
-                        setPeriod(range.start, range.end);
-                        setPeriodOpen(false);
-                      }}
-                    >
-                      Este mês
-                    </button>
-                  </div>
-                  <div className="workspace-date-range">
-                    <label>
-                      Data inicial
-                      <input
-                        type="date"
-                        value={periodStart}
-                        onChange={(event) =>
-                          setPeriod(event.target.value, periodEnd)
-                        }
-                      />
-                    </label>
-                    <label>
-                      Data final
-                      <input
-                        type="date"
-                        value={periodEnd}
-                        onChange={(event) =>
-                          setPeriod(periodStart, event.target.value)
-                        }
-                      />
-                    </label>
-                  </div>
-                </div>
-              )}
+                <path d="M7 2v3M17 2v3M3.5 9h17M5.5 4h13a2 2 0 0 1 2 2v13a2 2 0 0 1-2 2h-13a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2Z" />
+              </svg>
+              <span>{periodLabel}</span>
             </div>
 
             <div className="workspace-top-popover-wrap">
@@ -773,8 +688,7 @@ export default function Workspace({
                 type="button"
                 onClick={() => {
                   setAlertsOpen(!alertsOpen);
-                  setPeriodOpen(false);
-                  setProfileOpen(false);
+                            setProfileOpen(false);
                 }}
               >
                 <svg
@@ -865,8 +779,7 @@ export default function Workspace({
                 aria-expanded={profileOpen}
                 onClick={() => {
                   setProfileOpen(!profileOpen);
-                  setPeriodOpen(false);
-                  setAlertsOpen(false);
+                            setAlertsOpen(false);
                 }}
               >
                 <span>{empresa?.nome?.slice(0, 2).toUpperCase() || "H"}</span>
