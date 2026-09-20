@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useWorkspace } from "./workspace";
 import {
@@ -49,7 +49,62 @@ export default function OrderForm() {
       previsao: "",
     }),
     [error, setError] = useState(""),
-    [busy, setBusy] = useState(false);
+    [busy, setBusy] = useState(false),
+    [draftReady, setDraftReady] = useState(false);
+  const draftKey = `horaria:order-draft:${empresa.id}`;
+
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(draftKey);
+      if (!raw) {
+        setDraftReady(true);
+        return;
+      }
+      const draft = JSON.parse(raw) as {
+        step?: number;
+        customer?: Record<string, string>;
+        device?: Record<string, string>;
+        state?: string[];
+        details?: typeof details;
+      };
+      if (draft.customer) setCustomer(draft.customer);
+      if (draft.device)
+        setDevice({ ...draft.device, senha: "" });
+      if (Array.isArray(draft.state)) setState(draft.state);
+      if (draft.details) setDetails(draft.details);
+      if (draft.step && draft.step >= 1 && draft.step <= 4) setStep(draft.step);
+    } catch {
+      localStorage.removeItem(draftKey);
+    } finally {
+      setDraftReady(true);
+    }
+  }, [draftKey]);
+
+  useEffect(() => {
+    if (!draftReady || createdId) return;
+    const safeDevice = { ...device, senha: "" };
+    localStorage.setItem(
+      draftKey,
+      JSON.stringify({
+        step,
+        customer,
+        device: safeDevice,
+        state,
+        details,
+        savedAt: new Date().toISOString(),
+      }),
+    );
+  }, [
+    draftReady,
+    createdId,
+    draftKey,
+    step,
+    customer,
+    device,
+    state,
+    details,
+  ]);
+
   const field = (
     name: string,
     label: string,
@@ -106,6 +161,7 @@ export default function OrderForm() {
         p_ordem: orderId,
       });
       if (confirmation.error) throw confirmation.error;
+      localStorage.removeItem(draftKey);
       router.push(`/painel/ordens/${orderId}`);
     } catch (e) {
       setError(message(e as Error));
@@ -129,6 +185,9 @@ export default function OrderForm() {
         )}
       </div>
       <ErrorBox error={error || clients.error || equipment.error} />
+      <p className="autosave-status" role="status">
+        ✓ Rascunho salvo automaticamente neste dispositivo
+      </p>
       {createdId && (
         <p className="notice">
           A ordem foi criada. Conclua o envio das fotos ou{" "}
@@ -177,7 +236,8 @@ export default function OrderForm() {
                             : "text"
                       }
                       minLength={name === "nome" ? 2 : undefined}
-                      maxLength={120}
+                      pattern={name === "whatsapp" ? "[+0-9 \\(\\)\\-]{8,25}" : undefined}
+                      maxLength={name === "whatsapp" ? 25 : 120}
                       value={customer[String(name)]}
                       onChange={(e) =>
                         setCustomer({
