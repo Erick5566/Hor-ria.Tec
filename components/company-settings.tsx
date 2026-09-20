@@ -66,6 +66,8 @@ export default function CompanySettings() {
               site: f.get("site") || null,
               logo_url: f.get("logo_url") || null,
               google_avaliacao_url: f.get("google_avaliacao_url") || null,
+              google_maps_url: f.get("google_maps_url") || null,
+              google_business_url: f.get("google_business_url") || null,
               cep: f.get("cep") || null,
               numero_endereco: f.get("numero_endereco") || null,
               complemento: f.get("complemento") || null,
@@ -176,6 +178,24 @@ export default function CompanySettings() {
             type="url"
             defaultValue={empresa.google_avaliacao_url || ""}
             placeholder="https://g.page/r/…/review"
+          />
+        </label>
+        <label>
+          Link do perfil no Google
+          <input
+            name="google_business_url"
+            type="url"
+            defaultValue={empresa.google_business_url || ""}
+            placeholder="https://g.page/…"
+          />
+        </label>
+        <label>
+          Link do Google Maps / rota
+          <input
+            name="google_maps_url"
+            type="url"
+            defaultValue={empresa.google_maps_url || ""}
+            placeholder="https://maps.google.com/…"
           />
         </label>
         <label>
