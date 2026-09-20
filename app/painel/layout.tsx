@@ -1,6 +1,13 @@
+import type { Metadata } from "next";
 import Workspace from "@/components/workspace";
 import { redirect } from "next/navigation";
 import { getServerAccess } from "@/lib/server-auth";
+export const metadata: Metadata = {
+  title: "Painel",
+  description: "Área interna de gestão da assistência técnica.",
+  robots: { index: false, follow: false },
+};
+
 export default async function PanelLayout({
   children,
 }: {
