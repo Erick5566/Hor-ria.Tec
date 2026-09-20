@@ -3,6 +3,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Brand } from "@/components/brand";
 import SignOutButton from "@/components/sign-out-button";
+import SessionKeeper from "@/components/session-keeper";
 import { getServerAccess } from "@/lib/server-auth";
 
 export const metadata: Metadata = {
@@ -20,8 +21,11 @@ export default async function AdminLayout({
   if (!access) redirect("/entrar?next=/admin");
   if (!access.context.isSuperAdmin)
     redirect(access.context.company ? "/painel" : "/");
+  if (access.aal !== "aal2")
+    redirect("/seguranca/mfa?next=/admin");
   return (
     <div className="admin-workspace">
+      <SessionKeeper />
       <aside className="admin-sidebar">
         <Brand />
         <div className="admin-identity">
