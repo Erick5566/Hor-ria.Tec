@@ -132,7 +132,9 @@ export default function SuperAdminMfa({
       await finish();
     } catch {
       setError(
-        "Código inválido ou expirado. Gere um novo código e tente novamente.",
+        enrollment
+          ? "Código inválido ou expirado. Use o código de 6 dígitos gerado pelo QR Code que está aparecendo nesta tela. Se necessário, clique em Gerar outro QR Code."
+          : "Código inválido ou expirado. Confira se você está usando o autenticador correto desta conta.",
       );
     } finally {
       setBusy(false);
@@ -167,10 +169,12 @@ export default function SuperAdminMfa({
               {!hasVerifiedFactor && !enrollment && (
                 <div className="mfa-setup">
                   <div>
-                    <strong>Configure seu aplicativo autenticador.</strong>
+                    <strong>Gere um novo QR Code para este acesso.</strong>
                     <p className="mfa-note">
-                      Use Google Authenticator, Microsoft Authenticator,
-                      1Password ou outro aplicativo compatível com TOTP.
+                      Escaneie o QR novo no Google Authenticator, Microsoft
+                      Authenticator, 1Password ou outro aplicativo TOTP. Se
+                      existir um cadastro antigo da Horária no celular, remova-o
+                      para não usar o código errado.
                     </p>
                   </div>
                   <button
@@ -178,7 +182,7 @@ export default function SuperAdminMfa({
                     disabled={busy}
                     onClick={startEnrollment}
                   >
-                    {busy ? "Preparando…" : "Ativar 2FA →"}
+                    {busy ? "Preparando…" : "Gerar novo QR Code →"}
                   </button>
                 </div>
               )}
@@ -234,7 +238,7 @@ export default function SuperAdminMfa({
                         disabled={busy}
                         onClick={startEnrollment}
                       >
-                        Gerar novo QR Code
+                        Gerar outro QR Code
                       </button>
                     )}
                   </div>
