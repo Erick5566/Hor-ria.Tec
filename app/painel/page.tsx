@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useId, useMemo, useState } from "react";
 import { useWorkspace } from "@/components/workspace";
 import { Badge, Empty, ErrorBox } from "@/components/ui";
 import { money, type Status } from "@/lib/assistencia";
@@ -74,27 +74,68 @@ function percentageDelta(current: number, previous: number) {
   return Math.round(((current - previous) / previous) * 100);
 }
 
-function sparkPath(values: number[], width = 100, height = 36, padding = 3) {
+type SparkPoint = { x: number; y: number };
+
+function sparkGeometry(
+  values: number[],
+  width = 100,
+  height = 46,
+  padding = 4,
+) {
   const safe = values.length ? values : [0, 0];
   const min = Math.min(...safe);
   const max = Math.max(...safe);
   const range = Math.max(max - min, 1);
 
-  return safe
-    .map((value, index) => {
-      const x =
-        safe.length === 1
-          ? width / 2
-          : padding + (index / (safe.length - 1)) * (width - padding * 2);
-      const y =
-        max === min
-          ? height / 2
-          : height -
-            padding -
-            ((value - min) / range) * (height - padding * 2);
-      return `${index === 0 ? "M" : "L"} ${x.toFixed(2)} ${y.toFixed(2)}`;
-    })
-    .join(" ");
+  const points: SparkPoint[] = safe.map((value, index) => {
+    const x =
+      safe.length === 1
+        ? width / 2
+        : padding + (index / (safe.length - 1)) * (width - padding * 2);
+    const y =
+      max === min
+        ? height / 2
+        : height -
+          padding -
+          ((value - min) / range) * (height - padding * 2);
+    return { x, y };
+  });
+
+  const clampY = (value: number) =>
+    Math.max(padding, Math.min(height - padding, value));
+
+  let line = `M ${points[0].x.toFixed(2)} ${points[0].y.toFixed(2)}`;
+
+  if (points.length === 2) {
+    line += ` L ${points[1].x.toFixed(2)} ${points[1].y.toFixed(2)}`;
+  } else if (points.length > 2) {
+    const tension = 0.78;
+    for (let index = 0; index < points.length - 1; index += 1) {
+      const p0 = points[index - 1] ?? points[index];
+      const p1 = points[index];
+      const p2 = points[index + 1];
+      const p3 = points[index + 2] ?? p2;
+
+      const cp1x = p1.x + ((p2.x - p0.x) / 6) * tension;
+      const cp1y = clampY(p1.y + ((p2.y - p0.y) / 6) * tension);
+      const cp2x = p2.x - ((p3.x - p1.x) / 6) * tension;
+      const cp2y = clampY(p2.y - ((p3.y - p1.y) / 6) * tension);
+
+      line +=
+        ` C ${cp1x.toFixed(2)} ${cp1y.toFixed(2)},` +
+        ` ${cp2x.toFixed(2)} ${cp2y.toFixed(2)},` +
+        ` ${p2.x.toFixed(2)} ${p2.y.toFixed(2)}`;
+    }
+  }
+
+  const first = points[0];
+  const last = points[points.length - 1];
+  const baseline = (height - padding).toFixed(2);
+  const area =
+    `${line} L ${last.x.toFixed(2)} ${baseline}` +
+    ` L ${first.x.toFixed(2)} ${baseline} Z`;
+
+  return { line, area, last };
 }
 
 function KpiSparkline({
@@ -104,10 +145,31 @@ function KpiSparkline({
   values: number[];
   tone: string;
 }) {
+  const rawId = useId();
+  const gradientId = `kpi-${rawId.replace(/:/g, "")}`;
+  const { line, area, last } = sparkGeometry(values);
+
   return (
     <span className={"kpi-trend-v2 " + tone} aria-hidden="true">
-      <svg viewBox="0 0 100 36" preserveAspectRatio="none">
-        <path className="kpi-trend-v2-line" d={sparkPath(values)} />
+      <svg viewBox="0 0 100 46" preserveAspectRatio="none">
+        <defs>
+          <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="currentColor" stopOpacity=".24" />
+            <stop offset="100%" stopColor="currentColor" stopOpacity=".02" />
+          </linearGradient>
+        </defs>
+        <path
+          className="kpi-trend-v2-area"
+          d={area}
+          fill={`url(#${gradientId})`}
+        />
+        <path className="kpi-trend-v2-line" d={line} />
+        <circle
+          className="kpi-trend-v2-dot"
+          cx={last.x}
+          cy={last.y}
+          r="2.35"
+        />
       </svg>
     </span>
   );
