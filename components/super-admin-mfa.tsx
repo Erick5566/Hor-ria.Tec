@@ -170,6 +170,23 @@ export default function SuperAdminMfa({
         code,
       });
       if (result.error) throw result.error;
+
+      // Depois que o fator atual foi verificado, a sessão já está em AAL2.
+      // Limpamos fatores TOTP antigos que ficaram pendentes por tentativas anteriores.
+      const factors = await supabase.auth.mfa.listFactors();
+      if (!factors.error) {
+        for (const factor of factors.data.totp.filter(
+          (item) => item.status !== "verified",
+        )) {
+          const removed = await supabase.auth.mfa.unenroll({
+            factorId: factor.id,
+          });
+          if (removed.error) {
+            console.warn("Não foi possível limpar fator MFA antigo.", removed.error);
+          }
+        }
+      }
+
       await finish();
     } catch {
       setError(
