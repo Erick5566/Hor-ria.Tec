@@ -32,8 +32,10 @@ export default function SuperAdminMfa({
     if (!session.data.session)
       throw new Error("Sua sessão expirou. Entre novamente.");
     await syncServerSession(session.data.session);
-    router.replace(next);
-    router.refresh();
+
+    // Faz uma navegação completa depois de gravar o novo JWT AAL2 no cookie.
+    // Evita uma corrida entre router.replace/router.refresh e o layout SSR.
+    window.location.replace(next);
   }
 
   useEffect(() => {
