@@ -22,16 +22,27 @@ export async function getServerAccess() {
   if (!client) return null;
   const user = await client.auth.getUser(token);
   if (user.error || !user.data.user) return null;
-  const [context, assurance] = await Promise.all([
-    client.rpc("access_context"),
-    client.auth.mfa.getAuthenticatorAssuranceLevel(),
-  ]);
+  const context = await client.rpc("access_context");
   if (context.error || !context.data) return null;
+
+  // O token já foi validado acima por auth.getUser(token).
+  // No SSR não existe uma sessão persistida dentro deste cliente Supabase,
+  // então getAuthenticatorAssuranceLevel() pode enxergar aal1 mesmo quando
+  // o JWT recebido após o TOTP já está em aal2. Isso causava o redirecionamento
+  // /admin -> /seguranca/mfa -> /admin em loop.
+  let aal: "aal1" | "aal2" = "aal1";
+  try {
+    const payload = JSON.parse(
+      Buffer.from(token.split(".")[1], "base64url").toString(),
+    ) as { aal?: string };
+    if (payload.aal === "aal2") aal = "aal2";
+  } catch {}
+
   return {
     token,
     user: user.data.user,
     context: context.data as AccessContext,
-    aal: assurance.error ? "aal1" : assurance.data.currentLevel || "aal1",
+    aal,
     client,
   };
 }
