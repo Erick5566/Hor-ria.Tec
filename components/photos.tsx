@@ -89,67 +89,71 @@ function InlineCamera({
           </button>
         </div>
         {error && <ErrorBox error={error} />}
-        {preview ? (
-          <img className="camera-preview" src={preview} alt="Foto capturada" />
-        ) : (
-          <video
-            ref={video}
-            className="camera-preview"
-            autoPlay
-            muted
-            playsInline
-            onLoadedMetadata={() => setCameraReady(true)}
-            onPlaying={() => setCameraReady(true)}
-          />
-        )}
-        <div className="camera-actions">
+        <div className="camera-stage">
           {preview ? (
-            <>
-              <button
-                type="button"
-                className="outline"
-                onClick={() => {
-                  URL.revokeObjectURL(preview);
-                  setPreview("");
-                  start();
-                }}
-              >
-                Tirar novamente
-              </button>
-              <button
-                type="button"
-                className="primary"
-                onClick={async () => {
-                  const blob = await fetch(preview).then((response) =>
-                    response.blob(),
-                  );
-                  onUse(
-                    new File([blob], `camera-${Date.now()}.jpg`, {
-                      type: "image/jpeg",
-                    }),
-                  );
-                  onClose();
-                }}
-              >
-                Usar esta foto
-              </button>
-            </>
+            <img className="camera-preview" src={preview} alt="Foto capturada" />
           ) : (
-            <button
-              type="button"
-              className="primary camera-shutter"
-              onClick={capture}
-              disabled={!cameraReady}
-              aria-label={cameraReady ? "Tirar foto" : "Aguardando câmera"}
-            >
-              <span className="camera-shutter-icon" aria-hidden="true" />
-              <span className="camera-shutter-copy">
-                <strong>{cameraReady ? "Tirar foto" : "Abrindo câmera…"}</strong>
-                <small>{cameraReady ? "Toque para capturar" : "Aguarde um instante"}</small>
-              </span>
-            </button>
+            <>
+              <video
+                ref={video}
+                className="camera-preview"
+                autoPlay
+                muted
+                playsInline
+                onLoadedMetadata={() => setCameraReady(true)}
+                onPlaying={() => setCameraReady(true)}
+              />
+              <div className="camera-live-action">
+                <button
+                  type="button"
+                  className="primary camera-shutter"
+                  onClick={capture}
+                  disabled={!cameraReady}
+                  aria-label={cameraReady ? "Tirar foto" : "Aguardando câmera"}
+                >
+                  <span className="camera-shutter-icon" aria-hidden="true" />
+                  <span className="camera-shutter-copy">
+                    <strong>{cameraReady ? "Tirar foto" : "Abrindo câmera…"}</strong>
+                    <small>{cameraReady ? "Toque para capturar" : "Aguarde um instante"}</small>
+                  </span>
+                </button>
+              </div>
+            </>
           )}
         </div>
+
+        {preview && (
+          <div className="camera-actions">
+            <button
+              type="button"
+              className="outline"
+              onClick={() => {
+                URL.revokeObjectURL(preview);
+                setPreview("");
+                start();
+              }}
+            >
+              Tirar novamente
+            </button>
+            <button
+              type="button"
+              className="primary"
+              onClick={async () => {
+                const blob = await fetch(preview).then((response) =>
+                  response.blob(),
+                );
+                onUse(
+                  new File([blob], `camera-${Date.now()}.jpg`, {
+                    type: "image/jpeg",
+                  }),
+                );
+                onClose();
+              }}
+            >
+              Usar esta foto
+            </button>
+          </div>
+        )}
       </section>
     </div>
   );
