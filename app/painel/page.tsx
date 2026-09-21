@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useId, useMemo, useState } from "react";
 import { useWorkspace } from "@/components/workspace";
 import { Badge, Empty, ErrorBox } from "@/components/ui";
@@ -184,11 +185,11 @@ function formatShortDate(value: string) {
 
 export default function Overview() {
   const { empresa, periodStart, periodEnd } = useWorkspace();
+  const router = useRouter();
   const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [statusFilter, setStatusFilter] = useState("todos");
-  const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
 
   const load = useCallback(
     async (silent = false) => {
@@ -637,19 +638,18 @@ export default function Overview() {
                 </thead>
                 <tbody>
                   {data.latestOrders.map((order) => {
-                    const selected = selectedOrderId === order.id;
+                    const orderHref = "/painel/ordens/" + order.id;
                     return (
                       <tr
                         key={order.id}
-                        className={selected ? "dashboard-order-row is-selected" : "dashboard-order-row"}
+                        className="dashboard-order-row"
                         tabIndex={0}
-                        aria-selected={selected}
-                        onClick={() => setSelectedOrderId(order.id)}
-                        onFocus={() => setSelectedOrderId(order.id)}
+                        aria-label={`Abrir ordem #${order.numero}`}
+                        onClick={() => router.push(orderHref)}
                         onKeyDown={(event) => {
                           if (event.key === "Enter" || event.key === " ") {
                             event.preventDefault();
-                            setSelectedOrderId(order.id);
+                            router.push(orderHref);
                           }
                         }}
                       >
@@ -660,7 +660,7 @@ export default function Overview() {
                         <td>{new Date(order.criado_em).toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" })}</td>
                         <td className="dashboard-order-action">
                           <Link
-                            href={"/painel/ordens/" + order.id}
+                            href={orderHref}
                             onClick={(event) => event.stopPropagation()}
                             aria-label={`Abrir ordem #${order.numero}`}
                           >
