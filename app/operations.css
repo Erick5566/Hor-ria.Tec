@@ -8222,3 +8222,579 @@ button.danger,
     padding: 7px;
   }
 }
+
+
+/* Mobile app density and responsive fit v1 */
+@media (min-width: 761px) and (max-width: 1024px) {
+  .module-heading {
+    margin-bottom: 17px;
+  }
+
+  .module-heading h1 {
+    font-size: clamp(1.8rem, 4vw, 2.35rem);
+  }
+
+  .orders-summary {
+    gap: 10px;
+  }
+
+  .orders-summary-card {
+    gap: 10px;
+    padding: 14px;
+  }
+
+  .orders-summary-icon {
+    width: 40px;
+    height: 40px;
+    flex-basis: 40px;
+  }
+
+  .records-editor,
+  .catalog-editor {
+    margin-inline: 14px;
+    padding: 16px;
+  }
+}
+
+@media (max-width: 760px) {
+  /* Shared modules */
+  .module-heading,
+  .unified-pro .module-heading {
+    margin-bottom: 13px;
+  }
+
+  .module-heading h1,
+  .unified-pro .module-heading h1 {
+    margin: 3px 0 5px;
+    font-size: clamp(1.5rem, 7vw, 1.85rem);
+    line-height: 1.05;
+    letter-spacing: -.035em;
+  }
+
+  .module-heading p,
+  .unified-pro .module-heading p {
+    margin: 0;
+    font-size: .75rem;
+    line-height: 1.45;
+  }
+
+  .module-heading .eyebrow {
+    font-size: .55rem;
+    letter-spacing: .1em;
+  }
+
+  .module-heading .primary {
+    min-height: 42px;
+    padding: 9px 13px;
+    font-size: .7rem;
+  }
+
+  .module .panel,
+  .unified-pro .panel {
+    padding: 13px 11px;
+    border-radius: 12px;
+  }
+
+  .module .panel h2,
+  .unified-pro .panel h2 {
+    font-size: 1rem;
+    line-height: 1.2;
+  }
+
+  .module .panel h3,
+  .unified-pro .panel h3 {
+    font-size: .82rem;
+  }
+
+  .module .hint,
+  .module .subtle,
+  .module .panel p {
+    font-size: .7rem;
+    line-height: 1.45;
+  }
+
+  .form-grid,
+  .definition-grid {
+    gap: 11px;
+  }
+
+  .form-actions {
+    gap: 8px;
+  }
+
+  .form-actions button,
+  .form-actions .primary,
+  .form-actions .outline,
+  .upload-actions button,
+  .upload-actions label,
+  .tabs button {
+    min-height: 42px;
+  }
+
+  /* Dashboard */
+  .dashboard-reference {
+    padding: 10px 8px 22px;
+  }
+
+  .dashboard-reference .dashboard-hero {
+    gap: 8px;
+    margin-bottom: 9px;
+  }
+
+  .dashboard-reference .dashboard-welcome {
+    margin-bottom: 2px;
+    font-size: .64rem;
+  }
+
+  .dashboard-reference .dashboard-reference-heading h1,
+  .dashboard-reference-heading h1 {
+    font-size: clamp(1.65rem, 7.5vw, 2rem);
+    line-height: 1;
+  }
+
+  .dashboard-reference .dashboard-reference-heading p,
+  .dashboard-reference-heading p {
+    margin-top: 4px;
+    font-size: .7rem;
+    line-height: 1.4;
+  }
+
+  .dashboard-reference .dashboard-hero {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .dashboard-reference .dashboard-heading-wrap {
+    grid-column: 1 / -1;
+  }
+
+  .dashboard-reference .dashboard-hero > .dashboard-new-order,
+  .dashboard-reference .dashboard-hero > .dashboard-callout {
+    width: 100%;
+    min-width: 0;
+    max-width: none;
+    height: 52px;
+    min-height: 52px;
+    max-height: 52px;
+  }
+
+  .dashboard-reference .dashboard-hero > .dashboard-new-order {
+    padding-inline: 10px;
+    font-size: .66rem;
+  }
+
+  .dashboard-reference .dashboard-hero > .dashboard-new-order span {
+    font-size: 1rem;
+  }
+
+  .dashboard-reference .dashboard-hero > .dashboard-callout {
+    grid-template-columns: 27px minmax(0, 1fr) 8px;
+    gap: 5px;
+    padding: 7px 8px;
+  }
+
+  .dashboard-reference .dashboard-hero > .dashboard-callout .dashboard-callout-icon {
+    width: 27px;
+    height: 27px;
+    flex-basis: 27px;
+    font-size: 12px;
+  }
+
+  .dashboard-reference .dashboard-hero > .dashboard-callout strong {
+    font-size: .52rem;
+    line-height: 1.15;
+  }
+
+  .dashboard-reference .dashboard-kpis {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 7px;
+    margin-bottom: 9px;
+  }
+
+  .dashboard-reference .dashboard-kpi {
+    min-height: 96px;
+    padding: 9px;
+    border-radius: 11px;
+  }
+
+  .dashboard-reference .dashboard-kpi-top {
+    gap: 6px;
+  }
+
+  .dashboard-reference .dashboard-kpi-icon {
+    width: 30px;
+    height: 30px;
+    flex-basis: 30px;
+    border-radius: 9px;
+    font-size: 13px;
+  }
+
+  .dashboard-reference .dashboard-kpi-top > span:last-child {
+    font-size: .56rem;
+    line-height: 1.15;
+  }
+
+  .dashboard-reference .dashboard-kpi-value {
+    gap: 5px;
+    margin-top: 7px;
+  }
+
+  .dashboard-reference .dashboard-kpi-value strong {
+    font-size: 1.28rem;
+  }
+
+  .dashboard-reference .kpi-trend-v2 {
+    width: 60px;
+    min-width: 54px;
+    height: 28px;
+  }
+
+  .dashboard-reference .dashboard-trend-note {
+    gap: 3px;
+    margin-top: 5px;
+  }
+
+  .dashboard-reference .dashboard-trend-note b {
+    font-size: .56rem;
+  }
+
+  .dashboard-reference .dashboard-trend-note small {
+    font-size: .49rem;
+  }
+
+  .dashboard-reference .dashboard-analytics,
+  .dashboard-reference .dashboard-bottom {
+    gap: 8px;
+    margin-bottom: 8px;
+  }
+
+  .dashboard-reference .dashboard-card,
+  .dashboard-reference .dashboard-bottom > .dashboard-card {
+    padding: 10px;
+    border-radius: 12px;
+  }
+
+  .dashboard-reference .dashboard-card-head {
+    gap: 7px;
+    margin-bottom: 8px;
+  }
+
+  .dashboard-reference .dashboard-card-head h2 {
+    font-size: .76rem;
+  }
+
+  .dashboard-reference .dashboard-card-head p,
+  .dashboard-reference .dashboard-card-head > a,
+  .dashboard-reference .dashboard-bottom .dashboard-card-head a {
+    font-size: .62rem;
+  }
+
+  .dashboard-reference .dashboard-performance-list {
+    gap: 7px;
+  }
+
+  .dashboard-reference .dashboard-performance-list article {
+    min-height: 52px;
+    padding: 8px 9px;
+  }
+
+  .dashboard-reference .dashboard-performance-list article > span {
+    width: 32px;
+    height: 32px;
+    flex-basis: 32px;
+    font-size: 14px;
+  }
+
+  .dashboard-reference .dashboard-performance-list small {
+    font-size: .61rem;
+  }
+
+  .dashboard-reference .dashboard-performance-list strong {
+    font-size: .9rem;
+  }
+
+  .dashboard-reference .dashboard-performance-list em {
+    font-size: .56rem;
+  }
+
+  .dashboard-reference .dashboard-agenda-list,
+  .dashboard-reference .dashboard-priority-list {
+    min-height: 0;
+  }
+
+  .dashboard-reference .dashboard-agenda-list > a,
+  .dashboard-reference .dashboard-priority-list > a {
+    padding: 7px 0;
+    gap: 6px;
+  }
+
+  .dashboard-reference .dashboard-agenda-list > a > strong,
+  .dashboard-reference .dashboard-agenda-list b,
+  .dashboard-reference .dashboard-priority-list > a > strong,
+  .dashboard-reference .dashboard-priority-list b,
+  .dashboard-reference .dashboard-priority-list em {
+    font-size: .65rem;
+  }
+
+  .dashboard-reference .dashboard-agenda-list small {
+    font-size: .58rem;
+  }
+
+  .dashboard-reference .priority-chip {
+    min-width: 58px;
+    padding: 4px 6px;
+    font-size: .56rem;
+  }
+
+  /* Dashboard latest-orders table becomes a true phone table */
+  .dashboard-reference .dashboard-table {
+    overflow: visible;
+  }
+
+  .dashboard-reference .dashboard-table table {
+    min-width: 0;
+    width: 100%;
+    table-layout: fixed;
+  }
+
+  .dashboard-reference .dashboard-table th,
+  .dashboard-reference .dashboard-table td {
+    padding: 7px 6px;
+    font-size: .62rem;
+  }
+
+  .dashboard-reference .dashboard-table th:nth-child(3),
+  .dashboard-reference .dashboard-table td:nth-child(3),
+  .dashboard-reference .dashboard-table th:nth-child(5),
+  .dashboard-reference .dashboard-table td:nth-child(5),
+  .dashboard-reference .dashboard-table th:nth-child(6),
+  .dashboard-reference .dashboard-table td:nth-child(6) {
+    display: none;
+  }
+
+  .dashboard-reference .dashboard-table th:nth-child(1),
+  .dashboard-reference .dashboard-table td:nth-child(1) {
+    width: 18%;
+  }
+
+  .dashboard-reference .dashboard-table th:nth-child(2),
+  .dashboard-reference .dashboard-table td:nth-child(2) {
+    width: 45%;
+  }
+
+  .dashboard-reference .dashboard-table th:nth-child(4),
+  .dashboard-reference .dashboard-table td:nth-child(4) {
+    width: 37%;
+  }
+
+  .dashboard-reference .dashboard-table .status-pill {
+    max-width: 100%;
+    padding: 4px 6px;
+    font-size: .54rem;
+    white-space: nowrap;
+  }
+
+  /* Service orders */
+  .orders-summary {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 7px;
+    margin-bottom: 10px;
+  }
+
+  .orders-summary-card,
+  .orders-summary-card:last-child {
+    grid-column: auto;
+    min-height: 74px;
+    gap: 8px;
+    padding: 10px;
+    border-radius: 11px;
+  }
+
+  .orders-summary-card:last-child {
+    grid-column: 1 / -1;
+  }
+
+  .orders-summary-icon {
+    width: 34px;
+    height: 34px;
+    flex: 0 0 34px;
+    border-radius: 10px;
+    font-size: 15px;
+  }
+
+  .orders-summary-card strong {
+    font-size: 1.15rem;
+  }
+
+  .orders-summary-card b {
+    margin-top: 3px;
+    font-size: .64rem;
+  }
+
+  .orders-summary-card small {
+    margin-top: 2px;
+    font-size: .55rem;
+  }
+
+  .orders-filters-card {
+    margin-bottom: 10px;
+    padding: 11px;
+  }
+
+  .orders-search-row,
+  .orders-filter-grid {
+    gap: 8px;
+  }
+
+  .orders-filter-grid {
+    margin-top: 8px;
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .orders-search input,
+  .orders-clear,
+  .orders-filter-grid select {
+    min-height: 40px;
+  }
+
+  .orders-filter-grid label {
+    gap: 4px;
+  }
+
+  .orders-filter-grid label > span {
+    font-size: .6rem;
+  }
+
+  .orders-table-head {
+    gap: 8px;
+    padding: 10px 11px;
+  }
+
+  .orders-table-head > strong {
+    font-size: .7rem;
+  }
+
+  .orders-table-head label {
+    gap: 6px;
+  }
+
+  .orders-table-head select {
+    min-height: 38px;
+  }
+
+  .orders-mobile-cards {
+    gap: 8px;
+    padding: 9px;
+  }
+
+  .orders-mobile-card,
+  .mobile-order {
+    gap: 8px;
+    padding: 11px;
+    border-radius: 10px;
+  }
+
+  .orders-mobile-person {
+    gap: 8px;
+  }
+
+  .orders-mobile-person > span {
+    width: 30px;
+    height: 30px;
+    flex: 0 0 30px;
+  }
+
+  .orders-mobile-person strong {
+    font-size: .7rem;
+  }
+
+  .orders-mobile-person small,
+  .orders-mobile-meta > span:not(.orders-priority) {
+    font-size: .59rem;
+  }
+
+  .orders-mobile-problem {
+    font-size: .64rem !important;
+    line-height: 1.4;
+  }
+
+  .orders-mobile-meta {
+    gap: 6px;
+    padding-top: 7px;
+  }
+
+  .orders-mobile-meta > strong {
+    font-size: .65rem;
+  }
+
+  .orders-priority {
+    min-width: 50px;
+    padding: 4px 6px;
+    font-size: .56rem;
+  }
+
+  /* Management screens */
+  .records-kpis,
+  .quotes-kpis,
+  .catalog-kpis,
+  .agenda-kpis,
+  .catalog-ideas {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+  }
+
+  .records-editor,
+  .catalog-editor {
+    margin: 0 9px 9px;
+    padding: 12px;
+  }
+
+  .records-editor-head,
+  .catalog-editor-head {
+    gap: 9px;
+    margin-bottom: 11px;
+    padding-bottom: 9px;
+  }
+
+  .records-actions,
+  .catalog-actions,
+  .agenda-hero-actions {
+    gap: 8px;
+  }
+
+  .photos-grid {
+    gap: 8px;
+  }
+}
+
+@media (max-width: 420px) {
+  .dashboard-reference .dashboard-kpis {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .dashboard-reference .dashboard-kpi {
+    min-height: 92px;
+    padding: 8px;
+  }
+
+  .dashboard-reference .kpi-trend-v2 {
+    width: 52px;
+    min-width: 48px;
+    height: 26px;
+  }
+
+  .dashboard-reference .dashboard-kpi-value strong {
+    font-size: 1.18rem;
+  }
+
+  .orders-filter-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .records-kpis,
+  .quotes-kpis,
+  .catalog-kpis,
+  .agenda-kpis,
+  .catalog-ideas {
+    grid-template-columns: 1fr 1fr;
+  }
+}
