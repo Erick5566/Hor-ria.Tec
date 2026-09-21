@@ -8037,3 +8037,137 @@ button.danger,
     width: 100%;
   }
 }
+
+
+/* Compact orders table spacing */
+.orders-pro .orders-table-wrap {
+  overflow-x: auto;
+}
+
+.orders-pro .orders-table {
+  width: 100%;
+  min-width: 1040px;
+  table-layout: fixed;
+}
+
+.orders-pro .orders-table th,
+.orders-pro .orders-table td {
+  padding-left: 8px;
+  padding-right: 8px;
+}
+
+.orders-pro .orders-table th {
+  padding-top: 9px;
+  padding-bottom: 9px;
+}
+
+.orders-pro .orders-table td {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  vertical-align: middle;
+}
+
+/* Controlled widths keep columns close without crushing content */
+.orders-pro .orders-table th:nth-child(1),
+.orders-pro .orders-table td:nth-child(1) {
+  width: 58px;
+}
+
+.orders-pro .orders-table th:nth-child(2),
+.orders-pro .orders-table td:nth-child(2) {
+  width: 132px;
+}
+
+.orders-pro .orders-table th:nth-child(3),
+.orders-pro .orders-table td:nth-child(3) {
+  width: 112px;
+}
+
+.orders-pro .orders-table th:nth-child(4),
+.orders-pro .orders-table td:nth-child(4) {
+  width: 150px;
+}
+
+.orders-pro .orders-table th:nth-child(5),
+.orders-pro .orders-table td:nth-child(5) {
+  width: 126px;
+}
+
+.orders-pro .orders-table th:nth-child(6),
+.orders-pro .orders-table td:nth-child(6) {
+  width: 84px;
+}
+
+.orders-pro .orders-table th:nth-child(7),
+.orders-pro .orders-table td:nth-child(7) {
+  width: 116px;
+}
+
+.orders-pro .orders-table th:nth-child(8),
+.orders-pro .orders-table td:nth-child(8) {
+  width: 94px;
+}
+
+.orders-pro .orders-table th:nth-child(9),
+.orders-pro .orders-table td:nth-child(9) {
+  width: 154px;
+}
+
+.orders-pro .orders-table th:nth-child(10),
+.orders-pro .orders-table td:nth-child(10) {
+  width: 68px;
+}
+
+.orders-pro .orders-person,
+.orders-pro .orders-tech {
+  min-width: 0;
+  gap: 6px;
+}
+
+.orders-pro .orders-person > span,
+.orders-pro .orders-tech > span {
+  width: 26px;
+  height: 26px;
+  flex: 0 0 26px;
+}
+
+.orders-pro .orders-person strong,
+.orders-pro .orders-tech strong,
+.orders-pro .orders-device strong,
+.orders-pro .orders-device small,
+.orders-pro .orders-problem {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.orders-pro .orders-problem {
+  max-width: 100%;
+}
+
+.orders-pro .orders-priority {
+  min-width: 54px;
+  padding: 4px 7px;
+}
+
+.orders-pro .orders-open-link {
+  white-space: nowrap;
+}
+
+@media (min-width: 1280px) {
+  .orders-pro .orders-table {
+    min-width: 1000px;
+  }
+}
+
+@media (min-width: 701px) and (max-width: 1024px) {
+  .orders-pro .orders-table {
+    min-width: 980px;
+  }
+
+  .orders-pro .orders-table th,
+  .orders-pro .orders-table td {
+    padding-left: 7px;
+    padding-right: 7px;
+  }
+}
