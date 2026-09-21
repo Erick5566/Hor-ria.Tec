@@ -7837,3 +7837,182 @@ button.danger,
     bottom: max(20px, env(safe-area-inset-bottom));
   }
 }
+
+
+/* Camera responsive compact sizing */
+.camera-backdrop-portal {
+  padding: 16px !important;
+}
+
+.camera-backdrop-portal .camera-sheet {
+  width: min(620px, calc(100vw - 32px));
+  height: min(78dvh, 680px);
+  max-height: min(78dvh, 680px);
+  padding: 16px;
+  border-radius: 18px;
+  grid-template-rows: auto auto minmax(0, 1fr) auto;
+}
+
+.camera-backdrop-portal .camera-sheet .panel-head {
+  margin-bottom: 12px;
+}
+
+.camera-backdrop-portal .camera-sheet .panel-head h2 {
+  font-size: 1.45rem;
+}
+
+.camera-backdrop-portal .camera-sheet .panel-head p {
+  margin-top: 4px;
+  font-size: .82rem;
+}
+
+.camera-backdrop-portal .camera-stage {
+  width: 100%;
+  height: 100%;
+  min-height: 260px;
+  max-height: 510px;
+  border-radius: 13px;
+}
+
+.camera-backdrop-portal .camera-stage .camera-preview {
+  width: 100%;
+  height: 100%;
+  max-height: 510px;
+  object-fit: contain;
+}
+
+.camera-backdrop-portal .camera-live-action {
+  bottom: 14px;
+  width: min(78%, 280px);
+}
+
+.camera-backdrop-portal .camera-shutter {
+  min-height: 52px;
+  padding: 8px 14px;
+}
+
+.camera-backdrop-portal .camera-shutter-icon {
+  width: 30px;
+  height: 30px;
+  flex-basis: 30px;
+}
+
+.camera-backdrop-portal .camera-shutter-copy strong {
+  font-size: .84rem;
+}
+
+.camera-backdrop-portal .camera-shutter-copy small {
+  font-size: .61rem;
+}
+
+/* Tablet */
+@media (min-width: 701px) and (max-width: 1024px) {
+  .camera-backdrop-portal {
+    padding: 14px !important;
+  }
+
+  .camera-backdrop-portal .camera-sheet {
+    width: min(590px, calc(100vw - 28px));
+    height: min(80dvh, 660px);
+    max-height: min(80dvh, 660px);
+    padding: 15px;
+  }
+
+  .camera-backdrop-portal .camera-stage {
+    min-height: 300px;
+    max-height: 500px;
+  }
+
+  .camera-backdrop-portal .camera-stage .camera-preview {
+    max-height: 500px;
+  }
+
+  .camera-backdrop-portal .camera-live-action {
+    width: min(80%, 290px);
+  }
+}
+
+/* Celular */
+@media (max-width: 700px) {
+  .camera-backdrop-portal {
+    padding: 10px !important;
+    place-items: center !important;
+    align-items: center !important;
+  }
+
+  .camera-backdrop-portal .camera-sheet {
+    width: min(520px, calc(100vw - 20px));
+    height: min(84dvh, 640px);
+    min-height: 0;
+    max-height: min(84dvh, 640px);
+    padding: 12px;
+    border-radius: 18px;
+  }
+
+  .camera-backdrop-portal .camera-sheet .panel-head {
+    margin-bottom: 9px;
+  }
+
+  .camera-backdrop-portal .camera-sheet .panel-head h2 {
+    font-size: 1.2rem;
+  }
+
+  .camera-backdrop-portal .camera-sheet .panel-head p {
+    font-size: .74rem;
+  }
+
+  .camera-backdrop-portal .camera-stage {
+    min-height: 220px;
+    height: 100%;
+    max-height: none;
+    border-radius: 12px;
+  }
+
+  .camera-backdrop-portal .camera-stage .camera-preview {
+    height: 100%;
+    max-height: none;
+    object-fit: cover;
+  }
+
+  .camera-backdrop-portal .camera-live-action {
+    bottom: max(12px, env(safe-area-inset-bottom));
+    width: min(88%, 300px);
+  }
+
+  .camera-backdrop-portal .camera-shutter {
+    min-height: 54px;
+  }
+}
+
+/* Celulares baixos / modo paisagem */
+@media (max-height: 620px) {
+  .camera-backdrop-portal {
+    padding: 8px !important;
+  }
+
+  .camera-backdrop-portal .camera-sheet {
+    height: 94dvh;
+    max-height: 94dvh;
+    padding: 10px;
+  }
+
+  .camera-backdrop-portal .camera-sheet .panel-head {
+    margin-bottom: 6px;
+  }
+
+  .camera-backdrop-portal .camera-sheet .panel-head h2 {
+    font-size: 1.05rem;
+  }
+
+  .camera-backdrop-portal .camera-sheet .panel-head p {
+    display: none;
+  }
+
+  .camera-backdrop-portal .camera-stage {
+    min-height: 0;
+  }
+
+  .camera-backdrop-portal .camera-live-action {
+    bottom: 10px;
+  }
+}
