@@ -188,6 +188,7 @@ export default function Overview() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [statusFilter, setStatusFilter] = useState("todos");
+  const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
 
   const load = useCallback(
     async (silent = false) => {
@@ -635,16 +636,41 @@ export default function Overview() {
                   </tr>
                 </thead>
                 <tbody>
-                  {data.latestOrders.map((order) => (
-                    <tr key={order.id}>
-                      <td>#{order.numero}</td>
-                      <td>{order.cliente_nome}</td>
-                      <td>{order.equipamento_modelo}</td>
-                      <td><Badge status={order.status} /></td>
-                      <td>{new Date(order.criado_em).toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" })}</td>
-                      <td><Link href={"/painel/ordens/" + order.id}>⋮</Link></td>
-                    </tr>
-                  ))}
+                  {data.latestOrders.map((order) => {
+                    const selected = selectedOrderId === order.id;
+                    return (
+                      <tr
+                        key={order.id}
+                        className={selected ? "dashboard-order-row is-selected" : "dashboard-order-row"}
+                        tabIndex={0}
+                        aria-selected={selected}
+                        onClick={() => setSelectedOrderId(order.id)}
+                        onFocus={() => setSelectedOrderId(order.id)}
+                        onKeyDown={(event) => {
+                          if (event.key === "Enter" || event.key === " ") {
+                            event.preventDefault();
+                            setSelectedOrderId(order.id);
+                          }
+                        }}
+                      >
+                        <td>#{order.numero}</td>
+                        <td>{order.cliente_nome}</td>
+                        <td>{order.equipamento_modelo}</td>
+                        <td><Badge status={order.status} /></td>
+                        <td>{new Date(order.criado_em).toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" })}</td>
+                        <td className="dashboard-order-action">
+                          <Link
+                            href={"/painel/ordens/" + order.id}
+                            onClick={(event) => event.stopPropagation()}
+                            aria-label={`Abrir ordem #${order.numero}`}
+                          >
+                            <span>Abrir</span>
+                            <b aria-hidden="true">→</b>
+                          </Link>
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
