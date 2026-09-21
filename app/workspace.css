@@ -3488,3 +3488,148 @@ tbody tr:hover td {
     animation: none;
   }
 }
+
+
+/* Mobile density and fit v1 */
+@media (min-width: 761px) and (max-width: 1024px) {
+  .module {
+    padding: 20px 18px 32px;
+  }
+
+  .workspace-top {
+    padding-inline: 16px;
+  }
+
+  .workspace-breadcrumbs {
+    padding-inline: 18px;
+  }
+}
+
+@media (max-width: 760px) {
+  .workspace {
+    font-size: 13px;
+  }
+
+  .mobile-top {
+    min-height: 56px;
+    height: 56px;
+    padding: 9px 12px;
+  }
+
+  .mobile-top .brand-logo {
+    width: 68px;
+  }
+
+  .mobile-top button {
+    min-width: 40px;
+    min-height: 40px;
+    padding: 6px 8px;
+    font-size: 20px;
+  }
+
+  .main-sidebar {
+    top: 56px;
+    width: min(84vw, 278px);
+    height: calc(100dvh - 56px);
+  }
+
+  .workspace-top {
+    min-height: 56px;
+    height: 56px;
+    gap: 7px;
+    padding: 7px 10px;
+  }
+
+  .workspace-global-search input {
+    min-height: 40px;
+    height: 40px;
+    padding: 8px 10px 8px 37px;
+    border-radius: 10px;
+    font-size: 16px;
+  }
+
+  .workspace-global-search > span {
+    left: 12px;
+    font-size: 17px;
+  }
+
+  .workspace-top-context {
+    gap: 5px;
+  }
+
+  .workspace-date-chip,
+  .workspace-alert-button,
+  .workspace-profile-chip {
+    width: 40px;
+    min-width: 40px;
+    height: 40px;
+    min-height: 40px;
+    border-radius: 10px;
+  }
+
+  .workspace-profile-chip {
+    padding: 4px;
+  }
+
+  .workspace-profile-chip > span {
+    width: 30px;
+    height: 30px;
+    flex-basis: 30px;
+    font-size: .62rem;
+  }
+
+  .workspace-breadcrumbs {
+    min-height: 28px;
+    gap: 5px;
+    padding: 4px 10px 0;
+    font-size: .54rem;
+  }
+
+  .module {
+    width: 100%;
+    min-width: 0;
+    padding: 14px 10px 26px;
+  }
+
+  .workspace-popover,
+  .workspace-period-popover,
+  .workspace-alert-popover {
+    top: 116px;
+    right: 8px;
+    left: 8px;
+    max-height: calc(100dvh - 128px);
+  }
+
+  .data-pagination {
+    gap: 9px;
+    padding-top: 11px;
+    font-size: .62rem;
+  }
+
+  .data-pagination button {
+    min-height: 40px;
+    padding: 8px 10px;
+  }
+}
+
+@media (max-width: 420px) {
+  .workspace-top {
+    padding-inline: 8px;
+  }
+
+  .workspace-global-search input {
+    padding-left: 34px;
+  }
+
+  .workspace-date-chip,
+  .workspace-alert-button {
+    width: 38px;
+    min-width: 38px;
+    height: 38px;
+    min-height: 38px;
+  }
+
+  .module {
+    padding-inline: 8px;
+  }
+}
