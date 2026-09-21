@@ -7556,3 +7556,44 @@ button.danger,
     font-size: .64rem;
   }
 }
+
+
+/* Dashboard order row reliable links */
+.dashboard-reference .dashboard-order-row > td:not(.dashboard-order-action) {
+  padding: 0;
+}
+
+.dashboard-reference .dashboard-order-cell-link {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  min-height: 42px;
+  padding: 10px 11px;
+  color: inherit;
+  text-decoration: none;
+}
+
+.dashboard-reference .dashboard-order-cell-link:focus-visible {
+  position: relative;
+  z-index: 2;
+  outline: 2px solid #2688ff;
+  outline-offset: -2px;
+  border-radius: 6px;
+}
+
+.dashboard-reference .dashboard-order-row:hover td,
+.dashboard-reference .dashboard-order-row:focus-within td {
+  background: #f2f7ff;
+}
+
+.dashboard-reference .dashboard-order-row:hover td:first-child,
+.dashboard-reference .dashboard-order-row:focus-within td:first-child {
+  box-shadow: inset 3px 0 0 #2a7fff;
+}
+
+@media (max-width: 560px) {
+  .dashboard-reference .dashboard-order-cell-link {
+    min-height: 40px;
+    padding: 9px 10px;
+  }
+}
