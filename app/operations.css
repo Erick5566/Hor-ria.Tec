@@ -8171,3 +8171,54 @@ button.danger,
     padding-right: 7px;
   }
 }
+
+
+/* Clickable service order rows */
+.orders-pro .orders-clickable-row {
+  cursor: pointer;
+}
+
+.orders-pro .orders-clickable-row > td:not(:last-child) {
+  padding: 0;
+}
+
+.orders-pro .orders-cell-link {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  min-height: 44px;
+  padding: 8px;
+  color: inherit;
+  text-decoration: none;
+}
+
+.orders-pro .orders-status-link {
+  align-items: flex-start;
+  justify-content: center;
+  flex-direction: column;
+}
+
+.orders-pro .orders-clickable-row:hover td,
+.orders-pro .orders-clickable-row:focus-within td {
+  background: #f5f9ff;
+}
+
+.orders-pro .orders-clickable-row:hover td:first-child,
+.orders-pro .orders-clickable-row:focus-within td:first-child {
+  box-shadow: inset 3px 0 0 #1261ff;
+}
+
+.orders-pro .orders-cell-link:focus-visible {
+  position: relative;
+  z-index: 2;
+  outline: 2px solid #1261ff;
+  outline-offset: -2px;
+  border-radius: 6px;
+}
+
+@media (min-width: 701px) and (max-width: 1024px) {
+  .orders-pro .orders-cell-link {
+    min-height: 42px;
+    padding: 7px;
+  }
+}
