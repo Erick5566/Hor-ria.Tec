@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useRef, useState, useCallback } from "react";
+import { createPortal } from "react-dom";
 import { PendingPhoto, preparePhoto, uploadPhotos } from "@/lib/photos";
 import { Foto, photoCategories, stamp } from "@/lib/assistencia";
 import { supabase, message } from "@/lib/supabase";
@@ -38,8 +39,12 @@ function InlineCamera({
 
   useEffect(() => {
     start();
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+
     return () => {
       stream.current?.getTracks().forEach((track) => track.stop());
+      document.body.style.overflow = previousOverflow;
     };
   }, [start]);
 
@@ -66,9 +71,11 @@ function InlineCamera({
     setPreview(URL.createObjectURL(blob));
   }
 
-  return (
+  if (typeof document === "undefined") return null;
+
+  return createPortal(
     <div
-      className="camera-backdrop"
+      className="camera-backdrop camera-backdrop-portal"
       role="dialog"
       aria-modal="true"
       aria-label="Câmera"
@@ -155,7 +162,8 @@ function InlineCamera({
           </div>
         )}
       </section>
-    </div>
+    </div>,
+    document.body,
   );
 }
 export function PhotoPicker({
