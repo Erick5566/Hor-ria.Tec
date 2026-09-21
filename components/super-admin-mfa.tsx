@@ -81,19 +81,56 @@ export default function SuperAdminMfa({
     if (!supabase) return;
     setBusy(true);
     setError("");
+
+    // Nunca deixe um QR antigo visível enquanto tentamos gerar outro.
+    // Isso evita que o usuário escaneie um fator que acabou de ser substituído.
+    setEnrollment(null);
+    setFactorId("");
+    setCode("");
+
     try {
+      const session = await supabase.auth.getSession();
+      if (session.error) throw session.error;
+      if (!session.data.session) {
+        throw new Error("SESSION_EXPIRED");
+      }
+
       const factors = await supabase.auth.mfa.listFactors();
       if (factors.error) throw factors.error;
 
       for (const factor of factors.data.totp.filter(
         (item) => item.status !== "verified",
       )) {
-        await supabase.auth.mfa.unenroll({ factorId: factor.id });
+        const removed = await supabase.auth.mfa.unenroll({
+          factorId: factor.id,
+        });
+
+        if (removed.error) {
+          // Uma sessão antiga pode falhar ao remover um fator pendente.
+          // Atualizamos o token e tentamos uma vez; se ainda falhar,
+          // seguimos com um nome único para não bloquear um novo QR.
+          const refreshed = await supabase.auth.refreshSession();
+          if (!refreshed.error && refreshed.data.session) {
+            const retry = await supabase.auth.mfa.unenroll({
+              factorId: factor.id,
+            });
+            if (retry.error) {
+              console.warn("Não foi possível limpar fator MFA pendente.", retry.error);
+            }
+          } else {
+            console.warn(
+              "Não foi possível atualizar a sessão para limpar MFA pendente.",
+              removed.error,
+            );
+          }
+        }
       }
 
       const result = await supabase.auth.mfa.enroll({
         factorType: "totp",
-        friendlyName: "Horária SUPER_ADMIN",
+        // O Supabase exige friendly_name único por usuário.
+        // Um nome único impede que um fator pendente antigo bloqueie o novo QR.
+        friendlyName: `Horária SUPER_ADMIN ${new Date().toISOString()}`,
       });
       if (result.error) throw result.error;
 
@@ -103,10 +140,14 @@ export default function SuperAdminMfa({
         secret: result.data.totp.secret,
       });
       setFactorId(result.data.id);
-      setCode("");
-    } catch {
+    } catch (cause) {
+      console.error("Falha ao iniciar MFA do SUPER_ADMIN.", cause);
+      const message = cause instanceof Error ? cause.message : "";
+
       setError(
-        "Não foi possível iniciar o 2FA. Confira se MFA está permitido no Supabase Auth.",
+        message === "SESSION_EXPIRED"
+          ? "Sua sessão expirou. Entre novamente para gerar um novo QR Code."
+          : "Não foi possível gerar um novo QR Code. Atualize a página e tente novamente. O QR anterior não deve ser usado.",
       );
     } finally {
       setBusy(false);
