@@ -6280,15 +6280,28 @@ button.danger,
 }
 
 
-/* KPI trend v2 — isolated renderer to eliminate the old crossed-line artwork */
+/* KPI trend v3 — visible, smooth and data-driven realtime sparklines */
+.dashboard-reference .dashboard-kpi-value {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+
+.dashboard-reference .dashboard-kpi-value > strong {
+  flex: 0 0 auto;
+}
+
 .dashboard-reference .kpi-trend-v2 {
   display: block;
-  width: 96px;
-  min-width: 96px;
-  height: 38px;
+  width: 124px;
+  min-width: 112px;
+  height: 50px;
   margin-left: auto;
   color: #2688ff;
-  overflow: hidden;
+  overflow: visible;
+  pointer-events: none;
+  opacity: 1;
+  filter: drop-shadow(0 4px 8px rgb(31 91 170 / 10%));
 }
 
 .dashboard-reference .kpi-trend-v2 svg {
@@ -6298,12 +6311,24 @@ button.danger,
   overflow: visible;
 }
 
+.dashboard-reference .kpi-trend-v2-area {
+  stroke: none;
+  opacity: .95;
+}
+
 .dashboard-reference .kpi-trend-v2-line {
   fill: none;
   stroke: currentColor;
-  stroke-width: 2.3;
+  stroke-width: 2.8;
   stroke-linecap: round;
   stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+}
+
+.dashboard-reference .kpi-trend-v2-dot {
+  fill: currentColor;
+  stroke: #fff;
+  stroke-width: 1.6;
   vector-effect: non-scaling-stroke;
 }
 
@@ -6313,18 +6338,18 @@ button.danger,
 }
 
 .dashboard-reference .kpi-trend-v2.amber {
-  color: #f2a000;
+  color: #eda000;
 }
 
 .dashboard-reference .kpi-trend-v2.green {
-  color: #14a977;
+  color: #0ea876;
 }
 
 .dashboard-reference .kpi-trend-v2.purple {
-  color: #8c52ff;
+  color: #8b4dff;
 }
 
-/* The previous decorative mini-line can no longer render, even if stale markup remains. */
+/* The old decorative artwork stays disabled so only real chart data is visible. */
 .dashboard-reference .dashboard-mini-line,
 .dashboard-reference .dashboard-mini-line::before,
 .dashboard-reference .dashboard-mini-line::after {
@@ -6337,25 +6362,33 @@ button.danger,
 
 @media (max-width: 1080px) {
   .dashboard-reference .kpi-trend-v2 {
-    width: 88px;
-    min-width: 88px;
-    height: 36px;
+    width: 110px;
+    min-width: 102px;
+    height: 46px;
   }
 }
 
 @media (max-width: 760px) {
+  .dashboard-reference .dashboard-kpi-value {
+    gap: 12px;
+  }
+
   .dashboard-reference .kpi-trend-v2 {
-    width: 78px;
-    min-width: 78px;
-    height: 34px;
+    width: 96px;
+    min-width: 90px;
+    height: 42px;
   }
 }
 
 @media (max-width: 480px) {
+  .dashboard-reference .dashboard-kpi-value {
+    gap: 10px;
+  }
+
   .dashboard-reference .kpi-trend-v2 {
-    width: 92px;
-    min-width: 92px;
-    height: 34px;
+    width: 108px;
+    min-width: 96px;
+    height: 42px;
   }
 }
 
