@@ -8016,3 +8016,24 @@ button.danger,
     bottom: 10px;
   }
 }
+
+
+/* Camera confirm button text centering */
+.camera-backdrop-portal .camera-actions .primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  line-height: 1.15;
+}
+
+.camera-backdrop-portal .camera-actions .primary,
+.camera-backdrop-portal .camera-actions .outline {
+  min-height: 40px;
+}
+
+@media (max-width: 700px) {
+  .camera-backdrop-portal .camera-actions .primary {
+    width: 100%;
+  }
+}
