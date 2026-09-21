@@ -149,12 +149,12 @@ function InlineCamera({
                 const blob = await fetch(preview).then((response) =>
                   response.blob(),
                 );
-                onUse(
-                  new File([blob], `camera-${Date.now()}.jpg`, {
-                    type: "image/jpeg",
-                  }),
-                );
+                const file = new File([blob], `camera-${Date.now()}.jpg`, {
+                  type: "image/jpeg",
+                });
+                URL.revokeObjectURL(preview);
                 onClose();
+                onUse(file);
               }}
             >
               Usar esta foto
@@ -171,11 +171,13 @@ export function PhotoPicker({
   onChange,
   category = "Entrada",
   publicMode = false,
+  onCameraConfirm,
 }: {
   value: PendingPhoto[];
   onChange: (p: PendingPhoto[]) => void;
   category?: string;
   publicMode?: boolean;
+  onCameraConfirm?: (file: File) => Promise<void> | void;
 }) {
   const [error, setError] = useState(""),
     [busy, setBusy] = useState(false),
@@ -253,7 +255,9 @@ export function PhotoPicker({
           capture="environment"
           disabled={busy}
           onChange={(e) => {
-            choose(e.target.files);
+            const file = e.target.files?.[0];
+            if (file && onCameraConfirm) void onCameraConfirm(file);
+            else choose(e.target.files);
             e.target.value = "";
           }}
         />
@@ -354,7 +358,13 @@ export function PhotoPicker({
       {cameraOpen && (
         <InlineCamera
           onClose={() => setCameraOpen(false)}
-          onUse={(file) => addFiles([file])}
+          onUse={(file) => {
+            if (onCameraConfirm) {
+              void onCameraConfirm(file);
+              return;
+            }
+            void addFiles([file]);
+          }}
         />
       )}
     </div>
@@ -416,6 +426,27 @@ export function PhotosPanel({
   useEffect(() => {
     load();
   }, [load]);
+  async function saveCameraPhoto(file: File) {
+    setBusy(true);
+    setError("");
+    try {
+      const prepared = await preparePhoto(file);
+      const cameraPhoto: PendingPhoto = {
+        id: crypto.randomUUID(),
+        file: prepared,
+        preview: "",
+        categoria: category,
+        descricao: "",
+      };
+      await uploadPhotos(empresaId, ordemId, [cameraPhoto]);
+      await load();
+    } catch (e) {
+      setError(message(e as Error));
+    } finally {
+      setBusy(false);
+    }
+  }
+
   async function upload() {
     setBusy(true);
     setError("");
@@ -438,7 +469,9 @@ export function PhotosPanel({
             category={category}
             value={pending}
             onChange={setPending}
+            onCameraConfirm={saveCameraPhoto}
           />
+          {busy && <p role="status">Salvando foto…</p>}
           {pending.length > 0 && (
             <button className="primary" disabled={busy} onClick={upload}>
               {busy ? "Enviando…" : "Salvar fotos no histórico"}
