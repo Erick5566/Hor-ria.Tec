@@ -3,6 +3,7 @@ import {
   createContext,
   useContext,
   useEffect,
+  useRef,
   useState,
   useCallback,
 } from "react";
@@ -129,6 +130,40 @@ export default function Workspace({
     [readAlertIds, setReadAlertIds] = useState<Set<string>>(new Set());
   const router = useRouter(),
     path = usePathname();
+  const profileMenuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    setProfileOpen(false);
+  }, [path]);
+
+  useEffect(() => {
+    if (!profileOpen) return;
+
+    const handlePointerDown = (event: PointerEvent) => {
+      const target = event.target;
+      if (
+        target instanceof Node &&
+        profileMenuRef.current &&
+        !profileMenuRef.current.contains(target)
+      ) {
+        setProfileOpen(false);
+      }
+    };
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setProfileOpen(false);
+      }
+    };
+
+    document.addEventListener("pointerdown", handlePointerDown);
+    document.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      document.removeEventListener("pointerdown", handlePointerDown);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [profileOpen]);
 
   const title =
     menu
@@ -831,7 +866,7 @@ export default function Workspace({
               )}
             </div>
 
-            <div className="workspace-top-popover-wrap">
+            <div className="workspace-top-popover-wrap" ref={profileMenuRef}>
               <button
                 className="workspace-profile-chip"
                 type="button"
