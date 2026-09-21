@@ -17,9 +17,11 @@ function InlineCamera({
   const stream = useRef<MediaStream | null>(null);
   const [preview, setPreview] = useState("");
   const [error, setError] = useState("");
+  const [cameraReady, setCameraReady] = useState(false);
 
   const start = useCallback(async () => {
     setError("");
+    setCameraReady(false);
     try {
       const next = await navigator.mediaDevices.getUserMedia({
         video: { facingMode: { ideal: "environment" } },
@@ -42,7 +44,16 @@ function InlineCamera({
   }, [start]);
 
   async function capture() {
-    if (!video.current) return;
+    if (
+      !video.current ||
+      !cameraReady ||
+      !video.current.videoWidth ||
+      !video.current.videoHeight
+    ) {
+      setError("A câmera ainda está iniciando. Aguarde um instante e tente novamente.");
+      return;
+    }
+    setError("");
     const canvas = document.createElement("canvas");
     canvas.width = video.current.videoWidth;
     canvas.height = video.current.videoHeight;
@@ -87,6 +98,8 @@ function InlineCamera({
             autoPlay
             muted
             playsInline
+            onLoadedMetadata={() => setCameraReady(true)}
+            onPlaying={() => setCameraReady(true)}
           />
         )}
         <div className="camera-actions">
@@ -126,8 +139,14 @@ function InlineCamera({
               type="button"
               className="primary camera-shutter"
               onClick={capture}
+              disabled={!cameraReady}
+              aria-label={cameraReady ? "Tirar foto" : "Aguardando câmera"}
             >
-              Capturar foto
+              <span className="camera-shutter-icon" aria-hidden="true" />
+              <span className="camera-shutter-copy">
+                <strong>{cameraReady ? "Tirar foto" : "Abrindo câmera…"}</strong>
+                <small>{cameraReady ? "Toque para capturar" : "Aguarde um instante"}</small>
+              </span>
             </button>
           )}
         </div>
