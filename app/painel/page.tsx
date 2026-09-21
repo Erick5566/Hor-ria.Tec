@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useId, useMemo, useState } from "react";
 import { useWorkspace } from "@/components/workspace";
 import { Badge, Empty, ErrorBox } from "@/components/ui";
@@ -185,7 +184,6 @@ function formatShortDate(value: string) {
 
 export default function Overview() {
   const { empresa, periodStart, periodEnd } = useWorkspace();
-  const router = useRouter();
   const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -639,31 +637,36 @@ export default function Overview() {
                 <tbody>
                   {data.latestOrders.map((order) => {
                     const orderHref = "/painel/ordens/" + order.id;
+                    const orderLabel = `Abrir ordem #${order.numero}`;
                     return (
-                      <tr
-                        key={order.id}
-                        className="dashboard-order-row"
-                        tabIndex={0}
-                        aria-label={`Abrir ordem #${order.numero}`}
-                        onClick={() => router.push(orderHref)}
-                        onKeyDown={(event) => {
-                          if (event.key === "Enter" || event.key === " ") {
-                            event.preventDefault();
-                            router.push(orderHref);
-                          }
-                        }}
-                      >
-                        <td>#{order.numero}</td>
-                        <td>{order.cliente_nome}</td>
-                        <td>{order.equipamento_modelo}</td>
-                        <td><Badge status={order.status} /></td>
-                        <td>{new Date(order.criado_em).toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" })}</td>
+                      <tr key={order.id} className="dashboard-order-row">
+                        <td>
+                          <Link className="dashboard-order-cell-link" href={orderHref} aria-label={orderLabel}>
+                            #{order.numero}
+                          </Link>
+                        </td>
+                        <td>
+                          <Link className="dashboard-order-cell-link" href={orderHref} aria-label={orderLabel}>
+                            {order.cliente_nome}
+                          </Link>
+                        </td>
+                        <td>
+                          <Link className="dashboard-order-cell-link" href={orderHref} aria-label={orderLabel}>
+                            {order.equipamento_modelo}
+                          </Link>
+                        </td>
+                        <td>
+                          <Link className="dashboard-order-cell-link" href={orderHref} aria-label={orderLabel}>
+                            <Badge status={order.status} />
+                          </Link>
+                        </td>
+                        <td>
+                          <Link className="dashboard-order-cell-link" href={orderHref} aria-label={orderLabel}>
+                            {new Date(order.criado_em).toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" })}
+                          </Link>
+                        </td>
                         <td className="dashboard-order-action">
-                          <Link
-                            href={orderHref}
-                            onClick={(event) => event.stopPropagation()}
-                            aria-label={`Abrir ordem #${order.numero}`}
-                          >
+                          <Link href={orderHref} aria-label={orderLabel}>
                             <span>Abrir</span>
                             <b aria-hidden="true">→</b>
                           </Link>
