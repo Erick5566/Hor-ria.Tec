@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
 import { Brand } from "./brand";
 import { supabase, syncServerSession } from "@/lib/supabase";
 
@@ -18,7 +17,6 @@ export default function SuperAdminMfa({
   next: string;
   email: string;
 }) {
-  const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [enrollment, setEnrollment] = useState<Enrollment | null>(null);
   const [factorId, setFactorId] = useState("");
