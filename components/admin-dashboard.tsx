@@ -52,6 +52,18 @@ const featureNames: Record<string, string> = {
   appointmentsEnabled: "Agenda",
 };
 
+function normalizePublicUrl(value?: string | null) {
+  const raw = value?.trim();
+  if (!raw || /[^\x00-\x7F]/.test(raw)) return "";
+  try {
+    const url = new URL(raw);
+    if (!["http:", "https:"].includes(url.protocol) || !url.hostname) return "";
+    return url.origin;
+  } catch {
+    return "";
+  }
+}
+
 export default function AdminDashboard({
   initialCompanies,
   initialOverview,
@@ -95,9 +107,10 @@ export default function AdminDashboard({
       router.refresh();
     }
   }
-  const appUrl =
-    overview.publicAppUrl ||
-    (typeof location === "undefined" ? "" : location.origin);
+  const browserOrigin =
+    typeof location === "undefined" ? "" : location.origin;
+  const configuredAppUrl = normalizePublicUrl(overview.publicAppUrl);
+  const appUrl = configuredAppUrl || browserOrigin;
   return (
     <section className="module admin-module">
       <Heading
@@ -253,8 +266,15 @@ export default function AdminDashboard({
           onSubmit={(event) => {
             event.preventDefault();
             const form = new FormData(event.currentTarget);
+            const normalizedUrl = normalizePublicUrl(String(form.get("url") || ""));
+            if (!normalizedUrl) {
+              setError(
+                "Informe um endereço completo, começando com https:// e sem acentos no domínio.",
+              );
+              return;
+            }
             savePlatform(
-              { publicAppUrl: String(form.get("url")) },
+              { publicAppUrl: normalizedUrl },
               "Atualização do link público",
             );
           }}
@@ -264,8 +284,8 @@ export default function AdminDashboard({
             <input
               name="url"
               type="url"
-              defaultValue={overview.publicAppUrl || ""}
-              placeholder="https://app.horaria.com.br"
+              defaultValue={configuredAppUrl || browserOrigin}
+              placeholder="https://hor-ria-tec.vercel.app"
             />
           </label>
           <button className="primary" disabled={busy}>
