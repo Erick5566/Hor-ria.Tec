@@ -388,56 +388,80 @@ export default function Orders() {
                   </tr>
                 </thead>
                 <tbody>
-                  {list.map((order) => (
-                    <tr key={order.id}>
-                      <td>
-                        <strong className="orders-os">#{order.numero}</strong>
-                      </td>
-                      <td>
-                        <div className="orders-person">
-                          <span>{initials(order.cliente_nome)}</span>
-                          <strong>{order.cliente_nome || "Cliente"}</strong>
-                        </div>
-                      </td>
-                      <td>
-                        <div className="orders-device">
-                          <strong>{order.equipamento_modelo || "Equipamento"}</strong>
-                          <small>{order.equipamento_marca || ""}</small>
-                        </div>
-                      </td>
-                      <td>
-                        <span className="orders-problem" title={order.problema}>
-                          {order.problema}
-                        </span>
-                      </td>
-                      <td>{stamp(order.criado_em)}</td>
-                      <td className="orders-value">
-                        {order.quote_total != null ? money(order.quote_total) : "A orçar"}
-                      </td>
-                      <td>
-                        <div className="orders-tech">
-                          <span>{initials(order.tecnico)}</span>
-                          <strong>{order.tecnico || "Não atribuído"}</strong>
-                        </div>
-                      </td>
-                      <td>
-                        <span className={"orders-priority " + order.prioridade}>
-                          {priorityLabels[order.prioridade]}
-                        </span>
-                      </td>
-                      <td>
-                        <Badge status={order.status} />
-                        {!order.entrada_confirmada && (
-                          <small className="orders-review">Entrada em conferência</small>
-                        )}
-                      </td>
-                      <td>
-                        <Link className="orders-open-link" href={`/painel/ordens/${order.id}`}>
-                          Abrir →
-                        </Link>
-                      </td>
-                    </tr>
-                  ))}
+                  {list.map((order) => {
+                    const orderHref = `/painel/ordens/${order.id}`;
+                    const orderLabel = `Abrir ordem #${order.numero}`;
+                    return (
+                      <tr key={order.id} className="orders-clickable-row">
+                        <td>
+                          <Link className="orders-cell-link" href={orderHref} aria-label={orderLabel}>
+                            <strong className="orders-os">#{order.numero}</strong>
+                          </Link>
+                        </td>
+                        <td>
+                          <Link className="orders-cell-link" href={orderHref} aria-label={orderLabel}>
+                            <div className="orders-person">
+                              <span>{initials(order.cliente_nome)}</span>
+                              <strong>{order.cliente_nome || "Cliente"}</strong>
+                            </div>
+                          </Link>
+                        </td>
+                        <td>
+                          <Link className="orders-cell-link" href={orderHref} aria-label={orderLabel}>
+                            <div className="orders-device">
+                              <strong>{order.equipamento_modelo || "Equipamento"}</strong>
+                              <small>{order.equipamento_marca || ""}</small>
+                            </div>
+                          </Link>
+                        </td>
+                        <td>
+                          <Link className="orders-cell-link" href={orderHref} aria-label={orderLabel}>
+                            <span className="orders-problem" title={order.problema}>
+                              {order.problema}
+                            </span>
+                          </Link>
+                        </td>
+                        <td>
+                          <Link className="orders-cell-link" href={orderHref} aria-label={orderLabel}>
+                            {stamp(order.criado_em)}
+                          </Link>
+                        </td>
+                        <td className="orders-value">
+                          <Link className="orders-cell-link" href={orderHref} aria-label={orderLabel}>
+                            {order.quote_total != null ? money(order.quote_total) : "A orçar"}
+                          </Link>
+                        </td>
+                        <td>
+                          <Link className="orders-cell-link" href={orderHref} aria-label={orderLabel}>
+                            <div className="orders-tech">
+                              <span>{initials(order.tecnico)}</span>
+                              <strong>{order.tecnico || "Não atribuído"}</strong>
+                            </div>
+                          </Link>
+                        </td>
+                        <td>
+                          <Link className="orders-cell-link" href={orderHref} aria-label={orderLabel}>
+                            <span className={"orders-priority " + order.prioridade}>
+                              {priorityLabels[order.prioridade]}
+                            </span>
+                          </Link>
+                        </td>
+                        <td>
+                          <Link className="orders-cell-link orders-status-link" href={orderHref} aria-label={orderLabel}>
+                            <Badge status={order.status} />
+                            {!order.entrada_confirmada && (
+                              <small className="orders-review">Entrada em conferência</small>
+                            )}
+                          </Link>
+                        </td>
+                        <td>
+                          <Link className="orders-open-link" href={orderHref} aria-label={orderLabel}>
+                            Abrir →
+                          </Link>
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
