@@ -10,9 +10,13 @@ import { useWorkspace } from "./workspace";
 function InlineCamera({
   onUse,
   onClose,
+  guideLabel,
+  guideInstruction,
 }: {
   onUse: (file: File) => void;
   onClose: () => void;
+  guideLabel?: string;
+  guideInstruction?: string;
 }) {
   const video = useRef<HTMLVideoElement>(null);
   const stream = useRef<MediaStream | null>(null);
@@ -88,8 +92,11 @@ function InlineCamera({
       <section className="camera-sheet">
         <div className="panel-head">
           <div>
-            <h2>Tirar foto</h2>
-            <p>Posicione o equipamento dentro da área.</p>
+            <h2>{guideLabel ? `Foto: ${guideLabel}` : "Tirar foto"}</h2>
+            <p>
+              {guideInstruction ||
+                "Posicione o equipamento dentro da área."}
+            </p>
           </div>
           <button
             type="button"
@@ -102,6 +109,13 @@ function InlineCamera({
         </div>
         {error && <ErrorBox error={error} />}
         <div className="camera-stage">
+          {guideLabel && (
+            <div className="camera-guide-overlay" aria-hidden="true">
+              <div className="camera-guide-frame">
+                <span>Alinhe aqui</span>
+              </div>
+            </div>
+          )}
           {preview ? (
             <img className="camera-preview" src={preview} alt="Foto capturada" />
           ) : (
@@ -133,6 +147,9 @@ function InlineCamera({
             </>
           )}
         </div>
+        {guideInstruction && (
+          <p className="camera-guide-instruction">{guideInstruction}</p>
+        )}
 
         {preview && (
           <div className="camera-actions">
@@ -178,7 +195,7 @@ function InlineCamera({
     document.body,
   );
 }
-const suggestedPhotoAngles = [
+export const guidedPhotoAngles = [
   "Frente",
   "Traseira",
   "Laterais",
@@ -187,6 +204,380 @@ const suggestedPhotoAngles = [
   "Acessórios",
   "Área danificada",
 ] as const;
+
+const suggestedPhotoAngles = guidedPhotoAngles;
+
+export type GuidedPhotoState = {
+  currentIndex: number;
+  skipped: string[];
+  resumeIndex: number | null;
+};
+
+const guidedPhotoInstructions: Record<(typeof guidedPhotoAngles)[number], string> = {
+  Frente:
+    "Centralize a frente do aparelho dentro da moldura, mostrando o equipamento inteiro com boa iluminação.",
+  Traseira:
+    "Centralize a parte de trás do aparelho dentro da moldura, com boa iluminação e sem reflexos.",
+  Laterais:
+    "Fotografe as laterais de forma que bordas, botões e possíveis marcas fiquem visíveis.",
+  Tela:
+    "Ligue a tela do aparelho, se possível, e evite reflexos de luz para registrar riscos, manchas ou trincas.",
+  Conectores:
+    "Aproxime os conectores e entradas sem perder o foco, mostrando sujeira, oxidação ou danos visíveis.",
+  Acessórios:
+    "Organize carregador, cabo, capa e outros acessórios entregues ao lado do aparelho e enquadre todos.",
+  "Área danificada":
+    "Aproxime a área danificada, mantenha o foco e registre o defeito com detalhe suficiente para comparação futura.",
+};
+
+export function GuidedPhotoSequence({
+  value,
+  onChange,
+  state,
+  onStateChange,
+  onComplete,
+}: {
+  value: PendingPhoto[];
+  onChange: (photos: PendingPhoto[]) => void;
+  state: GuidedPhotoState;
+  onStateChange: (state: GuidedPhotoState) => void;
+  onComplete: () => void;
+}) {
+  const [error, setError] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [cameraOpen, setCameraOpen] = useState(false);
+  const [zoom, setZoom] = useState("");
+  const galleryInput = useRef<HTMLInputElement>(null);
+  const fallbackCamera = useRef<HTMLInputElement>(null);
+
+  const finished =
+    state.currentIndex >= guidedPhotoAngles.length &&
+    state.resumeIndex === null;
+  const activeIndex = Math.min(
+    Math.max(state.currentIndex, 0),
+    guidedPhotoAngles.length - 1,
+  );
+  const activeAngle = guidedPhotoAngles[activeIndex];
+  const activeInstruction = guidedPhotoInstructions[activeAngle];
+  const activeExisting = value.find((photo) => photo.angulo === activeAngle);
+
+  function statusFor(index: number) {
+    const angle = guidedPhotoAngles[index];
+    if (value.some((photo) => photo.angulo === angle)) return "done";
+    if (state.skipped.includes(angle)) return "skipped";
+    if (!finished && index === state.currentIndex) return "current";
+    return "future";
+  }
+
+  function advanceAfterCurrent() {
+    if (state.resumeIndex !== null) {
+      onStateChange({
+        ...state,
+        currentIndex: state.resumeIndex,
+        resumeIndex: null,
+      });
+      return;
+    }
+    onStateChange({
+      ...state,
+      currentIndex: Math.min(
+        guidedPhotoAngles.length,
+        state.currentIndex + 1,
+      ),
+      resumeIndex: null,
+    });
+  }
+
+  async function useFile(file: File) {
+    setBusy(true);
+    setError("");
+    try {
+      const prepared = await preparePhoto(file);
+      const preview = URL.createObjectURL(prepared);
+      const next: PendingPhoto = {
+        id: activeExisting?.id || crypto.randomUUID(),
+        file: prepared,
+        preview,
+        categoria: "Entrada",
+        descricao: "",
+        angulo: activeAngle,
+      };
+      const withoutCurrent = value.filter(
+        (photo) => photo.angulo !== activeAngle,
+      );
+      onChange([...withoutCurrent, next]);
+      onStateChange({
+        ...state,
+        skipped: state.skipped.filter((angle) => angle !== activeAngle),
+      });
+      advanceAfterCurrent();
+    } catch (caught) {
+      setError(message(caught as Error));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  function revisit(index: number) {
+    if (statusFor(index) !== "done") return;
+    onStateChange({
+      ...state,
+      currentIndex: index,
+      resumeIndex: finished ? guidedPhotoAngles.length : state.currentIndex,
+    });
+  }
+
+  function skipCurrent() {
+    if (activeIndex === 0 || state.resumeIndex !== null) return;
+    const nextSkipped = Array.from(
+      new Set([...state.skipped, activeAngle]),
+    );
+    onStateChange({
+      ...state,
+      skipped: nextSkipped,
+      currentIndex: Math.min(
+        guidedPhotoAngles.length,
+        state.currentIndex + 1,
+      ),
+    });
+  }
+
+  if (finished) {
+    return (
+      <section className="guided-photo-flow guided-photo-summary">
+        <div className="guided-photo-top">
+          <div>
+            <small>Etapa 3 · Fotos</small>
+            <h2>Registro fotográfico concluído</h2>
+          </div>
+          <strong>7 de 7 revisadas</strong>
+        </div>
+
+        <div className="guided-photo-progress" aria-label="Progresso concluído">
+          {guidedPhotoAngles.map((angle, index) => (
+            <span
+              key={angle}
+              className={statusFor(index) === "done" ? "done" : "skipped"}
+            />
+          ))}
+        </div>
+
+        <div className="guided-photo-summary-grid">
+          {guidedPhotoAngles.map((angle, index) => {
+            const photo = value.find((item) => item.angulo === angle);
+            const skipped = state.skipped.includes(angle) && !photo;
+            return (
+              <article
+                className={`guided-photo-summary-card${
+                  skipped ? " is-skipped" : ""
+                }`}
+                key={angle}
+              >
+                {photo ? (
+                  <button
+                    type="button"
+                    onClick={() => setZoom(photo.preview)}
+                    aria-label={`Ampliar foto ${angle}`}
+                  >
+                    <img src={photo.preview} alt={`Foto: ${angle}`} />
+                  </button>
+                ) : (
+                  <div className="guided-photo-skipped-mark">—</div>
+                )}
+                <div>
+                  <strong>{angle}</strong>
+                  <small>{photo ? "✓ Concluído" : "Pulado"}</small>
+                </div>
+                {photo && (
+                  <button
+                    type="button"
+                    className="guided-photo-redo"
+                    onClick={() => revisit(index)}
+                  >
+                    Refazer
+                  </button>
+                )}
+              </article>
+            );
+          })}
+        </div>
+
+        <div className="guided-photo-summary-actions">
+          <button type="button" className="primary" onClick={onComplete}>
+            Continuar →
+          </button>
+        </div>
+
+        {zoom && (
+          <div
+            className="lightbox"
+            role="dialog"
+            aria-label="Foto ampliada"
+            onClick={() => setZoom("")}
+          >
+            <button type="button" aria-label="Fechar foto">×</button>
+            <img src={zoom} alt="Registro do equipamento ampliado" />
+          </div>
+        )}
+      </section>
+    );
+  }
+
+  return (
+    <section className="guided-photo-flow">
+      <div className="guided-photo-top">
+        <div>
+          <small>
+            Passo {activeIndex + 1} de {guidedPhotoAngles.length}
+          </small>
+          <h2>{activeAngle}</h2>
+        </div>
+        {state.resumeIndex !== null && <strong>Refazendo foto</strong>}
+      </div>
+
+      <div className="guided-photo-progress" aria-label="Progresso das fotos">
+        {guidedPhotoAngles.map((angle, index) => (
+          <span key={angle} className={statusFor(index)} />
+        ))}
+      </div>
+
+      <div className="guided-photo-chip-row">
+        {guidedPhotoAngles.map((angle, index) => {
+          const status = statusFor(index);
+          const clickable = status === "done";
+          return (
+            <button
+              type="button"
+              key={angle}
+              className={`guided-photo-chip ${status}`}
+              disabled={!clickable}
+              onClick={() => revisit(index)}
+            >
+              <span aria-hidden="true">
+                {status === "done"
+                  ? "✓"
+                  : status === "skipped"
+                    ? "—"
+                    : status === "future"
+                      ? "🔒"
+                      : activeIndex + 1}
+              </span>
+              {angle}
+            </button>
+          );
+        })}
+      </div>
+
+      <div className="guided-photo-reference">
+        <div className="guided-photo-reference-frame">
+          <span>Alinhe aqui</span>
+        </div>
+        <strong>{activeAngle}</strong>
+        <p>{activeInstruction}</p>
+      </div>
+
+      {activeExisting && (
+        <div className="guided-photo-current-preview">
+          <button
+            type="button"
+            onClick={() => setZoom(activeExisting.preview)}
+            aria-label={`Ampliar foto ${activeAngle}`}
+          >
+            <img
+              src={activeExisting.preview}
+              alt={`Foto atual: ${activeAngle}`}
+            />
+          </button>
+          <small>Foto atual · ao capturar novamente, ela será substituída.</small>
+        </div>
+      )}
+
+      <div className="guided-photo-actions">
+        <button
+          type="button"
+          className="primary"
+          disabled={busy}
+          onClick={() => {
+            if (navigator.mediaDevices?.getUserMedia) {
+              setCameraOpen(true);
+            } else {
+              fallbackCamera.current?.click();
+            }
+          }}
+        >
+          ◎ {activeExisting ? "Refazer foto" : "Tirar foto"}
+        </button>
+        <button
+          type="button"
+          className="outline"
+          disabled={busy}
+          onClick={() => galleryInput.current?.click()}
+        >
+          Escolher da galeria
+        </button>
+        {activeIndex > 0 && state.resumeIndex === null && (
+          <button
+            type="button"
+            className="guided-photo-skip"
+            disabled={busy}
+            onClick={skipCurrent}
+          >
+            Pular esta foto
+          </button>
+        )}
+      </div>
+
+      <input
+        ref={fallbackCamera}
+        className="camera-fallback-input"
+        style={{ display: "none" }}
+        type="file"
+        accept="image/*"
+        capture="environment"
+        onChange={(event) => {
+          const file = event.target.files?.[0];
+          if (file) void useFile(file);
+          event.target.value = "";
+        }}
+      />
+      <input
+        ref={galleryInput}
+        style={{ display: "none" }}
+        type="file"
+        accept="image/*"
+        onChange={(event) => {
+          const file = event.target.files?.[0];
+          if (file) void useFile(file);
+          event.target.value = "";
+        }}
+      />
+
+      {busy && <p className="hint" role="status">Preparando foto…</p>}
+      <ErrorBox error={error} />
+
+      {cameraOpen && (
+        <InlineCamera
+          guideLabel={activeAngle}
+          guideInstruction={activeInstruction}
+          onClose={() => setCameraOpen(false)}
+          onUse={(file) => void useFile(file)}
+        />
+      )}
+
+      {zoom && (
+        <div
+          className="lightbox"
+          role="dialog"
+          aria-label="Foto ampliada"
+          onClick={() => setZoom("")}
+        >
+          <button type="button" aria-label="Fechar foto">×</button>
+          <img src={zoom} alt="Registro do equipamento ampliado" />
+        </div>
+      )}
+    </section>
+  );
+}
 
 export function PhotoPicker({
   value,
