@@ -263,29 +263,10 @@ export function GuidedPhotoSequence({
 
   function statusFor(index: number) {
     const angle = guidedPhotoAngles[index];
+    if (!finished && index === state.currentIndex) return "current";
     if (value.some((photo) => photo.angulo === angle)) return "done";
     if (state.skipped.includes(angle)) return "skipped";
-    if (!finished && index === state.currentIndex) return "current";
     return "future";
-  }
-
-  function advanceAfterCurrent() {
-    if (state.resumeIndex !== null) {
-      onStateChange({
-        ...state,
-        currentIndex: state.resumeIndex,
-        resumeIndex: null,
-      });
-      return;
-    }
-    onStateChange({
-      ...state,
-      currentIndex: Math.min(
-        guidedPhotoAngles.length,
-        state.currentIndex + 1,
-      ),
-      resumeIndex: null,
-    });
   }
 
   async function useFile(file: File) {
@@ -306,11 +287,16 @@ export function GuidedPhotoSequence({
         (photo) => photo.angulo !== activeAngle,
       );
       onChange([...withoutCurrent, next]);
+      const nextIndex =
+        state.resumeIndex !== null
+          ? state.resumeIndex
+          : Math.min(guidedPhotoAngles.length, state.currentIndex + 1);
       onStateChange({
         ...state,
         skipped: state.skipped.filter((angle) => angle !== activeAngle),
+        currentIndex: nextIndex,
+        resumeIndex: null,
       });
-      advanceAfterCurrent();
     } catch (caught) {
       setError(message(caught as Error));
     } finally {
