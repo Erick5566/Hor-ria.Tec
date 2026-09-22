@@ -1356,7 +1356,15 @@ function Field({
   disabled?: boolean;
   autoFilled?: boolean;
   helper?: string;
-  inputMode?: React.HTMLAttributes<HTMLInputElement>["inputMode"];
+  inputMode?:
+    | "none"
+    | "text"
+    | "tel"
+    | "url"
+    | "email"
+    | "numeric"
+    | "decimal"
+    | "search";
   maxLength?: number;
 }) {
   return (
