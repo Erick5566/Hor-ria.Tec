@@ -29,15 +29,28 @@ function InlineCamera({
     setError("");
     setCameraReady(false);
     try {
-      const next = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: { ideal: "environment" } },
-        audio: false,
-      });
+      let next: MediaStream;
+      try {
+        // Prioriza explicitamente a câmera traseira para evitar que alguns
+        // navegadores móveis abram a frontal/espelhada por padrão.
+        next = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: { exact: "environment" } },
+          audio: false,
+        });
+      } catch {
+        next = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: { ideal: "environment" } },
+          audio: false,
+        });
+      }
       stream.current = next;
-      if (video.current) video.current.srcObject = next;
+      if (video.current) {
+        video.current.srcObject = next;
+        video.current.style.transform = "none";
+      }
     } catch {
       setError(
-        "Não foi possível abrir a câmera. Verifique a permissão do navegador.",
+        "Não foi possível abrir a câmera traseira. Verifique a permissão do navegador.",
       );
     }
   }, []);
@@ -122,7 +135,7 @@ function InlineCamera({
             <>
               <video
                 ref={video}
-                className="camera-preview"
+                className="camera-preview camera-preview-live"
                 autoPlay
                 muted
                 playsInline
