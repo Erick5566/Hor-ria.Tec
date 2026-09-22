@@ -8823,3 +8823,84 @@ button.danger,
     font-size: .62rem;
   }
 }
+
+
+/* Repair bench responsive kanban fix */
+.repair-pro {
+  min-width: 0;
+}
+
+.repair-board.repair-board-pro {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  grid-template-columns: repeat(7, minmax(220px, 1fr));
+  gap: 10px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  overscroll-behavior-inline: contain;
+  scroll-behavior: smooth;
+  scroll-snap-type: x proximity;
+  scrollbar-gutter: stable;
+  -webkit-overflow-scrolling: touch;
+}
+
+.repair-board-pro .repair-column-pro {
+  min-width: 220px;
+  scroll-snap-align: start;
+}
+
+.repair-board-pro .repair-column-pro > header {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: start;
+  gap: 8px;
+  min-height: 48px;
+}
+
+.repair-board-pro .repair-column-title {
+  align-items: flex-start;
+  min-width: 0;
+}
+
+.repair-board-pro .repair-column-title h2 {
+  min-width: 0;
+  margin: 1px 0 0;
+  white-space: normal;
+  overflow: visible;
+  text-overflow: clip;
+  overflow-wrap: break-word;
+  line-height: 1.25;
+}
+
+.repair-board-pro .repair-column-accent {
+  flex: 0 0 4px;
+}
+
+.repair-board-pro .repair-column-count {
+  align-self: start;
+  flex: 0 0 auto;
+}
+
+@media (min-width: 1600px) {
+  .repair-board.repair-board-pro {
+    grid-template-columns: repeat(7, minmax(220px, 1fr));
+  }
+}
+
+@media (min-width: 701px) and (max-width: 1599px) {
+  .repair-board.repair-board-pro {
+    grid-template-columns: repeat(7, minmax(220px, 1fr));
+  }
+}
+
+@media (max-width: 700px) {
+  .repair-board.repair-board-pro {
+    grid-template-columns: repeat(7, minmax(230px, 72vw));
+    padding-bottom: 12px;
+  }
+
+  .repair-board-pro .repair-column-pro {
+    min-width: 230px;
+  }
+}
