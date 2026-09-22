@@ -15,7 +15,9 @@ import {
   Empty,
   ErrorBox,
   MetricCard,
+  MetricGrid,
   Pagination,
+  SemanticBadge,
 } from "@/components/ui";
 import { useWorkspace } from "@/components/workspace";
 
@@ -27,6 +29,13 @@ const priorityLabels = {
 } as const;
 
 type Priority = keyof typeof priorityLabels;
+
+function priorityTone(priority: Priority) {
+  if (priority === "urgente") return "danger" as const;
+  if (priority === "alta") return "warning" as const;
+  if (priority === "baixa") return "neutral" as const;
+  return "primary" as const;
+}
 
 type OrderListItem = {
   id: string;
@@ -245,7 +254,7 @@ export default function Orders() {
 
       <ErrorBox error={error} />
 
-      <div className="orders-summary">
+      <MetricGrid columns={5} className="orders-summary">
         {metrics.map((metric) => (
           <MetricCard
             key={metric.label}
@@ -254,9 +263,11 @@ export default function Orders() {
             note={metric.note}
             icon={metric.icon}
             tone={metric.tone as "blue" | "amber" | "red" | "green" | "purple"}
+            active={metric.label !== "Urgentes" || Number(metric.value) > 0}
+            emphasizeValue={metric.label === "Urgentes"}
           />
         ))}
-      </div>
+      </MetricGrid>
 
       <section className="orders-filters-card">
         <div className="orders-search-row">
@@ -448,9 +459,9 @@ export default function Orders() {
                         </td>
                         <td>
                           <Link className="orders-cell-link" href={orderHref} aria-label={orderLabel}>
-                            <span className={"orders-priority " + order.prioridade}>
+                            <SemanticBadge tone={priorityTone(order.prioridade)}>
                               {priorityLabels[order.prioridade]}
-                            </span>
+                            </SemanticBadge>
                           </Link>
                         </td>
                         <td>
@@ -497,9 +508,9 @@ export default function Orders() {
                   </div>
                   <p className="orders-mobile-problem">{order.problema}</p>
                   <div className="orders-mobile-meta">
-                    <span className={"orders-priority " + order.prioridade}>
+                    <SemanticBadge tone={priorityTone(order.prioridade)}>
                       {priorityLabels[order.prioridade]}
-                    </span>
+                    </SemanticBadge>
                     <span>{order.tecnico || "Sem técnico"}</span>
                     <strong>
                       {order.quote_total != null ? money(order.quote_total) : "A orçar"}
