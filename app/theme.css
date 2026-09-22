@@ -331,7 +331,14 @@
 }
 
 /* Legacy domain badges keep their status-specific colors but share one shape. */
-.workspace :is(.quote-status, .catalog-status, span.status),
+.workspace :is(
+  .quote-status,
+  .catalog-status,
+  .stock-state,
+  .priority-chip,
+  .badge,
+  span.status
+),
 .admin-workspace .account-status {
   display: inline-flex;
   align-items: center;
