@@ -8,7 +8,13 @@ import {
   money,
   latestQuotes,
 } from "@/lib/assistencia";
-import { Heading, Empty, ErrorBox } from "@/components/ui";
+import {
+  Heading,
+  Empty,
+  ErrorBox,
+  MetricCard,
+  MetricGrid,
+} from "@/components/ui";
 
 function statusLabel(status: string) {
   const labels: Record<string, string> = {
@@ -85,21 +91,19 @@ export default function Quotes() {
 
       <ErrorBox error={qs.error || os.error || cs.error} />
 
-      <div className="dashboard-kpis quotes-kpis">
+      <MetricGrid columns={4} className="quotes-kpis">
         {metrics.map((metric) => (
-          <article key={metric.name} className={"dashboard-kpi " + metric.tone}>
-            <div className="dashboard-kpi-top">
-              <span className="dashboard-kpi-icon">{metric.icon}</span>
-              <span>{metric.name}</span>
-            </div>
-            <div className="dashboard-kpi-value">
-              <strong>{metric.value}</strong>
-              <span className="mini-spark">⌁</span>
-            </div>
-            <small>{metric.note}</small>
-          </article>
+          <MetricCard
+            key={metric.name}
+            label={metric.name}
+            value={metric.value}
+            note={metric.note}
+            icon={metric.icon}
+            tone={metric.tone as "blue" | "amber" | "green" | "purple"}
+            active={metric.name !== "Aguardando resposta" || pending.length > 0}
+          />
         ))}
-      </div>
+      </MetricGrid>
 
       <div className="quotes-layout">
         <section className="dashboard-card quotes-main-card">
