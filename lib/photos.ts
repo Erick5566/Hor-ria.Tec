@@ -5,6 +5,7 @@ export type PendingPhoto = {
   preview: string;
   categoria: string;
   descricao: string;
+  angulo?: string;
   caminho?: string;
   uploaded?: boolean;
   saved?: boolean;
@@ -72,7 +73,9 @@ export async function uploadPhotos(
     const { error } = await db.rpc("registrar_foto", {
       p_caminho: p.caminho,
       p_categoria: p.categoria,
-      p_descricao: p.descricao || null,
+      p_descricao: p.angulo
+        ? `Ângulo: ${p.angulo}${p.descricao ? ` · ${p.descricao}` : ""}`
+        : p.descricao || null,
     });
     if (error) throw error;
     p.saved = true;
