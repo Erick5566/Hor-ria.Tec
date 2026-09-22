@@ -2,7 +2,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { money, type Peca, saveRow, stamp } from "@/lib/assistencia";
 import { message, supabase } from "@/lib/supabase";
-import { Empty, ErrorBox, Pagination } from "./ui";
+import { Empty, ErrorBox, MetricCard, Pagination } from "./ui";
 import { useWorkspace } from "./workspace";
 
 type Movement = {
@@ -180,58 +180,79 @@ export default function InventoryManagement() {
     <>
       <ErrorBox error={error} />
 
-      <div className="inventory-metrics">
-        <article>
-          <small>Unidades disponíveis</small>
-          <strong>{loading && !data ? "—" : metrics.units}</strong>
-        </article>
-        <article>
-          <small>Valor investido</small>
-          <strong>{loading && !data ? "—" : money(metrics.value)}</strong>
-        </article>
-        <article>
-          <small>Estoque baixo</small>
-          <strong>{loading && !data ? "—" : metrics.low}</strong>
-        </article>
-        <article>
-          <small>Sem estoque</small>
-          <strong>{loading && !data ? "—" : metrics.empty}</strong>
-        </article>
+      <div className="orders-summary inventory-summary">
+        <MetricCard
+          label="Unidades disponíveis"
+          value={loading && !data ? "—" : metrics.units}
+          note="Total disponível no estoque"
+          icon="▣"
+        />
+        <MetricCard
+          label="Valor investido"
+          value={loading && !data ? "—" : money(metrics.value)}
+          note="Custo total do estoque"
+          icon="$"
+          tone="purple"
+        />
+        <MetricCard
+          label="Estoque baixo"
+          value={loading && !data ? "—" : metrics.low}
+          note="Itens abaixo do mínimo"
+          icon="!"
+          tone="amber"
+          active={metrics.low > 0}
+          emphasizeValue
+        />
+        <MetricCard
+          label="Sem estoque"
+          value={loading && !data ? "—" : metrics.empty}
+          note="Itens indisponíveis"
+          icon="×"
+          tone="red"
+          active={metrics.empty > 0}
+          emphasizeValue
+        />
       </div>
 
       <div className="toolbar inventory-toolbar">
         <input
           aria-label="Buscar no estoque"
-          placeholder="Buscar nome, SKU, código de barras ou compatibilidade"
+          placeholder="Buscar nome, SKU ou código de barras..."
           value={query}
           onChange={(event) => setQuery(event.target.value)}
         />
-        <select
-          aria-label="Filtrar por tipo"
-          value={type}
-          onChange={(event) => {
-            setType(event.target.value);
-            setPage(1);
-          }}
-        >
-          <option>Todos</option>
-          <option>Peça</option>
-          <option>Acessório</option>
-          <option>Produto</option>
-        </select>
-        <select
-          aria-label="Filtrar por disponibilidade"
-          value={availability}
-          onChange={(event) => {
-            setAvailability(event.target.value);
-            setPage(1);
-          }}
-        >
-          <option>Todos</option>
-          <option>Disponível</option>
-          <option>Baixo</option>
-          <option>Sem estoque</option>
-        </select>
+        <label className="inventory-filter">
+          <span>Categoria</span>
+          <select
+            aria-label="Filtrar por categoria"
+            value={type}
+            onChange={(event) => {
+              setType(event.target.value);
+              setPage(1);
+            }}
+          >
+            <option>Todos</option>
+            <option>Peça</option>
+            <option>Acessório</option>
+            <option>Produto</option>
+          </select>
+        </label>
+        <label className="inventory-filter">
+          <span>Status do estoque</span>
+          <select
+            aria-label="Filtrar por status do estoque"
+            value={availability}
+            onChange={(event) => {
+              setAvailability(event.target.value);
+              setPage(1);
+            }}
+          >
+            <option>Todos</option>
+            <option>Disponível</option>
+            <option>Baixo</option>
+            <option>Sem estoque</option>
+          </select>
+        </label>
         <button className="primary" onClick={() => setEditing("new")}>
           + Novo item
         </button>
