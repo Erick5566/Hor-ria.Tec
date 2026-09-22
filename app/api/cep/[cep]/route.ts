@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 
 type ViaCepResponse = {
   erro?: boolean | string;
+  logradouro?: string;
   bairro?: string;
   localidade?: string;
   uf?: string;
@@ -35,6 +36,7 @@ export async function GET(
 
     return NextResponse.json({
       found: true,
+      logradouro: data.logradouro || "",
       bairro: data.bairro || "",
       cidade: data.localidade || "",
       estado: data.uf || "",
