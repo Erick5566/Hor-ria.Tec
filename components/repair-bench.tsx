@@ -361,7 +361,7 @@ export default function RepairBench() {
               <header>
                 <div className="repair-column-title">
                   <span className="repair-column-accent" />
-                  <h2>{column.title}</h2>
+                  <h2 title={column.title}>{column.title}</h2>
                 </div>
                 <span className="repair-column-count">{cards.length}</span>
               </header>
