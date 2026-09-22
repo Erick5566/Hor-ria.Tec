@@ -8,7 +8,12 @@ import {
 } from "@/lib/assistencia";
 import { message, supabase } from "@/lib/supabase";
 import { useWorkspace } from "./workspace";
-import { ErrorBox } from "./ui";
+import {
+  ErrorBox,
+  MetricCard,
+  MetricGrid,
+  SemanticBadge,
+} from "./ui";
 
 const columns: {
   title: string;
@@ -94,6 +99,13 @@ type BenchData = {
   items: BenchOrder[];
   technicians: string[];
 };
+
+function repairPriorityTone(priority: BenchOrder["prioridade"]) {
+  if (priority === "urgente") return "danger" as const;
+  if (priority === "alta") return "warning" as const;
+  if (priority === "baixa") return "neutral" as const;
+  return "primary" as const;
+}
 
 export default function RepairBench() {
   const { empresa } = useWorkspace();
@@ -251,24 +263,39 @@ export default function RepairBench() {
         </Link>
       </div>
 
-      <div className="repair-summary">
-        <article>
-          <span className="repair-summary-icon blue">⌘</span>
-          <div><small>Em andamento</small><strong>{visible.length}</strong></div>
-        </article>
-        <article>
-          <span className="repair-summary-icon red">!</span>
-          <div><small>Urgentes</small><strong>{urgentCount}</strong></div>
-        </article>
-        <article>
-          <span className="repair-summary-icon amber">◷</span>
-          <div><small>Atrasadas</small><strong>{overdueCount}</strong></div>
-        </article>
-        <article>
-          <span className="repair-summary-icon green">✓</span>
-          <div><small>Prontas hoje</small><strong>{readyToday}</strong></div>
-        </article>
-      </div>
+      <MetricGrid columns={4} className="repair-summary">
+        <MetricCard
+          label="Em andamento"
+          value={visible.length}
+          note="Ordens na mesa"
+          icon="⌘"
+        />
+        <MetricCard
+          label="Urgentes"
+          value={urgentCount}
+          note="Precisam de atenção"
+          icon="!"
+          tone="danger"
+          active={urgentCount > 0}
+          emphasizeValue
+        />
+        <MetricCard
+          label="Atrasadas"
+          value={overdueCount}
+          note="Prazo vencido"
+          icon="◷"
+          tone="warning"
+          active={overdueCount > 0}
+          emphasizeValue
+        />
+        <MetricCard
+          label="Prontas hoje"
+          value={readyToday}
+          note="Disponíveis para retirada"
+          icon="✓"
+          tone="success"
+        />
+      </MetricGrid>
 
       {configuring && (
         <section className="panel bench-settings repair-settings">
@@ -383,9 +410,9 @@ export default function RepairBench() {
                     >
                       <div className="repair-card-head">
                         <Link href={`/painel/ordens/${order.id}`}>#{order.numero}</Link>
-                        <span className={`repair-priority ${order.prioridade}`}>
+                        <SemanticBadge tone={repairPriorityTone(order.prioridade)}>
                           {priorityLabel[order.prioridade]}
-                        </span>
+                        </SemanticBadge>
                       </div>
 
                       <strong className="repair-customer">{order.cliente_nome || "Cliente"}</strong>
