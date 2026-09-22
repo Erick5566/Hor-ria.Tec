@@ -317,13 +317,24 @@ export function GuidedPhotoSequence({
     }
   }
 
+  function openCameraCapture() {
+    if (typeof navigator.mediaDevices !== "undefined") {
+      setCameraOpen(true);
+      return;
+    }
+    window.setTimeout(() => fallbackCamera.current?.click(), 0);
+  }
+
   function revisit(index: number) {
-    if (statusFor(index) !== "done") return;
+    if (statusFor(index) !== "done" || busy) return;
     onStateChange({
       ...state,
       currentIndex: index,
       resumeIndex: finished ? guidedPhotoAngles.length : state.currentIndex,
     });
+    // Ao refazer, já abrimos a câmera da etapa escolhida. O novo estado
+    // é aplicado no mesmo ciclo de render e a captura substitui aquela foto.
+    openCameraCapture();
   }
 
   function skipCurrent() {
@@ -496,13 +507,7 @@ export function GuidedPhotoSequence({
           type="button"
           className="primary"
           disabled={busy}
-          onClick={() => {
-            if (typeof navigator.mediaDevices !== "undefined") {
-              setCameraOpen(true);
-            } else {
-              fallbackCamera.current?.click();
-            }
-          }}
+          onClick={openCameraCapture}
         >
           ◎ {activeExisting ? "Refazer foto" : "Tirar foto"}
         </button>
