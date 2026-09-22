@@ -1,0 +1,296 @@
+/*
+  Horária UI audit / source of truth
+  ---------------------------------
+  Before this consolidation the following panel areas rendered the same UI
+  primitives with divergent classes/sizing:
+  - Metrics: Painel, Ordens, Estoque, Mesa de reparo, Financeiro, Relatórios,
+    Vendas, Pós-venda, Seminovos, Clientes/Equipamentos and Catálogo.
+  - Primary actions: shared ".primary" existed, but local screen CSS changed
+    height/radius/padding in several modules.
+  - Badges: status-pill, orders-priority, repair-priority, account-status and
+    domain-specific "status" variants used different dimensions.
+  - Form controls: global defaults were overridden by Orders, Inventory,
+    Dashboard and editor-specific selectors.
+
+  The --ui-* tokens below are the canonical administrative-panel tokens.
+  Public-page colors are customer-configurable and intentionally use their
+  own --public-* variables instead of changing the administrative UI.
+*/
+
+:root {
+  --ui-primary: #1d6dff;
+  --ui-primary-hover: #155ff4;
+  --ui-success: #24a56f;
+  --ui-warning: #e89413;
+  --ui-danger: #d84d59;
+  --ui-purple: #7752d4;
+  --ui-neutral: #6f7890;
+  --ui-surface: #ffffff;
+  --ui-surface-soft: #f7f9fc;
+  --ui-border: #e0e6ef;
+  --ui-text: #142038;
+  --ui-text-soft: #31405d;
+  --ui-muted: #8290a6;
+  --ui-radius-card: 15px;
+  --ui-radius-control: 10px;
+  --ui-radius-pill: 999px;
+  --ui-card-padding: 18px;
+  --ui-button-height: 44px;
+  --ui-control-height: 44px;
+  --ui-metric-value-size: 1.55rem;
+  --ui-metric-label-size: .74rem;
+  --ui-caption-size: .64rem;
+  --ui-space-1: 4px;
+  --ui-space-2: 8px;
+  --ui-space-3: 12px;
+  --ui-space-4: 16px;
+  --ui-space-5: 20px;
+  --ui-space-6: 24px;
+  --ui-shadow-card: 0 8px 22px rgb(40 40 40 / 5%);
+}
+
+.ui-metric-grid {
+  display: grid;
+  grid-template-columns: repeat(var(--ui-metric-columns, 4), minmax(0, 1fr));
+  gap: var(--ui-space-3);
+  margin-bottom: var(--ui-space-5);
+}
+
+.ui-metric-card {
+  display: flex;
+  align-items: center;
+  gap: var(--ui-space-3);
+  min-width: 0;
+  min-height: 104px;
+  padding: var(--ui-card-padding);
+  color: var(--ui-text);
+  background: var(--ui-surface);
+  border: 1px solid var(--ui-border);
+  border-radius: var(--ui-radius-card);
+  box-shadow: var(--ui-shadow-card);
+}
+
+.ui-metric-icon {
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  flex: 0 0 48px;
+  border-radius: 14px;
+  color: var(--ui-primary);
+  background: #e8f2ff;
+  font-size: 21px;
+  font-weight: 800;
+}
+
+.ui-metric-value-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--ui-space-2);
+  min-width: 0;
+}
+
+.ui-metric-value-row > strong {
+  color: var(--ui-text);
+  font-size: var(--ui-metric-value-size);
+  line-height: 1;
+  letter-spacing: -.03em;
+}
+
+.ui-metric-content > b,
+.ui-metric-content > small {
+  display: block;
+}
+
+.ui-metric-content > b {
+  margin-top: var(--ui-space-1);
+  color: var(--ui-text-soft);
+  font-size: var(--ui-metric-label-size);
+}
+
+.ui-metric-content > small,
+.ui-metric-footer {
+  margin-top: var(--ui-space-1);
+  color: var(--ui-muted);
+  font-size: var(--ui-caption-size);
+}
+
+.ui-metric-card.tone-success .ui-metric-icon {
+  color: var(--ui-success);
+  background: #e7f8f0;
+}
+.ui-metric-card.tone-warning .ui-metric-icon {
+  color: var(--ui-warning);
+  background: #fff1d8;
+}
+.ui-metric-card.tone-danger .ui-metric-icon {
+  color: var(--ui-danger);
+  background: #ffebed;
+}
+.ui-metric-card.tone-purple .ui-metric-icon {
+  color: var(--ui-purple);
+  background: #f0eaff;
+}
+.ui-metric-card.tone-neutral .ui-metric-icon {
+  color: var(--ui-neutral);
+  background: #eef1f5;
+}
+.ui-metric-card.metric-value-accent.tone-warning .ui-metric-value-row > strong {
+  color: var(--ui-warning);
+}
+.ui-metric-card.metric-value-accent.tone-danger .ui-metric-value-row > strong {
+  color: var(--ui-danger);
+}
+
+.ui-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 24px;
+  padding: 4px 9px;
+  border: 1px solid transparent;
+  border-radius: var(--ui-radius-pill);
+  font-size: .61rem;
+  font-weight: 800;
+  line-height: 1.1;
+  white-space: nowrap;
+}
+.ui-badge.tone-neutral {
+  color: #68758a;
+  background: #eef1f5;
+  border-color: #dce2ea;
+}
+.ui-badge.tone-primary {
+  color: #1760c8;
+  background: #e8f2ff;
+  border-color: #cfe1fb;
+}
+.ui-badge.tone-success {
+  color: #21835f;
+  background: #e7f8f0;
+  border-color: #c6ead9;
+}
+.ui-badge.tone-warning {
+  color: #a96500;
+  background: #fff1d8;
+  border-color: #f2ddb2;
+}
+.ui-badge.tone-danger {
+  color: #b93643;
+  background: #ffebed;
+  border-color: #f3c7cc;
+}
+.ui-badge.tone-purple {
+  color: #6541bf;
+  background: #f0eaff;
+  border-color: #dbcef8;
+}
+
+.workspace :is(button.primary, a.primary),
+.admin-workspace :is(button.primary, a.primary),
+.ui-primary-action {
+  min-height: var(--ui-button-height);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 var(--ui-space-4);
+  color: #fff;
+  background: linear-gradient(135deg, var(--ui-primary), #0e57f0);
+  border: 1px solid #145fe7;
+  border-radius: var(--ui-radius-control);
+  box-shadow: 0 10px 22px rgb(16 87 236 / 18%);
+  font-size: .72rem;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.workspace :is(button.primary, a.primary):hover:not(:disabled),
+.admin-workspace :is(button.primary, a.primary):hover:not(:disabled),
+.ui-primary-action:hover:not(:disabled) {
+  background: linear-gradient(135deg, #2b78ff, var(--ui-primary-hover)) !important;
+  border-color: var(--ui-primary-hover);
+}
+
+.workspace :is(
+  input:not([type="checkbox"]):not([type="radio"]):not([type="color"]):not([type="file"]):not([type="hidden"]),
+  select
+),
+.admin-workspace :is(
+  input:not([type="checkbox"]):not([type="radio"]):not([type="color"]):not([type="file"]):not([type="hidden"]),
+  select
+) {
+  min-height: var(--ui-control-height);
+  padding: 0 var(--ui-space-3);
+  color: #35425f;
+  background: var(--ui-surface);
+  border: 1px solid #d8e0ec;
+  border-radius: var(--ui-radius-control);
+}
+
+.workspace textarea,
+.admin-workspace textarea {
+  min-height: 96px;
+  padding: var(--ui-space-3);
+  color: #35425f;
+  background: var(--ui-surface);
+  border: 1px solid #d8e0ec;
+  border-radius: var(--ui-radius-control);
+}
+
+.workspace :is(input, select, textarea):focus,
+.admin-workspace :is(input, select, textarea):focus {
+  border-color: #8fb6f3;
+  box-shadow: 0 0 0 3px rgb(29 109 255 / 10%);
+}
+
+.status-pill {
+  min-height: 24px;
+  padding: 4px 9px;
+  border-radius: var(--ui-radius-pill);
+  font-size: .61rem;
+  font-weight: 800;
+}
+
+@media (max-width: 1100px) {
+  .ui-metric-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 560px) {
+  .ui-metric-grid {
+    gap: var(--ui-space-2);
+  }
+  .ui-metric-card {
+    min-height: 92px;
+    padding: var(--ui-space-3);
+    gap: var(--ui-space-2);
+  }
+  .ui-metric-icon {
+    width: 40px;
+    height: 40px;
+    flex-basis: 40px;
+    border-radius: 11px;
+    font-size: 18px;
+  }
+  .ui-metric-value-row > strong {
+    font-size: 1.32rem;
+  }
+}
+
+.appearance-preview.public-theme-preview {
+  background: var(--public-preview-bg);
+  color: var(--public-preview-text);
+  border-color: var(--public-primary);
+  box-shadow: inset 0 5px 0 var(--public-secondary);
+}
+.appearance-preview.public-theme-preview > small {
+  color: var(--public-preview-muted);
+}
+.appearance-preview.public-theme-preview > strong {
+  color: var(--public-preview-heading);
+}
+.appearance-preview.public-theme-preview > button {
+  background: var(--public-button);
+}
