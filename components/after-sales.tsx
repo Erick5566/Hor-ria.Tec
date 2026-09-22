@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { Cliente, PosVenda, useRows } from "@/lib/assistencia";
 import { message, supabase, today } from "@/lib/supabase";
-import { Empty, ErrorBox } from "./ui";
+import { Empty, ErrorBox, MetricCard, MetricGrid } from "./ui";
 import { useWorkspace } from "./workspace";
 
 const labels = {
@@ -32,32 +32,43 @@ export default function AfterSales() {
   return (
     <>
       <ErrorBox error={error || followups.error || customers.error} />
-      <div className="metrics">
-        <section className="panel">
-          <span>Disponíveis hoje</span>
-          <h2>
-            {
-              items.filter(
-                (x) => x.status === "pendente" && x.disponivel_em <= today(),
-              ).length
-            }
-          </h2>
-        </section>
-        <section className="panel">
-          <span>Pendentes futuros</span>
-          <h2>
-            {
-              items.filter(
-                (x) => x.status === "pendente" && x.disponivel_em > today(),
-              ).length
-            }
-          </h2>
-        </section>
-        <section className="panel">
-          <span>Contatados</span>
-          <h2>{items.filter((x) => x.status === "contatado").length}</h2>
-        </section>
-      </div>
+      <MetricGrid columns={3}>
+        <MetricCard
+          label="Disponíveis hoje"
+          value={
+            items.filter(
+              (x) => x.status === "pendente" && x.disponivel_em <= today(),
+            ).length
+          }
+          note="Contatos que já podem ser feitos"
+          icon="!"
+          tone="warning"
+          active={
+            items.filter(
+              (x) => x.status === "pendente" && x.disponivel_em <= today(),
+            ).length > 0
+          }
+          emphasizeValue
+        />
+        <MetricCard
+          label="Pendentes futuros"
+          value={
+            items.filter(
+              (x) => x.status === "pendente" && x.disponivel_em > today(),
+            ).length
+          }
+          note="Programados para os próximos dias"
+          icon="◷"
+          tone="purple"
+        />
+        <MetricCard
+          label="Contatados"
+          value={items.filter((x) => x.status === "contatado").length}
+          note="Clientes já acionados"
+          icon="✓"
+          tone="success"
+        />
+      </MetricGrid>
       <section className="panel">
         <h2>Relacionamento após o atendimento</h2>
         <p>
