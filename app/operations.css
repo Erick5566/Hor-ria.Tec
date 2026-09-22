@@ -10022,3 +10022,13 @@ button.danger,
   rotate: 0deg !important;
   direction: ltr;
 }
+
+
+/* Photo lightbox 500px maximum */
+.lightbox img {
+  width: auto !important;
+  height: auto !important;
+  max-width: min(500px, calc(100vw - 40px)) !important;
+  max-height: min(500px, calc(100dvh - 100px)) !important;
+  object-fit: contain;
+}
