@@ -166,24 +166,38 @@ function InlineCamera({
     document.body,
   );
 }
+const suggestedPhotoAngles = [
+  "Frente",
+  "Traseira",
+  "Laterais",
+  "Tela",
+  "Conectores",
+  "Acessórios",
+  "Área danificada",
+] as const;
+
 export function PhotoPicker({
   value,
   onChange,
   category = "Entrada",
   publicMode = false,
   onCameraConfirm,
+  suggestedChecklist = false,
 }: {
   value: PendingPhoto[];
   onChange: (p: PendingPhoto[]) => void;
   category?: string;
   publicMode?: boolean;
   onCameraConfirm?: (file: File) => Promise<void> | void;
+  suggestedChecklist?: boolean;
 }) {
   const [error, setError] = useState(""),
     [busy, setBusy] = useState(false),
     [zoom, setZoom] = useState(""),
-    [cameraOpen, setCameraOpen] = useState(false);
+    [cameraOpen, setCameraOpen] = useState(false),
+    [selectedAngle, setSelectedAngle] = useState("");
   const fallbackCamera = useRef<HTMLInputElement>(null);
+  const galleryInput = useRef<HTMLInputElement>(null);
   const urls = useRef<string[]>([]);
   useEffect(
     () => () => {
@@ -200,7 +214,7 @@ export function PhotoPicker({
       if (value.length + files.length > 15)
         throw new Error("Adicione até 15 fotos por envio.");
       const preparedFiles = await Promise.all(files.map(preparePhoto));
-      for (const prepared of preparedFiles) {
+      for (const [index, prepared] of preparedFiles.entries()) {
         const preview = URL.createObjectURL(prepared);
         urls.current.push(preview);
         pending.push({
@@ -209,9 +223,11 @@ export function PhotoPicker({
           preview,
           categoria: category,
           descricao: "",
+          angulo: suggestedChecklist && index === 0 ? selectedAngle : "",
         });
       }
       onChange([...value, ...pending]);
+      if (suggestedChecklist && selectedAngle) setSelectedAngle("");
     } catch (e) {
       setError(message(e as Error));
     } finally {
@@ -234,6 +250,114 @@ export function PhotoPicker({
         Recomendamos registrar pelo menos uma foto do equipamento antes de
         iniciar o atendimento.
       </p>
+      {suggestedChecklist && (
+        <>
+          <div className="photo-checklist-heading">
+            <strong>
+              Checklist sugerido (
+              {
+                new Set(
+                  value
+                    .map((photo) => photo.angulo)
+                    .filter((angle): angle is string => Boolean(angle)),
+                ).size
+              }{" "}
+              de {suggestedPhotoAngles.length})
+            </strong>
+            <small>Opcional</small>
+          </div>
+          <div className="photo-angle-chips" aria-label="Ângulos sugeridos">
+            {suggestedPhotoAngles.map((angle) => {
+              const done = value.some((photo) => photo.angulo === angle);
+              const selected = selectedAngle === angle;
+              return (
+                <button
+                  type="button"
+                  key={angle}
+                  className={`photo-angle-chip${done ? " done" : ""}${selected ? " selected" : ""}`}
+                  aria-pressed={selected}
+                  onClick={() =>
+                    setSelectedAngle((current) =>
+                      current === angle ? "" : angle,
+                    )
+                  }
+                >
+                  {done && <span aria-hidden="true">✓</span>}
+                  {angle}
+                </button>
+              );
+            })}
+          </div>
+
+          <div className="photo-stage-grid">
+            {value.map((photo, index) => (
+              <article className="photo-stage-card" key={photo.id}>
+                <button
+                  type="button"
+                  className="photo-stage-preview"
+                  onClick={() => setZoom(photo.preview)}
+                  aria-label={`Ampliar foto ${index + 1}`}
+                >
+                  <img
+                    src={photo.preview}
+                    alt={`Foto ${index + 1} do equipamento`}
+                    loading="lazy"
+                    decoding="async"
+                  />
+                  {photo.angulo && (
+                    <span className="photo-stage-angle">{photo.angulo}</span>
+                  )}
+                </button>
+                <button
+                  type="button"
+                  className="photo-stage-remove"
+                  aria-label={`Remover foto ${index + 1}`}
+                  onClick={() => {
+                    if (
+                      !window.confirm("Remover esta foto do rascunho?")
+                    )
+                      return;
+                    onChange(value.filter((item) => item.id !== photo.id));
+                  }}
+                >
+                  ×
+                </button>
+                <label className="photo-stage-angle-select">
+                  <span>Ângulo</span>
+                  <select
+                    value={photo.angulo || ""}
+                    onChange={(event) =>
+                      onChange(
+                        value.map((item) =>
+                          item.id === photo.id
+                            ? { ...item, angulo: event.target.value }
+                            : item,
+                        ),
+                      )
+                    }
+                  >
+                    <option value="">Sem ângulo</option>
+                    {suggestedPhotoAngles.map((angle) => (
+                      <option key={angle} value={angle}>
+                        {angle}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              </article>
+            ))}
+            <button
+              type="button"
+              className="photo-stage-add"
+              onClick={() => galleryInput.current?.click()}
+              aria-label="Adicionar fotos"
+            >
+              <span aria-hidden="true">+</span>
+              <small>Adicionar</small>
+            </button>
+          </div>
+        </>
+      )}
       <div className="upload-actions">
         <button
           className="primary"
@@ -261,28 +385,37 @@ export function PhotoPicker({
             e.target.value = "";
           }}
         />
-        <label className="outline">
+        <button
+          className="outline"
+          type="button"
+          disabled={busy}
+          onClick={() => galleryInput.current?.click()}
+        >
           + Adicionar fotos
-          <input
-            style={{ display: "none" }}
-            type="file"
-            accept="image/*"
-            multiple
-            disabled={busy}
-            onChange={(e) => {
-              choose(e.target.files);
-              e.target.value = "";
-            }}
-          />
-        </label>
+        </button>
+        <input
+          ref={galleryInput}
+          style={{ display: "none" }}
+          type="file"
+          accept="image/*"
+          multiple
+          disabled={busy}
+          onChange={(e) => {
+            choose(e.target.files);
+            e.target.value = "";
+          }}
+        />
       </div>
-      <p className="hint">
-        Frente · Traseira · Laterais · Tela · Conectores · Acessórios · Área
-        danificada
-      </p>
+      {!suggestedChecklist && (
+        <p className="hint">
+          Frente · Traseira · Laterais · Tela · Conectores · Acessórios · Área
+          danificada
+        </p>
+      )}
       {busy && <p role="status">Preparando fotos…</p>}
       <ErrorBox error={error} />
-      <div className="photos-grid">
+      {!suggestedChecklist && (
+        <div className="photos-grid">
         {value.map((p, i) => (
           <article className="photo-card" key={p.id}>
             <button
@@ -341,7 +474,8 @@ export function PhotoPicker({
             </div>
           </article>
         ))}
-      </div>
+        </div>
+      )}
       {zoom && (
         <div
           className="lightbox"
