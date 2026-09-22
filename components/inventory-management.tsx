@@ -222,9 +222,9 @@ export default function InventoryManagement() {
           onChange={(event) => setQuery(event.target.value)}
         />
         <label className="inventory-filter">
-          <span>Categoria</span>
+          <span>Tipo</span>
           <select
-            aria-label="Filtrar por categoria"
+            aria-label="Filtrar por tipo"
             value={type}
             onChange={(event) => {
               setType(event.target.value);
