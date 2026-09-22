@@ -17,6 +17,7 @@ function InlineCamera({
   const video = useRef<HTMLVideoElement>(null);
   const stream = useRef<MediaStream | null>(null);
   const [preview, setPreview] = useState("");
+  const [capturedBlob, setCapturedBlob] = useState<Blob | null>(null);
   const [error, setError] = useState("");
   const [cameraReady, setCameraReady] = useState(false);
 
@@ -66,8 +67,12 @@ function InlineCamera({
     const blob = await new Promise<Blob | null>((resolve) =>
       canvas.toBlob(resolve, "image/jpeg", 0.9),
     );
-    if (!blob) return;
+    if (!blob) {
+      setError("Não foi possível gerar a foto. Tente novamente.");
+      return;
+    }
     stream.current?.getTracks().forEach((track) => track.stop());
+    setCapturedBlob(blob);
     setPreview(URL.createObjectURL(blob));
   }
 
@@ -137,7 +142,8 @@ function InlineCamera({
               onClick={() => {
                 URL.revokeObjectURL(preview);
                 setPreview("");
-                start();
+                setCapturedBlob(null);
+                void start();
               }}
             >
               Tirar novamente
@@ -145,16 +151,22 @@ function InlineCamera({
             <button
               type="button"
               className="primary"
-              onClick={async () => {
-                const blob = await fetch(preview).then((response) =>
-                  response.blob(),
+              disabled={!capturedBlob}
+              onClick={() => {
+                if (!capturedBlob) {
+                  setError("A foto ainda não está pronta. Tire a foto novamente.");
+                  return;
+                }
+                const file = new File(
+                  [capturedBlob],
+                  `camera-${Date.now()}.jpg`,
+                  { type: "image/jpeg" },
                 );
-                const file = new File([blob], `camera-${Date.now()}.jpg`, {
-                  type: "image/jpeg",
-                });
-                URL.revokeObjectURL(preview);
-                onClose();
                 onUse(file);
+                URL.revokeObjectURL(preview);
+                setPreview("");
+                setCapturedBlob(null);
+                onClose();
               }}
             >
               Usar esta foto
