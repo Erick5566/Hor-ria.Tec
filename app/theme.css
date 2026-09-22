@@ -294,3 +294,53 @@
 .appearance-preview.public-theme-preview > button {
   background: var(--public-button);
 }
+
+
+/* Enforce shared metric geometry over legacy screen-specific article rules. */
+.workspace .ui-metric-grid .ui-metric-card,
+.admin-workspace .ui-metric-grid .ui-metric-card {
+  min-height: 104px;
+  padding: var(--ui-card-padding);
+  color: var(--ui-text);
+  background: var(--ui-surface);
+  border: 1px solid var(--ui-border);
+  border-radius: var(--ui-radius-card);
+  box-shadow: var(--ui-shadow-card);
+}
+
+.workspace .ui-metric-card .ui-metric-value-row > strong,
+.admin-workspace .ui-metric-card .ui-metric-value-row > strong {
+  margin: 0;
+  color: var(--ui-text);
+  font-size: var(--ui-metric-value-size);
+}
+
+.workspace .ui-metric-card .ui-metric-content > b,
+.admin-workspace .ui-metric-card .ui-metric-content > b {
+  margin-top: var(--ui-space-1);
+  color: var(--ui-text-soft);
+  font-size: var(--ui-metric-label-size);
+}
+
+.workspace .ui-metric-card .ui-metric-content > small,
+.admin-workspace .ui-metric-card .ui-metric-content > small,
+.workspace .ui-metric-card .ui-metric-footer,
+.admin-workspace .ui-metric-card .ui-metric-footer {
+  color: var(--ui-muted);
+  font-size: var(--ui-caption-size);
+}
+
+/* Legacy domain badges keep their status-specific colors but share one shape. */
+.workspace :is(.quote-status, .catalog-status, span.status),
+.admin-workspace .account-status {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 24px;
+  padding: 4px 9px;
+  border-radius: var(--ui-radius-pill);
+  font-size: .61rem;
+  font-weight: 800;
+  line-height: 1.1;
+  white-space: nowrap;
+}
