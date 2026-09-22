@@ -10,6 +10,102 @@ export type PendingPhoto = {
   uploaded?: boolean;
   saved?: boolean;
 };
+const PHOTO_DRAFT_DB = "horaria-order-drafts";
+const PHOTO_DRAFT_STORE = "photos";
+const PHOTO_DRAFT_VERSION = 1;
+
+function openPhotoDraftDb(): Promise<IDBDatabase> {
+  return new Promise((resolve, reject) => {
+    const request = indexedDB.open(PHOTO_DRAFT_DB, PHOTO_DRAFT_VERSION);
+    request.onupgradeneeded = () => {
+      const db = request.result;
+      if (!db.objectStoreNames.contains(PHOTO_DRAFT_STORE)) {
+        db.createObjectStore(PHOTO_DRAFT_STORE, { keyPath: "key" });
+      }
+    };
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = () =>
+      reject(request.error || new Error("Não foi possível abrir o rascunho de fotos."));
+  });
+}
+
+export async function savePendingPhotosDraft(
+  key: string,
+  photos: PendingPhoto[],
+) {
+  if (typeof indexedDB === "undefined") return;
+  const db = await openPhotoDraftDb();
+  try {
+    await new Promise<void>((resolve, reject) => {
+      const transaction = db.transaction(PHOTO_DRAFT_STORE, "readwrite");
+      const store = transaction.objectStore(PHOTO_DRAFT_STORE);
+      store.put({
+        key,
+        photos: photos.map(({ preview: _preview, ...photo }) => photo),
+      });
+      transaction.oncomplete = () => resolve();
+      transaction.onerror = () =>
+        reject(
+          transaction.error ||
+            new Error("Não foi possível salvar o rascunho de fotos."),
+        );
+      transaction.onabort = () =>
+        reject(
+          transaction.error ||
+            new Error("Não foi possível salvar o rascunho de fotos."),
+        );
+    });
+  } finally {
+    db.close();
+  }
+}
+
+export async function loadPendingPhotosDraft(
+  key: string,
+): Promise<PendingPhoto[]> {
+  if (typeof indexedDB === "undefined") return [];
+  const db = await openPhotoDraftDb();
+  try {
+    const record = await new Promise<
+      { key: string; photos?: Omit<PendingPhoto, "preview">[] } | undefined
+    >((resolve, reject) => {
+      const transaction = db.transaction(PHOTO_DRAFT_STORE, "readonly");
+      const request = transaction.objectStore(PHOTO_DRAFT_STORE).get(key);
+      request.onsuccess = () => resolve(request.result);
+      request.onerror = () =>
+        reject(
+          request.error ||
+            new Error("Não foi possível restaurar o rascunho de fotos."),
+        );
+    });
+    return (record?.photos || []).map((photo) => ({
+      ...photo,
+      preview: URL.createObjectURL(photo.file),
+    }));
+  } finally {
+    db.close();
+  }
+}
+
+export async function clearPendingPhotosDraft(key: string) {
+  if (typeof indexedDB === "undefined") return;
+  const db = await openPhotoDraftDb();
+  try {
+    await new Promise<void>((resolve, reject) => {
+      const transaction = db.transaction(PHOTO_DRAFT_STORE, "readwrite");
+      transaction.objectStore(PHOTO_DRAFT_STORE).delete(key);
+      transaction.oncomplete = () => resolve();
+      transaction.onerror = () =>
+        reject(
+          transaction.error ||
+            new Error("Não foi possível limpar o rascunho de fotos."),
+        );
+    });
+  } finally {
+    db.close();
+  }
+}
+
 export async function preparePhoto(file: File): Promise<File> {
   if (!["image/jpeg", "image/png", "image/webp"].includes(file.type))
     throw new Error(
