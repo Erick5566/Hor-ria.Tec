@@ -3,7 +3,7 @@ import { useCallback, useEffect, useState } from "react";
 import { useWorkspace } from "./workspace";
 import { saveRow, categories, money } from "@/lib/assistencia";
 import { message, supabase } from "@/lib/supabase";
-import { ErrorBox, Empty, Pagination } from "./ui";
+import { ErrorBox, Empty, MetricCard, MetricGrid, Pagination } from "./ui";
 
 type CatalogItem = {
   id: string;
@@ -154,21 +154,18 @@ export default function CatalogManagement({
     <div className="catalog-dashboard">
       <ErrorBox error={error} />
 
-      <div className="dashboard-kpis catalog-kpis">
+      <MetricGrid columns={4} className="catalog-kpis">
         {metrics.map((metric) => (
-          <article key={metric.name} className={"dashboard-kpi " + metric.tone}>
-            <div className="dashboard-kpi-top">
-              <span className="dashboard-kpi-icon">{metric.icon}</span>
-              <span>{metric.name}</span>
-            </div>
-            <div className="dashboard-kpi-value">
-              <strong>{loading && !data ? "—" : metric.value}</strong>
-              <span className="mini-spark">⌁</span>
-            </div>
-            <small>{metric.note}</small>
-          </article>
+          <MetricCard
+            key={metric.name}
+            label={metric.name}
+            value={loading && !data ? "—" : metric.value}
+            note={metric.note}
+            icon={metric.icon}
+            tone={metric.tone as "blue" | "green" | "purple" | "amber"}
+          />
         ))}
-      </div>
+      </MetricGrid>
 
       <section className="dashboard-card catalog-main-card">
         <div className="dashboard-card-head catalog-card-head">
