@@ -1,6 +1,7 @@
 import "./globals.css";
 import "./workspace.css";
 import "./operations.css";
+import "./theme.css";
 import type { Metadata } from "next";
 
 const base =
