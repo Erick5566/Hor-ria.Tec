@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { preparePhoto } from "@/lib/photos";
 import { message, Servico, supabase } from "@/lib/supabase";
 import { ErrorBox } from "./ui";
@@ -117,6 +117,48 @@ function readable(background: string) {
   return contrast(background, "#FFFFFF") >= 4.5 ? "#FFFFFF" : "#06141B";
 }
 
+const reservedSlugs = [
+  "painel",
+  "agendar",
+  "acompanhar",
+  "api",
+  "admin",
+  "login",
+  "dashboard",
+  "suporte",
+  "horaria",
+  "entrar",
+  "cadastro",
+  "manutencao",
+  "conta-bloqueada",
+];
+
+function slugify(value: string) {
+  return value
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .replace(/-+/g, "-")
+    .slice(0, 80)
+    .replace(/-$/g, "");
+}
+
+type SlugCheck = {
+  disponivel: boolean;
+  sugestao?: string | null;
+  motivo?: string | null;
+};
+
+type CepLookup = {
+  found: boolean;
+  bairro?: string;
+  cidade?: string;
+  estado?: string;
+};
+
 export default function PublicPageSettings() {
   const { empresa, access, refresh, userId } = useWorkspace();
   const canManage = ["OWNER", "ADMIN"].includes(access.company?.role || "");
@@ -126,7 +168,19 @@ export default function PublicPageSettings() {
     [notice, setNotice] = useState(""),
     [busy, setBusy] = useState(false),
     [uploading, setUploading] = useState(false),
-    [previewMode, setPreviewMode] = useState<"desktop" | "mobile">("desktop");
+    [previewMode, setPreviewMode] = useState<"desktop" | "mobile">("desktop"),
+    [slugManuallyEdited, setSlugManuallyEdited] = useState(
+      Boolean(empresa.slug && empresa.slug !== slugify(empresa.nome)),
+    ),
+    [slugState, setSlugState] = useState<
+      "idle" | "checking" | "available" | "taken" | "invalid"
+    >("idle"),
+    [slugSuggestion, setSlugSuggestion] = useState(""),
+    [sameWhatsapp, setSameWhatsapp] = useState(
+      !empresa.whatsapp || empresa.whatsapp === empresa.telefone,
+    ),
+    [autoAddressFields, setAutoAddressFields] = useState<string[]>([]),
+    [cepLoading, setCepLoading] = useState(false);
   const [hours, setHours] = useState<Record<string, [string, string]>>(
     empresa.horario,
   );
@@ -157,6 +211,20 @@ export default function PublicPageSettings() {
     button: empresa.cor_botao || defaults.button,
     theme: empresa.tema_publico || defaults.theme,
   });
+
+  const checkSlugAvailability = useCallback(
+    async (slug: string) => {
+      if (!supabase) throw new Error("Serviço de validação indisponível.");
+      const result = await supabase.rpc("verificar_slug_pagina", {
+        p_slug: slug,
+        p_empresa: empresa.id,
+      });
+      if (result.error) throw result.error;
+      return result.data as SlugCheck;
+    },
+    [empresa.id],
+  );
+
   useEffect(() => {
     if (!canManage) return;
     Promise.all([
@@ -178,6 +246,93 @@ export default function PublicPageSettings() {
       else setServices(catalog.data as Servico[]);
     });
   }, [canManage, empresa.id]);
+
+  useEffect(() => {
+    const slug = identity.slug.trim();
+    setSlugSuggestion("");
+
+    if (!slug) {
+      setSlugState("idle");
+      return;
+    }
+
+    if (
+      !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug) ||
+      reservedSlugs.includes(slug)
+    ) {
+      setSlugState("invalid");
+      return;
+    }
+
+    let active = true;
+    setSlugState("checking");
+    const timer = window.setTimeout(() => {
+      void checkSlugAvailability(slug)
+        .then((result) => {
+          if (!active) return;
+          setSlugState(result.disponivel ? "available" : "taken");
+          setSlugSuggestion(result.sugestao || "");
+        })
+        .catch(() => {
+          if (active) setSlugState("idle");
+        });
+    }, 350);
+
+    return () => {
+      active = false;
+      window.clearTimeout(timer);
+    };
+  }, [identity.slug, checkSlugAvailability]);
+
+  useEffect(() => {
+    const cep = identity.cep.replace(/\D/g, "");
+    setAutoAddressFields([]);
+
+    if (cep.length !== 8) {
+      setCepLoading(false);
+      return;
+    }
+
+    const controller = new AbortController();
+    const timer = window.setTimeout(() => {
+      setCepLoading(true);
+      void fetch(`/api/cep/${cep}`, {
+        signal: controller.signal,
+        cache: "no-store",
+      })
+        .then(async (response) => {
+          if (!response.ok) return null;
+          return (await response.json()) as CepLookup;
+        })
+        .then((data) => {
+          if (!data?.found) return;
+          const filled: string[] = [];
+          if (data.bairro) filled.push("bairro");
+          if (data.cidade) filled.push("cidade");
+          if (data.estado) filled.push("estado");
+
+          setIdentity((current) => ({
+            ...current,
+            bairro: data.bairro || current.bairro,
+            cidade: data.cidade || current.cidade,
+            estado: data.estado || current.estado,
+          }));
+          setAutoAddressFields(filled);
+        })
+        .catch(() => {
+          // Falha de CEP não bloqueia o preenchimento manual do formulário.
+        })
+        .finally(() => {
+          if (!controller.signal.aborted) setCepLoading(false);
+        });
+    }, 500);
+
+    return () => {
+      controller.abort();
+      window.clearTimeout(timer);
+    };
+  }, [identity.cep]);
+
   const publicUrl =
     typeof location === "undefined"
       ? `/${identity.slug}`
@@ -188,6 +343,35 @@ export default function PublicPageSettings() {
       : services;
     return selected.slice(0, config?.limite_servicos || 6);
   }, [config, services]);
+  const profileStatus = useMemo(() => {
+    const addressComplete =
+      Boolean(identity.endereco.trim()) &&
+      Boolean(identity.numero.trim()) &&
+      Boolean(identity.bairro.trim()) &&
+      Boolean(identity.cidade.trim()) &&
+      Boolean(identity.estado.trim()) &&
+      identity.cep.replace(/\D/g, "").length === 8;
+
+    const items = [
+      { label: "Nome", complete: Boolean(identity.nome.trim()) },
+      {
+        label: "Descrição curta",
+        complete: Boolean(identity.descricao.trim()),
+      },
+      {
+        label: "Telefone/WhatsApp",
+        complete: Boolean(identity.telefone.trim() || identity.whatsapp.trim()),
+      },
+      { label: "Endereço completo", complete: addressComplete },
+      { label: "Logo", complete: Boolean(identity.logo) },
+      { label: "1 serviço cadastrado", complete: services.length > 0 },
+    ];
+    const completed = items.filter((item) => item.complete).length;
+    return {
+      percent: Math.round((completed / items.length) * 100),
+      missing: items.filter((item) => !item.complete).map((item) => item.label),
+    };
+  }, [identity, services.length]);
   if (!canManage)
     return (
       <section className="panel">
@@ -245,28 +429,27 @@ export default function PublicPageSettings() {
     setError("");
     setNotice("");
     try {
-      const reserved = [
-        "painel",
-        "agendar",
-        "acompanhar",
-        "api",
-        "admin",
-        "login",
-        "dashboard",
-        "suporte",
-        "horaria",
-        "entrar",
-        "cadastro",
-        "manutencao",
-        "conta-bloqueada",
-      ];
       if (
         !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(identity.slug) ||
-        reserved.includes(identity.slug)
+        reservedSlugs.includes(identity.slug)
       )
         throw new Error(
           "Escolha uma URL com letras minúsculas, números e hífens, sem usar uma rota reservada.",
         );
+
+      const availability = await checkSlugAvailability(identity.slug);
+      if (!availability.disponivel) {
+        setSlugState("taken");
+        setSlugSuggestion(availability.sugestao || "");
+        throw new Error(
+          availability.sugestao
+            ? `Essa URL já está em uso. Tente /${availability.sugestao}.`
+            : "Essa URL já está em uso. Escolha outra URL.",
+        );
+      }
+      setSlugState("available");
+      setSlugSuggestion("");
+
       const textColor =
         contrast(config.cor_fundo, config.cor_texto) >= 4.5
           ? config.cor_texto
@@ -367,6 +550,17 @@ export default function PublicPageSettings() {
           <p>
             Personalize o que seus clientes verão em celulares e computadores.
           </p>
+          <div className="profile-progress" aria-label={`Perfil ${profileStatus.percent}% completo`}>
+            <strong>Perfil {profileStatus.percent}% completo</strong>
+            <div className="profile-progress-track" aria-hidden="true">
+              <span style={{ width: `${profileStatus.percent}%` }} />
+            </div>
+            <small>
+              {profileStatus.missing.length
+                ? `Falta: ${profileStatus.missing.join(", ")}`
+                : "Campos essenciais completos."}
+            </small>
+          </div>
         </div>
         <div className="inline-actions">
           <button
@@ -403,26 +597,73 @@ export default function PublicPageSettings() {
                   value={identity.nome}
                   required
                   maxLength={100}
-                  onChange={(e) =>
-                    setIdentity({ ...identity, nome: e.target.value })
+                  onChange={(e) => {
+                    const nome = e.target.value;
+                    setIdentity((current) => ({
+                      ...current,
+                      nome,
+                      ...(!slugManuallyEdited ? { slug: slugify(nome) } : {}),
+                    }));
                   }
                 />
               </label>
               <label>
                 URL da página
-                <div className="input-prefix">
+                <div className="input-prefix slug-input">
                   <span>/</span>
                   <input
                     value={identity.slug}
                     required
                     pattern="[a-z0-9]+(-[a-z0-9]+)*"
-                    onChange={(e) =>
-                      setIdentity({
-                        ...identity,
-                        slug: e.target.value.toLowerCase(),
-                      })
-                    }
+                    onFocus={() => setSlugManuallyEdited(true)}
+                    onChange={(e) => {
+                      setSlugManuallyEdited(true);
+                      setIdentity((current) => ({
+                        ...current,
+                        slug: slugify(e.target.value),
+                      }));
+                    }}
                   />
+                  {slugState === "available" &&
+                    !slugManuallyEdited &&
+                    identity.slug === slugify(identity.nome) && (
+                      <span
+                        className="slug-status-icon"
+                        title="URL disponível e sincronizada com o nome"
+                        aria-label="URL disponível e sincronizada com o nome"
+                      >
+                        ✓
+                      </span>
+                    )}
+                </div>
+                <div className="slug-feedback" aria-live="polite">
+                  {slugState === "checking" && <small>Verificando disponibilidade…</small>}
+                  {slugState === "available" && <small className="available">URL disponível</small>}
+                  {slugState === "invalid" && (
+                    <small>Use letras minúsculas, números e hífens.</small>
+                  )}
+                  {slugState === "taken" && (
+                    <small className="unavailable">
+                      Essa URL já está em uso.
+                      {slugSuggestion && (
+                        <>
+                          {" "}
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setSlugManuallyEdited(true);
+                              setIdentity((current) => ({
+                                ...current,
+                                slug: slugSuggestion,
+                              }));
+                            }}
+                          >
+                            Usar /{slugSuggestion}
+                          </button>
+                        </>
+                      )}
+                    </small>
+                  )}
                 </div>
               </label>
               <label>
@@ -449,6 +690,7 @@ export default function PublicPageSettings() {
               Descrição curta
               <textarea
                 value={identity.descricao}
+                placeholder="Consertos rápidos e com garantia, do jeito que seu aparelho merece"
                 maxLength={1000}
                 onChange={(e) =>
                   setIdentity({ ...identity, descricao: e.target.value })
@@ -563,13 +805,39 @@ export default function PublicPageSettings() {
               <Field
                 label="Telefone"
                 value={identity.telefone}
-                onChange={(v) => setIdentity({ ...identity, telefone: v })}
+                onChange={(v) =>
+                  setIdentity((current) => ({
+                    ...current,
+                    telefone: v,
+                    whatsapp: sameWhatsapp ? v : current.whatsapp,
+                  }))
+                }
               />
               <Field
                 label="WhatsApp"
                 value={identity.whatsapp}
-                onChange={(v) => setIdentity({ ...identity, whatsapp: v })}
+                disabled={sameWhatsapp}
+                onChange={(v) =>
+                  setIdentity((current) => ({ ...current, whatsapp: v }))
+                }
               />
+              <label className="check-label same-whatsapp-field">
+                <input
+                  type="checkbox"
+                  checked={sameWhatsapp}
+                  onChange={(event) => {
+                    const checked = event.target.checked;
+                    setSameWhatsapp(checked);
+                    if (checked) {
+                      setIdentity((current) => ({
+                        ...current,
+                        whatsapp: current.telefone,
+                      }));
+                    }
+                  }}
+                />
+                Usar o mesmo número no WhatsApp
+              </label>
               <Field
                 label="E-mail"
                 type="email"
@@ -605,27 +873,48 @@ export default function PublicPageSettings() {
               <Field
                 label="Bairro"
                 value={identity.bairro}
-                onChange={(v) => setIdentity({ ...identity, bairro: v })}
+                autoFilled={autoAddressFields.includes("bairro")}
+                onChange={(v) => {
+                  setAutoAddressFields((current) =>
+                    current.filter((field) => field !== "bairro"),
+                  );
+                  setIdentity((current) => ({ ...current, bairro: v }));
+                }}
               />
               <Field
                 label="Cidade"
                 value={identity.cidade}
-                onChange={(v) => setIdentity({ ...identity, cidade: v })}
+                autoFilled={autoAddressFields.includes("cidade")}
+                onChange={(v) => {
+                  setAutoAddressFields((current) =>
+                    current.filter((field) => field !== "cidade"),
+                  );
+                  setIdentity((current) => ({ ...current, cidade: v }));
+                }}
               />
               <Field
                 label="Estado"
                 value={identity.estado}
-                onChange={(v) =>
-                  setIdentity({
-                    ...identity,
+                autoFilled={autoAddressFields.includes("estado")}
+                onChange={(v) => {
+                  setAutoAddressFields((current) =>
+                    current.filter((field) => field !== "estado"),
+                  );
+                  setIdentity((current) => ({
+                    ...current,
                     estado: v.toUpperCase().slice(0, 2),
-                  })
-                }
+                  }));
+                }}
               />
               <Field
                 label="CEP"
                 value={identity.cep}
-                onChange={(v) => setIdentity({ ...identity, cep: v })}
+                inputMode="numeric"
+                maxLength={9}
+                helper={cepLoading ? "Buscando endereço…" : undefined}
+                onChange={(v) =>
+                  setIdentity((current) => ({ ...current, cep: v }))
+                }
               />
               <Field
                 label="Google Maps"
@@ -1054,20 +1343,39 @@ function Field({
   value,
   onChange,
   type = "text",
+  disabled = false,
+  autoFilled = false,
+  helper,
+  inputMode,
+  maxLength,
 }: {
   label: string;
   value: string;
   onChange: (value: string) => void;
   type?: string;
+  disabled?: boolean;
+  autoFilled?: boolean;
+  helper?: string;
+  inputMode?: React.HTMLAttributes<HTMLInputElement>["inputMode"];
+  maxLength?: number;
 }) {
   return (
     <label>
-      {label}
+      <span className="field-label-row">
+        <span>{label}</span>
+        {autoFilled && (
+          <small className="auto-filled-note">⌖ preenchido automaticamente</small>
+        )}
+      </span>
       <input
         type={type}
         value={value}
+        disabled={disabled}
+        inputMode={inputMode}
+        maxLength={maxLength}
         onChange={(e) => onChange(e.target.value)}
       />
+      {helper && <small className="field-helper">{helper}</small>}
     </label>
   );
 }
