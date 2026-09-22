@@ -9572,3 +9572,444 @@ button.danger,
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
+
+
+/* Guided new-order photo sequence */
+.guided-photo-flow {
+  display: grid;
+  gap: 14px;
+}
+
+.guided-photo-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.guided-photo-top small,
+.guided-photo-top strong {
+  display: block;
+}
+
+.guided-photo-top small {
+  color: #77849a;
+  font-size: .61rem;
+  font-weight: 800;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+}
+
+.guided-photo-top h2 {
+  margin: 3px 0 0;
+}
+
+.guided-photo-top > strong {
+  color: #3156c7;
+  background: #eef3ff;
+  border: 1px solid #d6e0fa;
+  border-radius: 999px;
+  padding: 6px 9px;
+  font-size: .58rem;
+}
+
+.guided-photo-progress {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 5px;
+}
+
+.guided-photo-progress > span {
+  height: 6px;
+  background: #e1e6ee;
+  border-radius: 999px;
+}
+
+.guided-photo-progress > span.done {
+  background: #2fad7a;
+}
+
+.guided-photo-progress > span.current {
+  background: #337cf0;
+}
+
+.guided-photo-progress > span.skipped {
+  background: #b8c0cc;
+}
+
+.guided-photo-chip-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+
+.guided-photo-chip {
+  min-height: 34px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  color: #6d798d;
+  background: #fff;
+  border: 1px solid #d8dfe9;
+  border-radius: 999px;
+  font-size: .61rem;
+  font-weight: 800;
+}
+
+.guided-photo-chip > span {
+  display: inline-grid;
+  place-items: center;
+  min-width: 15px;
+}
+
+.guided-photo-chip.done {
+  color: #21835f;
+  background: #eaf8f1;
+  border-color: #bde5d1;
+  cursor: pointer;
+}
+
+.guided-photo-chip.current {
+  color: #2e67c9;
+  background: #edf4ff;
+  border-color: #a9c7f4;
+}
+
+.guided-photo-chip.skipped {
+  color: #7f8998;
+  background: #f3f5f8;
+  border-style: dashed;
+}
+
+.guided-photo-chip.future {
+  color: #9aa4b2;
+  background: #f8f9fb;
+  opacity: .85;
+}
+
+.guided-photo-chip:disabled {
+  cursor: not-allowed;
+}
+
+.guided-photo-reference {
+  min-height: 330px;
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: 12px;
+  padding: 22px;
+  text-align: center;
+  background:
+    radial-gradient(circle at 50% 35%, rgb(77 113 168 / 12%), transparent 18rem),
+    #f7f9fc;
+  border: 1px solid #dfe5ee;
+  border-radius: 14px;
+}
+
+.guided-photo-reference-frame {
+  position: relative;
+  width: min(230px, 65vw);
+  aspect-ratio: 10 / 17;
+  border: 3px solid #7fa8e8;
+  border-radius: 28px;
+  box-shadow:
+    inset 0 0 0 1px rgb(255 255 255 / 85%),
+    0 12px 30px rgb(41 64 99 / 8%);
+}
+
+.guided-photo-reference-frame::after {
+  content: "";
+  position: absolute;
+  top: 12px;
+  left: 50%;
+  width: 42px;
+  height: 5px;
+  transform: translateX(-50%);
+  background: #94b5e7;
+  border-radius: 999px;
+}
+
+.guided-photo-reference-frame > span {
+  position: absolute;
+  left: 50%;
+  bottom: 16px;
+  transform: translateX(-50%);
+  padding: 5px 8px;
+  color: #2f65bd;
+  background: rgb(238 245 255 / 95%);
+  border: 1px solid #b9d0f2;
+  border-radius: 999px;
+  font-size: .56rem;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.guided-photo-reference > strong {
+  color: #263550;
+  font-size: .8rem;
+}
+
+.guided-photo-reference > p {
+  max-width: 560px;
+  margin: 0;
+  color: #66748a;
+  font-size: .68rem;
+  line-height: 1.5;
+}
+
+.guided-photo-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 9px;
+}
+
+.guided-photo-skip {
+  margin-left: auto;
+  min-height: 40px;
+  padding-inline: 9px;
+  color: #748198;
+  background: transparent;
+  border-color: transparent;
+  font-size: .62rem;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.guided-photo-current-preview {
+  display: grid;
+  grid-template-columns: 82px minmax(0, 1fr);
+  align-items: center;
+  gap: 10px;
+  padding: 9px;
+  background: #f8fafc;
+  border: 1px solid #e0e5ed;
+  border-radius: 10px;
+}
+
+.guided-photo-current-preview > button {
+  width: 82px;
+  height: 82px;
+  min-height: 82px !important;
+  padding: 0 !important;
+  overflow: hidden;
+  border: 0;
+  border-radius: 8px;
+}
+
+.guided-photo-current-preview img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.guided-photo-current-preview small {
+  color: #748198;
+  font-size: .6rem;
+  line-height: 1.4;
+}
+
+.camera-guide-overlay {
+  position: absolute;
+  z-index: 4;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  pointer-events: none;
+}
+
+.camera-guide-frame {
+  position: relative;
+  width: min(52%, 260px);
+  height: min(78%, 430px);
+  border: 2px solid rgb(255 255 255 / 86%);
+  border-radius: 26px;
+  box-shadow:
+    0 0 0 999px rgb(0 0 0 / 10%),
+    inset 0 0 0 1px rgb(70 136 237 / 65%);
+}
+
+.camera-guide-frame::after {
+  content: "";
+  position: absolute;
+  top: 10px;
+  left: 50%;
+  width: 40px;
+  height: 4px;
+  transform: translateX(-50%);
+  background: rgb(255 255 255 / 80%);
+  border-radius: 999px;
+}
+
+.camera-guide-frame > span {
+  position: absolute;
+  left: 50%;
+  bottom: 14px;
+  transform: translateX(-50%);
+  padding: 5px 8px;
+  color: #fff;
+  background: rgb(23 41 70 / 72%);
+  border: 1px solid rgb(255 255 255 / 28%);
+  border-radius: 999px;
+  font-size: .56rem;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.camera-guide-instruction {
+  margin: 8px 0 0 !important;
+  color: #5e6d85;
+  font-size: .65rem !important;
+  line-height: 1.45;
+  text-align: center;
+}
+
+.guided-photo-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.guided-photo-summary-card {
+  position: relative;
+  overflow: hidden;
+  background: #fff;
+  border: 1px solid #dfe5ed;
+  border-radius: 11px;
+}
+
+.guided-photo-summary-card > button:first-child {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  min-height: 0 !important;
+  padding: 0 !important;
+  overflow: hidden;
+  border: 0;
+  border-radius: 0;
+}
+
+.guided-photo-summary-card img {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+}
+
+.guided-photo-summary-card > div:not(.guided-photo-skipped-mark) {
+  display: grid;
+  gap: 3px;
+  padding: 8px;
+}
+
+.guided-photo-summary-card strong,
+.guided-photo-summary-card small {
+  display: block;
+}
+
+.guided-photo-summary-card strong {
+  color: #2d3a53;
+  font-size: .65rem;
+}
+
+.guided-photo-summary-card small {
+  color: #25815e;
+  font-size: .56rem;
+}
+
+.guided-photo-summary-card.is-skipped {
+  background: #f7f8fa;
+  border-style: dashed;
+}
+
+.guided-photo-summary-card.is-skipped small {
+  color: #8a94a3;
+}
+
+.guided-photo-skipped-mark {
+  aspect-ratio: 1 / 1;
+  display: grid;
+  place-items: center;
+  color: #9ba5b3;
+  background: #eef1f5;
+  font-size: 1.4rem;
+}
+
+.guided-photo-redo {
+  position: absolute;
+  right: 6px;
+  top: 6px;
+  min-height: 28px !important;
+  padding: 4px 7px;
+  color: #3156c7;
+  background: rgb(255 255 255 / 92%);
+  border: 1px solid #d6e0ee;
+  border-radius: 7px;
+  font-size: .54rem;
+  font-weight: 800;
+}
+
+.guided-photo-summary-actions {
+  display: flex;
+  justify-content: flex-end;
+  padding-top: 2px;
+}
+
+@media (max-width: 760px) {
+  .guided-photo-reference {
+    min-height: 290px;
+    padding: 16px 12px;
+  }
+
+  .guided-photo-reference-frame {
+    width: min(190px, 58vw);
+  }
+
+  .guided-photo-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .guided-photo-actions .guided-photo-skip {
+    grid-column: 1 / -1;
+    width: fit-content;
+    margin: 0 auto;
+  }
+
+  .guided-photo-summary-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .camera-guide-frame {
+    width: min(58%, 230px);
+    height: min(74%, 390px);
+  }
+}
+
+@media (max-width: 420px) {
+  .guided-photo-top {
+    gap: 8px;
+  }
+
+  .guided-photo-chip-row {
+    gap: 5px;
+  }
+
+  .guided-photo-chip {
+    min-height: 31px;
+    padding: 5px 8px;
+    font-size: .56rem;
+  }
+
+  .guided-photo-actions {
+    grid-template-columns: 1fr;
+  }
+
+  .guided-photo-actions .guided-photo-skip {
+    grid-column: auto;
+  }
+
+  .guided-photo-summary-actions .primary {
+    width: 100%;
+  }
+}
