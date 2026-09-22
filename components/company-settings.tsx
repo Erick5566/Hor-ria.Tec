@@ -127,9 +127,15 @@ export default function CompanySettings() {
     setCepStatus("loading");
     try {
       const response = await fetch(`/api/cep/${cep}`, { cache: "no-store" });
-      if (!response.ok) return;
+      if (!response.ok) {
+        setCepStatus("idle");
+        return;
+      }
       const data = (await response.json()) as CepLookup;
-      if (!data.found) return;
+      if (!data.found) {
+        setCepStatus("idle");
+        return;
+      }
 
       const filled: string[] = [];
       if (data.logradouro) filled.push("rua");
@@ -425,7 +431,6 @@ export default function CompanySettings() {
                   : generatedMapsUrl;
                 if (value) {
                   await navigator.clipboard.writeText(value);
-                  setSaved(true);
                 }
               }}
             >
