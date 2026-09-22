@@ -3,7 +3,7 @@ import { useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { supabase, message } from "@/lib/supabase";
-import { ErrorBox, Heading } from "./ui";
+import { ErrorBox, Heading, MetricCard, MetricGrid } from "./ui";
 
 export type AdminCompany = {
   id: string;
@@ -131,41 +131,43 @@ export default function AdminDashboard({
       )}
       {!settingsOnly && (
         <>
-          <div className="metrics admin-metrics">
-            <article>
-              <span>Empresas</span>
-              <h2>{overview.currentCompanies}</h2>
-              <small>de {overview.maxCompanies} vagas</small>
-            </article>
-            <article>
-              <span>Ativas</span>
-              <h2>
-                {
-                  initialCompanies.filter((x) =>
-                    ["ACTIVE", "TRIAL"].includes(x.status),
-                  ).length
-                }
-              </h2>
-              <small>incluindo período inicial</small>
-            </article>
-            <article>
-              <span>Pagamento pendente</span>
-              <h2>
-                {initialCompanies.filter((x) => x.status === "PAST_DUE").length}
-              </h2>
-              <small>dados preservados</small>
-            </article>
-            <article>
-              <span>Suspensas</span>
-              <h2>
-                {
-                  initialCompanies.filter((x) => x.status === "SUSPENDED")
-                    .length
-                }
-              </h2>
-              <small>acesso bloqueado</small>
-            </article>
-          </div>
+          <MetricGrid columns={4} className="admin-metrics">
+            <MetricCard
+              label="Empresas"
+              value={overview.currentCompanies}
+              note={`de ${overview.maxCompanies} vagas`}
+              icon="▦"
+            />
+            <MetricCard
+              label="Ativas"
+              value={
+                initialCompanies.filter((x) =>
+                  ["ACTIVE", "TRIAL"].includes(x.status),
+                ).length
+              }
+              note="incluindo período inicial"
+              icon="✓"
+              tone="success"
+            />
+            <MetricCard
+              label="Pagamento pendente"
+              value={initialCompanies.filter((x) => x.status === "PAST_DUE").length}
+              note="dados preservados"
+              icon="◷"
+              tone="warning"
+              active={initialCompanies.filter((x) => x.status === "PAST_DUE").length > 0}
+              emphasizeValue
+            />
+            <MetricCard
+              label="Suspensas"
+              value={initialCompanies.filter((x) => x.status === "SUSPENDED").length}
+              note="acesso bloqueado"
+              icon="×"
+              tone="danger"
+              active={initialCompanies.filter((x) => x.status === "SUSPENDED").length > 0}
+              emphasizeValue
+            />
+          </MetricGrid>
           <section className="panel">
             <div className="toolbar">
               <input
