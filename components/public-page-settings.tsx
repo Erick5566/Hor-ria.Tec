@@ -604,7 +604,7 @@ export default function PublicPageSettings() {
                       nome,
                       ...(!slugManuallyEdited ? { slug: slugify(nome) } : {}),
                     }));
-                  }
+                  }}
                 />
               </label>
               <label>
