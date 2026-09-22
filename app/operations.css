@@ -9068,3 +9068,145 @@ button.danger,
     font-size: .62rem;
   }
 }
+
+
+/* Company settings address, logo, maps and theme behavior */
+.company-logo-setting {
+  display: grid;
+  gap: 7px;
+}
+
+.company-logo-setting > span {
+  font-size: inherit;
+  font-weight: inherit;
+}
+
+.company-logo-upload-row,
+.company-maps-row,
+.company-color-control {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.company-logo-thumb {
+  width: 44px;
+  height: 44px;
+  flex: 0 0 44px;
+  object-fit: contain;
+  padding: 4px;
+  background: #fff;
+  border: 1px solid #d8deec;
+  border-radius: 9px;
+}
+
+.company-logo-setting small,
+.company-maps-setting small,
+.company-field-note,
+.company-auto-note,
+.company-color-setting small {
+  color: #75839a;
+  font-size: .58rem;
+  line-height: 1.4;
+}
+
+.company-auto-note {
+  color: #21835f;
+}
+
+.company-maps-setting {
+  grid-column: 1 / -1;
+}
+
+.company-maps-row input {
+  min-width: 0;
+  flex: 1 1 280px;
+}
+
+.company-maps-row input[readonly] {
+  color: #5b687d;
+  background: #f4f6f9;
+}
+
+.company-maps-row button {
+  flex: 0 0 auto;
+}
+
+.company-address-street {
+  grid-column: 1 / -1;
+}
+
+.company-color-setting {
+  min-width: 0;
+}
+
+.company-color-control {
+  min-height: 44px;
+  padding: 6px 8px;
+  border: 1px solid #d8deec;
+  border-radius: 9px;
+  background: #fff;
+}
+
+.company-color-swatch {
+  width: 24px;
+  height: 24px;
+  flex: 0 0 24px;
+  border: 1px solid rgb(40 40 40 / 16%);
+  border-radius: 50%;
+  box-shadow: inset 0 0 0 2px #fff;
+}
+
+.company-color-picker {
+  width: 34px !important;
+  min-width: 34px;
+  height: 34px;
+  min-height: 34px;
+  padding: 2px !important;
+  cursor: pointer;
+}
+
+.company-color-control small {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.company-color-control button {
+  min-height: 30px;
+  padding: 5px 8px;
+  font-size: .58rem;
+}
+
+.appearance-preview {
+  transition:
+    background-color .18s ease,
+    color .18s ease,
+    border-color .18s ease,
+    box-shadow .18s ease;
+}
+
+.appearance-preview.is-light button,
+.appearance-preview.is-dark button {
+  color: #fff;
+}
+
+@media (max-width: 760px) {
+  .company-logo-upload-row,
+  .company-maps-row {
+    align-items: stretch;
+    flex-wrap: wrap;
+  }
+
+  .company-maps-row input {
+    flex-basis: 100%;
+  }
+
+  .company-maps-row button {
+    flex: 1 1 auto;
+  }
+
+  .company-color-control {
+    flex-wrap: wrap;
+  }
+}
