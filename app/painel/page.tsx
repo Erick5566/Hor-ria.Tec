@@ -69,9 +69,15 @@ type DashboardData = {
   }>;
 };
 
-function percentageDelta(current: number, previous: number) {
-  if (!previous) return current ? 100 : 0;
+function percentageDelta(current: number, previous?: number | null) {
+  if (previous == null || previous <= 0) return null;
   return Math.round(((current - previous) / previous) * 100);
+}
+
+function comparisonNote(previous?: number | null) {
+  return previous != null && previous > 0
+    ? "comparado ao período anterior"
+    : "sem dados do período anterior";
 }
 
 type SparkPoint = { x: number; y: number };
@@ -284,9 +290,9 @@ export default function Overview() {
         tone: "blue",
         trend: percentageDelta(
           m?.periodOrders ?? 0,
-          m?.previousPeriodOrders ?? 0,
+          m?.previousPeriodOrders,
         ),
-        note: "comparado ao período anterior",
+        note: comparisonNote(m?.previousPeriodOrders),
         spark: spark?.orders ?? [],
       },
       {
@@ -305,9 +311,9 @@ export default function Overview() {
         tone: "green",
         trend: percentageDelta(
           m?.periodFinished ?? 0,
-          m?.previousPeriodFinished ?? 0,
+          m?.previousPeriodFinished,
         ),
-        note: "comparado ao período anterior",
+        note: comparisonNote(m?.previousPeriodFinished),
         spark: spark?.finished ?? [],
       },
       {
@@ -326,9 +332,9 @@ export default function Overview() {
         tone: "sky",
         trend: percentageDelta(
           m?.periodClients ?? 0,
-          m?.previousPeriodClients ?? 0,
+          m?.previousPeriodClients,
         ),
-        note: "comparado ao período anterior",
+        note: comparisonNote(m?.previousPeriodClients),
         spark: spark?.clients ?? [],
       },
       {
@@ -338,9 +344,9 @@ export default function Overview() {
         tone: "green",
         trend: percentageDelta(
           m?.periodRevenue ?? 0,
-          m?.previousPeriodRevenue ?? 0,
+          m?.previousPeriodRevenue,
         ),
-        note: "comparado ao período anterior",
+        note: comparisonNote(m?.previousPeriodRevenue),
         spark: spark?.revenue ?? [],
       },
     ];
