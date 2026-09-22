@@ -199,9 +199,15 @@ export default function OrderForm() {
   async function submit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     if (step < 4) {
-      if (step === 3 && empresa.fotos_obrigatorias && !photos.length) {
-        setError("Adicione pelo menos uma foto para continuar.");
-        return;
+      if (step === 3 && !photos.length) {
+        if (empresa.fotos_obrigatorias) {
+          setError("Adicione pelo menos uma foto para continuar.");
+          return;
+        }
+        const continueWithoutPhotos = window.confirm(
+          "Nenhuma foto foi registrada. As fotos ajudam a documentar o estado do equipamento. Deseja continuar mesmo assim?",
+        );
+        if (!continueWithoutPhotos) return;
       }
       setError("");
       setStep(step + 1);
@@ -405,7 +411,11 @@ export default function OrderForm() {
           </>
         )}
         <div hidden={step !== 3}>
-          <PhotoPicker value={photos} onChange={setPhotos} />
+          <PhotoPicker
+            value={photos}
+            onChange={setPhotos}
+            suggestedChecklist
+          />
         </div>
         {step === 4 && (
           <>
