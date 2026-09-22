@@ -11,8 +11,14 @@ import {
 } from "@/lib/assistencia";
 import { supabase, message } from "@/lib/supabase";
 import { Heading, ErrorBox } from "./ui";
-import { PhotoPicker } from "./photos";
-import { PendingPhoto, uploadPhotos } from "@/lib/photos";
+import { GuidedPhotoSequence, type GuidedPhotoState } from "./photos";
+import {
+  PendingPhoto,
+  clearPendingPhotosDraft,
+  loadPendingPhotosDraft,
+  savePendingPhotosDraft,
+  uploadPhotos,
+} from "@/lib/photos";
 import DeviceFields from "./device-fields";
 export default function OrderForm() {
   const { empresa } = useWorkspace(),
@@ -51,7 +57,13 @@ export default function OrderForm() {
     [error, setError] = useState(""),
     [busy, setBusy] = useState(false),
     [draftReady, setDraftReady] = useState(false),
-    [editingCustomer, setEditingCustomer] = useState(false);
+    [photoDraftReady, setPhotoDraftReady] = useState(false),
+    [editingCustomer, setEditingCustomer] = useState(false),
+    [photoGuide, setPhotoGuide] = useState<GuidedPhotoState>({
+      currentIndex: 0,
+      skipped: [],
+      resumeIndex: null,
+    });
   const draftKey = `horaria:order-draft:${empresa.id}`;
 
   useEffect(() => {
@@ -69,6 +81,7 @@ export default function OrderForm() {
         state?: string[];
         details?: typeof details;
         editingCustomer?: boolean;
+        photoGuide?: GuidedPhotoState;
       };
       if (draft.customer) {
         setCustomer({
@@ -86,6 +99,7 @@ export default function OrderForm() {
       if (Array.isArray(draft.state)) setState(draft.state);
       if (draft.details) setDetails(draft.details);
       if (draft.editingCustomer === true) setEditingCustomer(true);
+      if (draft.photoGuide) setPhotoGuide(draft.photoGuide);
       if (draft.step && draft.step >= 1 && draft.step <= 4) setStep(draft.step);
     } catch {
       localStorage.removeItem(draftKey);
@@ -93,6 +107,31 @@ export default function OrderForm() {
       setDraftReady(true);
     }
   }, [draftKey]);
+
+  useEffect(() => {
+    let active = true;
+    void loadPendingPhotosDraft(draftKey)
+      .then((draftPhotos) => {
+        if (active && draftPhotos.length) setPhotos(draftPhotos);
+      })
+      .catch(() => {
+        // O rascunho textual continua funcionando mesmo se o navegador
+        // não permitir restaurar arquivos locais.
+      })
+      .finally(() => {
+        if (active) setPhotoDraftReady(true);
+      });
+    return () => {
+      active = false;
+    };
+  }, [draftKey]);
+
+  useEffect(() => {
+    if (!draftReady || !photoDraftReady || createdId) return;
+    void savePendingPhotosDraft(draftKey, photos).catch(() => {
+      // Falha ao persistir arquivos não deve bloquear a criação da OS.
+    });
+  }, [draftReady, photoDraftReady, createdId, draftKey, photos]);
 
   useEffect(() => {
     if (!draftReady || createdId) return;
@@ -109,6 +148,7 @@ export default function OrderForm() {
         state,
         details,
         editingCustomer,
+        photoGuide,
         savedAt: new Date().toISOString(),
       }),
     );
@@ -122,6 +162,7 @@ export default function OrderForm() {
     state,
     details,
     editingCustomer,
+    photoGuide,
   ]);
 
   useEffect(() => {
@@ -199,16 +240,7 @@ export default function OrderForm() {
   async function submit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     if (step < 4) {
-      if (step === 3 && !photos.length) {
-        if (empresa.fotos_obrigatorias) {
-          setError("Adicione pelo menos uma foto para continuar.");
-          return;
-        }
-        const continueWithoutPhotos = window.confirm(
-          "Nenhuma foto foi registrada. As fotos ajudam a documentar o estado do equipamento. Deseja continuar mesmo assim?",
-        );
-        if (!continueWithoutPhotos) return;
-      }
+      if (step === 3) return;
       setError("");
       setStep(step + 1);
       return;
@@ -258,6 +290,7 @@ export default function OrderForm() {
       });
       if (confirmation.error) throw confirmation.error;
       localStorage.removeItem(draftKey);
+      await clearPendingPhotosDraft(draftKey).catch(() => undefined);
       router.push(`/painel/ordens/${orderId}`);
     } catch (e) {
       setError(message(e as Error));
@@ -411,10 +444,15 @@ export default function OrderForm() {
           </>
         )}
         <div hidden={step !== 3}>
-          <PhotoPicker
+          <GuidedPhotoSequence
             value={photos}
             onChange={setPhotos}
-            suggestedChecklist
+            state={photoGuide}
+            onStateChange={setPhotoGuide}
+            onComplete={() => {
+              setError("");
+              setStep(4);
+            }}
           />
         </div>
         {step === 4 && (
@@ -502,13 +540,15 @@ export default function OrderForm() {
               ← Voltar
             </button>
           )}
-          <button className="primary" disabled={busy}>
-            {busy
-              ? "Salvando…"
-              : step === 4
-                ? "Gerar ordem de serviço"
-                : "Continuar →"}
-          </button>
+          {step !== 3 && (
+            <button className="primary" disabled={busy}>
+              {busy
+                ? "Salvando…"
+                : step === 4
+                  ? "Gerar ordem de serviço"
+                  : "Continuar →"}
+            </button>
+          )}
         </div>
       </form>
     </section>
