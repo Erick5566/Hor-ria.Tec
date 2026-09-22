@@ -64,12 +64,23 @@ export default function OrderForm() {
       const draft = JSON.parse(raw) as {
         step?: number;
         customer?: Record<string, string>;
+        selectedCustomerId?: string;
         device?: Record<string, string>;
         state?: string[];
         details?: typeof details;
         editingCustomer?: boolean;
       };
-      if (draft.customer) setCustomer(draft.customer);
+      if (draft.customer) {
+        setCustomer({
+          ...draft.customer,
+          id: draft.selectedCustomerId || draft.customer.id || "",
+        });
+      } else if (draft.selectedCustomerId) {
+        setCustomer((current) => ({
+          ...current,
+          id: draft.selectedCustomerId || "",
+        }));
+      }
       if (draft.device)
         setDevice({ ...draft.device, senha: "" });
       if (Array.isArray(draft.state)) setState(draft.state);
@@ -91,6 +102,9 @@ export default function OrderForm() {
       JSON.stringify({
         step,
         customer,
+        // Mantemos o ID explicitamente no rascunho para restaurar o vínculo
+        // com o cadastro e o estado travado mesmo após recarregar a página.
+        selectedCustomerId: customer.id,
         device: safeDevice,
         state,
         details,
@@ -200,6 +214,8 @@ export default function OrderForm() {
       let orderId = createdId;
       if (!orderId) {
         if (customer.id && editingCustomer) {
+          // Decisão atual de produto: "Editar dados" atualiza o cadastro
+          // permanente do cliente, não apenas os dados desta OS.
           const updatedCustomer = {
             nome: customer.nome.trim(),
             whatsapp: customer.whatsapp.replace(/\D/g, ""),
@@ -288,15 +304,23 @@ export default function OrderForm() {
               </select>
             </label>
             {customer.id && customerLocked && (
-              <button
-                type="button"
-                className="text-button new-order-edit-customer"
-                onClick={() => setEditingCustomer(true)}
-              >
-                Editar dados
-              </button>
+              <div className="new-order-customer-source" role="status">
+                <span aria-hidden="true">🔒</span>
+                <small>Dados preenchidos do cadastro</small>
+                <button
+                  type="button"
+                  className="text-button new-order-edit-customer"
+                  onClick={() => setEditingCustomer(true)}
+                >
+                  Editar dados
+                </button>
+              </div>
             )}
-            <div className="form-grid">
+            <div
+              className={`form-grid new-order-customer-fields${
+                customerLocked ? " is-locked" : ""
+              }`}
+            >
               {[
                 ["nome", "Nome", true],
                 ["whatsapp", "WhatsApp", true],
@@ -320,6 +344,11 @@ export default function OrderForm() {
                     pattern={name === "whatsapp" ? "[+0-9 \\(\\)\\-]{8,25}" : undefined}
                     maxLength={name === "whatsapp" ? 25 : 120}
                     value={customer[String(name)] || ""}
+                    placeholder={
+                      customerLocked && !customer[String(name)]
+                        ? "não informado"
+                        : undefined
+                    }
                     onChange={(e) =>
                       setCustomer({
                         ...customer,
