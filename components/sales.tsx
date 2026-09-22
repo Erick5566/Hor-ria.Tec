@@ -3,7 +3,7 @@ import { useMemo, useState } from "react";
 import { Cliente, money, Peca, stamp, useRows, Venda } from "@/lib/assistencia";
 import { message, supabase, today } from "@/lib/supabase";
 import { useWorkspace } from "./workspace";
-import { Empty, ErrorBox } from "./ui";
+import { Empty, ErrorBox, MetricCard, MetricGrid } from "./ui";
 
 type CartItem = {
   peca_id: string;
@@ -75,20 +75,30 @@ export default function Sales() {
       <ErrorBox
         error={error || products.error || customers.error || sales.error}
       />
-      <div className="metrics sales-metrics">
-        <section className="panel">
-          <span>Vendas de hoje</span>
-          <h2>{todaySales.length}</h2>
-        </section>
-        <section className="panel">
-          <span>Faturamento da loja</span>
-          <h2>{money(revenue)}</h2>
-        </section>
-        <section className="panel">
-          <span>Lucro bruto estimado</span>
-          <h2>{money(profit)}</h2>
-        </section>
-      </div>
+      <MetricGrid columns={3} className="sales-metrics">
+        <MetricCard
+          label="Vendas de hoje"
+          value={todaySales.length}
+          note="Vendas finalizadas"
+          icon="▤"
+        />
+        <MetricCard
+          label="Faturamento da loja"
+          value={money(revenue)}
+          note="Total vendido hoje"
+          icon="↗"
+          tone="success"
+        />
+        <MetricCard
+          label="Lucro bruto estimado"
+          value={money(profit)}
+          note="Venda menos custo"
+          icon="▥"
+          tone={profit < 0 ? "danger" : "purple"}
+          active={profit !== 0}
+          emphasizeValue={profit < 0}
+        />
+      </MetricGrid>
       <div className="toolbar">
         <div>
           <strong>Venda de balcão</strong>
