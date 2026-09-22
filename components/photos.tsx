@@ -10,11 +10,13 @@ import { useWorkspace } from "./workspace";
 function InlineCamera({
   onUse,
   onClose,
+  onCancel,
   guideLabel,
   guideInstruction,
 }: {
   onUse: (file: File) => void;
   onClose: () => void;
+  onCancel?: () => void;
   guideLabel?: string;
   guideInstruction?: string;
 }) {
@@ -114,7 +116,7 @@ function InlineCamera({
           <button
             type="button"
             className="close"
-            onClick={onClose}
+            onClick={onCancel || onClose}
             aria-label="Fechar câmera"
           >
             ×
@@ -564,6 +566,16 @@ export function GuidedPhotoSequence({
           guideLabel={activeAngle}
           guideInstruction={activeInstruction}
           onClose={() => setCameraOpen(false)}
+          onCancel={() => {
+            setCameraOpen(false);
+            if (state.resumeIndex !== null) {
+              onStateChange({
+                ...state,
+                currentIndex: state.resumeIndex,
+                resumeIndex: null,
+              });
+            }
+          }}
           onUse={(file) => void useFile(file)}
         />
       )}
