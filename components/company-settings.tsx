@@ -1,15 +1,13 @@
 "use client";
-import { useMemo, useState } from "react";
+import { useMemo, useState, type CSSProperties } from "react";
 import { preparePhoto } from "@/lib/photos";
 import Link from "next/link";
 import { useWorkspace } from "./workspace";
 import { supabase, message } from "@/lib/supabase";
 import { ErrorBox } from "./ui";
-const colorDefaults = {
-  primary: "#06141B",
-  secondary: "#253745",
-  button: "#11212D",
-};
+import { publicPageThemeDefaults } from "@/lib/theme";
+
+const colorDefaults = publicPageThemeDefaults;
 
 const automaticMapsPrefix =
   "https://www.google.com/maps/search/?api=1&query=";
@@ -630,34 +628,28 @@ export default function CompanySettings() {
           </label>
         </div>
         <div
-          className={`appearance-preview ${theme === "escuro" ? "is-dark" : "is-light"}`}
-          style={{
-            background: theme === "escuro" ? resolvedColors.secondary : "#ffffff",
-            color: theme === "escuro" ? "#ffffff" : "#282828",
-            borderColor: resolvedColors.primary,
-            boxShadow: `inset 0 5px 0 ${resolvedColors.secondary}`,
-          }}
+          className={`appearance-preview public-theme-preview ${theme === "escuro" ? "is-dark" : "is-light"}`}
+          style={
+            {
+              "--public-primary": resolvedColors.primary,
+              "--public-secondary": resolvedColors.secondary,
+              "--public-button": resolvedColors.button,
+              "--public-preview-bg":
+                theme === "escuro" ? resolvedColors.secondary : "#FFFFFF",
+              "--public-preview-text":
+                theme === "escuro" ? "#FFFFFF" : "#282828",
+              "--public-preview-muted":
+                theme === "escuro" ? "#FFFFFF" : resolvedColors.secondary,
+              "--public-preview-heading":
+                theme === "escuro" ? "#FFFFFF" : resolvedColors.primary,
+            } as CSSProperties
+          }
         >
-          <small
-            style={{
-              color: theme === "escuro" ? "#ffffff" : resolvedColors.secondary,
-            }}
-          >
+          <small>
             Pré-visualização · Tema {theme === "escuro" ? "escuro" : "claro"}
           </small>
-          <strong
-            style={{
-              color: theme === "escuro" ? "#ffffff" : resolvedColors.primary,
-            }}
-          >
-            {empresa.nome}
-          </strong>
-          <button
-            type="button"
-            style={{ background: resolvedColors.button }}
-          >
-            Agendar atendimento
-          </button>
+          <strong>{empresa.nome}</strong>
+          <button type="button">Agendar atendimento</button>
         </div>
       </div>
       <h2>Compromisso de resposta</h2>
