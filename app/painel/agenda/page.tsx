@@ -2,7 +2,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import dynamic from "next/dynamic";
-import { Heading } from "@/components/ui";
+import { Heading, MetricCard, MetricGrid } from "@/components/ui";
 import { useWorkspace } from "@/components/workspace";
 import {
   supabase,
@@ -240,62 +240,46 @@ export default function Painel() {
             />
           )}
 
-          <section className="dashboard-kpis agenda-kpis">
-            <article className="dashboard-kpi blue">
-              <div className="dashboard-kpi-top">
-                <span className="dashboard-kpi-icon">▦</span>
-                <span>Agendamentos</span>
-              </div>
-              <div className="dashboard-kpi-value">
-                <strong>{appointments.length}</strong>
-                <span className="mini-spark">⌁</span>
-              </div>
-              <small>
-                {view === "dia"
+          <MetricGrid columns={4} className="agenda-kpis">
+            <MetricCard
+              label="Agendamentos"
+              value={appointments.length}
+              note={
+                view === "dia"
                   ? "No dia selecionado"
                   : view === "mes"
                     ? "No mês selecionado"
-                    : "Nos próximos 7 dias"}
-              </small>
-            </article>
-            <article className="dashboard-kpi amber">
-              <div className="dashboard-kpi-top">
-                <span className="dashboard-kpi-icon">◷</span>
-                <span>Em atendimento</span>
-              </div>
-              <div className="dashboard-kpi-value">
-                <strong>
-                  {appointments.filter((item) => item.status === "em_atendimento").length}
-                </strong>
-                <span className="mini-spark">⌁</span>
-              </div>
-              <small>Atendimentos em execução</small>
-            </article>
-            <article className="dashboard-kpi green">
-              <div className="dashboard-kpi-top">
-                <span className="dashboard-kpi-icon">✓</span>
-                <span>Concluídos</span>
-              </div>
-              <div className="dashboard-kpi-value">
-                <strong>
-                  {appointments.filter((item) => item.status === "concluido").length}
-                </strong>
-                <span className="mini-spark">⌁</span>
-              </div>
-              <small>Atendimentos finalizados</small>
-            </article>
-            <article className="dashboard-kpi purple">
-              <div className="dashboard-kpi-top">
-                <span className="dashboard-kpi-icon">⊘</span>
-                <span>Horários bloqueados</span>
-              </div>
-              <div className="dashboard-kpi-value">
-                <strong>{bookings.filter((item) => item.bloqueio).length}</strong>
-                <span className="mini-spark">⌁</span>
-              </div>
-              <small>Períodos indisponíveis</small>
-            </article>
-          </section>
+                    : "Nos próximos 7 dias"
+              }
+              icon="▦"
+            />
+            <MetricCard
+              label="Em atendimento"
+              value={
+                appointments.filter((item) => item.status === "em_atendimento")
+                  .length
+              }
+              note="Atendimentos em execução"
+              icon="◷"
+              tone="warning"
+            />
+            <MetricCard
+              label="Concluídos"
+              value={
+                appointments.filter((item) => item.status === "concluido").length
+              }
+              note="Atendimentos finalizados"
+              icon="✓"
+              tone="success"
+            />
+            <MetricCard
+              label="Horários bloqueados"
+              value={bookings.filter((item) => item.bloqueio).length}
+              note="Períodos indisponíveis"
+              icon="⊘"
+              tone="purple"
+            />
+          </MetricGrid>
 
           <section className="agenda card dashboard-card agenda-main-card">
             <div className="agenda-toolbar">
