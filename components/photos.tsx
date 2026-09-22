@@ -484,7 +484,7 @@ export function GuidedPhotoSequence({
           className="primary"
           disabled={busy}
           onClick={() => {
-            if (navigator.mediaDevices?.getUserMedia) {
+            if (typeof navigator.mediaDevices !== "undefined") {
               setCameraOpen(true);
             } else {
               fallbackCamera.current?.click();
