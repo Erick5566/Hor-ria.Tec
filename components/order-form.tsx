@@ -50,7 +50,8 @@ export default function OrderForm() {
     }),
     [error, setError] = useState(""),
     [busy, setBusy] = useState(false),
-    [draftReady, setDraftReady] = useState(false);
+    [draftReady, setDraftReady] = useState(false),
+    [editingCustomer, setEditingCustomer] = useState(false);
   const draftKey = `horaria:order-draft:${empresa.id}`;
 
   useEffect(() => {
@@ -66,12 +67,14 @@ export default function OrderForm() {
         device?: Record<string, string>;
         state?: string[];
         details?: typeof details;
+        editingCustomer?: boolean;
       };
       if (draft.customer) setCustomer(draft.customer);
       if (draft.device)
         setDevice({ ...draft.device, senha: "" });
       if (Array.isArray(draft.state)) setState(draft.state);
       if (draft.details) setDetails(draft.details);
+      if (draft.editingCustomer === true) setEditingCustomer(true);
       if (draft.step && draft.step >= 1 && draft.step <= 4) setStep(draft.step);
     } catch {
       localStorage.removeItem(draftKey);
@@ -91,6 +94,7 @@ export default function OrderForm() {
         device: safeDevice,
         state,
         details,
+        editingCustomer,
         savedAt: new Date().toISOString(),
       }),
     );
@@ -103,7 +107,62 @@ export default function OrderForm() {
     device,
     state,
     details,
+    editingCustomer,
   ]);
+
+  useEffect(() => {
+    if (!customer.id || editingCustomer || !clients.data.length) return;
+    const selected = clients.data.find((client) => client.id === customer.id);
+    if (!selected) return;
+
+    const nextCustomer = {
+      id: selected.id,
+      nome: selected.nome || "",
+      whatsapp: selected.whatsapp || "",
+      email: selected.email || "",
+      documento: selected.documento || "",
+    };
+
+    setCustomer((current) => {
+      if (
+        current.id === nextCustomer.id &&
+        current.nome === nextCustomer.nome &&
+        current.whatsapp === nextCustomer.whatsapp &&
+        current.email === nextCustomer.email &&
+        current.documento === nextCustomer.documento
+      ) {
+        return current;
+      }
+      return nextCustomer;
+    });
+  }, [customer.id, editingCustomer, clients.data]);
+
+  function selectCustomer(customerId: string) {
+    setDevice((current) => ({ ...current, id: "" }));
+    setEditingCustomer(false);
+
+    if (!customerId) {
+      setCustomer({
+        id: "",
+        nome: "",
+        whatsapp: "",
+        email: "",
+        documento: "",
+      });
+      return;
+    }
+
+    const selected = clients.data.find((client) => client.id === customerId);
+    setCustomer({
+      id: customerId,
+      nome: selected?.nome || "",
+      whatsapp: selected?.whatsapp || "",
+      email: selected?.email || "",
+      documento: selected?.documento || "",
+    });
+  }
+
+  const customerLocked = Boolean(customer.id) && !editingCustomer;
 
   const field = (
     name: string,
@@ -140,6 +199,21 @@ export default function OrderForm() {
     try {
       let orderId = createdId;
       if (!orderId) {
+        if (customer.id && editingCustomer) {
+          const updatedCustomer = {
+            nome: customer.nome.trim(),
+            whatsapp: customer.whatsapp.replace(/\D/g, ""),
+            email: customer.email.trim() || null,
+            documento: customer.documento.trim() || null,
+          };
+          const customerUpdate = await supabase!
+            .from("clientes")
+            .update(updatedCustomer)
+            .eq("id", customer.id)
+            .eq("empresa_id", empresa.id);
+          if (customerUpdate.error) throw customerUpdate.error;
+        }
+
         const { data, error } = await supabase!.rpc("criar_ordem", {
           p_empresa: empresa.id,
           p_cliente: customer,
@@ -203,10 +277,7 @@ export default function OrderForm() {
               Selecionar cliente
               <select
                 value={customer.id}
-                onChange={(e) => {
-                  setCustomer({ ...customer, id: e.target.value });
-                  setDevice({ ...device, id: "" });
-                }}
+                onChange={(e) => selectCustomer(e.target.value)}
               >
                 <option value="">+ Cadastrar novo cliente</option>
                 {clients.data.map((c) => (
@@ -216,40 +287,49 @@ export default function OrderForm() {
                 ))}
               </select>
             </label>
-            {!customer.id && (
-              <div className="form-grid">
-                {[
-                  ["nome", "Nome", true],
-                  ["whatsapp", "WhatsApp", true],
-                  ["email", "E-mail", false],
-                  ["documento", "CPF/CNPJ (opcional)", false],
-                ].map(([name, label, required]) => (
-                  <label key={String(name)}>
-                    {label}
-                    <input
-                      required={Boolean(required)}
-                      type={
-                        name === "email"
-                          ? "email"
-                          : name === "whatsapp"
-                            ? "tel"
-                            : "text"
-                      }
-                      minLength={name === "nome" ? 2 : undefined}
-                      pattern={name === "whatsapp" ? "[+0-9 \\(\\)\\-]{8,25}" : undefined}
-                      maxLength={name === "whatsapp" ? 25 : 120}
-                      value={customer[String(name)]}
-                      onChange={(e) =>
-                        setCustomer({
-                          ...customer,
-                          [String(name)]: e.target.value,
-                        })
-                      }
-                    />
-                  </label>
-                ))}
-              </div>
+            {customer.id && customerLocked && (
+              <button
+                type="button"
+                className="text-button new-order-edit-customer"
+                onClick={() => setEditingCustomer(true)}
+              >
+                Editar dados
+              </button>
             )}
+            <div className="form-grid">
+              {[
+                ["nome", "Nome", true],
+                ["whatsapp", "WhatsApp", true],
+                ["email", "E-mail", false],
+                ["documento", "CPF/CNPJ (opcional)", false],
+              ].map(([name, label, required]) => (
+                <label key={String(name)}>
+                  {label}
+                  <input
+                    required={Boolean(required)}
+                    readOnly={customerLocked}
+                    aria-readonly={customerLocked}
+                    type={
+                      name === "email"
+                        ? "email"
+                        : name === "whatsapp"
+                          ? "tel"
+                          : "text"
+                    }
+                    minLength={name === "nome" ? 2 : undefined}
+                    pattern={name === "whatsapp" ? "[+0-9 \\(\\)\\-]{8,25}" : undefined}
+                    maxLength={name === "whatsapp" ? 25 : 120}
+                    value={customer[String(name)] || ""}
+                    onChange={(e) =>
+                      setCustomer({
+                        ...customer,
+                        [String(name)]: e.target.value,
+                      })
+                    }
+                  />
+                </label>
+              ))}
+            </div>
           </>
         )}
         {step === 2 && (
