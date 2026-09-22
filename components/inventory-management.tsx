@@ -2,7 +2,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { money, type Peca, saveRow, stamp } from "@/lib/assistencia";
 import { message, supabase } from "@/lib/supabase";
-import { Empty, ErrorBox, MetricCard, Pagination } from "./ui";
+import { Empty, ErrorBox, MetricCard, MetricGrid, Pagination } from "./ui";
 import { useWorkspace } from "./workspace";
 
 type Movement = {
@@ -180,7 +180,7 @@ export default function InventoryManagement() {
     <>
       <ErrorBox error={error} />
 
-      <div className="orders-summary inventory-summary">
+      <MetricGrid columns={4} className="inventory-summary">
         <MetricCard
           label="Unidades disponíveis"
           value={loading && !data ? "—" : metrics.units}
@@ -212,7 +212,7 @@ export default function InventoryManagement() {
           active={metrics.empty > 0}
           emphasizeValue
         />
-      </div>
+      </MetricGrid>
 
       <div className="toolbar inventory-toolbar">
         <input
