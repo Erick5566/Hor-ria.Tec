@@ -3,7 +3,13 @@
 import Link from "next/link";
 import { useCallback, useEffect, useId, useMemo, useState } from "react";
 import { useWorkspace } from "@/components/workspace";
-import { Badge, Empty, ErrorBox } from "@/components/ui";
+import {
+  Badge,
+  Empty,
+  ErrorBox,
+  MetricCard,
+  MetricGrid,
+} from "@/components/ui";
 import { money, type Status } from "@/lib/assistencia";
 import { message, supabase, time } from "@/lib/supabase";
 
@@ -468,30 +474,36 @@ export default function Overview() {
 
       <ErrorBox error={error} />
 
-      <div className="dashboard-kpis">
+      <MetricGrid columns={6} className="dashboard-kpis">
         {metrics.map((metric) => (
-          <article key={metric.name} className={"dashboard-kpi " + metric.tone}>
-            <div className="dashboard-kpi-top">
-              <span className="dashboard-kpi-icon">{metric.icon}</span>
-              <span>{metric.name}</span>
-            </div>
-            <div className="dashboard-kpi-value">
-              <strong>{loading && !data ? "—" : metric.value}</strong>
+          <MetricCard
+            key={metric.name}
+            label={metric.name}
+            value={loading && !data ? "—" : metric.value}
+            icon={metric.icon}
+            tone={
+              metric.tone === "sky"
+                ? "primary"
+                : (metric.tone as "blue" | "amber" | "green" | "purple")
+            }
+            afterValue={
               <KpiSparkline values={metric.spark} tone={metric.tone} />
-            </div>
-            <div className="dashboard-trend-note">
-              {metric.trend !== null ? (
-                <b className={metric.trend >= 0 ? "positive" : "negative"}>
-                  {metric.trend >= 0 ? "↑" : "↓"} {Math.abs(metric.trend)}%
-                </b>
-              ) : (
-                <b className="neutral">—</b>
-              )}
-              <small>{metric.note}</small>
-            </div>
-          </article>
+            }
+            footer={
+              <div className="dashboard-trend-note">
+                {metric.trend !== null ? (
+                  <b className={metric.trend >= 0 ? "positive" : "negative"}>
+                    {metric.trend >= 0 ? "↑" : "↓"} {Math.abs(metric.trend)}%
+                  </b>
+                ) : (
+                  <b className="neutral">—</b>
+                )}
+                <small>{metric.note}</small>
+              </div>
+            }
+          />
         ))}
-      </div>
+      </MetricGrid>
 
       <div className="dashboard-analytics">
         <section className="dashboard-card dashboard-trend">
