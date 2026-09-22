@@ -63,6 +63,42 @@ export function ErrorBox({ error }: { error?: string }) {
     </p>
   ) : null;
 }
+
+export type MetricCardTone = "blue" | "amber" | "red" | "green" | "purple";
+
+export function MetricCard({
+  label,
+  value,
+  note,
+  icon,
+  tone = "blue",
+  active = true,
+  emphasizeValue = false,
+}: {
+  label: string;
+  value: React.ReactNode;
+  note?: string;
+  icon: React.ReactNode;
+  tone?: MetricCardTone;
+  active?: boolean;
+  emphasizeValue?: boolean;
+}) {
+  const toneClass = active && tone !== "blue" ? ` ${tone}` : "";
+  const valueClass = active && emphasizeValue ? " metric-value-accent" : "";
+
+  return (
+    <article className={`orders-summary-card${toneClass}${valueClass}`}>
+      <span className="orders-summary-icon" aria-hidden="true">
+        {icon}
+      </span>
+      <div>
+        <strong>{value}</strong>
+        <b>{label}</b>
+        {note && <small>{note}</small>}
+      </div>
+    </article>
+  );
+}
 export function Field({
   label,
   children,
