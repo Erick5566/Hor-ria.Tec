@@ -4,6 +4,7 @@ import { preparePhoto } from "@/lib/photos";
 import { message, Servico, supabase } from "@/lib/supabase";
 import { ErrorBox } from "./ui";
 import { useWorkspace } from "./workspace";
+import { publicPageThemeDefaults } from "@/lib/theme";
 
 type Config = {
   empresa_id: string;
@@ -37,15 +38,7 @@ type Config = {
   ordem_secoes: string[];
 };
 
-const defaults = {
-  primary: "#06141B",
-  secondary: "#253745",
-  button: "#11212D",
-  accent: "#4A5C6A",
-  background: "#CCD0CF",
-  text: "#06141B",
-  theme: "claro" as const,
-};
+const defaults = publicPageThemeDefaults;
 const presets = {
   minimalista: {
     primary: "#11212D",
@@ -114,7 +107,9 @@ function contrast(a: string, b: string) {
   return (values[0] + 0.05) / (values[1] + 0.05);
 }
 function readable(background: string) {
-  return contrast(background, "#FFFFFF") >= 4.5 ? "#FFFFFF" : "#06141B";
+  return contrast(background, "#FFFFFF") >= 4.5
+    ? "#FFFFFF"
+    : publicPageThemeDefaults.text;
 }
 
 const reservedSlugs = [
