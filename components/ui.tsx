@@ -28,7 +28,7 @@ export function Heading({
 }
 export function Badge({ status }: { status: Status }) {
   return (
-    <span className="status-pill" data-status={status}>
+    <span className="ui-badge status-pill" data-status={status}>
       {statuses[status]}
     </span>
   );
@@ -64,16 +64,59 @@ export function ErrorBox({ error }: { error?: string }) {
   ) : null;
 }
 
-export type MetricCardTone = "blue" | "amber" | "red" | "green" | "purple";
+export type SemanticTone =
+  | "primary"
+  | "success"
+  | "warning"
+  | "danger"
+  | "neutral"
+  | "purple";
+
+export type MetricCardTone =
+  | SemanticTone
+  | "blue"
+  | "green"
+  | "amber"
+  | "red";
+
+function normalizeTone(tone: MetricCardTone): SemanticTone {
+  if (tone === "blue") return "primary";
+  if (tone === "green") return "success";
+  if (tone === "amber") return "warning";
+  if (tone === "red") return "danger";
+  return tone;
+}
+
+export function MetricGrid({
+  children,
+  columns = 4,
+  className = "",
+}: {
+  children: React.ReactNode;
+  columns?: number;
+  className?: string;
+}) {
+  return (
+    <div
+      className={`ui-metric-grid ${className}`.trim()}
+      style={{ "--ui-metric-columns": columns } as React.CSSProperties}
+    >
+      {children}
+    </div>
+  );
+}
 
 export function MetricCard({
   label,
   value,
   note,
   icon,
-  tone = "blue",
+  tone = "primary",
   active = true,
   emphasizeValue = false,
+  afterValue,
+  footer,
+  className = "",
 }: {
   label: string;
   value: React.ReactNode;
@@ -82,21 +125,47 @@ export function MetricCard({
   tone?: MetricCardTone;
   active?: boolean;
   emphasizeValue?: boolean;
+  afterValue?: React.ReactNode;
+  footer?: React.ReactNode;
+  className?: string;
 }) {
-  const toneClass = active && tone !== "blue" ? ` ${tone}` : "";
-  const valueClass = active && emphasizeValue ? " metric-value-accent" : "";
+  const semanticTone = active ? normalizeTone(tone) : "neutral";
 
   return (
-    <article className={`orders-summary-card${toneClass}${valueClass}`}>
-      <span className="orders-summary-icon" aria-hidden="true">
+    <article
+      className={`ui-metric-card tone-${semanticTone}${
+        active && emphasizeValue ? " metric-value-accent" : ""
+      } ${className}`.trim()}
+    >
+      <span className="ui-metric-icon" aria-hidden="true">
         {icon}
       </span>
-      <div>
-        <strong>{value}</strong>
+      <div className="ui-metric-content">
+        <div className="ui-metric-value-row">
+          <strong>{value}</strong>
+          {afterValue}
+        </div>
         <b>{label}</b>
         {note && <small>{note}</small>}
+        {footer && <div className="ui-metric-footer">{footer}</div>}
       </div>
     </article>
+  );
+}
+
+export function SemanticBadge({
+  children,
+  tone = "neutral",
+  className = "",
+}: {
+  children: React.ReactNode;
+  tone?: SemanticTone;
+  className?: string;
+}) {
+  return (
+    <span className={`ui-badge tone-${tone} ${className}`.trim()}>
+      {children}
+    </span>
   );
 }
 export function Field({
