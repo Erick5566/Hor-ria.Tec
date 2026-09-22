@@ -7,7 +7,13 @@ import {
   saveRow,
 } from "@/lib/assistencia";
 import { supabase, message, today } from "@/lib/supabase";
-import { ErrorBox, Empty, Pagination } from "./ui";
+import {
+  ErrorBox,
+  Empty,
+  MetricCard,
+  MetricGrid,
+  Pagination,
+} from "./ui";
 
 const originLabel: Record<"reparo" | "loja" | "seminovo" | "manual", string> = {
   reparo: "Reparos",
@@ -255,38 +261,53 @@ export default function Finance({ ordemId }: { ordemId?: string }) {
 
       {!ordemId && (
         <>
-          <div className="finance-kpis">
-            <article>
-              <span>Receita do período</span>
-              <strong>{loading && !data ? "—" : money(receita)}</strong>
-              <small>Valores recebidos</small>
-            </article>
-            <article>
-              <span>Despesas</span>
-              <strong>{loading && !data ? "—" : money(despesa)}</strong>
-              <small>Pagamentos realizados</small>
-            </article>
-            <article>
-              <span>Lucro / saldo</span>
-              <strong>{loading && !data ? "—" : money(saldo)}</strong>
-              <small>Receitas menos despesas</small>
-            </article>
-            <article>
-              <span>Ticket médio</span>
-              <strong>{loading && !data ? "—" : money(ticket)}</strong>
-              <small>Por recebimento</small>
-            </article>
-            <article>
-              <span>A receber</span>
-              <strong>{loading && !data ? "—" : money(pendingRevenue)}</strong>
-              <small>{metrics?.pendingCount || 0} títulos pendentes</small>
-            </article>
-            <article>
-              <span>Ordens finalizadas</span>
-              <strong>{loading && !data ? "—" : metrics?.finalizedOrders || 0}</strong>
-              <small>Total concluído</small>
-            </article>
-          </div>
+          <MetricGrid columns={6} className="finance-kpis">
+            <MetricCard
+              label="Receita do período"
+              value={loading && !data ? "—" : money(receita)}
+              note="Valores recebidos"
+              icon="↗"
+              tone="success"
+            />
+            <MetricCard
+              label="Despesas"
+              value={loading && !data ? "—" : money(despesa)}
+              note="Pagamentos realizados"
+              icon="↘"
+              tone="danger"
+            />
+            <MetricCard
+              label="Lucro / saldo"
+              value={loading && !data ? "—" : money(saldo)}
+              note="Receitas menos despesas"
+              icon="="
+              tone={saldo < 0 ? "danger" : "primary"}
+              active={saldo !== 0}
+              emphasizeValue={saldo < 0}
+            />
+            <MetricCard
+              label="Ticket médio"
+              value={loading && !data ? "—" : money(ticket)}
+              note="Por recebimento"
+              icon="▥"
+              tone="purple"
+            />
+            <MetricCard
+              label="A receber"
+              value={loading && !data ? "—" : money(pendingRevenue)}
+              note={`${metrics?.pendingCount || 0} títulos pendentes`}
+              icon="◷"
+              tone="warning"
+              active={pendingRevenue > 0}
+            />
+            <MetricCard
+              label="Ordens finalizadas"
+              value={loading && !data ? "—" : metrics?.finalizedOrders || 0}
+              note="Total concluído"
+              icon="✓"
+              tone="success"
+            />
+          </MetricGrid>
 
           <div className="finance-chart-grid">
             <section className="finance-card finance-origin-card">
