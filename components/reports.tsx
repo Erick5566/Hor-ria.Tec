@@ -2,7 +2,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { money, statuses, type Status } from "@/lib/assistencia";
 import { message, supabase, today } from "@/lib/supabase";
-import { ErrorBox } from "./ui";
+import { ErrorBox, MetricCard, MetricGrid } from "./ui";
 import { useWorkspace } from "./workspace";
 
 type ReportRow = {
@@ -144,19 +144,37 @@ export default function Reports() {
         </button>
       </div>
 
-      <div className="metrics">
-        {[
-          ["Ordens recebidas", loading && !data ? "—" : data?.metrics.orders || 0],
-          ["Receitas", loading && !data ? "—" : money(income)],
-          ["Despesas", loading && !data ? "—" : money(cost)],
-          ["Saldo do mês", loading && !data ? "—" : money(income - cost)],
-        ].map(([label, value]) => (
-          <section className="panel" key={label}>
-            <span>{label}</span>
-            <h2>{value}</h2>
-          </section>
-        ))}
-      </div>
+      <MetricGrid columns={4}>
+        <MetricCard
+          label="Ordens recebidas"
+          value={loading && !data ? "—" : data?.metrics.orders || 0}
+          note="Entradas no mês"
+          icon="▤"
+        />
+        <MetricCard
+          label="Receitas"
+          value={loading && !data ? "—" : money(income)}
+          note="Entradas financeiras"
+          icon="↗"
+          tone="success"
+        />
+        <MetricCard
+          label="Despesas"
+          value={loading && !data ? "—" : money(cost)}
+          note="Saídas financeiras"
+          icon="↘"
+          tone="danger"
+        />
+        <MetricCard
+          label="Saldo do mês"
+          value={loading && !data ? "—" : money(income - cost)}
+          note="Receitas menos despesas"
+          icon="="
+          tone={income - cost < 0 ? "danger" : "primary"}
+          active={income !== cost}
+          emphasizeValue={income - cost < 0}
+        />
+      </MetricGrid>
 
       <section className="panel">
         <h2>Situação das ordens recebidas no mês</h2>
