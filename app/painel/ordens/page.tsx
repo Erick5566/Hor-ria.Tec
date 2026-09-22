@@ -9,7 +9,14 @@ import {
   type Status,
 } from "@/lib/assistencia";
 import { message, supabase } from "@/lib/supabase";
-import { Heading, Badge, Empty, ErrorBox, Pagination } from "@/components/ui";
+import {
+  Heading,
+  Badge,
+  Empty,
+  ErrorBox,
+  MetricCard,
+  Pagination,
+} from "@/components/ui";
 import { useWorkspace } from "@/components/workspace";
 
 const priorityLabels = {
@@ -240,14 +247,14 @@ export default function Orders() {
 
       <div className="orders-summary">
         {metrics.map((metric) => (
-          <article className={"orders-summary-card " + metric.tone} key={metric.label}>
-            <span className="orders-summary-icon">{metric.icon}</span>
-            <div>
-              <strong>{loading && !data ? "—" : metric.value}</strong>
-              <b>{metric.label}</b>
-              <small>{metric.note}</small>
-            </div>
-          </article>
+          <MetricCard
+            key={metric.label}
+            label={metric.label}
+            value={loading && !data ? "—" : metric.value}
+            note={metric.note}
+            icon={metric.icon}
+            tone={metric.tone as "blue" | "amber" | "red" | "green" | "purple"}
+          />
         ))}
       </div>
 
