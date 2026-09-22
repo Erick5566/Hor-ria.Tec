@@ -11,7 +11,7 @@ import {
   useRows,
 } from "@/lib/assistencia";
 import { message, supabase } from "@/lib/supabase";
-import { Empty, ErrorBox } from "./ui";
+import { Empty, ErrorBox, MetricCard, MetricGrid } from "./ui";
 import { useWorkspace } from "./workspace";
 
 const statusLabels: Record<Seminovo["status"], string> = {
@@ -53,24 +53,29 @@ export default function UsedDevices() {
   return (
     <>
       <ErrorBox error={error || devices.error || customers.error} />
-      <div className="metrics">
-        <section className="panel">
-          <span>Em avaliação</span>
-          <h2>
-            {devices.data.filter((x) => x.status === "em_avaliacao").length}
-          </h2>
-        </section>
-        <section className="panel">
-          <span>Prontos para venda</span>
-          <h2>
-            {devices.data.filter((x) => x.status === "pronto_venda").length}
-          </h2>
-        </section>
-        <section className="panel">
-          <span>Capital em aparelhos</span>
-          <h2>{money(investment)}</h2>
-        </section>
-      </div>
+      <MetricGrid columns={3}>
+        <MetricCard
+          label="Em avaliação"
+          value={devices.data.filter((x) => x.status === "em_avaliacao").length}
+          note="Aguardando análise"
+          icon="⌘"
+          tone="warning"
+        />
+        <MetricCard
+          label="Prontos para venda"
+          value={devices.data.filter((x) => x.status === "pronto_venda").length}
+          note="Disponíveis para comercialização"
+          icon="✓"
+          tone="success"
+        />
+        <MetricCard
+          label="Capital em aparelhos"
+          value={money(investment)}
+          note="Compra e custos de reparo"
+          icon="▥"
+          tone="purple"
+        />
+      </MetricGrid>
       <div className="toolbar">
         <input
           aria-label="Buscar seminovo"
