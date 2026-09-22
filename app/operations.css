@@ -8798,3 +8798,28 @@ button.danger,
     grid-template-columns: 1fr 1fr;
   }
 }
+
+
+/* New order existing customer edit action */
+.new-order-edit-customer {
+  width: max-content;
+  margin: -5px 0 1px;
+  padding: 0;
+  color: #2f63b5;
+  background: transparent;
+  font-size: .65rem;
+  font-weight: 800;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.new-order-edit-customer:hover {
+  color: #174f9f;
+  background: transparent;
+}
+
+@media (max-width: 760px) {
+  .new-order-edit-customer {
+    font-size: .62rem;
+  }
+}
