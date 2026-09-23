@@ -67,6 +67,10 @@ test("automação: token seguro, peças livres e notificações idempotentes", a
       1,
     );
     await db.exec(`reset role;set request.jwt.claim.sub='';set role anon`);
+    await assert.rejects(db.query("select acompanhar_por_token($1)", [token]));
+    await db.exec(
+      `reset role;set request.jwt.claims='{"role":"service_role"}';set role service_role`,
+    );
     const publicView = (
       await db.query("select acompanhar_por_token($1) v", [token])
     ).rows[0].v;

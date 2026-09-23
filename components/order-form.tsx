@@ -21,7 +21,7 @@ import {
 } from "@/lib/photos";
 import DeviceFields from "./device-fields";
 export default function OrderForm() {
-  const { empresa } = useWorkspace(),
+  const { empresa, userId } = useWorkspace(),
     router = useRouter();
   const clients = useRows<Cliente>("clientes"),
     equipment = useRows<Equipamento>("equipamentos");
@@ -64,7 +64,7 @@ export default function OrderForm() {
       skipped: [],
       resumeIndex: null,
     });
-  const draftKey = `horaria:order-draft:${empresa.id}`;
+  const draftKey = `horaria:order-draft:${empresa.id}:${userId}`;
 
   useEffect(() => {
     try {
@@ -82,6 +82,7 @@ export default function OrderForm() {
         details?: typeof details;
         editingCustomer?: boolean;
         photoGuide?: GuidedPhotoState;
+        createdId?: string;
       };
       if (draft.customer) {
         setCustomer({
@@ -100,6 +101,13 @@ export default function OrderForm() {
       if (draft.details) setDetails(draft.details);
       if (draft.editingCustomer === true) setEditingCustomer(true);
       if (draft.photoGuide) setPhotoGuide(draft.photoGuide);
+      if (
+        draft.createdId &&
+        /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
+          draft.createdId,
+        )
+      )
+        setCreatedId(draft.createdId);
       if (draft.step && draft.step >= 1 && draft.step <= 4) setStep(draft.step);
     } catch {
       localStorage.removeItem(draftKey);
@@ -127,14 +135,14 @@ export default function OrderForm() {
   }, [draftKey]);
 
   useEffect(() => {
-    if (!draftReady || !photoDraftReady || createdId) return;
+    if (!draftReady || !photoDraftReady) return;
     void savePendingPhotosDraft(draftKey, photos).catch(() => {
       // Falha ao persistir arquivos não deve bloquear a criação da OS.
     });
-  }, [draftReady, photoDraftReady, createdId, draftKey, photos]);
+  }, [draftReady, photoDraftReady, draftKey, photos]);
 
   useEffect(() => {
-    if (!draftReady || createdId) return;
+    if (!draftReady) return;
     const safeDevice = { ...device, senha: "" };
     localStorage.setItem(
       draftKey,
@@ -149,6 +157,7 @@ export default function OrderForm() {
         details,
         editingCustomer,
         photoGuide,
+        createdId,
         savedAt: new Date().toISOString(),
       }),
     );

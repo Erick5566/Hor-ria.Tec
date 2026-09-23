@@ -3,4 +3,6 @@ node_modules/
 .env*
 !.env.example
 work/
+.pnpm-store/
+supabase/.temp/
 *.tsbuildinfo

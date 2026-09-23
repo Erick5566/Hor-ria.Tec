@@ -18,7 +18,7 @@ test("plataforma: permissões, manutenção, suspensão, retenção e limite", a
     );
     const asUser = (id) =>
       db.exec(
-        `reset role;set request.jwt.claim.sub='${id}';set role authenticated`,
+        `reset role;set request.jwt.claim.sub='${id}';set request.jwt.claims='${JSON.stringify({ aal: id === admin ? "aal2" : "aal1" })}';set role authenticated`,
       );
     const createCompany = async (id, name, slug) => {
       await asUser(id);

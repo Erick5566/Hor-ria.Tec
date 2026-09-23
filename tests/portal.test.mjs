@@ -15,6 +15,15 @@ test("portal: solicitação, consulta restrita, fotos privadas e isolamento", as
       )
     ).rows[0].id;
     await db.exec(`reset role;set request.jwt.claim.sub='';set role anon`);
+    await assert.rejects(
+      db.query(`select solicitar_reparo('teste',$1,$2,'Tela quebrada')`, [
+        { nome: "Cliente Teste", whatsapp: "11999999999" },
+        { categoria: "Celular", modelo: "Teste" },
+      ]),
+    );
+    await db.exec(
+      `reset role;set request.jwt.claims='{"role":"service_role"}';set role service_role`,
+    );
     const result = (
       await db.query(
         `select solicitar_reparo('teste',$1,$2,'Tela quebrada') r`,
@@ -26,6 +35,7 @@ test("portal: solicitação, consulta restrita, fotos privadas e isolamento", as
     ).rows[0].r;
     assert.ok(result.codigo);
     assert.equal(result.empresa_id, eid);
+    await db.exec(`reset role;set request.jwt.claim.sub='';set role anon`);
     const path = `${eid}/${result.id}/${result.upload_token}/foto.jpg`;
     await db.query(
       `insert into storage.objects(bucket_id,name) values('os-fotos',$1)`,
@@ -75,12 +85,14 @@ test("portal: solicitação, consulta restrita, fotos privadas e isolamento", as
       0,
     );
     await db.exec(`reset role;set request.jwt.claim.sub='';set role anon`);
+    await assert.rejects(
+      db.query(`select consultar_reparo($1,'11888888888') r`, [result.codigo]),
+    );
+    await db.exec(
+      `reset role;set request.jwt.claims='{"role":"service_role"}';set role service_role`,
+    );
     assert.equal(
-      (
-        await db.query(`select consultar_reparo($1,'11888888888') r`, [
-          result.codigo,
-        ])
-      ).rows[0].r,
+      (await db.query(`select consultar_reparo($1,'11888888888') r`, [result.codigo])).rows[0].r,
       null,
     );
     const view = (

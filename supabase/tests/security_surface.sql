@@ -29,13 +29,22 @@ begin
     end if;
   end loop;
 
-  if not has_function_privilege(
+  if has_function_privilege(
     'anon',
     'public.solicitar_reparo(text,jsonb,jsonb,text,uuid,timestamptz,text)',
     'EXECUTE'
   ) then
-    raise exception 'FAIL: public booking entry point is unavailable';
+    raise exception 'FAIL: anon can bypass the public booking Edge Function';
   end if;
+
+  if not has_function_privilege(
+    'service_role',
+    'public.solicitar_reparo(text,jsonb,jsonb,text,uuid,timestamptz,text)',
+    'EXECUTE'
+  ) then
+    raise exception 'FAIL: public booking Edge Function cannot execute its RPC';
+  end if;
+
 end $$;
 
 select 'PASS: internal RPC grants are isolated from anon' as resultado;
