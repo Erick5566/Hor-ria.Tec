@@ -316,9 +316,12 @@ export default function TeamPermissions() {
                       }
                     >
                       {isOwner && <option value="OWNER">Proprietário</option>}
-                      {data?.actorRole === "OWNER" && (
-                        <option value="ADMIN">Administrador</option>
-                      )}
+                      <option
+                        value="ADMIN"
+                        disabled={data?.actorRole !== "OWNER"}
+                      >
+                        Administrador
+                      </option>
                       <option value="TECHNICIAN">Técnico</option>
                       <option value="ATTENDANT">Atendente</option>
                     </select>
