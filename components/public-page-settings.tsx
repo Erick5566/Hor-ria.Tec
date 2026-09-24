@@ -157,7 +157,7 @@ export default function PublicPageSettings() {
     [busy, setBusy] = useState(false),
     [uploading, setUploading] = useState(false),
     [previewMode, setPreviewMode] = useState<"desktop" | "mobile">("desktop"),
-    [slugManuallyEdited, setSlugManuallyEdited] = useState(
+    [, setSlugManuallyEdited] = useState(
       Boolean(empresa.slug && empresa.slug !== slugify(empresa.nome)),
     ),
     [slugState, setSlugState] = useState<
