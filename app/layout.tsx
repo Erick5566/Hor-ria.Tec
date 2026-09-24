@@ -2,12 +2,19 @@ import "./globals.css";
 import "./workspace.css";
 import "./operations.css";
 import "./theme.css";
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 
 const base =
   process.env.NEXT_PUBLIC_SITE_URL ||
   process.env.NEXT_PUBLIC_APP_URL ||
   "https://horaria.site";
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
+  themeColor: "#282828",
+};
 
 export const metadata: Metadata = {
   metadataBase: new URL(base),
