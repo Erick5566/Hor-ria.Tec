@@ -104,6 +104,51 @@ const eagerMenuRoutes = new Set([
   "/painel/clientes",
 ]);
 
+
+type MobileNavIconName = "home" | "central" | "orders" | "calendar" | "more";
+
+function MobileNavIcon({ name }: { name: MobileNavIconName }) {
+  if (name === "home") {
+    return (
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M3.5 10.5 12 3l8.5 7.5v9a1.5 1.5 0 0 1-1.5 1.5h-4.5v-6h-5v6H5a1.5 1.5 0 0 1-1.5-1.5v-9Z" />
+      </svg>
+    );
+  }
+  if (name === "central") {
+    return (
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M5 4.5h14a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2h-7l-4.5 3v-3H5a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2Z" />
+        <path d="M7.5 9h9M7.5 12.5h6" />
+      </svg>
+    );
+  }
+  if (name === "orders") {
+    return (
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M7 4.5h10a2 2 0 0 1 2 2v14H5v-14a2 2 0 0 1 2-2Z" />
+        <path d="M9 3h6v3H9zM8.5 10h7M8.5 14h7M8.5 18h5" />
+      </svg>
+    );
+  }
+  if (name === "calendar") {
+    return (
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M5 5h14a2 2 0 0 1 2 2v13H3V7a2 2 0 0 1 2-2Z" />
+        <path d="M7 3v4M17 3v4M3 9h18M7 13h3M14 13h3M7 17h3" />
+      </svg>
+    );
+  }
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <rect x="4" y="4" width="5" height="5" rx="1" />
+      <rect x="15" y="4" width="5" height="5" rx="1" />
+      <rect x="4" y="15" width="5" height="5" rx="1" />
+      <rect x="15" y="15" width="5" height="5" rx="1" />
+    </svg>
+  );
+}
+
 export default function Workspace({
   children,
   initialAccess,
@@ -131,6 +176,7 @@ export default function Workspace({
     [liveDateTime, setLiveDateTime] = useState(""),
     [alertsOpen, setAlertsOpen] = useState(false),
     [profileOpen, setProfileOpen] = useState(false),
+    [mobileMoreOpen, setMobileMoreOpen] = useState(false),
     [alerts, setAlerts] = useState<WorkspaceAlert[]>([]),
     [readAlertIds, setReadAlertIds] = useState<Set<string>>(new Set());
   const router = useRouter(),
@@ -263,6 +309,7 @@ export default function Workspace({
   }, [refresh, router]);
   useEffect(() => {
     setOpen(false);
+    setMobileMoreOpen(false);
   }, [path]);
 
   useEffect(() => {
@@ -295,6 +342,7 @@ export default function Workspace({
         setOpen(false);
         setAlertsOpen(false);
         setProfileOpen(false);
+        setMobileMoreOpen(false);
       }
     };
     window.addEventListener("keydown", close);
@@ -655,6 +703,58 @@ export default function Workspace({
       )
       .sort((a, b) => b.length - a.length)[0] || "";
 
+  const mobilePrimaryNav: Array<{
+    label: string;
+    href: string;
+    icon: MobileNavIconName;
+  }> = [
+    { label: "Painel", href: "/painel", icon: "home" },
+    { label: "Central", href: "/painel/mesa-reparo", icon: "central" },
+    { label: "Ordens", href: "/painel/ordens", icon: "orders" },
+    ...(access.company?.featureFlags.appointmentsEnabled
+      ? [{ label: "Agenda", href: "/painel/agenda", icon: "calendar" as const }]
+      : []),
+  ];
+
+  const mobileMoreLinks = [
+    { label: "Recebimento", href: "/painel/ordens/nova", icon: "◷" },
+    { label: "Clientes", href: "/painel/clientes", icon: "♙" },
+    { label: "Equipamentos", href: "/painel/equipamentos", icon: "▣" },
+    { label: "Estoque", href: "/painel/estoque", icon: "▧" },
+    { label: "Financeiro", href: "/painel/financeiro", icon: "＄", managerOnly: true },
+    { label: "Relatórios", href: "/painel/relatorios", icon: "◫", managerOnly: true },
+    { label: "Serviços", href: "/painel/servicos", icon: "⌘" },
+    { label: "Minha assistência", href: "/painel/empresa", icon: "▢", managerOnly: true },
+    { label: "Minha página", href: "/painel/minha-pagina", icon: "↗", managerOnly: true },
+    { label: "Configurações", href: "/painel/configuracoes", icon: "⚙", managerOnly: true },
+    { label: "Perfil", href: "/painel/perfil", icon: "♙" },
+    { label: "Ajuda", href: "/painel/ajuda", icon: "?" },
+  ].filter(
+    (item) =>
+      !item.managerOnly ||
+      ["OWNER", "ADMIN"].includes(access.company?.role || ""),
+  );
+
+  const mobilePrimaryActive = (href: string) => {
+    if (href === "/painel") return path === "/painel";
+    if (href === "/painel/ordens")
+      return (
+        path === "/painel/ordens" ||
+        (path.startsWith("/painel/ordens/") &&
+          path !== "/painel/ordens/nova")
+      );
+    return path === href || path.startsWith(href + "/");
+  };
+
+  const mobileMoreActive =
+    mobileMoreOpen ||
+    mobileMoreLinks.some(
+      (item) =>
+        path === item.href ||
+        (item.href !== "/painel" && path.startsWith(item.href + "/")),
+    ) ||
+    path === "/painel/ordens/nova";
+
   return (
     <div className="workspace">
       <header className="mobile-top">
@@ -982,6 +1082,89 @@ export default function Workspace({
           </Context.Provider>
         )}
       </main>
+      {empresa && userId && !loading && (
+        <>
+          {mobileMoreOpen && (
+            <>
+              <button
+                className="mobile-bottom-scrim"
+                type="button"
+                aria-label="Fechar menu Mais"
+                onClick={() => setMobileMoreOpen(false)}
+              />
+              <section
+                className="mobile-more-sheet"
+                aria-label="Mais áreas do sistema"
+              >
+                <div className="mobile-more-sheet-head">
+                  <div>
+                    <strong>Mais</strong>
+                    <small>Acesse as outras áreas do Horária.</small>
+                  </div>
+                  <button
+                    type="button"
+                    aria-label="Fechar"
+                    onClick={() => setMobileMoreOpen(false)}
+                  >
+                    ×
+                  </button>
+                </div>
+                <div className="mobile-more-grid">
+                  {mobileMoreLinks.map((item) => (
+                    <Link
+                      href={item.href}
+                      key={item.href}
+                      className={
+                        path === item.href ||
+                        (item.href !== "/painel" &&
+                          path.startsWith(item.href + "/"))
+                          ? "is-current"
+                          : ""
+                      }
+                      onClick={() => setMobileMoreOpen(false)}
+                    >
+                      <span aria-hidden="true">{item.icon}</span>
+                      <strong>{item.label}</strong>
+                    </Link>
+                  ))}
+                </div>
+              </section>
+            </>
+          )}
+          <nav
+            className="mobile-bottom-nav"
+            aria-label="Navegação rápida no celular"
+          >
+            {mobilePrimaryNav.map((item) => {
+              const active = mobilePrimaryActive(item.href);
+              return (
+                <Link
+                  href={item.href}
+                  key={item.href}
+                  className={active ? "is-current" : ""}
+                  aria-current={active ? "page" : undefined}
+                >
+                  <MobileNavIcon name={item.icon} />
+                  <span>{item.label}</span>
+                </Link>
+              );
+            })}
+            <button
+              type="button"
+              className={mobileMoreActive ? "is-current" : ""}
+              aria-expanded={mobileMoreOpen}
+              onClick={() => {
+                setMobileMoreOpen((current) => !current);
+                setAlertsOpen(false);
+                setProfileOpen(false);
+              }}
+            >
+              <MobileNavIcon name="more" />
+              <span>Mais</span>
+            </button>
+          </nav>
+        </>
+      )}
     </div>
   );
 }
