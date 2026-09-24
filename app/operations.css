@@ -10243,3 +10243,35 @@ button.danger,
     min-height: 44px;
   }
 }
+
+
+.repair-followup-done {
+  grid-column: 1 / -1;
+  min-height: 32px;
+  padding: 7px 9px;
+  color: #3e5879;
+  background: #f7faff;
+  border: 1px solid #d8e3f1;
+  border-radius: 8px;
+  font-size: .61rem;
+  font-weight: 800;
+}
+
+.repair-followup-done:hover:not(:disabled) {
+  color: #216ecb;
+  background: #eef6ff;
+  border-color: #bdd8f7;
+}
+
+.repair-followup-done:disabled {
+  opacity: .65;
+  cursor: wait;
+}
+
+.repair-last-contact {
+  display: block;
+  margin-top: 7px;
+  color: #738097;
+  font-size: .58rem;
+  line-height: 1.35;
+}
