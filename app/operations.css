@@ -10096,3 +10096,150 @@ button.danger,
   }
 }
 
+
+
+/* Central de Atendimento */
+.repair-attention-center {
+  display: grid;
+  grid-template-columns: minmax(220px, .9fr) minmax(0, 2fr);
+  gap: 14px 18px;
+  align-items: center;
+  margin: 0 0 18px;
+  padding: 16px 18px;
+  background: #fff;
+  border: 1px solid #e0e6ef;
+  border-radius: 14px;
+  box-shadow: 0 8px 22px rgb(40 40 40 / 4%);
+}
+
+.repair-attention-copy strong,
+.repair-attention-copy small {
+  display: block;
+}
+
+.repair-attention-copy strong {
+  color: #1f2a44;
+  font-size: .82rem;
+}
+
+.repair-attention-copy small,
+.repair-attention-note {
+  margin-top: 4px;
+  color: #6f7b91;
+  font-size: .66rem;
+  line-height: 1.45;
+}
+
+.repair-attention-filters {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 9px;
+}
+
+.repair-attention-filters button {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 9px;
+  min-width: 0;
+  padding: 10px 12px;
+  text-align: left;
+  color: #4f5d75;
+  background: #f8faff;
+  border: 1px solid #dce4ef;
+  border-radius: 10px;
+  font-size: .68rem;
+  font-weight: 750;
+}
+
+.repair-attention-filters button:hover,
+.repair-attention-filters button.active {
+  color: #236ecb;
+  background: #eef6ff;
+  border-color: #bcd8fa;
+}
+
+.repair-attention-filters button span {
+  display: grid;
+  place-items: center;
+  min-width: 28px;
+  height: 28px;
+  padding-inline: 6px;
+  color: #216ecb;
+  background: #e5f1ff;
+  border-radius: 999px;
+  font-size: .72rem;
+  font-weight: 850;
+}
+
+.repair-attention-note {
+  grid-column: 1 / -1;
+  margin: 0;
+}
+
+.repair-attention-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin: 0 0 9px;
+}
+
+.repair-attention-tags .ui-badge {
+  font-size: .56rem;
+}
+
+.repair-customer-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 7px;
+  margin-top: 9px;
+}
+
+.repair-customer-actions a {
+  display: grid;
+  place-items: center;
+  min-height: 32px;
+  padding: 6px 8px;
+  color: #46607f;
+  background: #f8faff;
+  border: 1px solid #dde5ef;
+  border-radius: 8px;
+  font-size: .61rem;
+  font-weight: 750;
+  text-align: center;
+}
+
+.repair-customer-actions a:last-child {
+  color: #16754b;
+  background: #edf9f3;
+  border-color: #cbe9da;
+}
+
+.repair-customer-actions a:hover {
+  transform: translateY(-1px);
+  border-color: #b9c8da;
+}
+
+@media (max-width: 980px) {
+  .repair-attention-center {
+    grid-template-columns: 1fr;
+  }
+
+  .repair-attention-filters {
+    grid-template-columns: 1fr 1fr 1fr;
+  }
+}
+
+@media (max-width: 700px) {
+  .repair-attention-center {
+    padding: 14px;
+  }
+
+  .repair-attention-filters {
+    grid-template-columns: 1fr;
+  }
+
+  .repair-attention-filters button {
+    min-height: 44px;
+  }
+}

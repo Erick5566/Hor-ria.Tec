@@ -81,6 +81,11 @@ function relativeDeadline(value: string | null) {
   return `Prazo em ${days} dias`;
 }
 
+function hoursSince(value: string | null) {
+  if (!value) return 0;
+  return Math.max(0, (Date.now() - new Date(value).getTime()) / 3600000);
+}
+
 type BenchOrder = {
   id: string;
   numero: number;
@@ -90,9 +95,15 @@ type BenchOrder = {
   tecnico: string | null;
   mesa_id: string | null;
   prazo_previsto: string | null;
+  atualizado_em: string;
   cliente_nome: string | null;
+  cliente_whatsapp: string | null;
   equipamento_marca: string | null;
   equipamento_modelo: string | null;
+  orcamento_status: string | null;
+  orcamento_total: number | null;
+  orcamento_criado_em: string | null;
+  orcamento_respondido_em: string | null;
 };
 
 type BenchData = {
@@ -107,6 +118,38 @@ function repairPriorityTone(priority: BenchOrder["prioridade"]) {
   return "primary" as const;
 }
 
+function waitingForCustomer(order: BenchOrder) {
+  return ["orcamento_enviado", "aguardando_aprovacao"].includes(order.status);
+}
+
+function quotePending(order: BenchOrder) {
+  return order.status === "aguardando_orcamento";
+}
+
+function needsCustomerFollowup(order: BenchOrder) {
+  if (order.status === "pronto_retirada") return true;
+  const reference = order.orcamento_criado_em || order.atualizado_em;
+  return waitingForCustomer(order) && hoursSince(reference) >= 24;
+}
+
+function whatsappNumber(value: string | null) {
+  const digits = (value || "").replace(/\D/g, "");
+  if (digits.length === 10 || digits.length === 11) return `55${digits}`;
+  if (digits.length >= 12 && digits.length <= 13) return digits;
+  return "";
+}
+
+function whatsappMessage(order: BenchOrder, companyName: string) {
+  const customer = order.cliente_nome?.split(" ")[0] || "tudo bem";
+  if (order.status === "pronto_retirada") {
+    return `Olá, ${customer}! Aqui é da ${companyName}. Seu equipamento da OS #${order.numero} está pronto para retirada. Podemos combinar a entrega?`;
+  }
+  if (waitingForCustomer(order)) {
+    return `Olá, ${customer}! Aqui é da ${companyName}. Passando para saber se você conseguiu analisar o orçamento da OS #${order.numero}. Se tiver alguma dúvida, posso ajudar.`;
+  }
+  return `Olá, ${customer}! Aqui é da ${companyName}. Estou entrando em contato para dar continuidade à OS #${order.numero}.`;
+}
+
 export default function RepairBench() {
   const { empresa } = useWorkspace();
   const benches = useRows<MesaReparo>("mesas_reparo");
@@ -119,6 +162,9 @@ export default function RepairBench() {
   const [query, setQuery] = useState("");
   const [bench, setBench] = useState("");
   const [technician, setTechnician] = useState("");
+  const [attentionFilter, setAttentionFilter] = useState<
+    "all" | "waiting" | "quote" | "followup"
+  >("all");
   const [configuring, setConfiguring] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
@@ -170,7 +216,7 @@ export default function RepairBench() {
 
   const technicians = benchData.technicians;
 
-  const visible = useMemo(
+  const baseVisible = useMemo(
     () =>
       benchData.items.filter((order) => {
         if (["finalizado", "cancelado"].includes(order.status)) return false;
@@ -182,6 +228,17 @@ export default function RepairBench() {
       }),
     [benchData.items, bench, technician, query],
   );
+
+  const waitingCount = baseVisible.filter(waitingForCustomer).length;
+  const quotePendingCount = baseVisible.filter(quotePending).length;
+  const followupCount = baseVisible.filter(needsCustomerFollowup).length;
+
+  const visible = useMemo(() => {
+    if (attentionFilter === "waiting") return baseVisible.filter(waitingForCustomer);
+    if (attentionFilter === "quote") return baseVisible.filter(quotePending);
+    if (attentionFilter === "followup") return baseVisible.filter(needsCustomerFollowup);
+    return baseVisible;
+  }, [baseVisible, attentionFilter]);
 
   const urgentCount = visible.filter((order) => order.prioridade === "urgente").length;
   const overdueCount = visible.filter((order) => {
@@ -296,6 +353,44 @@ export default function RepairBench() {
           tone="success"
         />
       </MetricGrid>
+
+      <section className="repair-attention-center" aria-label="Pendências de atendimento">
+        <div className="repair-attention-copy">
+          <strong>Atendimento ao cliente</strong>
+          <small>
+            Use estes atalhos para encontrar quem está esperando orçamento ou precisa de retorno.
+          </small>
+        </div>
+        <div className="repair-attention-filters">
+          <button
+            type="button"
+            className={attentionFilter === "waiting" ? "active" : ""}
+            onClick={() => setAttentionFilter(attentionFilter === "waiting" ? "all" : "waiting")}
+          >
+            <span>{waitingCount}</span>
+            Aguardando cliente
+          </button>
+          <button
+            type="button"
+            className={attentionFilter === "quote" ? "active" : ""}
+            onClick={() => setAttentionFilter(attentionFilter === "quote" ? "all" : "quote")}
+          >
+            <span>{quotePendingCount}</span>
+            Orçamento pendente
+          </button>
+          <button
+            type="button"
+            className={attentionFilter === "followup" ? "active" : ""}
+            onClick={() => setAttentionFilter(attentionFilter === "followup" ? "all" : "followup")}
+          >
+            <span>{followupCount}</span>
+            Precisa de retorno
+          </button>
+        </div>
+        <small className="repair-attention-note">
+          “Precisa de retorno” inclui equipamento pronto para retirada ou orçamento sem resposta há pelo menos 24 horas.
+        </small>
+      </section>
 
       {configuring && (
         <section className="panel bench-settings repair-settings">
@@ -421,6 +516,20 @@ export default function RepairBench() {
                       </span>
                       <p className="repair-problem">{order.problema}</p>
 
+                      {(waitingForCustomer(order) || quotePending(order) || needsCustomerFollowup(order)) && (
+                        <div className="repair-attention-tags">
+                          {quotePending(order) && (
+                            <SemanticBadge tone="primary">Orçamento pendente</SemanticBadge>
+                          )}
+                          {waitingForCustomer(order) && (
+                            <SemanticBadge tone="warning">Aguardando cliente</SemanticBadge>
+                          )}
+                          {needsCustomerFollowup(order) && (
+                            <SemanticBadge tone="danger">Retorno necessário</SemanticBadge>
+                          )}
+                        </div>
+                      )}
+
                       <div className="repair-meta">
                         <span className={overdue ? "overdue" : ""}>◷ {relativeDeadline(order.prazo_previsto)}</span>
                         <span title={order.tecnico || "Técnico não definido"}>{(order.tecnico || "—").slice(0, 2).toUpperCase()}</span>
@@ -460,6 +569,23 @@ export default function RepairBench() {
                               <option key={item.id} value={item.id}>{item.nome}</option>
                             ))}
                         </select>
+                      </div>
+
+                      <div className="repair-customer-actions">
+                        <Link href={`/painel/ordens/${order.id}`}>
+                          Abrir OS
+                        </Link>
+                        {whatsappNumber(order.cliente_whatsapp) && (
+                          <a
+                            href={`https://wa.me/${whatsappNumber(order.cliente_whatsapp)}?text=${encodeURIComponent(
+                              whatsappMessage(order, empresa.nome || "assistência"),
+                            )}`}
+                            target="_blank"
+                            rel="noreferrer"
+                          >
+                            WhatsApp ↗
+                          </a>
+                        )}
                       </div>
                     </article>
                   );

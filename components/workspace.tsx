@@ -72,7 +72,7 @@ export const menu = [
       ["Painel", "/painel", "⌂"],
       ["Ordens de serviço", "/painel/ordens", "▤"],
       ["Recebimento", "/painel/ordens/nova", "◷"],
-      ["Diagnósticos", "/painel/mesa-reparo", "⌕"],
+      ["Central de Atendimento", "/painel/mesa-reparo", "⌕"],
       ["Agenda", "/painel/agenda", "▦"],
       ["Clientes", "/painel/clientes", "♙"],
       ["Equipamentos", "/painel/equipamentos", "▣"],
@@ -533,7 +533,7 @@ export default function Workspace({
       { words: ["financeiro", "finanças", "financas"], href: "/painel/financeiro" },
       { words: ["estoque"], href: "/painel/estoque" },
       { words: ["relatórios", "relatorios"], href: "/painel/relatorios" },
-      { words: ["diagnósticos", "diagnosticos", "mesa de reparo"], href: "/painel/mesa-reparo" },
+      { words: ["central de atendimento", "atendimento", "diagnósticos", "diagnosticos", "mesa de reparo"], href: "/painel/mesa-reparo" },
       { words: ["recebimento", "nova ordem"], href: "/painel/ordens/nova" },
     ];
     const destination = destinations.find((item) =>
