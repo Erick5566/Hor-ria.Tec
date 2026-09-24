@@ -11260,3 +11260,823 @@ svg {
     max-height: calc(100dvh - 72px - env(safe-area-inset-bottom));
   }
 }
+
+
+/* Super Admin companies workspace upgrade */
+.admin-workspace {
+  background:
+    radial-gradient(circle at 88% 3%, rgb(76 139 237 / 8%), transparent 30rem),
+    #f4f6fa;
+}
+
+.admin-sidebar {
+  background: #111c2f;
+  border-right-color: rgb(255 255 255 / 8%);
+  box-shadow: 12px 0 28px rgb(13 28 49 / 8%);
+}
+
+.admin-sidebar nav a {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  color: #d9e2ef;
+  border: 1px solid transparent;
+}
+
+.admin-sidebar nav a > span {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  flex: 0 0 28px;
+  color: #a9c5ed;
+  background: rgb(255 255 255 / 5%);
+  border-radius: 8px;
+  font-size: .84rem;
+}
+
+.admin-sidebar nav a:hover {
+  color: #fff;
+  background: rgb(45 111 222 / 18%);
+  border-color: rgb(106 162 255 / 18%);
+}
+
+.admin-sidebar footer {
+  padding-top: 16px;
+  border-top: 1px solid rgb(255 255 255 / 10%);
+}
+
+.admin-signout {
+  width: 100%;
+  min-height: 44px;
+  color: #ffc6cb;
+  background: rgb(176 51 64 / 12%);
+  border: 1px solid rgb(230 101 113 / 28%);
+  border-radius: 10px;
+  text-align: left;
+}
+
+.admin-signout:hover {
+  color: #fff;
+  background: #9d3540;
+  border-color: #a43f48;
+}
+
+.admin-main > header {
+  min-height: 68px;
+  height: auto;
+  gap: 18px;
+}
+
+.admin-breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  color: #7a879b;
+  font-size: .72rem;
+}
+
+.admin-breadcrumb strong {
+  color: #263a59;
+  font-weight: 800;
+}
+
+.admin-breadcrumb b {
+  color: #a4afbf;
+  font-weight: 500;
+}
+
+.admin-role {
+  letter-spacing: 0;
+  text-transform: none;
+  font-weight: 800;
+}
+
+.admin-companies-page {
+  max-width: 1720px;
+}
+
+.admin-warning-banner {
+  display: grid;
+  grid-template-columns: 38px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 18px;
+  padding: 13px 15px;
+  color: #70470a;
+  background: #fff7df;
+  border: 1px solid #efd594;
+  border-radius: 13px;
+  box-shadow: 0 8px 22px rgb(94 66 17 / 5%);
+}
+
+.admin-warning-banner > span {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  color: #9a6100;
+  background: #ffe8a6;
+  border-radius: 10px;
+  font-weight: 900;
+}
+
+.admin-warning-banner strong,
+.admin-warning-banner small {
+  display: block;
+}
+
+.admin-warning-banner strong {
+  color: #6d480e;
+  font-size: .78rem;
+}
+
+.admin-warning-banner small {
+  margin-top: 3px;
+  color: #8e6b32;
+  font-size: .65rem;
+}
+
+.admin-warning-banner button {
+  color: #70470a;
+  background: #fff;
+  border: 1px solid #e7c872;
+  min-height: 40px;
+}
+
+.admin-overview-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+  margin-bottom: 18px;
+}
+
+.admin-overview-card {
+  min-width: 0;
+  min-height: 145px;
+  padding: 17px;
+  background: #fff;
+  border: 1px solid #dfe6f0;
+  border-radius: 15px;
+  box-shadow: 0 9px 24px rgb(33 57 91 / 6%);
+}
+
+.admin-overview-card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  color: #697891;
+  font-size: .69rem;
+  font-weight: 750;
+}
+
+.admin-overview-card-head b {
+  display: grid;
+  place-items: center;
+  min-width: 32px;
+  height: 32px;
+  padding: 0 7px;
+  color: #2d66c5;
+  background: #eef4ff;
+  border-radius: 9px;
+  font-size: .72rem;
+}
+
+.admin-overview-card > strong {
+  display: block;
+  margin: 16px 0 5px;
+  color: #172741;
+  font: 750 clamp(1.55rem, 2.4vw, 2.1rem) Manrope, sans-serif;
+  letter-spacing: -.04em;
+}
+
+.admin-overview-card > small {
+  color: #7f8ba0;
+  font-size: .65rem;
+}
+
+.admin-capacity-track {
+  height: 5px;
+  margin-top: 16px;
+  overflow: hidden;
+  background: #edf1f6;
+  border-radius: 999px;
+}
+
+.admin-capacity-track i {
+  display: block;
+  max-width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, #275ec1, #5d94ee);
+  border-radius: inherit;
+}
+
+.admin-new-companies-card > strong {
+  display: none;
+}
+
+.admin-week-spark {
+  height: 70px;
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  align-items: end;
+  gap: 7px;
+  margin: 8px 0 5px;
+}
+
+.admin-week-spark > span {
+  min-width: 0;
+  display: grid;
+  place-items: end center;
+  gap: 3px;
+}
+
+.admin-week-spark i {
+  display: block;
+  width: min(24px, 72%);
+  min-height: 12px;
+  background: linear-gradient(180deg, #4b84e5, #285ebd);
+  border-radius: 5px 5px 2px 2px;
+}
+
+.admin-week-spark small {
+  color: #73819a;
+  font-size: .55rem;
+}
+
+.admin-companies-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.65fr) minmax(320px, .7fr);
+  gap: 16px;
+  align-items: start;
+}
+
+.admin-companies-list,
+.admin-company-side {
+  margin: 0;
+}
+
+.admin-company-toolbar {
+  display: grid;
+  grid-template-columns: minmax(280px, 1fr) minmax(170px, .4fr) minmax(190px, .45fr);
+  gap: 10px;
+  align-items: end;
+  margin-bottom: 16px;
+}
+
+.admin-company-toolbar > label > span {
+  color: #758199;
+  font-size: .61rem;
+  font-weight: 750;
+}
+
+.admin-company-search {
+  position: relative;
+}
+
+.admin-company-search > span {
+  position: absolute;
+  left: 13px;
+  bottom: 12px;
+  color: #71809a;
+  font-size: 1rem;
+  pointer-events: none;
+}
+
+.admin-company-search input {
+  padding-left: 38px;
+}
+
+.admin-company-toolbar input,
+.admin-company-toolbar select {
+  min-height: 44px;
+  background: #fbfcff;
+  border-color: #dce3ed;
+}
+
+.admin-companies-table-wrap {
+  margin: 0;
+}
+
+.admin-companies-table {
+  min-width: 900px;
+}
+
+.admin-companies-table th {
+  padding: 10px 11px;
+  color: #748097;
+  background: #f6f8fb;
+  border-bottom: 1px solid #e4e8ef;
+  font-size: .61rem;
+  letter-spacing: .02em;
+  text-transform: none;
+}
+
+.admin-companies-table td {
+  padding: 12px 11px;
+  color: #384862;
+  font-size: .68rem;
+}
+
+.admin-companies-table tbody tr {
+  cursor: pointer;
+  outline: none;
+}
+
+.admin-companies-table tbody tr:hover td,
+.admin-companies-table tbody tr:focus td {
+  background: #f7faff;
+}
+
+.admin-companies-table tbody tr.is-selected td {
+  background: #eef5ff;
+  border-bottom-color: #d3e3fa;
+}
+
+.admin-companies-table tbody tr.is-selected td:first-child {
+  box-shadow: inset 3px 0 0 #2f68c7;
+}
+
+.admin-companies-table td > strong {
+  color: #263853;
+  font-size: .71rem;
+}
+
+.admin-companies-table td > small {
+  color: #8a95a7;
+  font-size: .59rem;
+}
+
+.admin-companies-table time {
+  color: #53627a;
+  white-space: nowrap;
+}
+
+.admin-usage-pills {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  white-space: nowrap;
+}
+
+.admin-usage-pills > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 27px;
+  padding: 4px 7px;
+  color: #52627d;
+  background: #f5f7fa;
+  border: 1px solid #e1e6ee;
+  border-radius: 999px;
+  font-size: .61rem;
+}
+
+.admin-usage-pills b {
+  color: #3d6fc3;
+  font-size: .66rem;
+}
+
+.account-status.trial {
+  color: #8a6309;
+  background: #fff6dc;
+  border-color: #efd991;
+}
+
+.account-status.active {
+  color: #24704c;
+  background: #edf8f2;
+  border-color: #cbe8d8;
+}
+
+.account-status.past_due {
+  color: #9a5b05;
+  background: #fff5dc;
+  border-color: #efd18b;
+}
+
+.admin-actions-cell {
+  width: 54px;
+}
+
+.admin-row-actions {
+  position: relative;
+}
+
+.admin-row-actions summary {
+  width: 38px;
+  height: 36px;
+  display: grid;
+  place-items: center;
+  margin-left: auto;
+  color: #55647a;
+  background: #f7f9fc;
+  border: 1px solid #e0e6ee;
+  border-radius: 9px;
+  cursor: pointer;
+  list-style: none;
+  font-size: 1rem;
+  font-weight: 800;
+}
+
+.admin-row-actions summary::-webkit-details-marker {
+  display: none;
+}
+
+.admin-row-actions[open] summary {
+  color: #2f65be;
+  background: #eef5ff;
+  border-color: #bad2f3;
+}
+
+.admin-row-actions > div {
+  position: absolute;
+  z-index: 30;
+  right: 0;
+  top: calc(100% + 5px);
+  width: 170px;
+  display: grid;
+  padding: 6px;
+  background: #fff;
+  border: 1px solid #dce3ed;
+  border-radius: 11px;
+  box-shadow: 0 16px 36px rgb(25 46 75 / 16%);
+}
+
+.admin-row-actions button,
+.admin-row-actions a {
+  width: 100%;
+  min-height: 38px;
+  display: flex;
+  align-items: center;
+  padding: 8px 10px;
+  color: #46566e;
+  background: transparent;
+  border-radius: 7px;
+  text-align: left;
+  font-size: .65rem;
+  font-weight: 700;
+}
+
+.admin-row-actions button:hover,
+.admin-row-actions a:hover {
+  color: #235ebd;
+  background: #f1f6ff;
+}
+
+.admin-company-side {
+  position: sticky;
+  top: 84px;
+  max-height: calc(100dvh - 100px);
+  overflow-y: auto;
+  padding: 0;
+}
+
+.admin-detail-empty {
+  min-height: 420px;
+  display: grid;
+  place-items: center;
+  align-content: center;
+  padding: 38px 28px;
+  text-align: center;
+}
+
+.admin-detail-empty > span {
+  display: grid;
+  place-items: center;
+  width: 54px;
+  height: 54px;
+  margin-bottom: 14px;
+  color: #3469c5;
+  background: #edf4ff;
+  border-radius: 15px;
+  font-size: 1.35rem;
+}
+
+.admin-detail-empty strong {
+  color: #293b57;
+}
+
+.admin-detail-empty p {
+  max-width: 280px;
+  margin: 7px auto 0;
+  color: #7a879a;
+  font-size: .68rem;
+  line-height: 1.55;
+}
+
+.admin-company-side-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 18px;
+  background: #fbfcff;
+  border-bottom: 1px solid #e5eaf1;
+}
+
+.admin-company-side-head small {
+  color: #8190a7;
+  font-size: .55rem;
+  letter-spacing: .08em;
+}
+
+.admin-company-side-head h2 {
+  margin: 5px 0 0;
+  color: #21344f;
+  font-size: 1rem;
+}
+
+.admin-company-side-head p {
+  margin: 3px 0 0;
+  color: #8490a2;
+  font-size: .64rem;
+}
+
+.admin-detail-section {
+  padding: 17px 18px;
+  border-bottom: 1px solid #e8ecf2;
+}
+
+.admin-detail-section:last-child {
+  border-bottom: 0;
+}
+
+.admin-detail-section-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.admin-detail-section-head h3 {
+  margin: 0;
+  color: #283a54;
+  font-size: .77rem;
+}
+
+.admin-detail-section-head small {
+  color: #8a95a7;
+  font-size: .58rem;
+}
+
+.admin-latest-payment {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px;
+  background: #f7f9fd;
+  border: 1px solid #e0e6ef;
+  border-radius: 11px;
+}
+
+.admin-latest-payment span,
+.admin-latest-payment strong,
+.admin-latest-payment small {
+  display: block;
+}
+
+.admin-latest-payment > div > span {
+  color: #7a8799;
+  font-size: .58rem;
+}
+
+.admin-latest-payment > div > strong {
+  margin: 3px 0;
+  color: #263b59;
+  font-size: .9rem;
+}
+
+.admin-latest-payment > div > small {
+  color: #8a95a7;
+  font-size: .56rem;
+}
+
+.admin-payment-status {
+  padding: 5px 8px;
+  color: #6d5a29;
+  background: #fff6db;
+  border-radius: 999px;
+  font-size: .58rem;
+  font-weight: 800;
+}
+
+.admin-payment-status.approved {
+  color: #26704d;
+  background: #eaf8f1;
+}
+
+.admin-payment-status.rejected {
+  color: #983f49;
+  background: #fff0f2;
+}
+
+.admin-payment-history {
+  display: grid;
+  margin-top: 7px;
+}
+
+.admin-payment-history > div {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  gap: 8px;
+  padding: 8px 2px;
+  border-bottom: 1px solid #edf0f4;
+  color: #68768b;
+  font-size: .58rem;
+}
+
+.admin-payment-history strong {
+  color: #40516b;
+}
+
+.admin-detail-muted {
+  margin: 0;
+  padding: 12px;
+  color: #7e8b9f;
+  background: #f8f9fb;
+  border: 1px dashed #d7dee9;
+  border-radius: 10px;
+  font-size: .64rem;
+  line-height: 1.5;
+}
+
+.admin-detail-section textarea {
+  min-height: 118px;
+  resize: vertical;
+  font-size: .72rem;
+}
+
+.admin-note-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 9px;
+}
+
+.admin-note-actions > small {
+  color: #8a95a7;
+  font-size: .57rem;
+}
+
+.admin-note-actions .primary {
+  min-height: 38px;
+  padding: 8px 12px;
+  font-size: .62rem;
+}
+
+.admin-activity-list {
+  display: grid;
+}
+
+.admin-activity-list article {
+  display: grid;
+  grid-template-columns: 12px minmax(0, 1fr);
+  gap: 9px;
+  padding: 9px 0;
+  border-bottom: 1px solid #edf0f4;
+}
+
+.admin-activity-list article:last-child {
+  border-bottom: 0;
+}
+
+.admin-activity-dot {
+  width: 8px;
+  height: 8px;
+  margin-top: 4px;
+  background: #4a78ca;
+  border: 2px solid #e8f0ff;
+  border-radius: 50%;
+  box-shadow: 0 0 0 1px #4a78ca;
+}
+
+.admin-activity-list strong,
+.admin-activity-list small {
+  display: block;
+}
+
+.admin-activity-list strong {
+  color: #41516a;
+  font-size: .65rem;
+}
+
+.admin-activity-list p {
+  margin: 3px 0;
+  color: #748198;
+  font-size: .6rem;
+  line-height: 1.4;
+}
+
+.admin-activity-list small {
+  margin-top: 3px;
+  color: #8b96a8;
+  font-size: .56rem;
+}
+
+@media (max-width: 1250px) {
+  .admin-overview-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .admin-companies-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-company-side {
+    position: static;
+    max-height: none;
+  }
+
+  .admin-company-toolbar {
+    grid-template-columns: minmax(250px, 1fr) 170px 190px;
+  }
+}
+
+@media (max-width: 760px) {
+  .admin-main > header {
+    align-items: flex-start;
+    flex-direction: column;
+    padding: 13px 16px;
+  }
+
+  .admin-breadcrumb {
+    width: 100%;
+    overflow-x: auto;
+    white-space: nowrap;
+  }
+
+  .admin-header-actions {
+    width: 100%;
+    flex-wrap: wrap;
+  }
+
+  .admin-role {
+    margin-left: auto;
+  }
+
+  .admin-overview-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 9px;
+  }
+
+  .admin-overview-card {
+    min-height: 128px;
+    padding: 13px;
+  }
+
+  .admin-warning-banner {
+    grid-template-columns: 34px minmax(0, 1fr);
+  }
+
+  .admin-warning-banner button {
+    grid-column: 1 / -1;
+    width: 100%;
+  }
+
+  .admin-company-toolbar {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-companies-list {
+    padding: 14px 12px;
+  }
+
+  .admin-companies-table-wrap {
+    margin-inline: -3px;
+    overflow-x: auto;
+    overflow-y: visible;
+  }
+
+  .admin-companies-table {
+    min-width: 820px;
+  }
+
+  .admin-row-actions > div {
+    right: 0;
+  }
+
+  .admin-company-side-head,
+  .admin-detail-section {
+    padding-inline: 14px;
+  }
+}
+
+@media (max-width: 430px) {
+  .admin-overview-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-overview-card {
+    min-height: 118px;
+  }
+
+  .admin-week-spark {
+    max-width: 260px;
+  }
+}

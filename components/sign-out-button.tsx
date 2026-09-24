@@ -5,7 +5,7 @@ export default function SignOutButton() {
   const router = useRouter();
   return (
     <button
-      className="outline"
+      className="admin-signout"
       onClick={async () => {
         await supabase?.auth.signOut();
         await syncServerSession(null);
