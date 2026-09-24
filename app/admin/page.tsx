@@ -1,4 +1,4 @@
-import AdminDashboard from "@/components/admin-dashboard";
+import AdminCompaniesDashboard from "@/components/admin-companies-dashboard";
 import { getServerAccess } from "@/lib/server-auth";
 export default async function AdminPage() {
   const access = await getServerAccess();
@@ -7,7 +7,7 @@ export default async function AdminPage() {
     access!.client.rpc("admin_platform_overview"),
   ]);
   return (
-    <AdminDashboard
+    <AdminCompaniesDashboard
       initialCompanies={companies.data || []}
       initialOverview={overview.data}
     />
