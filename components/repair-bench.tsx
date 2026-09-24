@@ -625,7 +625,7 @@ export default function RepairBench() {
                               ? "Salvando…"
                               : needsCustomerFollowup(order)
                                 ? "✓ Marcar retorno feito"
-                                : "✓ Retorno registrado"}
+                                : "Registrar novo retorno"}
                           </button>
                         )}
                       </div>
