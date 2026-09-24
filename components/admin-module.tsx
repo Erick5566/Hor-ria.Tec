@@ -41,7 +41,7 @@ import { useWorkspace } from "./workspace";
 import { supabase, message } from "@/lib/supabase";
 const titles: Record<string, string> = {
   servicos: "Serviços",
-  "mesa-reparo": "Mesa de reparo",
+  "mesa-reparo": "Central de Atendimento",
   financeiro: "Financeiro",
   estoque: "Estoque",
   relatorios: "Relatórios",
