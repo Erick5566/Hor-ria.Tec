@@ -59,7 +59,14 @@ export default function AdminModule({ module }: { module: string }) {
     [busy, setBusy] = useState(false);
   return (
     <section className={`module module-${module}`}>
-      <Heading title={titles[module]} />
+      <Heading
+        title={titles[module]}
+        subtitle={
+          module === "mesa-reparo"
+            ? "Veja o que está parado, quem aguarda resposta e quem precisa de retorno."
+            : undefined
+        }
+      />
       {module === "servicos" && <CatalogManagement />}
       {module === "mesa-reparo" && <RepairBench />}
       {module === "financeiro" && <Finance />}
