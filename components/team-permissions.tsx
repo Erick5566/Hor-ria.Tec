@@ -61,6 +61,7 @@ const rolePermissions: Record<TeamRole, string[]> = {
   ],
   TECHNICIAN: [
     "Central e OS",
+    "Agenda",
     "Clientes e equipamentos",
     "Estoque operacional",
     "Consulta de serviços",
