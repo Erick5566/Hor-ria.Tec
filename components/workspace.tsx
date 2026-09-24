@@ -36,7 +36,7 @@ type WorkspaceAlert = {
   title: string;
   text: string;
   href: string;
-  tone: "urgent" | "warning" | "ready" | "approval";
+  tone: "urgent" | "warning" | "ready" | "approval" | "appointment" | "stock";
   createdAt: string;
 };
 
@@ -92,6 +92,7 @@ export const menu = [
     [
       ["Minha assistência", "/painel/empresa", "▢"],
       ["Minha página", "/painel/minha-pagina", "↗"],
+      ["Equipe", "/painel/equipe", "♟"],
       ["Configurações", "/painel/configuracoes", "⚙"],
     ],
   ],
@@ -352,7 +353,14 @@ export default function Workspace({
   const loadAlerts = useCallback(async () => {
     if (!empresa?.id || !supabase || !userId) return;
 
-    const [ordersResult, quotesResult, readsResult] = await Promise.all([
+    const [
+      ordersResult,
+      quotesResult,
+      appointmentsResult,
+      stockResult,
+      benchResult,
+      readsResult,
+    ] = await Promise.all([
       supabase
         .from("ordens_servico")
         .select("id,numero,status,prioridade,prazo_previsto,atualizado_em")
@@ -374,11 +382,27 @@ export default function Workspace({
         .limit(60),
       supabase
         .from("orcamentos")
-        .select("id,ordem_id,status,criado_em")
+        .select("id,ordem_id,status,criado_em,respondido_em")
         .eq("empresa_id", empresa.id)
-        .in("status", ["enviado", "alteracao_solicitada"])
+        .in("status", ["enviado", "aprovado", "alteracao_solicitada"])
         .order("criado_em", { ascending: false })
-        .limit(40),
+        .limit(50),
+      supabase
+        .from("agendamentos")
+        .select("id,nome_cliente,inicio,status,bloqueio")
+        .eq("empresa_id", empresa.id)
+        .eq("bloqueio", false)
+        .eq("status", "aguardando")
+        .gte("inicio", new Date().toISOString())
+        .order("inicio", { ascending: true })
+        .limit(20),
+      supabase
+        .from("pecas")
+        .select("id,nome,quantidade,estoque_minimo,ativo")
+        .eq("empresa_id", empresa.id)
+        .eq("ativo", true)
+        .limit(100),
+      supabase.rpc("repair_bench_data"),
       supabase
         .from("notification_reads")
         .select("notification_id")
@@ -422,7 +446,7 @@ export default function Workspace({
         next.push({
           id: "ready-" + order.id,
           title: `OS #${order.numero} pronta para retirada`,
-          text: "O equipamento já pode ser entregue ao cliente.",
+          text: "O equipamento está pronto. Entre em contato para combinar a retirada.",
           href: `/painel/ordens/${order.id}`,
           tone: "ready",
           createdAt: order.atualizado_em,
@@ -443,8 +467,22 @@ export default function Workspace({
 
     if (!quotesResult.error) {
       for (const quote of quotesResult.data || []) {
+        const order = orders.find((item) => item.id === quote.ordem_id);
+
+        if (quote.status === "aprovado") {
+          next.push({
+            id: "quote-approved-" + quote.id,
+            title: order
+              ? `Orçamento aprovado na OS #${order.numero}`
+              : "Orçamento aprovado",
+            text: "O cliente aprovou o orçamento. A OS pode seguir para o reparo.",
+            href: `/painel/ordens/${quote.ordem_id}`,
+            tone: "ready",
+            createdAt: quote.respondido_em || quote.criado_em,
+          });
+        }
+
         if (quote.status === "alteracao_solicitada") {
-          const order = orders.find((item) => item.id === quote.ordem_id);
           next.push({
             id: "quote-change-" + quote.id,
             title: order
@@ -453,7 +491,84 @@ export default function Workspace({
             text: "O cliente pediu uma alteração no orçamento.",
             href: `/painel/ordens/${quote.ordem_id}`,
             tone: "warning",
-            createdAt: quote.criado_em,
+            createdAt: quote.respondido_em || quote.criado_em,
+          });
+        }
+      }
+    }
+
+    if (!appointmentsResult.error) {
+      for (const appointment of appointmentsResult.data || []) {
+        next.push({
+          id: "appointment-" + appointment.id,
+          title: appointment.nome_cliente
+            ? `Agendamento de ${appointment.nome_cliente}`
+            : "Novo agendamento aguardando confirmação",
+          text: `Aguardando confirmação para ${new Date(
+            appointment.inicio,
+          ).toLocaleString("pt-BR", {
+            timeZone: "America/Sao_Paulo",
+            dateStyle: "short",
+            timeStyle: "short",
+          })}.`,
+          href: "/painel/agenda",
+          tone: "appointment",
+          createdAt: appointment.inicio,
+        });
+      }
+    }
+
+    if (!stockResult.error && access.company?.featureFlags.stockEnabled) {
+      for (const item of (stockResult.data || []).filter(
+        (row) => row.quantidade <= row.estoque_minimo,
+      )) {
+        next.push({
+          id: "stock-" + item.id + "-" + item.quantidade,
+          title: `Estoque baixo: ${item.nome}`,
+          text:
+            item.quantidade <= 0
+              ? "Item sem estoque disponível."
+              : `Restam ${item.quantidade} unidade(s); mínimo configurado: ${item.estoque_minimo}.`,
+          href: "/painel/estoque",
+          tone: "stock",
+          createdAt: new Date().toISOString(),
+        });
+      }
+    }
+
+    if (!benchResult.error && benchResult.data) {
+      const benchItems = (
+        benchResult.data as {
+          items?: Array<{
+            id: string;
+            numero: number;
+            status: string;
+            atualizado_em: string;
+            orcamento_criado_em?: string | null;
+            ultimo_contato_cliente_em?: string | null;
+          }>;
+        }
+      ).items || [];
+
+      for (const item of benchItems) {
+        if (!["orcamento_enviado", "aguardando_aprovacao"].includes(item.status))
+          continue;
+
+        const reference = item.orcamento_criado_em || item.atualizado_em;
+        const referenceTime = new Date(reference).getTime();
+        const lastContact = item.ultimo_contato_cliente_em
+          ? new Date(item.ultimo_contato_cliente_em).getTime()
+          : 0;
+        const waitingHours = (Date.now() - referenceTime) / 3600000;
+
+        if (waitingHours >= 24 && lastContact < referenceTime) {
+          next.push({
+            id: "followup-" + item.id,
+            title: `Retorno pendente na OS #${item.numero}`,
+            text: "O orçamento está sem resposta há pelo menos 24 horas.",
+            href: `/painel/ordens/${item.id}`,
+            tone: "warning",
+            createdAt: reference,
           });
         }
       }
@@ -466,13 +581,17 @@ export default function Workspace({
         (a, b) =>
           new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
       )
-      .slice(0, 30);
+      .slice(0, 40);
 
     setAlerts(deduped);
     setReadAlertIds(
       new Set((readsResult.data || []).map((row) => row.notification_id)),
     );
-  }, [empresa?.id, userId]);
+  }, [
+    access.company?.featureFlags.stockEnabled,
+    empresa?.id,
+    userId,
+  ]);
 
   useEffect(() => {
     if (!empresa?.id || !supabase || !userId) return;
@@ -501,6 +620,36 @@ export default function Workspace({
           event: "*",
           schema: "public",
           table: "orcamentos",
+          filter: `empresa_id=eq.${empresa.id}`,
+        },
+        () => void loadAlerts(),
+      )
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "agendamentos",
+          filter: `empresa_id=eq.${empresa.id}`,
+        },
+        () => void loadAlerts(),
+      )
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "pecas",
+          filter: `empresa_id=eq.${empresa.id}`,
+        },
+        () => void loadAlerts(),
+      )
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "historico_os",
           filter: `empresa_id=eq.${empresa.id}`,
         },
         () => void loadAlerts(),
@@ -588,6 +737,7 @@ export default function Workspace({
       { words: ["relatórios", "relatorios"], href: "/painel/relatorios" },
       { words: ["central de atendimento", "atendimento", "diagnósticos", "diagnosticos", "mesa de reparo"], href: "/painel/mesa-reparo" },
       { words: ["recebimento", "nova ordem"], href: "/painel/ordens/nova" },
+      { words: ["equipe", "funcionários", "funcionarios", "permissões", "permissoes"], href: "/painel/equipe" },
     ];
     const destination = destinations.find((item) =>
       item.words.some((word) => query === word),
@@ -726,6 +876,7 @@ export default function Workspace({
     { label: "Serviços", href: "/painel/servicos", icon: "⌘" },
     { label: "Minha assistência", href: "/painel/empresa", icon: "▢", managerOnly: true },
     { label: "Minha página", href: "/painel/minha-pagina", icon: "↗", managerOnly: true },
+    { label: "Equipe", href: "/painel/equipe", icon: "♟", managerOnly: true },
     { label: "Configurações", href: "/painel/configuracoes", icon: "⚙", managerOnly: true },
     { label: "Perfil", href: "/painel/perfil", icon: "♙" },
     { label: "Ajuda", href: "/painel/ajuda", icon: "?" },
@@ -797,6 +948,7 @@ export default function Workspace({
                         "/painel/financeiro",
                         "/painel/relatorios",
                         "/painel/configuracoes",
+                        "/painel/equipe",
                         "/painel/minha-pagina",
                         "/painel/empresa",
                       ].includes(href) &&
