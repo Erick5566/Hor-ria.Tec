@@ -3,6 +3,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Brand } from "@/components/brand";
 import SignOutButton from "@/components/sign-out-button";
+import AdminHeader from "@/components/admin-header";
 import SessionKeeper from "@/components/session-keeper";
 import { getServerAccess } from "@/lib/server-auth";
 
@@ -34,9 +35,18 @@ export default async function AdminLayout({
           <small>{access.user.email}</small>
         </div>
         <nav aria-label="Administração Horária">
-          <Link href="/admin">Empresas</Link>
-          <Link href="/admin/configuracoes">Configurações</Link>
-          <Link href="/admin/auditoria">Auditoria</Link>
+          <Link href="/admin">
+            <span aria-hidden="true">▦</span>
+            Empresas
+          </Link>
+          <Link href="/admin/configuracoes">
+            <span aria-hidden="true">⚙</span>
+            Configurações
+          </Link>
+          <Link href="/admin/auditoria">
+            <span aria-hidden="true">◫</span>
+            Auditoria
+          </Link>
         </nav>
         {access.context.company && (
           <div className="admin-quick-links">
@@ -51,28 +61,7 @@ export default async function AdminLayout({
         </footer>
       </aside>
       <main className="admin-main">
-        <header>
-          <span>
-            Horária <b>/ Administração privada</b>
-          </span>
-          <div className="admin-header-actions">
-            {access.context.company && (
-              <>
-                <Link href="/painel" className="admin-header-link">
-                  Meu painel
-                </Link>
-                <Link
-                  href={`/${access.context.company.slug}`}
-                  target="_blank"
-                  className="admin-header-link public"
-                >
-                  Página pública ↗
-                </Link>
-              </>
-            )}
-            <span className="admin-role">SUPER_ADMIN</span>
-          </div>
-        </header>
+        <AdminHeader companySlug={access.context.company?.slug} />
         {children}
       </main>
     </div>
