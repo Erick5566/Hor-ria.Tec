@@ -593,6 +593,7 @@ export default function Workspace({
     );
   }, [
     access.company?.featureFlags.stockEnabled,
+    access.company?.role,
     empresa?.id,
     userId,
   ]);
