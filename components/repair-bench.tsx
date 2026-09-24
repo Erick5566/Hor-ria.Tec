@@ -160,6 +160,94 @@ function whatsappMessage(order: BenchOrder, companyName: string) {
   return `Olá, ${customer}! Aqui é da ${companyName}. Estou entrando em contato para dar continuidade à OS #${order.numero}.`;
 }
 
+
+type DailyPending = {
+  order: BenchOrder;
+  kind: "overdue" | "urgent" | "followup" | "quote" | "part" | "stalled";
+  title: string;
+  detail: string;
+  rank: number;
+};
+
+function staleLabel(value: string) {
+  const hours = hoursSince(value);
+  if (hours < 48) return "";
+  const days = Math.floor(hours / 24);
+  return days <= 1 ? "Sem atualização há 2 dias" : `Sem atualização há ${days} dias`;
+}
+
+function dailyPending(order: BenchOrder): DailyPending | null {
+  const deadline = daysUntil(order.prazo_previsto);
+  if (deadline !== null && deadline < 0) {
+    return {
+      order,
+      kind: "overdue",
+      title: "OS atrasada",
+      detail: relativeDeadline(order.prazo_previsto),
+      rank: 0,
+    };
+  }
+
+  if (needsCustomerFollowup(order)) {
+    return {
+      order,
+      kind: "followup",
+      title:
+        order.status === "pronto_retirada"
+          ? "Aguardando retirada"
+          : "Retorno ao cliente",
+      detail:
+        order.status === "pronto_retirada"
+          ? "Equipamento pronto: combine a retirada com o cliente."
+          : "Orçamento sem resposta: faça um novo contato.",
+      rank: 1,
+    };
+  }
+
+  if (quotePending(order)) {
+    return {
+      order,
+      kind: "quote",
+      title: "Orçamento pendente",
+      detail: "Prepare e envie o orçamento para o cliente.",
+      rank: 2,
+    };
+  }
+
+  if (order.status === "aguardando_peca") {
+    return {
+      order,
+      kind: "part",
+      title: "Aguardando peça",
+      detail: "Confirme a previsão de chegada e mantenha a OS atualizada.",
+      rank: 3,
+    };
+  }
+
+  if (order.prioridade === "urgente") {
+    return {
+      order,
+      kind: "urgent",
+      title: "OS urgente",
+      detail: "Prioridade urgente definida pela equipe.",
+      rank: 4,
+    };
+  }
+
+  const stalled = staleLabel(order.atualizado_em);
+  if (stalled) {
+    return {
+      order,
+      kind: "stalled",
+      title: "Sem movimentação",
+      detail: stalled,
+      rank: 5,
+    };
+  }
+
+  return null;
+}
+
 export default function RepairBench() {
   const { empresa } = useWorkspace();
   const benches = useRows<MesaReparo>("mesas_reparo");
@@ -218,6 +306,26 @@ export default function RepairBench() {
         },
         refreshSoon,
       )
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "orcamentos",
+          filter: `empresa_id=eq.${empresa.id}`,
+        },
+        refreshSoon,
+      )
+      .on(
+        "postgres_changes",
+        {
+          event: "INSERT",
+          schema: "public",
+          table: "historico_os",
+          filter: `empresa_id=eq.${empresa.id}`,
+        },
+        refreshSoon,
+      )
       .subscribe();
     return () => {
       window.clearTimeout(timer);
@@ -243,6 +351,22 @@ export default function RepairBench() {
   const waitingCount = baseVisible.filter(waitingForCustomer).length;
   const quotePendingCount = baseVisible.filter(quotePending).length;
   const followupCount = baseVisible.filter(needsCustomerFollowup).length;
+
+  const dailyPendings = useMemo(
+    () =>
+      baseVisible
+        .map(dailyPending)
+        .filter((item): item is DailyPending => Boolean(item))
+        .sort(
+          (a, b) =>
+            a.rank - b.rank ||
+            (a.order.prazo_previsto || "9999").localeCompare(
+              b.order.prazo_previsto || "9999",
+            ) ||
+            b.order.numero - a.order.numero,
+        ),
+    [baseVisible],
+  );
 
   const visible = useMemo(() => {
     if (attentionFilter === "waiting") return baseVisible.filter(waitingForCustomer);
@@ -381,6 +505,75 @@ export default function RepairBench() {
           tone="success"
         />
       </MetricGrid>
+
+      <section className="repair-daily-pending" aria-label="Pendências do dia">
+        <div className="repair-daily-pending-head">
+          <div>
+            <span>PRIORIDADES DO DIA</span>
+            <strong>Pendências que precisam de ação</strong>
+            <small>
+              Atrasos, retornos, orçamentos, peças e OS sem movimentação aparecem aqui automaticamente.
+            </small>
+          </div>
+          <b>{dailyPendings.length}</b>
+        </div>
+
+        {dailyPendings.length ? (
+          <div className="repair-daily-pending-list">
+            {dailyPendings.slice(0, 8).map((pending) => {
+              const order = pending.order;
+              const number = whatsappNumber(order.cliente_whatsapp);
+              return (
+                <article
+                  className={`repair-daily-item kind-${pending.kind}`}
+                  key={order.id}
+                >
+                  <span className="repair-daily-dot" aria-hidden="true" />
+                  <div className="repair-daily-copy">
+                    <div>
+                      <strong>{pending.title}</strong>
+                      <span>OS #{order.numero}</span>
+                    </div>
+                    <p>
+                      {order.cliente_nome || "Cliente"} ·{" "}
+                      {`${order.equipamento_marca || ""} ${order.equipamento_modelo || ""}`.trim() ||
+                        "Equipamento"}
+                    </p>
+                    <small>{pending.detail}</small>
+                  </div>
+                  <div className="repair-daily-actions">
+                    {pending.kind === "followup" && number && (
+                      <a
+                        href={`https://wa.me/${number}?text=${encodeURIComponent(
+                          whatsappMessage(order, empresa.nome || "assistência"),
+                        )}`}
+                        target="_blank"
+                        rel="noreferrer"
+                      >
+                        WhatsApp ↗
+                      </a>
+                    )}
+                    <Link href={`/painel/ordens/${order.id}`}>Abrir OS</Link>
+                  </div>
+                </article>
+              );
+            })}
+            {dailyPendings.length > 8 && (
+              <small className="repair-daily-more">
+                + {dailyPendings.length - 8} pendência(s) adicional(is). Use os filtros abaixo para revisar todas.
+              </small>
+            )}
+          </div>
+        ) : (
+          <div className="repair-daily-empty">
+            <span aria-hidden="true">✓</span>
+            <div>
+              <strong>Nenhuma pendência crítica agora.</strong>
+              <small>A Central continua acompanhando as OS em andamento.</small>
+            </div>
+          </div>
+        )}
+      </section>
 
       <section className="repair-attention-center" aria-label="Pendências de atendimento">
         <div className="repair-attention-copy">
