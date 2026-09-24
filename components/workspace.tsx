@@ -518,7 +518,11 @@ export default function Workspace({
       }
     }
 
-    if (!stockResult.error && access.company?.featureFlags.stockEnabled) {
+    if (
+      !stockResult.error &&
+      access.company?.featureFlags.stockEnabled &&
+      access.company?.role !== "ATTENDANT"
+    ) {
       for (const item of (stockResult.data || []).filter(
         (row) => row.quantidade <= row.estoque_minimo,
       )) {
@@ -870,7 +874,9 @@ export default function Workspace({
     { label: "Recebimento", href: "/painel/ordens/nova", icon: "◷" },
     { label: "Clientes", href: "/painel/clientes", icon: "♙" },
     { label: "Equipamentos", href: "/painel/equipamentos", icon: "▣" },
-    { label: "Estoque", href: "/painel/estoque", icon: "▧" },
+    ...(access.company?.role !== "ATTENDANT"
+      ? [{ label: "Estoque", href: "/painel/estoque", icon: "▧" }]
+      : []),
     { label: "Financeiro", href: "/painel/financeiro", icon: "＄", managerOnly: true },
     { label: "Relatórios", href: "/painel/relatorios", icon: "◫", managerOnly: true },
     { label: "Serviços", href: "/painel/servicos", icon: "⌘" },
@@ -944,6 +950,8 @@ export default function Workspace({
                     !(
                       (href === "/painel/agenda" &&
                         !access.company?.featureFlags.appointmentsEnabled) ||
+                      (href === "/painel/estoque" &&
+                        access.company?.role === "ATTENDANT") ||
                       ([
                         "/painel/financeiro",
                         "/painel/relatorios",
@@ -1149,12 +1157,19 @@ export default function Workspace({
                   <Link href="/painel/perfil" onClick={() => setProfileOpen(false)}>
                     ♙ Meu perfil
                   </Link>
-                  <Link href="/painel/configuracoes" onClick={() => setProfileOpen(false)}>
-                    ⚙ Configurações
-                  </Link>
-                  <Link href="/painel/empresa" onClick={() => setProfileOpen(false)}>
-                    ▢ Minha assistência
-                  </Link>
+                  {["OWNER", "ADMIN"].includes(access.company?.role || "") && (
+                    <>
+                      <Link href="/painel/equipe" onClick={() => setProfileOpen(false)}>
+                        ♟ Equipe
+                      </Link>
+                      <Link href="/painel/configuracoes" onClick={() => setProfileOpen(false)}>
+                        ⚙ Configurações
+                      </Link>
+                      <Link href="/painel/empresa" onClick={() => setProfileOpen(false)}>
+                        ▢ Minha assistência
+                      </Link>
+                    </>
+                  )}
                   <button
                     type="button"
                     onClick={async () => {
