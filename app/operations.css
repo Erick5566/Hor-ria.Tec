@@ -10275,3 +10275,62 @@ button.danger,
   font-size: .58rem;
   line-height: 1.35;
 }
+
+
+/* Page responsibility separation */
+.settings-purpose-card {
+  margin: 0 0 22px;
+  padding: 14px 16px;
+  background: #f7f9fd;
+  border: 1px solid #dfe6f0;
+  border-radius: 12px;
+}
+
+.settings-purpose-card strong {
+  display: block;
+  color: #24314b;
+  font-size: .76rem;
+}
+
+.settings-purpose-card p {
+  margin: 5px 0 0;
+  color: #66748c;
+  font-size: .7rem;
+  line-height: 1.5;
+}
+
+.system-settings-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.5fr) minmax(280px, .7fr);
+  gap: 18px;
+  align-items: start;
+}
+
+.system-feature-list {
+  display: grid;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.system-feature-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 11px 12px;
+  background: #f8faff;
+  border: 1px solid #e1e7ef;
+  border-radius: 9px;
+}
+
+.system-feature-row > span:first-child {
+  color: #35425b;
+  font-size: .72rem;
+  font-weight: 750;
+}
+
+@media (max-width: 900px) {
+  .system-settings-layout {
+    grid-template-columns: 1fr;
+  }
+}

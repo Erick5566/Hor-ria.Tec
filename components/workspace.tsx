@@ -67,27 +67,32 @@ export function useWorkspace() {
 }
 export const menu = [
   [
-    "PRINCIPAL",
+    "ATENDIMENTO",
     [
       ["Painel", "/painel", "⌂"],
-      ["Ordens de serviço", "/painel/ordens", "▤"],
       ["Recebimento", "/painel/ordens/nova", "◷"],
       ["Central de Atendimento", "/painel/mesa-reparo", "⌕"],
       ["Agenda", "/painel/agenda", "▦"],
+      ["Ordens de serviço", "/painel/ordens", "▤"],
       ["Clientes", "/painel/clientes", "♙"],
       ["Equipamentos", "/painel/equipamentos", "▣"],
+    ],
+  ],
+  [
+    "GESTÃO",
+    [
       ["Estoque", "/painel/estoque", "▧"],
       ["Financeiro", "/painel/financeiro", "＄"],
       ["Relatórios", "/painel/relatorios", "◫"],
       ["Serviços", "/painel/servicos", "⌘"],
-      ["Configurações", "/painel/configuracoes", "⚙"],
     ],
   ],
   [
     "EMPRESA",
     [
-      ["Minha página", "/painel/minha-pagina", "↗"],
       ["Minha assistência", "/painel/empresa", "▢"],
+      ["Minha página", "/painel/minha-pagina", "↗"],
+      ["Configurações", "/painel/configuracoes", "⚙"],
     ],
   ],
 ] as const;

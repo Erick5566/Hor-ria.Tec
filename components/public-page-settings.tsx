@@ -147,13 +147,6 @@ type SlugCheck = {
   motivo?: string | null;
 };
 
-type CepLookup = {
-  found: boolean;
-  bairro?: string;
-  cidade?: string;
-  estado?: string;
-};
-
 export default function PublicPageSettings() {
   const { empresa, access, refresh, userId } = useWorkspace();
   const canManage = ["OWNER", "ADMIN"].includes(access.company?.role || "");
@@ -164,21 +157,13 @@ export default function PublicPageSettings() {
     [busy, setBusy] = useState(false),
     [uploading, setUploading] = useState(false),
     [previewMode, setPreviewMode] = useState<"desktop" | "mobile">("desktop"),
-    [slugManuallyEdited, setSlugManuallyEdited] = useState(
+    [, setSlugManuallyEdited] = useState(
       Boolean(empresa.slug && empresa.slug !== slugify(empresa.nome)),
     ),
     [slugState, setSlugState] = useState<
       "idle" | "checking" | "available" | "taken" | "invalid"
     >("idle"),
-    [slugSuggestion, setSlugSuggestion] = useState(""),
-    [sameWhatsapp, setSameWhatsapp] = useState(
-      !empresa.whatsapp || empresa.whatsapp === empresa.telefone,
-    ),
-    [autoAddressFields, setAutoAddressFields] = useState<string[]>([]),
-    [cepLoading, setCepLoading] = useState(false);
-  const [hours, setHours] = useState<Record<string, [string, string]>>(
-    empresa.horario,
-  );
+    [slugSuggestion, setSlugSuggestion] = useState("");
   const [identity, setIdentity] = useState({
     nome: empresa.nome,
     slug: empresa.slug,
@@ -279,55 +264,6 @@ export default function PublicPageSettings() {
     };
   }, [identity.slug, checkSlugAvailability]);
 
-  useEffect(() => {
-    const cep = identity.cep.replace(/\D/g, "");
-    setAutoAddressFields([]);
-
-    if (cep.length !== 8) {
-      setCepLoading(false);
-      return;
-    }
-
-    const controller = new AbortController();
-    const timer = window.setTimeout(() => {
-      setCepLoading(true);
-      void fetch(`/api/cep/${cep}`, {
-        signal: controller.signal,
-        cache: "no-store",
-      })
-        .then(async (response) => {
-          if (!response.ok) return null;
-          return (await response.json()) as CepLookup;
-        })
-        .then((data) => {
-          if (!data?.found) return;
-          const filled: string[] = [];
-          if (data.bairro) filled.push("bairro");
-          if (data.cidade) filled.push("cidade");
-          if (data.estado) filled.push("estado");
-
-          setIdentity((current) => ({
-            ...current,
-            bairro: data.bairro || current.bairro,
-            cidade: data.cidade || current.cidade,
-            estado: data.estado || current.estado,
-          }));
-          setAutoAddressFields(filled);
-        })
-        .catch(() => {
-          // Falha de CEP não bloqueia o preenchimento manual do formulário.
-        })
-        .finally(() => {
-          if (!controller.signal.aborted) setCepLoading(false);
-        });
-    }, 500);
-
-    return () => {
-      controller.abort();
-      window.clearTimeout(timer);
-    };
-  }, [identity.cep]);
-
   const publicUrl =
     typeof location === "undefined"
       ? `/${identity.slug}`
@@ -339,26 +275,17 @@ export default function PublicPageSettings() {
     return selected.slice(0, config?.limite_servicos || 6);
   }, [config, services]);
   const profileStatus = useMemo(() => {
-    const addressComplete =
-      Boolean(identity.endereco.trim()) &&
-      Boolean(identity.numero.trim()) &&
-      Boolean(identity.bairro.trim()) &&
-      Boolean(identity.cidade.trim()) &&
-      Boolean(identity.estado.trim()) &&
-      identity.cep.replace(/\D/g, "").length === 8;
-
     const items = [
-      { label: "Nome", complete: Boolean(identity.nome.trim()) },
+      { label: "URL pública", complete: Boolean(identity.slug.trim()) },
       {
         label: "Descrição curta",
         complete: Boolean(identity.descricao.trim()),
       },
-      {
-        label: "Telefone/WhatsApp",
-        complete: Boolean(identity.telefone.trim() || identity.whatsapp.trim()),
-      },
-      { label: "Endereço completo", complete: addressComplete },
       { label: "Logo", complete: Boolean(identity.logo) },
+      {
+        label: "Título principal",
+        complete: Boolean(config?.headline?.trim()),
+      },
       { label: "1 serviço cadastrado", complete: services.length > 0 },
     ];
     const completed = items.filter((item) => item.complete).length;
@@ -366,7 +293,7 @@ export default function PublicPageSettings() {
       percent: Math.round((completed / items.length) * 100),
       missing: items.filter((item) => !item.complete).map((item) => item.label),
     };
-  }, [identity, services.length]);
+  }, [identity.slug, identity.descricao, identity.logo, config?.headline, services.length]);
   if (!canManage)
     return (
       <section className="panel">
@@ -452,24 +379,12 @@ export default function PublicPageSettings() {
       const company = await supabase!
         .from("empresas")
         .update({
-          nome: identity.nome,
           slug: identity.slug,
           logo_url: identity.logo || null,
           slogan: identity.slogan || null,
           descricao_publica: identity.descricao || null,
-          telefone: identity.telefone || null,
-          whatsapp: identity.whatsapp || null,
-          email_publico: identity.email || null,
           instagram: identity.instagram || null,
           site: identity.site || null,
-          documento: identity.documento || null,
-          endereco: identity.endereco || null,
-          numero_endereco: identity.numero || null,
-          complemento: identity.complemento || null,
-          bairro: identity.bairro || null,
-          cidade: identity.cidade || null,
-          estado: identity.estado || null,
-          cep: identity.cep || null,
           google_maps_url: identity.maps || null,
           google_business_url: identity.business || null,
           google_avaliacao_url: identity.review || null,
@@ -477,7 +392,6 @@ export default function PublicPageSettings() {
           cor_secundaria: identity.secondary,
           cor_botao: identity.button,
           tema_publico: identity.theme,
-          horario: hours,
         })
         .eq("id", empresa.id)
         .select("id")
@@ -584,24 +498,15 @@ export default function PublicPageSettings() {
       <div className="public-editor-layout">
         <div>
           <section className="panel">
-            <h2>Dados principais</h2>
+            <h2>Apresentação da página</h2>
+            <div className="settings-purpose-card">
+              <strong>{identity.nome}</strong>
+              <p>
+                Nome, telefone, endereço e horário vêm de <b>Minha assistência</b>.
+                Aqui você controla somente como a página pública se apresenta.
+              </p>
+            </div>
             <div className="form-grid">
-              <label>
-                Nome da assistência
-                <input
-                  value={identity.nome}
-                  required
-                  maxLength={100}
-                  onChange={(e) => {
-                    const nome = e.target.value;
-                    setIdentity((current) => ({
-                      ...current,
-                      nome,
-                      ...(!slugManuallyEdited ? { slug: slugify(nome) } : {}),
-                    }));
-                  }}
-                />
-              </label>
               <label>
                 URL da página
                 <div className="input-prefix slug-input">
@@ -619,17 +524,15 @@ export default function PublicPageSettings() {
                       }));
                     }}
                   />
-                  {slugState === "available" &&
-                    !slugManuallyEdited &&
-                    identity.slug === slugify(identity.nome) && (
-                      <span
-                        className="slug-status-icon"
-                        title="URL disponível e sincronizada com o nome"
-                        aria-label="URL disponível e sincronizada com o nome"
-                      >
-                        ✓
-                      </span>
-                    )}
+                  {slugState === "available" && (
+                    <span
+                      className="slug-status-icon"
+                      title="URL disponível"
+                      aria-label="URL disponível"
+                    >
+                      ✓
+                    </span>
+                  )}
                 </div>
                 <div className="slug-feedback" aria-live="polite">
                   {slugState === "checking" && <small>Verificando disponibilidade…</small>}
@@ -672,11 +575,21 @@ export default function PublicPageSettings() {
                 />
               </label>
               <label>
-                CPF ou CNPJ
+                Instagram público
                 <input
-                  value={identity.documento}
+                  value={identity.instagram}
                   onChange={(e) =>
-                    setIdentity({ ...identity, documento: e.target.value })
+                    setIdentity({ ...identity, instagram: e.target.value })
+                  }
+                />
+              </label>
+              <label>
+                Site externo
+                <input
+                  type="url"
+                  value={identity.site}
+                  onChange={(e) =>
+                    setIdentity({ ...identity, site: e.target.value })
                   }
                 />
               </label>
@@ -795,122 +708,18 @@ export default function PublicPageSettings() {
             />
           </section>
           <section className="panel">
-            <h2>Contato e localização</h2>
+            <h2>Contato exibido na página</h2>
+            <div className="settings-purpose-card">
+              <strong>Dados sincronizados com Minha assistência</strong>
+              <p>
+                Telefone: {identity.telefone || "não informado"} · WhatsApp: {identity.whatsapp || "não informado"}
+                <br />
+                Endereço: {[identity.endereco, identity.numero, identity.bairro, identity.cidade, identity.estado]
+                  .filter(Boolean)
+                  .join(", ") || "não informado"}
+              </p>
+            </div>
             <div className="form-grid">
-              <Field
-                label="Telefone"
-                value={identity.telefone}
-                onChange={(v) =>
-                  setIdentity((current) => ({
-                    ...current,
-                    telefone: v,
-                    whatsapp: sameWhatsapp ? v : current.whatsapp,
-                  }))
-                }
-              />
-              <Field
-                label="WhatsApp"
-                value={identity.whatsapp}
-                disabled={sameWhatsapp}
-                onChange={(v) =>
-                  setIdentity((current) => ({ ...current, whatsapp: v }))
-                }
-              />
-              <label className="check-label same-whatsapp-field">
-                <input
-                  type="checkbox"
-                  checked={sameWhatsapp}
-                  onChange={(event) => {
-                    const checked = event.target.checked;
-                    setSameWhatsapp(checked);
-                    if (checked) {
-                      setIdentity((current) => ({
-                        ...current,
-                        whatsapp: current.telefone,
-                      }));
-                    }
-                  }}
-                />
-                Usar o mesmo número no WhatsApp
-              </label>
-              <Field
-                label="E-mail"
-                type="email"
-                value={identity.email}
-                onChange={(v) => setIdentity({ ...identity, email: v })}
-              />
-              <Field
-                label="Instagram"
-                value={identity.instagram}
-                onChange={(v) => setIdentity({ ...identity, instagram: v })}
-              />
-              <Field
-                label="Site"
-                type="url"
-                value={identity.site}
-                onChange={(v) => setIdentity({ ...identity, site: v })}
-              />
-              <Field
-                label="Endereço"
-                value={identity.endereco}
-                onChange={(v) => setIdentity({ ...identity, endereco: v })}
-              />
-              <Field
-                label="Número"
-                value={identity.numero}
-                onChange={(v) => setIdentity({ ...identity, numero: v })}
-              />
-              <Field
-                label="Complemento"
-                value={identity.complemento}
-                onChange={(v) => setIdentity({ ...identity, complemento: v })}
-              />
-              <Field
-                label="Bairro"
-                value={identity.bairro}
-                autoFilled={autoAddressFields.includes("bairro")}
-                onChange={(v) => {
-                  setAutoAddressFields((current) =>
-                    current.filter((field) => field !== "bairro"),
-                  );
-                  setIdentity((current) => ({ ...current, bairro: v }));
-                }}
-              />
-              <Field
-                label="Cidade"
-                value={identity.cidade}
-                autoFilled={autoAddressFields.includes("cidade")}
-                onChange={(v) => {
-                  setAutoAddressFields((current) =>
-                    current.filter((field) => field !== "cidade"),
-                  );
-                  setIdentity((current) => ({ ...current, cidade: v }));
-                }}
-              />
-              <Field
-                label="Estado"
-                value={identity.estado}
-                autoFilled={autoAddressFields.includes("estado")}
-                onChange={(v) => {
-                  setAutoAddressFields((current) =>
-                    current.filter((field) => field !== "estado"),
-                  );
-                  setIdentity((current) => ({
-                    ...current,
-                    estado: v.toUpperCase().slice(0, 2),
-                  }));
-                }}
-              />
-              <Field
-                label="CEP"
-                value={identity.cep}
-                inputMode="numeric"
-                maxLength={9}
-                helper={cepLoading ? "Buscando endereço…" : undefined}
-                onChange={(v) =>
-                  setIdentity((current) => ({ ...current, cep: v }))
-                }
-              />
               <Field
                 label="Google Maps"
                 type="url"
@@ -938,62 +747,6 @@ export default function PublicPageSettings() {
                 onChange={(e) => set("whatsapp_mensagem", e.target.value)}
               />
             </label>
-            <h3>Horário de funcionamento</h3>
-            {[
-              "Domingo",
-              "Segunda",
-              "Terça",
-              "Quarta",
-              "Quinta",
-              "Sexta",
-              "Sábado",
-            ].map((name, index) => (
-              <div className="hour-row" key={name}>
-                <label className="check-label">
-                  <input
-                    type="checkbox"
-                    checked={!!hours[index]}
-                    onChange={(event) => {
-                      const next = { ...hours };
-                      if (event.target.checked)
-                        next[index] = ["09:00", "18:00"];
-                      else delete next[index];
-                      setHours(next);
-                    }}
-                  />
-                  {name}
-                </label>
-                {hours[index] && (
-                  <>
-                    <input
-                      aria-label={`Abertura ${name}`}
-                      type="time"
-                      step={900}
-                      value={hours[index][0]}
-                      onChange={(event) =>
-                        setHours({
-                          ...hours,
-                          [index]: [event.target.value, hours[index][1]],
-                        })
-                      }
-                    />
-                    <span>até</span>
-                    <input
-                      aria-label={`Fechamento ${name}`}
-                      type="time"
-                      step={900}
-                      value={hours[index][1]}
-                      onChange={(event) =>
-                        setHours({
-                          ...hours,
-                          [index]: [hours[index][0], event.target.value],
-                        })
-                      }
-                    />
-                  </>
-                )}
-              </div>
-            ))}
           </section>
           <section className="panel">
             <h2>Aparência</h2>

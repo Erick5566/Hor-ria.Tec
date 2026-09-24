@@ -19,7 +19,10 @@ function ModuleLoading() {
 const CatalogManagement = dynamic(() => import("./catalog-management"), {
   loading: ModuleLoading,
 });
-const CompanySettings = dynamic(() => import("./company-settings"), {
+const BusinessProfile = dynamic(() => import("./business-profile"), {
+  loading: ModuleLoading,
+});
+const SystemSettings = dynamic(() => import("./system-settings"), {
   loading: ModuleLoading,
 });
 const Finance = dynamic(() => import("./finance"), {
@@ -45,12 +48,23 @@ const titles: Record<string, string> = {
   financeiro: "Financeiro",
   estoque: "Estoque",
   relatorios: "Relatórios",
-  empresa: "Minha empresa",
+  empresa: "Minha assistência",
   configuracoes: "Configurações",
   "pagina-cliente": "Página do cliente",
   "minha-pagina": "Minha página",
   perfil: "Perfil",
   ajuda: "Ajuda",
+};
+
+const subtitles: Record<string, string> = {
+  servicos: "Cadastre o que a assistência vende e executa, com preço, duração e garantia.",
+  "mesa-reparo": "Trabalhe nas OS em andamento, acompanhe etapas e organize retornos aos clientes.",
+  financeiro: "Controle receitas, despesas, contas a receber e movimentações financeiras.",
+  estoque: "Controle peças, produtos, quantidades, entradas e saídas.",
+  relatorios: "Analise resultados e indicadores sem alterar a operação do dia a dia.",
+  empresa: "Mantenha os dados operacionais, endereço e horários reais do negócio.",
+  configuracoes: "Defina regras de atendimento e comportamento do sistema.",
+  "minha-pagina": "Edite a apresentação, conteúdo e aparência que seus clientes enxergam.",
 };
 export default function AdminModule({ module }: { module: string }) {
   const { empresa, email } = useWorkspace(),
@@ -59,21 +73,15 @@ export default function AdminModule({ module }: { module: string }) {
     [busy, setBusy] = useState(false);
   return (
     <section className={`module module-${module}`}>
-      <Heading
-        title={titles[module]}
-        subtitle={
-          module === "mesa-reparo"
-            ? "Veja o que está parado, quem aguarda resposta e quem precisa de retorno."
-            : undefined
-        }
-      />
+      <Heading title={titles[module]} subtitle={subtitles[module]} />
       {module === "servicos" && <CatalogManagement />}
       {module === "mesa-reparo" && <RepairBench />}
       {module === "financeiro" && <Finance />}
       {module === "estoque" && <InventoryManagement />}
       {module === "relatorios" && <Reports />}
       {module === "minha-pagina" && <PublicPageSettings />}
-      {["empresa", "configuracoes"].includes(module) && <CompanySettings />}
+      {module === "empresa" && <BusinessProfile />}
+      {module === "configuracoes" && <SystemSettings />}
       {module === "pagina-cliente" && (
         <section className="panel">
           <h2>Receba solicitações pela sua página</h2>

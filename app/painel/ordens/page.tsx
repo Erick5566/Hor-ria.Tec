@@ -247,7 +247,7 @@ export default function Orders() {
     <section className="module orders-pro">
       <Heading
         title="Ordens de serviço"
-        subtitle="Cada equipamento, cada etapa, sob controle."
+        subtitle="Consulte, filtre e abra qualquer OS da assistência, do recebimento ao histórico."
         action="+ Nova ordem"
         href="/painel/ordens/nova"
       />
