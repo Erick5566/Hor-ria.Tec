@@ -104,6 +104,7 @@ type BenchOrder = {
   orcamento_total: number | null;
   orcamento_criado_em: string | null;
   orcamento_respondido_em: string | null;
+  ultimo_contato_cliente_em: string | null;
 };
 
 type BenchData = {
@@ -127,8 +128,17 @@ function quotePending(order: BenchOrder) {
 }
 
 function needsCustomerFollowup(order: BenchOrder) {
+  const reference =
+    order.status === "pronto_retirada"
+      ? order.atualizado_em
+      : order.orcamento_criado_em || order.atualizado_em;
+  const lastContact = order.ultimo_contato_cliente_em
+    ? new Date(order.ultimo_contato_cliente_em).getTime()
+    : 0;
+  const referenceTime = new Date(reference).getTime();
+
+  if (lastContact >= referenceTime) return false;
   if (order.status === "pronto_retirada") return true;
-  const reference = order.orcamento_criado_em || order.atualizado_em;
   return waitingForCustomer(order) && hoursSince(reference) >= 24;
 }
 
@@ -166,6 +176,7 @@ export default function RepairBench() {
     "all" | "waiting" | "quote" | "followup"
   >("all");
   const [configuring, setConfiguring] = useState(false);
+  const [contactBusyOrder, setContactBusyOrder] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
 
@@ -248,6 +259,23 @@ export default function RepairBench() {
   const readyToday = visible.filter(
     (order) => order.status === "pronto_retirada" && daysUntil(order.prazo_previsto) === 0,
   ).length;
+
+  async function registerCustomerFollowup(order: BenchOrder) {
+    if (!supabase || contactBusyOrder) return;
+    setContactBusyOrder(order.id);
+    setError("");
+    try {
+      const result = await supabase.rpc("registrar_retorno_cliente", {
+        p_ordem: order.id,
+      });
+      if (result.error) throw result.error;
+      await loadBench(true);
+    } catch (caught) {
+      setError(message(caught as Error));
+    } finally {
+      setContactBusyOrder("");
+    }
+  }
 
   async function move(
     order: BenchOrder,
@@ -586,7 +614,30 @@ export default function RepairBench() {
                             WhatsApp ↗
                           </a>
                         )}
+                        {(waitingForCustomer(order) || order.status === "pronto_retirada") && (
+                          <button
+                            type="button"
+                            className="repair-followup-done"
+                            disabled={contactBusyOrder === order.id}
+                            onClick={() => void registerCustomerFollowup(order)}
+                          >
+                            {contactBusyOrder === order.id
+                              ? "Salvando…"
+                              : needsCustomerFollowup(order)
+                                ? "✓ Marcar retorno feito"
+                                : "✓ Retorno registrado"}
+                          </button>
+                        )}
                       </div>
+                      {order.ultimo_contato_cliente_em && (
+                        <small className="repair-last-contact">
+                          Último retorno: {new Date(order.ultimo_contato_cliente_em).toLocaleString("pt-BR", {
+                            timeZone: "America/Sao_Paulo",
+                            dateStyle: "short",
+                            timeStyle: "short",
+                          })}
+                        </small>
+                      )}
                     </article>
                   );
                 })}
