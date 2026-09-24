@@ -46,6 +46,9 @@ const OrderAdministration = dynamic(
 const Warranty = dynamic(() => import("@/components/warranty"), {
   loading: TabLoading,
 });
+const OrderTimeline = dynamic(() => import("@/components/order-timeline"), {
+  loading: TabLoading,
+});
 
 type OrderClient = {
   id: string;
@@ -228,6 +231,11 @@ export default function OrderDetail({
             )}
             {tab === "Resumo" && (
               <>
+                <OrderTimeline
+                  orderId={id}
+                  status={order.status}
+                  createdAt={order.criado_em}
+                />
                 <OrderAdministration
                   order={order}
                   onChanged={() => void load(true)}
