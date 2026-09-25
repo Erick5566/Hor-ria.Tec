@@ -38,8 +38,9 @@
   --ui-button-height: 44px;
   --ui-control-height: 44px;
   --ui-metric-value-size: 1.55rem;
-  --ui-metric-label-size: .74rem;
-  --ui-caption-size: .64rem;
+  --ui-metric-label-size: .82rem;
+  --ui-caption-size: .74rem;
+  --ui-control-font-size: .8rem;
   --ui-space-1: 4px;
   --ui-space-2: 8px;
   --ui-space-3: 12px;
@@ -226,6 +227,8 @@
   background: var(--ui-surface);
   border: 1px solid #d8e0ec;
   border-radius: var(--ui-radius-control);
+  font-size: var(--ui-control-font-size);
+  line-height: 1.35;
 }
 
 .workspace textarea,
@@ -236,6 +239,8 @@
   background: var(--ui-surface);
   border: 1px solid #d8e0ec;
   border-radius: var(--ui-radius-control);
+  font-size: var(--ui-control-font-size);
+  line-height: 1.4;
 }
 
 .workspace :is(input, select, textarea):focus,
