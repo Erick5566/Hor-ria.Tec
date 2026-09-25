@@ -10384,6 +10384,14 @@ button.danger,
   align-items: start;
 }
 
+.system-settings-layout.system-settings-single {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.system-settings-single > .panel {
+  width: 100%;
+}
+
 .system-feature-list {
   display: grid;
   gap: 8px;
