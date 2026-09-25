@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { Cliente, PosVenda, useRows } from "@/lib/assistencia";
 import { message, supabase, today } from "@/lib/supabase";
-import { Empty, ErrorBox, MetricCard, MetricGrid } from "./ui";
+import { Empty, ErrorBox, MetricCard, MetricGrid, PanelTitle } from "./ui";
 import { useWorkspace } from "./workspace";
 
 const labels = {
@@ -41,7 +41,7 @@ export default function AfterSales() {
             ).length
           }
           note="Contatos que já podem ser feitos"
-          icon="!"
+          iconName="alert"
           tone="warning"
           active={
             items.filter(
@@ -58,14 +58,14 @@ export default function AfterSales() {
             ).length
           }
           note="Programados para os próximos dias"
-          icon="◷"
+          iconName="clock"
           tone="purple"
         />
         <MetricCard
           label="Contatados"
           value={items.filter((x) => x.status === "contatado").length}
           note="Clientes já acionados"
-          icon="✓"
+          iconName="check"
           tone="success"
         />
       </MetricGrid>
