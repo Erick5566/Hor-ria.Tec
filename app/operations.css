@@ -3875,14 +3875,14 @@ button.danger,
   align-items: center;
   justify-content: center;
   gap: 7px;
-  min-height: 38px;
-  padding: 8px 13px;
+  min-height: 34px;
+  padding: 6px 11px;
   color: #2457c5;
   background: #eef4ff;
   border: 1px solid #bfd1f2;
-  border-radius: 10px;
-  box-shadow: 0 4px 10px rgb(36 87 197 / 8%);
-  font-size: .78rem;
+  border-radius: 9px;
+  box-shadow: 0 3px 8px rgb(36 87 197 / 8%);
+  font-size: .74rem;
   font-weight: 800;
   line-height: 1.2;
   list-style: none;
@@ -3940,7 +3940,7 @@ button.danger,
 @media (max-width: 760px) {
   .agenda-pro .appointment summary {
     width: 100%;
-    min-height: 42px;
+    min-height: 38px;
   }
 }
 
