@@ -452,9 +452,14 @@ export default function Overview() {
         <div className="dashboard-heading-wrap">
           <span className="dashboard-welcome">Olá, seja bem-vindo! 👋</span>
           <div className="dashboard-reference-heading">
-            <div>
-              <h1>Visão geral</h1>
-              <p>Tudo o que importa da sua assistência técnica, em um só lugar.</p>
+            <div className="dashboard-main-title">
+              <span className="module-heading-icon" aria-hidden="true">
+                <HorariaIcon name="home" />
+              </span>
+              <div>
+                <h1>Visão geral</h1>
+                <p>Tudo o que importa da sua assistência técnica, em um só lugar.</p>
+              </div>
             </div>
           </div>
         </div>
