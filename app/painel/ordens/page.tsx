@@ -197,35 +197,35 @@ export default function Orders() {
       label: "Ordens abertas",
       value: data?.metrics.open ?? 0,
       note: "Em andamento",
-      icon: "▤",
+      iconName: "orders",
       tone: "blue",
     },
     {
       label: "Em diagnóstico",
       value: data?.metrics.diagnostic ?? 0,
       note: "Aguardando análise",
-      icon: "⌘",
+      iconName: "services",
       tone: "amber",
     },
     {
       label: "Urgentes",
       value: data?.metrics.urgent ?? 0,
       note: "Precisam de atenção",
-      icon: "!",
+      iconName: "alert",
       tone: "red",
     },
     {
       label: "Prontas para retirada",
       value: data?.metrics.ready ?? 0,
       note: "Aguardando cliente",
-      icon: "✓",
+      iconName: "check",
       tone: "green",
     },
     {
       label: "Previsão de faturamento",
       value: money(data?.metrics.forecast ?? 0),
       note: "Orçamentos das OS abertas",
-      icon: "▥",
+      iconName: "receipt",
       tone: "purple",
     },
   ];
@@ -261,7 +261,7 @@ export default function Orders() {
             label={metric.label}
             value={loading && !data ? "—" : metric.value}
             note={metric.note}
-            icon={metric.icon}
+            iconName={metric.iconName as "orders" | "services" | "alert" | "check" | "receipt"}
             tone={metric.tone as "blue" | "amber" | "red" | "green" | "purple"}
             active={metric.label !== "Urgentes" || Number(metric.value) > 0}
             emphasizeValue={metric.label === "Urgentes"}

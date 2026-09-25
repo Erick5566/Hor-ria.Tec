@@ -2,7 +2,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { stamp, money } from "@/lib/assistencia";
 import { supabase, message } from "@/lib/supabase";
-import { ErrorBox, Empty } from "./ui";
+import { ErrorBox, Empty, PanelTitle } from "./ui";
 
 type AppliedPart = {
   id: string;
@@ -69,7 +69,7 @@ export default function AppliedParts({
 
   return (
     <section className="panel">
-      <h2>Peças aplicadas</h2>
+      <PanelTitle title="Peças aplicadas" icon="stock" />
       <p>
         Registre cada componente realmente usado no reparo. O vínculo com o
         estoque é opcional.

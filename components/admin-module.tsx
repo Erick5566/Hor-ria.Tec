@@ -2,7 +2,7 @@
 import { useState } from "react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
-import { Heading, ErrorBox } from "./ui";
+import { Heading, ErrorBox, PanelTitle } from "./ui";
 
 function ModuleLoading() {
   return (
@@ -90,7 +90,7 @@ export default function AdminModule({ module }: { module: string }) {
       {module === "equipe" && <TeamPermissions />}
       {module === "pagina-cliente" && (
         <section className="panel">
-          <h2>Receba solicitações pela sua página</h2>
+          <PanelTitle title="Receba solicitações pela sua página" icon="publicPage" />
           <p>
             Seu cliente poderá cadastrar o equipamento, informar o problema,
             enviar fotos e escolher um horário.
@@ -120,7 +120,7 @@ export default function AdminModule({ module }: { module: string }) {
           </div>
           <p role="status">{notice}</p>
           <ErrorBox error={error} />
-          <h3>Agendamento direto</h3>
+          <PanelTitle title="Agendamento direto" icon="calendar" as="h3" />
           <Link href={`/agendar/${empresa.slug}`}>
             Abrir agenda pública existente →
           </Link>
@@ -128,7 +128,7 @@ export default function AdminModule({ module }: { module: string }) {
       )}
       {module === "perfil" && (
         <section className="panel">
-          <h2>Sua conta</h2>
+          <PanelTitle title="Sua conta" icon="profile" />
           <p>{email}</p>
           <ErrorBox error={error} />
           <p role="status">{notice}</p>
@@ -167,7 +167,7 @@ export default function AdminModule({ module }: { module: string }) {
       )}
       {module === "ajuda" && (
         <section className="panel">
-          <h2>Do recebimento à entrega</h2>
+          <PanelTitle title="Do recebimento à entrega" icon="receive" />
           <ol>
             <li>
               Abra uma nova ordem, selecione o cliente e registre o equipamento.
@@ -181,13 +181,13 @@ export default function AdminModule({ module }: { module: string }) {
             <li>Após a aprovação, registre o reparo e os testes.</li>
             <li>Marque como pronto para retirada e finalize na entrega.</li>
           </ol>
-          <h3>Fotos e privacidade</h3>
+          <PanelTitle title="Fotos e privacidade" icon="devices" as="h3" />
           <p>
             As fotos ficam em armazenamento privado e mantêm seu histórico. A
             consulta pública mostra somente o andamento e o orçamento; senha do
             aparelho e diagnóstico interno não são exibidos.
           </p>
-          <h3>Agenda</h3>
+          <PanelTitle title="Agenda" icon="calendar" as="h3" />
           <p>
             Vincule recebimentos e retiradas à ordem na agenda para manter a
             operação organizada e evitar retrabalho.

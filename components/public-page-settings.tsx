@@ -2,7 +2,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { preparePhoto } from "@/lib/photos";
 import { message, Servico, supabase } from "@/lib/supabase";
-import { ErrorBox } from "./ui";
+import { ErrorBox, PanelTitle } from "./ui";
 import { useWorkspace } from "./workspace";
 import { publicPageThemeDefaults } from "@/lib/theme";
 
@@ -498,7 +498,7 @@ export default function PublicPageSettings() {
       <div className="public-editor-layout">
         <div>
           <section className="panel">
-            <h2>Apresentação da página</h2>
+            <PanelTitle title="Apresentação da página" icon="publicPage" />
             <div className="settings-purpose-card">
               <strong>{identity.nome}</strong>
               <p>
@@ -619,7 +619,7 @@ export default function PublicPageSettings() {
             </div>
           </section>
           <section className="panel">
-            <h2>Logo da assistência</h2>
+            <PanelTitle title="Logo da assistência" icon="business" />
             <div className="logo-editor">
               <div className="logo-preview">
                 {identity.logo ? (
@@ -666,7 +666,7 @@ export default function PublicPageSettings() {
             </div>
           </section>
           <section className="panel">
-            <h2>Hero da página</h2>
+            <PanelTitle title="Hero da página" icon="star" />
             <label>
               Título principal
               <input
@@ -708,7 +708,7 @@ export default function PublicPageSettings() {
             />
           </section>
           <section className="panel">
-            <h2>Contato exibido na página</h2>
+            <PanelTitle title="Contato exibido na página" icon="clients" />
             <div className="settings-purpose-card">
               <strong>Dados sincronizados com Minha assistência</strong>
               <p>
@@ -749,7 +749,7 @@ export default function PublicPageSettings() {
             </label>
           </section>
           <section className="panel">
-            <h2>Aparência</h2>
+            <PanelTitle title="Aparência" icon="settings" />
             <div className="preset-grid">
               {Object.keys(presets).map((name) => (
                 <button
@@ -826,7 +826,7 @@ export default function PublicPageSettings() {
             </button>
           </section>
           <section className="panel">
-            <h2>Conteúdo e visibilidade</h2>
+            <PanelTitle title="Conteúdo e visibilidade" icon="category" />
             <div className="toggle-grid">
               <Toggle
                 label="Mostrar agendamento"
@@ -957,7 +957,7 @@ export default function PublicPageSettings() {
             </div>
           </section>
           <section className="panel">
-            <h2>Ordem das seções</h2>
+            <PanelTitle title="Ordem das seções" icon="more" />
             {config.ordem_secoes.map((section, index) => (
               <div className="section-order" key={section}>
                 <span>

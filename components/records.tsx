@@ -22,6 +22,7 @@ import {
 } from "./ui";
 import { message, supabase } from "@/lib/supabase";
 import DeviceFields from "./device-fields";
+import { HorariaIcon, type HorariaIconName } from "./horaria-icon";
 
 type ClientItem = Cliente & {
   equipment_count: number;
@@ -227,28 +228,28 @@ export default function Records({
         {
           name: "Clientes cadastrados",
           value: data?.metrics.total ?? 0,
-          icon: "♙",
+          iconName: "clients" as HorariaIconName,
           tone: "blue",
           note: "Base total de clientes",
         },
         {
           name: "Clientes com equipamentos",
           value: data?.metrics.withEquipment ?? 0,
-          icon: "▣",
+          iconName: "devices" as HorariaIconName,
           tone: "purple",
           note: "Com aparelhos cadastrados",
         },
         {
           name: "Com atendimento aberto",
           value: data?.metrics.withOpenOrder ?? 0,
-          icon: "▤",
+          iconName: "orders" as HorariaIconName,
           tone: "amber",
           note: "Em atendimento agora",
         },
         {
           name: "Relacionamento gerado",
           value: money(data?.metrics.relationship ?? 0),
-          icon: "▥",
+          iconName: "finance" as HorariaIconName,
           tone: "green",
           note: "Receitas e vendas registradas",
         },
@@ -257,28 +258,28 @@ export default function Records({
         {
           name: "Equipamentos",
           value: data?.metrics.total ?? 0,
-          icon: "▣",
+          iconName: "devices" as HorariaIconName,
           tone: "blue",
           note: "Total cadastrado",
         },
         {
           name: "Em atendimento",
           value: data?.metrics.inService ?? 0,
-          icon: "⌘",
+          iconName: "services" as HorariaIconName,
           tone: "amber",
           note: "Com OS aberta",
         },
         {
           name: "Reparos finalizados",
           value: data?.metrics.finishedRepairs ?? 0,
-          icon: "✓",
+          iconName: "check" as HorariaIconName,
           tone: "green",
           note: "Ordens concluídas",
         },
         {
           name: "Categorias",
           value: data?.metrics.categories ?? 0,
-          icon: "▦",
+          iconName: "category" as HorariaIconName,
           tone: "purple",
           note: "Tipos de equipamento",
         },
@@ -301,7 +302,9 @@ export default function Records({
           href="#novo-registro"
         />
         <div className="dashboard-callout">
-          <span className="dashboard-callout-icon">{isClient ? "♙" : "▣"}</span>
+          <span className="dashboard-callout-icon">
+            <HorariaIcon name={isClient ? "clients" : "devices"} />
+          </span>
           <div>
             <strong>
               {isClient ? "Conheça melhor cada cliente" : "Controle cada equipamento"}
@@ -325,7 +328,7 @@ export default function Records({
             label={metric.name}
             value={loading && !data ? "—" : metric.value}
             note={metric.note}
-            icon={metric.icon}
+            iconName={metric.iconName}
             tone={metric.tone as "blue" | "amber" | "green" | "purple"}
           />
         ))}

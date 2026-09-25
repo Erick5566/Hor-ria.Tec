@@ -2,7 +2,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { supabase, message, today, shift, Servico } from "@/lib/supabase";
 import { Item, Orcamento, money } from "@/lib/assistencia";
-import { ErrorBox, Empty } from "./ui";
+import { ErrorBox, Empty, PanelTitle } from "./ui";
 
 function quoteStatus(status: string) {
   const labels: Record<string, string> = {
@@ -268,7 +268,7 @@ export default function Quote({
     <section className="panel quote-detail-panel">
       <div className="panel-head">
         <div>
-          <h2>Orçamento detalhado</h2>
+          <PanelTitle title="Orçamento detalhado" icon="receipt" />
           <p>Informe serviços, peças, mão de obra, desconto e validade.</p>
         </div>
         <button className="outline" onClick={start}>

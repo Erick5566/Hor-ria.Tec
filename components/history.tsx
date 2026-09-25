@@ -3,7 +3,7 @@ import { useCallback, useEffect, useState } from "react";
 import { supabase, message } from "@/lib/supabase";
 import { type Historico, stamp, statuses, type Status } from "@/lib/assistencia";
 import { useWorkspace } from "./workspace";
-import { ErrorBox, Empty } from "./ui";
+import { ErrorBox, Empty, PanelTitle } from "./ui";
 
 const PAGE_SIZE = 50;
 
@@ -47,7 +47,7 @@ export default function History({ ordemId }: { ordemId: string }) {
 
   return (
     <section className="panel">
-      <h2>Histórico da ordem</h2>
+      <PanelTitle title="Histórico da ordem" icon="trend" />
       <ErrorBox error={error} />
 
       {loading ? (

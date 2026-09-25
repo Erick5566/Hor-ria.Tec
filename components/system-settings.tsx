@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useWorkspace } from "./workspace";
-import { ErrorBox } from "./ui";
+import { ErrorBox, PanelTitle } from "./ui";
 import { message, supabase } from "@/lib/supabase";
 
 
@@ -73,7 +73,7 @@ export default function SystemSettings() {
             }
           }}
         >
-          <h2>Regras de atendimento</h2>
+          <PanelTitle title="Regras de atendimento" icon="settings" />
           <div className="form-grid">
             <label>
               Prazo de resposta informado ao cliente
@@ -91,7 +91,7 @@ export default function SystemSettings() {
             </label>
           </div>
 
-          <h2>Recebimento e agendamento</h2>
+          <PanelTitle title="Recebimento e agendamento" icon="calendar" />
           <label className="check-label">
             <input
               type="checkbox"

@@ -13,6 +13,7 @@ import {
   MetricCard,
   MetricGrid,
   Pagination,
+  PanelTitle,
 } from "./ui";
 
 const originLabel: Record<"reparo" | "loja" | "seminovo" | "manual", string> = {
@@ -266,21 +267,21 @@ export default function Finance({ ordemId }: { ordemId?: string }) {
               label="Receita do período"
               value={loading && !data ? "—" : money(receita)}
               note="Valores recebidos"
-              icon="↗"
+              iconName="trend"
               tone="success"
             />
             <MetricCard
               label="Despesas"
               value={loading && !data ? "—" : money(despesa)}
               note="Pagamentos realizados"
-              icon="↘"
+              iconName="receipt"
               tone="danger"
             />
             <MetricCard
               label="Lucro / saldo"
               value={loading && !data ? "—" : money(saldo)}
               note="Receitas menos despesas"
-              icon="="
+              iconName="finance"
               tone={saldo < 0 ? "danger" : "primary"}
               active={saldo !== 0}
               emphasizeValue={saldo < 0}
@@ -289,14 +290,14 @@ export default function Finance({ ordemId }: { ordemId?: string }) {
               label="Ticket médio"
               value={loading && !data ? "—" : money(ticket)}
               note="Por recebimento"
-              icon="▥"
+              iconName="receipt"
               tone="purple"
             />
             <MetricCard
               label="A receber"
               value={loading && !data ? "—" : money(pendingRevenue)}
               note={`${metrics?.pendingCount || 0} títulos pendentes`}
-              icon="◷"
+              iconName="clock"
               tone="warning"
               active={pendingRevenue > 0}
             />
@@ -304,7 +305,7 @@ export default function Finance({ ordemId }: { ordemId?: string }) {
               label="Ordens finalizadas"
               value={loading && !data ? "—" : metrics?.finalizedOrders || 0}
               note="Total concluído"
-              icon="✓"
+              iconName="check"
               tone="success"
             />
           </MetricGrid>
@@ -313,8 +314,11 @@ export default function Finance({ ordemId }: { ordemId?: string }) {
             <section className="finance-card finance-origin-card">
               <div className="finance-card-head">
                 <div>
-                  <h2>Origem do faturamento</h2>
-                  <p>Veja de onde vem sua receita.</p>
+                  <PanelTitle
+                    title="Origem do faturamento"
+                    icon="donut"
+                    subtitle="Veja de onde vem sua receita."
+                  />
                 </div>
                 <span className="finance-period">Período atual</span>
               </div>
@@ -348,8 +352,11 @@ export default function Finance({ ordemId }: { ordemId?: string }) {
             <section className="finance-card finance-evolution-card">
               <div className="finance-card-head">
                 <div>
-                  <h2>Evolução financeira</h2>
-                  <p>Receitas e despesas dos últimos 14 dias.</p>
+                  <PanelTitle
+                    title="Evolução financeira"
+                    icon="trend"
+                    subtitle="Receitas e despesas dos últimos 14 dias."
+                  />
                 </div>
                 <div className="finance-line-legend">
                   <span><i className="income" /> Receita</span>
@@ -400,8 +407,11 @@ export default function Finance({ ordemId }: { ordemId?: string }) {
             <section className="finance-card">
               <div className="finance-card-head">
                 <div>
-                  <h2>Últimas movimentações</h2>
-                  <p>Entradas e saídas registradas recentemente.</p>
+                  <PanelTitle
+                    title="Últimas movimentações"
+                    icon="receipt"
+                    subtitle="Entradas e saídas registradas recentemente."
+                  />
                 </div>
                 <button className="finance-ghost" onClick={openNewLaunch}>
                   + Novo lançamento
@@ -444,8 +454,11 @@ export default function Finance({ ordemId }: { ordemId?: string }) {
             <section className="finance-card">
               <div className="finance-card-head">
                 <div>
-                  <h2>Receitas x despesas</h2>
-                  <p>Distribuição do valor realizado.</p>
+                  <PanelTitle
+                    title="Receitas x despesas"
+                    icon="donut"
+                    subtitle="Distribuição do valor realizado."
+                  />
                 </div>
               </div>
               <div className="finance-balance-ring">
@@ -485,8 +498,11 @@ export default function Finance({ ordemId }: { ordemId?: string }) {
             <section className="finance-card">
               <div className="finance-card-head">
                 <div>
-                  <h2>Contas a receber</h2>
-                  <p>Receitas ainda pendentes.</p>
+                  <PanelTitle
+                    title="Contas a receber"
+                    icon="hourglass"
+                    subtitle="Receitas ainda pendentes."
+                  />
                 </div>
               </div>
               <div className="finance-pending">
@@ -511,8 +527,11 @@ export default function Finance({ ordemId }: { ordemId?: string }) {
       <section className={ordemId ? "panel" : "finance-card finance-entry-card"}>
         <div className="panel-head">
           <div>
-            <h2>Lançamentos</h2>
-            {!ordemId && <p>Controle manual de entradas e saídas.</p>}
+            <PanelTitle
+              title="Lançamentos"
+              icon="receipt"
+              subtitle={!ordemId ? "Controle manual de entradas e saídas." : undefined}
+            />
           </div>
           <button
             className="primary"

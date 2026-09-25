@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useWorkspace } from "./workspace";
-import { ErrorBox, SemanticBadge } from "./ui";
+import { ErrorBox, SemanticBadge, PanelTitle } from "./ui";
 import { message, supabase } from "@/lib/supabase";
 
 type TeamRole = "OWNER" | "ADMIN" | "TECHNICIAN" | "ATTENDANT";
@@ -221,7 +221,7 @@ export default function TeamPermissions() {
         <div className="team-role-guide-head">
           <div>
             <span>PERFIS DE ACESSO</span>
-            <h2>Permissões por função</h2>
+            <PanelTitle title="Permissões por função" icon="team" />
             <p>
               Cada funcionário recebe um perfil claro. As áreas administrativas
               continuam protegidas pelas regras do banco, não apenas pelo menu.
@@ -246,7 +246,7 @@ export default function TeamPermissions() {
       <section className="panel">
         <div className="team-list-head">
           <div>
-            <h2>Membros da equipe</h2>
+            <PanelTitle title="Membros da equipe" icon="clients" />
             <p>
               Altere a função ou desative um acesso sem apagar o histórico do
               funcionário.

@@ -1,21 +1,54 @@
 import Link from "next/link";
 import { Status, statuses } from "@/lib/assistencia";
+import { HorariaIcon, type HorariaIconName } from "./horaria-icon";
+const headingIconByTitle: Record<string, HorariaIconName> = {
+  "Visão geral": "home",
+  "Nova ordem de serviço": "receive",
+  "Central de Atendimento": "central",
+  Agenda: "calendar",
+  "Ordens de serviço": "orders",
+  Clientes: "clients",
+  Equipamentos: "devices",
+  Estoque: "stock",
+  Financeiro: "finance",
+  Relatórios: "reports",
+  Serviços: "services",
+  "Minha assistência": "business",
+  "Minha página": "publicPage",
+  "Página do cliente": "publicPage",
+  "Equipe e permissões": "team",
+  Configurações: "settings",
+  Perfil: "profile",
+  Ajuda: "help",
+};
+
 export function Heading({
   title,
   subtitle,
   action,
   href,
+  icon,
 }: {
   title: string;
   subtitle?: string;
   action?: string;
   href?: string;
+  icon?: HorariaIconName;
 }) {
+  const iconName = icon || headingIconByTitle[title];
+
   return (
     <div className="module-heading">
       <div>
         <span className="eyebrow">HORÁRIA / ASSISTÊNCIA TÉCNICA</span>
-        <h1>{title}</h1>
+        <div className="module-heading-title">
+          {iconName && (
+            <span className="module-heading-icon" aria-hidden="true">
+              <HorariaIcon name={iconName} />
+            </span>
+          )}
+          <h1>{title}</h1>
+        </div>
         {subtitle && <p>{subtitle}</p>}
       </div>
       {action && href && (
@@ -111,6 +144,7 @@ export function MetricCard({
   value,
   note,
   icon,
+  iconName,
   tone = "primary",
   active = true,
   emphasizeValue = false,
@@ -121,7 +155,8 @@ export function MetricCard({
   label: string;
   value: React.ReactNode;
   note?: string;
-  icon: React.ReactNode;
+  icon?: React.ReactNode;
+  iconName?: HorariaIconName;
   tone?: MetricCardTone;
   active?: boolean;
   emphasizeValue?: boolean;
@@ -138,7 +173,7 @@ export function MetricCard({
       } ${className}`.trim()}
     >
       <span className="ui-metric-icon" aria-hidden="true">
-        {icon}
+        {iconName ? <HorariaIcon name={iconName} /> : icon}
       </span>
       <div className="ui-metric-content">
         <div className="ui-metric-value-row">
@@ -150,6 +185,31 @@ export function MetricCard({
         {footer && <div className="ui-metric-footer">{footer}</div>}
       </div>
     </article>
+  );
+}
+
+export function PanelTitle({
+  title,
+  icon,
+  subtitle,
+  as = "h2",
+}: {
+  title: string;
+  icon: HorariaIconName;
+  subtitle?: string;
+  as?: "h2" | "h3";
+}) {
+  const Title = as;
+  return (
+    <div className="panel-title-wrap">
+      <span className="panel-title-icon" aria-hidden="true">
+        <HorariaIcon name={icon} />
+      </span>
+      <div>
+        <Title>{title}</Title>
+        {subtitle && <p>{subtitle}</p>}
+      </div>
+    </div>
   );
 }
 

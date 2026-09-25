@@ -2,7 +2,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { Garantia, stamp } from "@/lib/assistencia";
 import { message, shift, supabase, today } from "@/lib/supabase";
-import { Empty, ErrorBox } from "./ui";
+import { Empty, ErrorBox, PanelTitle } from "./ui";
 
 export default function Warranty({ ordemId }: { ordemId: string }) {
   const [warranties, setWarranties] = useState<Garantia[]>([]);
@@ -36,7 +36,7 @@ export default function Warranty({ ordemId }: { ordemId: string }) {
     <section className="panel">
       <div className="panel-head">
         <div>
-          <h2>Garantias</h2>
+          <PanelTitle title="Garantias" icon="check" />
           <p>
             Registre a cobertura entregue ao cliente e preserve o vínculo com a
             OS.

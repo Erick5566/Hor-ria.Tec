@@ -2,7 +2,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { money, type Peca, saveRow, stamp } from "@/lib/assistencia";
 import { message, supabase } from "@/lib/supabase";
-import { Empty, ErrorBox, MetricCard, MetricGrid, Pagination } from "./ui";
+import { Empty, ErrorBox, MetricCard, MetricGrid, Pagination, PanelTitle } from "./ui";
 import { useWorkspace } from "./workspace";
 
 type Movement = {
@@ -185,20 +185,20 @@ export default function InventoryManagement() {
           label="Unidades disponíveis"
           value={loading && !data ? "—" : metrics.units}
           note="Total disponível no estoque"
-          icon="▣"
+          iconName="stock"
         />
         <MetricCard
           label="Valor investido"
           value={loading && !data ? "—" : money(metrics.value)}
           note="Custo total do estoque"
-          icon="$"
+          iconName="finance"
           tone="purple"
         />
         <MetricCard
           label="Estoque baixo"
           value={loading && !data ? "—" : metrics.low}
           note="Itens abaixo do mínimo"
-          icon="!"
+          iconName="alert"
           tone="amber"
           active={metrics.low > 0}
           emphasizeValue
@@ -207,7 +207,7 @@ export default function InventoryManagement() {
           label="Sem estoque"
           value={loading && !data ? "—" : metrics.empty}
           note="Itens indisponíveis"
-          icon="×"
+          iconName="ban"
           tone="red"
           active={metrics.empty > 0}
           emphasizeValue
@@ -262,11 +262,11 @@ export default function InventoryManagement() {
         <form className="panel" onSubmit={save}>
           <div className="panel-head">
             <div>
-              <h2>{current ? "Editar item" : "Cadastrar no estoque"}</h2>
-              <p>
-                Use para peças de reparo, acessórios e produtos vendidos no
-                balcão.
-              </p>
+              <PanelTitle
+                title={current ? "Editar item" : "Cadastrar no estoque"}
+                icon="stock"
+                subtitle="Use para peças de reparo, acessórios e produtos vendidos no balcão."
+              />
             </div>
             <button type="button" onClick={() => setEditing(null)}>
               Fechar
@@ -548,7 +548,7 @@ export default function InventoryManagement() {
       )}
 
       <section className="panel">
-        <h2>Últimas movimentações</h2>
+        <PanelTitle title="Últimas movimentações" icon="trend" />
         {!movements.length ? (
           <Empty title="Nenhuma movimentação registrada" />
         ) : (

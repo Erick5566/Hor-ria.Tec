@@ -9,7 +9,9 @@ import {
   ErrorBox,
   MetricCard,
   MetricGrid,
+  PanelTitle,
 } from "@/components/ui";
+import { HorariaIcon, type HorariaIconName } from "@/components/horaria-icon";
 import { money, type Status } from "@/lib/assistencia";
 import { message, supabase, time } from "@/lib/supabase";
 
@@ -292,7 +294,7 @@ export default function Overview() {
       {
         name: "Ordens de serviço",
         value: m?.periodOrders ?? 0,
-        icon: "▤",
+        iconName: "orders" as HorariaIconName,
         tone: "blue",
         trend: percentageDelta(
           m?.periodOrders ?? 0,
@@ -304,7 +306,7 @@ export default function Overview() {
       {
         name: "Em andamento",
         value: m?.inProgress ?? 0,
-        icon: "⌘",
+        iconName: "services" as HorariaIconName,
         tone: "amber",
         trend: null,
         note: "ordens abertas agora",
@@ -313,7 +315,7 @@ export default function Overview() {
       {
         name: "Concluídas",
         value: m?.periodFinished ?? 0,
-        icon: "✓",
+        iconName: "check" as HorariaIconName,
         tone: "green",
         trend: percentageDelta(
           m?.periodFinished ?? 0,
@@ -325,7 +327,7 @@ export default function Overview() {
       {
         name: "Aguardando peças",
         value: m?.awaitingParts ?? 0,
-        icon: "◷",
+        iconName: "hourglass" as HorariaIconName,
         tone: "purple",
         trend: null,
         note: "situação atual",
@@ -334,7 +336,7 @@ export default function Overview() {
       {
         name: "Novos clientes",
         value: m?.periodClients ?? 0,
-        icon: "♙",
+        iconName: "clients" as HorariaIconName,
         tone: "sky",
         trend: percentageDelta(
           m?.periodClients ?? 0,
@@ -346,7 +348,7 @@ export default function Overview() {
       {
         name: "Faturamento do período",
         value: money(m?.periodRevenue ?? 0),
-        icon: "＄",
+        iconName: "finance" as HorariaIconName,
         tone: "green",
         trend: percentageDelta(
           m?.periodRevenue ?? 0,
@@ -450,20 +452,25 @@ export default function Overview() {
         <div className="dashboard-heading-wrap">
           <span className="dashboard-welcome">Olá, seja bem-vindo! 👋</span>
           <div className="dashboard-reference-heading">
-            <div>
-              <h1>Visão geral</h1>
-              <p>Tudo o que importa da sua assistência técnica, em um só lugar.</p>
+            <div className="dashboard-main-title">
+              <span className="module-heading-icon" aria-hidden="true">
+                <HorariaIcon name="home" />
+              </span>
+              <div>
+                <h1>Visão geral</h1>
+                <p>Tudo o que importa da sua assistência técnica, em um só lugar.</p>
+              </div>
             </div>
           </div>
         </div>
 
         <Link className="dashboard-new-order" href="/painel/ordens/nova">
-          <span>＋</span>
+          <HorariaIcon name="receive" />
           Nova Ordem
         </Link>
 
         <Link className="dashboard-callout" href="/painel/ajuda">
-          <span className="dashboard-callout-icon">▥</span>
+          <span className="dashboard-callout-icon"><HorariaIcon name="trend" /></span>
           <div>
             <strong>Aumente a produtividade da sua assistência</strong>
             <small>Dicas, tutoriais e novidades da Horária.</small>
@@ -480,7 +487,7 @@ export default function Overview() {
             key={metric.name}
             label={metric.name}
             value={loading && !data ? "—" : metric.value}
-            icon={metric.icon}
+            iconName={metric.iconName}
             tone={
               metric.tone === "sky"
                 ? "primary"
@@ -508,10 +515,11 @@ export default function Overview() {
       <div className="dashboard-analytics">
         <section className="dashboard-card dashboard-trend">
           <div className="dashboard-card-head">
-            <div>
-              <h2>▥ Evolução de ordens de serviço</h2>
-              <p>Acompanhe o volume de ordens ao longo do tempo.</p>
-            </div>
+            <PanelTitle
+              title="Evolução de ordens de serviço"
+              icon="trend"
+              subtitle="Acompanhe o volume de ordens ao longo do tempo."
+            />
           </div>
 
           <div className="dashboard-line-chart dashboard-line-chart-reference">
@@ -559,10 +567,11 @@ export default function Overview() {
 
         <section className="dashboard-card dashboard-status">
           <div className="dashboard-card-head">
-            <div>
-              <h2>◔ Status das ordens</h2>
-              <p>Distribuição das ordens no período.</p>
-            </div>
+            <PanelTitle
+              title="Status das ordens"
+              icon="donut"
+              subtitle="Distribuição das ordens no período."
+            />
             <select
               className="dashboard-filter"
               aria-label="Filtrar status"
@@ -600,11 +609,11 @@ export default function Overview() {
 
         <section className="dashboard-card dashboard-performance">
           <div className="dashboard-card-head">
-            <div><h2>▥ Desempenho da assistência</h2></div>
+            <PanelTitle title="Desempenho da assistência" icon="reports" />
           </div>
           <div className="dashboard-performance-list">
             <article>
-              <span>◷</span>
+              <span><HorariaIcon name="clock" /></span>
               <div>
                 <small>Tempo médio de reparo</small>
                 <strong>
@@ -615,14 +624,14 @@ export default function Overview() {
               </div>
             </article>
             <article>
-              <span>✓</span>
+              <span><HorariaIcon name="check" /></span>
               <div>
                 <small>Taxa de conclusão</small>
                 <strong>{data?.performance.completionRate ?? 0}%</strong>
               </div>
             </article>
             <article>
-              <span>☆</span>
+              <span><HorariaIcon name="star" /></span>
               <div>
                 <small>Avaliação dos clientes</small>
                 <strong>—</strong>
@@ -636,7 +645,7 @@ export default function Overview() {
       <div className="dashboard-bottom">
         <section className="dashboard-card">
           <div className="dashboard-card-head">
-            <div><h2>▤ Últimas ordens de serviço</h2></div>
+            <PanelTitle title="Últimas ordens de serviço" icon="orders" />
             <Link href="/painel/ordens">Ver todas</Link>
           </div>
           {data?.latestOrders.length ? (
@@ -702,10 +711,11 @@ export default function Overview() {
 
         <section className="dashboard-card">
           <div className="dashboard-card-head">
-            <div>
-              <h2>▦ Agenda de hoje</h2>
-              <p>Atendimentos e atividades do dia.</p>
-            </div>
+            <PanelTitle
+              title="Agenda de hoje"
+              icon="calendar"
+              subtitle="Atendimentos e atividades do dia."
+            />
             <Link href="/painel/agenda">Ver agenda</Link>
           </div>
           <div className="dashboard-agenda-list">
@@ -727,7 +737,7 @@ export default function Overview() {
 
         <section className="dashboard-card">
           <div className="dashboard-card-head">
-            <div><h2>ϟ Prioridades / Próximos prazos</h2></div>
+            <PanelTitle title="Prioridades / Próximos prazos" icon="alert" />
             <Link href="/painel/mesa-reparo">Ver todos</Link>
           </div>
           <div className="dashboard-priority-list">

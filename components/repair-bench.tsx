@@ -13,7 +13,9 @@ import {
   MetricCard,
   MetricGrid,
   SemanticBadge,
+  PanelTitle,
 } from "./ui";
+import { HorariaIcon } from "./horaria-icon";
 
 const columns: {
   title: string;
@@ -477,13 +479,13 @@ export default function RepairBench() {
           label="Em andamento"
           value={visible.length}
           note="Ordens na mesa"
-          icon="⌘"
+          iconName="services"
         />
         <MetricCard
           label="Urgentes"
           value={urgentCount}
           note="Precisam de atenção"
-          icon="!"
+          iconName="alert"
           tone="danger"
           active={urgentCount > 0}
           emphasizeValue
@@ -492,7 +494,7 @@ export default function RepairBench() {
           label="Atrasadas"
           value={overdueCount}
           note="Prazo vencido"
-          icon="◷"
+          iconName="clock"
           tone="warning"
           active={overdueCount > 0}
           emphasizeValue
@@ -501,7 +503,7 @@ export default function RepairBench() {
           label="Prontas hoje"
           value={readyToday}
           note="Disponíveis para retirada"
-          icon="✓"
+          iconName="check"
           tone="success"
         />
       </MetricGrid>
@@ -510,7 +512,10 @@ export default function RepairBench() {
         <div className="repair-daily-pending-head">
           <div>
             <span>PRIORIDADES DO DIA</span>
-            <strong>Pendências que precisam de ação</strong>
+            <strong className="repair-daily-title-with-icon">
+              <HorariaIcon name="alert" />
+              Pendências que precisam de ação
+            </strong>
             <small>
               Atrasos, retornos, orçamentos, peças e OS sem movimentação aparecem aqui automaticamente.
             </small>
@@ -616,8 +621,11 @@ export default function RepairBench() {
       {configuring && (
         <section className="panel bench-settings repair-settings">
           <div>
-            <h2>Mesas e bancadas</h2>
-            <p>Organize a operação por bancada, especialidade ou técnico.</p>
+            <PanelTitle
+              title="Mesas e bancadas"
+              icon="services"
+              subtitle="Organize a operação por bancada, especialidade ou técnico."
+            />
           </div>
           <form
             onSubmit={async (event) => {

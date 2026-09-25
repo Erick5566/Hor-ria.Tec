@@ -8,7 +8,7 @@ import {
   stamp,
 } from "@/lib/assistencia";
 import { message, supabase } from "@/lib/supabase";
-import { ErrorBox } from "./ui";
+import { ErrorBox, PanelTitle } from "./ui";
 
 type TimelineStep = {
   key: string;
@@ -179,7 +179,7 @@ export default function OrderTimeline({
       <div className="order-flow-heading">
         <div>
           <span>ANDAMENTO DA OS</span>
-          <h2>Timeline do atendimento</h2>
+          <PanelTitle title="Timeline do atendimento" icon="trend" />
           <p>
             Visualize rapidamente onde o aparelho está e as etapas já concluídas.
           </p>

@@ -19,7 +19,17 @@ export type HorariaIconName =
   | "profile"
   | "help"
   | "logout"
-  | "more";
+  | "more"
+  | "check"
+  | "alert"
+  | "clock"
+  | "star"
+  | "trend"
+  | "receipt"
+  | "hourglass"
+  | "ban"
+  | "category"
+  | "donut";
 
 type Props = SVGProps<SVGSVGElement> & {
   name: HorariaIconName;
@@ -179,6 +189,86 @@ export function HorariaIcon({ name, className = "", ...props }: Props) {
       <svg {...common}>
         <path d="M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0M12 16v.01" />
         <path d="M12 13a2 2 0 0 0 .914 -3.782a1.98 1.98 0 0 0 -2.414 .483" />
+      </svg>
+    );
+
+  if (name === "check")
+    return (
+      <svg {...common}>
+        <path d="M3 12a9 9 0 1 0 18 0a9 9 0 1 0 -18 0" />
+        <path d="M9 12l2 2l4 -4" />
+      </svg>
+    );
+
+  if (name === "alert")
+    return (
+      <svg {...common}>
+        <path d="M12 9v4" />
+        <path d="M10.363 3.591l-8.106 13.534a1.914 1.914 0 0 0 1.636 2.871h16.214a1.914 1.914 0 0 0 1.636 -2.87l-8.106 -13.536a1.914 1.914 0 0 0 -3.274 0" />
+        <path d="M12 16h.01" />
+      </svg>
+    );
+
+  if (name === "clock")
+    return (
+      <svg {...common}>
+        <path d="M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0" />
+        <path d="M12 7v5l3 3" />
+      </svg>
+    );
+
+  if (name === "star")
+    return (
+      <svg {...common}>
+        <path d="M12 17.75l-6.172 3.245l1.179 -6.873l-5 -4.867l6.9 -1l3.086 -6.253l3.086 6.253l6.9 1l-5 4.867l1.179 6.873l-6.158 -3.245" />
+      </svg>
+    );
+
+  if (name === "trend")
+    return (
+      <svg {...common}>
+        <path d="M3 17l6 -6l4 4l8 -8" />
+        <path d="M14 7l7 0l0 7" />
+      </svg>
+    );
+
+  if (name === "receipt")
+    return (
+      <svg {...common}>
+        <path d="M5 21v-16a2 2 0 0 1 2 -2h10a2 2 0 0 1 2 2v16l-3 -2l-2 2l-2 -2l-2 2l-2 -2l-3 2m4 -14h6m-6 4h6m-2 4h2" />
+      </svg>
+    );
+
+  if (name === "hourglass")
+    return (
+      <svg {...common}>
+        <path d="M6.5 7h11M6.5 17h11" />
+        <path d="M6 20v-2a6 6 0 1 1 12 0v2a1 1 0 0 1 -1 1h-10a1 1 0 0 1 -1 -1" />
+        <path d="M6 4v2a6 6 0 1 0 12 0v-2a1 1 0 0 0 -1 -1h-10a1 1 0 0 0 -1 1" />
+      </svg>
+    );
+
+  if (name === "ban")
+    return (
+      <svg {...common}>
+        <path d="M3 12a9 9 0 1 0 18 0a9 9 0 1 0 -18 0" />
+        <path d="M5.7 5.7l12.6 12.6" />
+      </svg>
+    );
+
+  if (name === "category")
+    return (
+      <svg {...common}>
+        <path d="M4 4h6v6h-6l0 -6M14 4h6v6h-6l0 -6M4 14h6v6h-6l0 -6" />
+        <path d="M14 17a3 3 0 1 0 6 0a3 3 0 1 0 -6 0" />
+      </svg>
+    );
+
+  if (name === "donut")
+    return (
+      <svg {...common}>
+        <path d="M10 3.2a9 9 0 1 0 10.8 10.8a1 1 0 0 0 -1 -1h-3.8a4.1 4.1 0 1 1 -5 -5v-4a.9 .9 0 0 0 -1 -.8" />
+        <path d="M15 3.5a9 9 0 0 1 5.5 5.5h-4.5a9 9 0 0 0 -1 -1v-4.5" />
       </svg>
     );
 
