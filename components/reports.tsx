@@ -2,7 +2,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { money, statuses, type Status } from "@/lib/assistencia";
 import { message, supabase, today } from "@/lib/supabase";
-import { ErrorBox, MetricCard, MetricGrid } from "./ui";
+import { ErrorBox, MetricCard, MetricGrid, PanelTitle } from "./ui";
 import { useWorkspace } from "./workspace";
 
 type ReportRow = {
@@ -149,27 +149,27 @@ export default function Reports() {
           label="Ordens recebidas"
           value={loading && !data ? "—" : data?.metrics.orders || 0}
           note="Entradas no mês"
-          icon="▤"
+          iconName="orders"
         />
         <MetricCard
           label="Receitas"
           value={loading && !data ? "—" : money(income)}
           note="Entradas financeiras"
-          icon="↗"
+          iconName="trend"
           tone="success"
         />
         <MetricCard
           label="Despesas"
           value={loading && !data ? "—" : money(cost)}
           note="Saídas financeiras"
-          icon="↘"
+          iconName="receipt"
           tone="danger"
         />
         <MetricCard
           label="Saldo do mês"
           value={loading && !data ? "—" : money(income - cost)}
           note="Receitas menos despesas"
-          icon="="
+          iconName="finance"
           tone={income - cost < 0 ? "danger" : "primary"}
           active={income !== cost}
           emphasizeValue={income - cost < 0}
@@ -177,7 +177,7 @@ export default function Reports() {
       </MetricGrid>
 
       <section className="panel">
-        <h2>Situação das ordens recebidas no mês</h2>
+        <PanelTitle title="Situação das ordens recebidas no mês" icon="reports" />
         {Object.entries(statuses).map(([key, label]) => (
           <div className="list-line" key={key}>
             <span>{label}</span>
