@@ -15,8 +15,11 @@ const headingIconByTitle: Record<string, HorariaIconName> = {
   Serviços: "services",
   "Minha assistência": "business",
   "Minha página": "publicPage",
+  "Página do cliente": "publicPage",
   "Equipe e permissões": "team",
   Configurações: "settings",
+  Perfil: "profile",
+  Ajuda: "help",
 };
 
 export function Heading({
