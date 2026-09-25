@@ -11277,9 +11277,20 @@ svg {
     height: 38px;
     color: #315fbb;
     background: #edf4ff;
+    border: 1px solid #dce8f8;
     border-radius: 10px;
-    font-size: 1rem;
-    font-weight: 800;
+  }
+
+  .mobile-more-grid > a > span .horaria-icon {
+    width: 20px;
+    height: 20px;
+  }
+
+  .mobile-more-grid > a.is-current > span {
+    color: #fff;
+    background: linear-gradient(145deg, #2776ff, #1756d7);
+    border-color: #4c8eff;
+    box-shadow: 0 5px 14px rgb(23 101 238 / 20%);
   }
 
   .mobile-more-grid > a > strong {

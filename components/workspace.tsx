@@ -20,6 +20,7 @@ import {
 import type { AccessContext } from "@/lib/access";
 import { Brand, MissingConfig } from "./brand";
 import Setup from "./setup";
+import { HorariaIcon, type HorariaIconName } from "./horaria-icon";
 type WorkspaceValue = {
   empresa: Empresa;
   userId: string;
@@ -70,34 +71,39 @@ export const menu = [
   [
     "ATENDIMENTO",
     [
-      ["Painel", "/painel", "⌂"],
-      ["Recebimento", "/painel/ordens/nova", "◷"],
-      ["Central de Atendimento", "/painel/mesa-reparo", "⌕"],
-      ["Agenda", "/painel/agenda", "▦"],
-      ["Ordens de serviço", "/painel/ordens", "▤"],
-      ["Clientes", "/painel/clientes", "♙"],
-      ["Equipamentos", "/painel/equipamentos", "▣"],
+      ["Painel", "/painel", "home"],
+      ["Recebimento", "/painel/ordens/nova", "receive"],
+      ["Central de Atendimento", "/painel/mesa-reparo", "central"],
+      ["Agenda", "/painel/agenda", "calendar"],
+      ["Ordens de serviço", "/painel/ordens", "orders"],
+      ["Clientes", "/painel/clientes", "clients"],
+      ["Equipamentos", "/painel/equipamentos", "devices"],
     ],
   ],
   [
     "GESTÃO",
     [
-      ["Estoque", "/painel/estoque", "▧"],
-      ["Financeiro", "/painel/financeiro", "＄"],
-      ["Relatórios", "/painel/relatorios", "◫"],
-      ["Serviços", "/painel/servicos", "⌘"],
+      ["Estoque", "/painel/estoque", "stock"],
+      ["Financeiro", "/painel/financeiro", "finance"],
+      ["Relatórios", "/painel/relatorios", "reports"],
+      ["Serviços", "/painel/servicos", "services"],
     ],
   ],
   [
     "EMPRESA",
     [
-      ["Minha assistência", "/painel/empresa", "▢"],
-      ["Minha página", "/painel/minha-pagina", "↗"],
-      ["Equipe", "/painel/equipe", "♟"],
-      ["Configurações", "/painel/configuracoes", "⚙"],
+      ["Minha assistência", "/painel/empresa", "business"],
+      ["Minha página", "/painel/minha-pagina", "publicPage"],
+      ["Equipe", "/painel/equipe", "team"],
+      ["Configurações", "/painel/configuracoes", "settings"],
     ],
   ],
-] as const;
+] as const satisfies ReadonlyArray<
+  readonly [
+    string,
+    ReadonlyArray<readonly [string, string, HorariaIconName]>,
+  ]
+>;
 
 const eagerMenuRoutes = new Set([
   "/painel",
@@ -106,50 +112,6 @@ const eagerMenuRoutes = new Set([
   "/painel/clientes",
 ]);
 
-
-type MobileNavIconName = "home" | "central" | "orders" | "calendar" | "more";
-
-function MobileNavIcon({ name }: { name: MobileNavIconName }) {
-  if (name === "home") {
-    return (
-      <svg viewBox="0 0 24 24" aria-hidden="true">
-        <path d="M3.5 10.5 12 3l8.5 7.5v9a1.5 1.5 0 0 1-1.5 1.5h-4.5v-6h-5v6H5a1.5 1.5 0 0 1-1.5-1.5v-9Z" />
-      </svg>
-    );
-  }
-  if (name === "central") {
-    return (
-      <svg viewBox="0 0 24 24" aria-hidden="true">
-        <path d="M5 4.5h14a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2h-7l-4.5 3v-3H5a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2Z" />
-        <path d="M7.5 9h9M7.5 12.5h6" />
-      </svg>
-    );
-  }
-  if (name === "orders") {
-    return (
-      <svg viewBox="0 0 24 24" aria-hidden="true">
-        <path d="M7 4.5h10a2 2 0 0 1 2 2v14H5v-14a2 2 0 0 1 2-2Z" />
-        <path d="M9 3h6v3H9zM8.5 10h7M8.5 14h7M8.5 18h5" />
-      </svg>
-    );
-  }
-  if (name === "calendar") {
-    return (
-      <svg viewBox="0 0 24 24" aria-hidden="true">
-        <path d="M5 5h14a2 2 0 0 1 2 2v13H3V7a2 2 0 0 1 2-2Z" />
-        <path d="M7 3v4M17 3v4M3 9h18M7 13h3M14 13h3M7 17h3" />
-      </svg>
-    );
-  }
-  return (
-    <svg viewBox="0 0 24 24" aria-hidden="true">
-      <rect x="4" y="4" width="5" height="5" rx="1" />
-      <rect x="15" y="4" width="5" height="5" rx="1" />
-      <rect x="4" y="15" width="5" height="5" rx="1" />
-      <rect x="15" y="15" width="5" height="5" rx="1" />
-    </svg>
-  );
-}
 
 export default function Workspace({
   children,
@@ -862,7 +824,7 @@ export default function Workspace({
   const mobilePrimaryNav: Array<{
     label: string;
     href: string;
-    icon: MobileNavIconName;
+    icon: HorariaIconName;
   }> = [
     { label: "Painel", href: "/painel", icon: "home" },
     { label: "Central", href: "/painel/mesa-reparo", icon: "central" },
@@ -872,23 +834,28 @@ export default function Workspace({
       : []),
   ];
 
-  const mobileMoreLinks = [
-    { label: "Recebimento", href: "/painel/ordens/nova", icon: "◷" },
-    { label: "Clientes", href: "/painel/clientes", icon: "♙" },
-    { label: "Equipamentos", href: "/painel/equipamentos", icon: "▣" },
+  const mobileMoreLinks = ([
+    { label: "Recebimento", href: "/painel/ordens/nova", icon: "receive" },
+    { label: "Clientes", href: "/painel/clientes", icon: "clients" },
+    { label: "Equipamentos", href: "/painel/equipamentos", icon: "devices" },
     ...(access.company?.role !== "ATTENDANT"
-      ? [{ label: "Estoque", href: "/painel/estoque", icon: "▧" }]
+      ? [{ label: "Estoque", href: "/painel/estoque", icon: "stock" as const }]
       : []),
-    { label: "Financeiro", href: "/painel/financeiro", icon: "＄", managerOnly: true },
-    { label: "Relatórios", href: "/painel/relatorios", icon: "◫", managerOnly: true },
-    { label: "Serviços", href: "/painel/servicos", icon: "⌘" },
-    { label: "Minha assistência", href: "/painel/empresa", icon: "▢", managerOnly: true },
-    { label: "Minha página", href: "/painel/minha-pagina", icon: "↗", managerOnly: true },
-    { label: "Equipe", href: "/painel/equipe", icon: "♟", managerOnly: true },
-    { label: "Configurações", href: "/painel/configuracoes", icon: "⚙", managerOnly: true },
-    { label: "Perfil", href: "/painel/perfil", icon: "♙" },
-    { label: "Ajuda", href: "/painel/ajuda", icon: "?" },
-  ].filter(
+    { label: "Financeiro", href: "/painel/financeiro", icon: "finance", managerOnly: true },
+    { label: "Relatórios", href: "/painel/relatorios", icon: "reports", managerOnly: true },
+    { label: "Serviços", href: "/painel/servicos", icon: "services" },
+    { label: "Minha assistência", href: "/painel/empresa", icon: "business", managerOnly: true },
+    { label: "Minha página", href: "/painel/minha-pagina", icon: "publicPage", managerOnly: true },
+    { label: "Equipe", href: "/painel/equipe", icon: "team", managerOnly: true },
+    { label: "Configurações", href: "/painel/configuracoes", icon: "settings", managerOnly: true },
+    { label: "Perfil", href: "/painel/perfil", icon: "profile" },
+    { label: "Ajuda", href: "/painel/ajuda", icon: "help" },
+  ] satisfies Array<{
+    label: string;
+    href: string;
+    icon: HorariaIconName;
+    managerOnly?: boolean;
+  }>).filter(
     (item) =>
       !item.managerOnly ||
       ["OWNER", "ADMIN"].includes(access.company?.role || ""),
@@ -998,7 +965,9 @@ export default function Workspace({
                     }}
                     className={href === activeMenuHref ? "current" : ""}
                   >
-                    <span aria-hidden="true">{icon}</span>
+                    <span className="sidebar-nav-icon" aria-hidden="true">
+                      <HorariaIcon name={icon} />
+                    </span>
                     {label}
                   </Link>
                 ))}
@@ -1006,8 +975,14 @@ export default function Workspace({
           ))}
         </nav>
         <footer>
-          <Link href="/painel/perfil">♙ Perfil</Link>
-          <Link href="/painel/ajuda">? Ajuda</Link>
+          <Link href="/painel/perfil">
+            <HorariaIcon name="profile" />
+            <span>Perfil</span>
+          </Link>
+          <Link href="/painel/ajuda">
+            <HorariaIcon name="help" />
+            <span>Ajuda</span>
+          </Link>
           <button
             onClick={async () => {
               const r = await supabase!.auth.signOut();
@@ -1018,7 +993,8 @@ export default function Workspace({
               }
             }}
           >
-            ↪ Sair
+            <HorariaIcon name="logout" />
+            <span>Sair</span>
           </button>
         </footer>
       </aside>
@@ -1185,18 +1161,22 @@ export default function Workspace({
                     <small>{email}</small>
                   </div>
                   <Link href="/painel/perfil" onClick={() => setProfileOpen(false)}>
-                    ♙ Meu perfil
+                    <HorariaIcon name="profile" />
+                    <span>Meu perfil</span>
                   </Link>
                   {["OWNER", "ADMIN"].includes(access.company?.role || "") && (
                     <>
                       <Link href="/painel/equipe" onClick={() => setProfileOpen(false)}>
-                        ♟ Equipe
+                        <HorariaIcon name="team" />
+                        <span>Equipe</span>
                       </Link>
                       <Link href="/painel/configuracoes" onClick={() => setProfileOpen(false)}>
-                        ⚙ Configurações
+                        <HorariaIcon name="settings" />
+                        <span>Configurações</span>
                       </Link>
                       <Link href="/painel/empresa" onClick={() => setProfileOpen(false)}>
-                        ▢ Minha assistência
+                        <HorariaIcon name="business" />
+                        <span>Minha assistência</span>
                       </Link>
                     </>
                   )}
@@ -1211,7 +1191,8 @@ export default function Workspace({
                       }
                     }}
                   >
-                    ↪ Sair
+                    <HorariaIcon name="logout" />
+                    <span>Sair</span>
                   </button>
                 </div>
               )}
@@ -1320,7 +1301,9 @@ export default function Workspace({
                       }
                       onClick={() => setMobileMoreOpen(false)}
                     >
-                      <span aria-hidden="true">{item.icon}</span>
+                      <span className="mobile-more-icon" aria-hidden="true">
+                        <HorariaIcon name={item.icon} />
+                      </span>
                       <strong>{item.label}</strong>
                     </Link>
                   ))}
@@ -1341,7 +1324,7 @@ export default function Workspace({
                   className={active ? "is-current" : ""}
                   aria-current={active ? "page" : undefined}
                 >
-                  <MobileNavIcon name={item.icon} />
+                  <HorariaIcon name={item.icon} />
                   <span>{item.label}</span>
                 </Link>
               );
@@ -1356,7 +1339,7 @@ export default function Workspace({
                 setProfileOpen(false);
               }}
             >
-              <MobileNavIcon name="more" />
+              <HorariaIcon name="more" />
               <span>Mais</span>
             </button>
           </nav>
