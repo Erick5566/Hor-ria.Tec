@@ -201,7 +201,7 @@ using (
   and private.feature_enabled(empresa_id, 'stockEnabled')
 );
 
-do $
+do $do$
 begin
   if exists (
     select 1
@@ -211,4 +211,4 @@ begin
     alter publication supabase_realtime add table public.historico_os;
   end if;
 end
-$;
+$do$;
