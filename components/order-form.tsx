@@ -10,7 +10,7 @@ import {
   conditions,
 } from "@/lib/assistencia";
 import { supabase, message } from "@/lib/supabase";
-import { Heading, ErrorBox } from "./ui";
+import { Heading, ErrorBox, PanelTitle } from "./ui";
 import { GuidedPhotoSequence, type GuidedPhotoState } from "./photos";
 import {
   PendingPhoto,
@@ -336,7 +336,7 @@ export default function OrderForm() {
       <form className="panel" autoComplete="off" onSubmit={submit}>
         {step === 1 && (
           <>
-            <h2>Quem trouxe o equipamento?</h2>
+            <PanelTitle title="Quem trouxe o equipamento?" icon="clients" />
             <label>
               Selecionar cliente
               <select
@@ -411,7 +411,7 @@ export default function OrderForm() {
         )}
         {step === 2 && (
           <>
-            <h2>Identifique o equipamento</h2>
+            <PanelTitle title="Identifique o equipamento" icon="devices" />
             {customer.id && (
               <label>
                 Equipamento existente
@@ -466,7 +466,7 @@ export default function OrderForm() {
         </div>
         {step === 4 && (
           <>
-            <h2>Condições de entrada</h2>
+            <PanelTitle title="Condições de entrada" icon="receive" />
             <div className="checklist">
               {conditions.map((c) => (
                 <label key={c}>
