@@ -47,7 +47,7 @@ export default function History({ ordemId }: { ordemId: string }) {
 
   return (
     <section className="panel">
-      <h2>Histórico da ordem</h2>
+      <PanelTitle title="Histórico da ordem" icon="trend" />
       <ErrorBox error={error} />
 
       {loading ? (
