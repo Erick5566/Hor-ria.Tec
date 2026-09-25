@@ -2,7 +2,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import dynamic from "next/dynamic";
-import { Heading, MetricCard, MetricGrid } from "@/components/ui";
+import { Heading, MetricCard, MetricGrid, PanelTitle } from "@/components/ui";
 import { useWorkspace } from "@/components/workspace";
 import {
   supabase,
@@ -251,7 +251,7 @@ export default function Painel() {
                     ? "No mês selecionado"
                     : "Nos próximos 7 dias"
               }
-              icon="▦"
+              iconName="calendar"
             />
             <MetricCard
               label="Em atendimento"
@@ -260,7 +260,7 @@ export default function Painel() {
                   .length
               }
               note="Atendimentos em execução"
-              icon="◷"
+              iconName="clock"
               tone="warning"
             />
             <MetricCard
@@ -269,14 +269,14 @@ export default function Painel() {
                 appointments.filter((item) => item.status === "concluido").length
               }
               note="Atendimentos finalizados"
-              icon="✓"
+              iconName="check"
               tone="success"
             />
             <MetricCard
               label="Horários bloqueados"
               value={bookings.filter((item) => item.bloqueio).length}
               note="Períodos indisponíveis"
-              icon="⊘"
+              iconName="ban"
               tone="purple"
             />
           </MetricGrid>
@@ -465,7 +465,7 @@ export default function Painel() {
               >
                 ×
               </button>
-              <h2 id="block-title">Reserve um tempo para você.</h2>
+              <PanelTitle title="Reserve um tempo para você." icon="ban" />
               <p>O período ficará indisponível para novos agendamentos.</p>
               <form onSubmit={block}>
                 <label>
