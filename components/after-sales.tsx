@@ -70,7 +70,7 @@ export default function AfterSales() {
         />
       </MetricGrid>
       <section className="panel">
-        <h2>Relacionamento após o atendimento</h2>
+        <PanelTitle title="Relacionamento após o atendimento" icon="clients" />
         <p>
           O contato é preparado automaticamente sete dias depois de uma OS ou
           venda identificada. O envio continua sob seu controle.
