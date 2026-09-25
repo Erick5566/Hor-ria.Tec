@@ -2,7 +2,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { stamp, money } from "@/lib/assistencia";
 import { supabase, message } from "@/lib/supabase";
-import { ErrorBox, Empty } from "./ui";
+import { ErrorBox, Empty, PanelTitle } from "./ui";
 
 type AppliedPart = {
   id: string;
