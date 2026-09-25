@@ -986,14 +986,6 @@ export default function Workspace({
             </section>
           ))}
         </nav>
-        <Link className="sidebar-promo" href="/painel">
-          <span className="sidebar-promo-icon">✦</span>
-          <div>
-            <strong>Seu negócio mais organizado e lucrativo.</strong>
-            <small>Horária · Gestão para assistência técnica.</small>
-          </div>
-          <b>→</b>
-        </Link>
         <footer>
           <Link href="/painel/perfil">♙ Perfil</Link>
           <Link href="/painel/ajuda">? Ajuda</Link>
