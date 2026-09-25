@@ -697,7 +697,7 @@
 .preview-steps {
   margin: 24px 0;
   padding: 13px;
-  font-size: 11px;
+  font-size: 12px;
   text-align: center;
   border-block: 1px solid currentColor;
 }
@@ -710,12 +710,12 @@
   border: 1px solid;
   padding: 10px;
   border-radius: 7px;
-  font-size: 11px;
+  font-size: 12px;
 }
 .live-page-preview footer {
   margin-top: 45px;
   text-align: center;
-  font-size: 11px;
+  font-size: 12px;
   letter-spacing: 1px;
   text-transform: uppercase;
 }
@@ -2821,7 +2821,7 @@ button.danger,
   border-radius: 50%;
   color: #5b6b85;
   background: #e9eef5;
-  font-size: .69rem;
+  font-size: .72rem;
   font-weight: 800;
 }
 
@@ -2838,7 +2838,7 @@ button.danger,
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  font-size: .69rem;
+  font-size: .72rem;
 }
 
 .repair-card-pro .repair-card-controls {
@@ -2853,7 +2853,7 @@ button.danger,
   color: #64718a;
   background: #fafbfe;
   border-color: #e0e6ef;
-  font-size: .69rem;
+  font-size: .72rem;
 }
 
 .repair-empty-drop {
@@ -3295,7 +3295,7 @@ button.danger,
   display: block;
   margin-top: 4px;
   color: #8d97a8;
-  font-size: .66rem;
+  font-size: .72rem;
 }
 
 .orders-open-link {
@@ -5114,7 +5114,7 @@ button.danger,
 }
 
 .dashboard-reference .dashboard-callout small {
-  font-size: .69rem;
+  font-size: .72rem;
 }
 
 .dashboard-new-order {
@@ -5264,7 +5264,7 @@ button.danger,
   min-width: 0;
   overflow: hidden;
   color: #6e83a4;
-  font-size: .66rem;
+  font-size: .72rem;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -5296,14 +5296,14 @@ button.danger,
 .dashboard-reference .dashboard-card-head p {
   margin: 3px 0 0;
   color: #7488a7;
-  font-size: .66rem;
+  font-size: .72rem;
 }
 
 .dashboard-reference .dashboard-filter {
   padding: 7px 10px;
   color: #446185;
   border-radius: 8px;
-  font-size: .69rem;
+  font-size: .72rem;
   white-space: nowrap;
 }
 
@@ -5324,14 +5324,14 @@ button.danger,
 
 .dashboard-reference .dashboard-chart-axis {
   margin-top: 0;
-  font-size: .64rem;
+  font-size: .72rem;
 }
 
 .dashboard-reference .dashboard-chart-legend {
   justify-content: center;
   gap: 18px;
   margin-top: 6px;
-  font-size: .66rem;
+  font-size: .72rem;
 }
 
 .dashboard-chart-legend i.active {
@@ -5360,7 +5360,7 @@ button.danger,
 
 .dashboard-reference .dashboard-status-donut small {
   max-width: 72px;
-  font-size: .64rem;
+  font-size: .72rem;
   text-align: center;
 }
 
@@ -5380,7 +5380,7 @@ button.danger,
 
 .dashboard-reference .dashboard-status-legend b,
 .dashboard-reference .dashboard-status-legend strong {
-  font-size: .69rem;
+  font-size: .72rem;
 }
 
 .dashboard-reference .dashboard-performance-list {
@@ -5401,7 +5401,7 @@ button.danger,
 }
 
 .dashboard-reference .dashboard-performance-list small {
-  font-size: .66rem;
+  font-size: .72rem;
 }
 
 .dashboard-reference .dashboard-performance-list strong {
@@ -5413,7 +5413,7 @@ button.danger,
   display: block;
   margin-top: 2px;
   color: #8a96aa;
-  font-size: .62rem;
+  font-size: .72rem;
   font-style: normal;
 }
 
@@ -5433,7 +5433,7 @@ button.danger,
 }
 
 .dashboard-reference .dashboard-bottom .dashboard-card-head a {
-  font-size: .66rem;
+  font-size: .72rem;
 }
 
 .dashboard-reference .dashboard-table {
@@ -5443,22 +5443,22 @@ button.danger,
 
 .dashboard-reference .dashboard-table table {
   min-width: 640px;
-  font-size: .69rem;
+  font-size: .72rem;
 }
 
 .dashboard-reference .dashboard-table th {
   padding: 7px 8px;
-  font-size: .64rem;
+  font-size: .72rem;
 }
 
 .dashboard-reference .dashboard-table td {
   padding: 6px 8px;
-  font-size: .66rem;
+  font-size: .72rem;
 }
 
 .dashboard-reference .dashboard-table .status-pill {
   padding: 4px 7px;
-  font-size: .62rem;
+  font-size: .72rem;
 }
 
 .dashboard-reference .dashboard-agenda-list > a {
@@ -5480,11 +5480,11 @@ button.danger,
 }
 
 .dashboard-reference .dashboard-agenda-list b {
-  font-size: .69rem;
+  font-size: .72rem;
 }
 
 .dashboard-reference .dashboard-agenda-list small {
-  font-size: .64rem;
+  font-size: .72rem;
 }
 
 .dashboard-reference .dashboard-agenda-list i,
@@ -5504,14 +5504,14 @@ button.danger,
 .dashboard-reference .dashboard-priority-list > a > strong,
 .dashboard-reference .dashboard-priority-list b,
 .dashboard-reference .dashboard-priority-list em {
-  font-size: .69rem;
+  font-size: .72rem;
 }
 
 .dashboard-reference .priority-chip {
   min-width: 62px;
   padding: 4px 7px;
   text-align: center;
-  font-size: .62rem;
+  font-size: .72rem;
 }
 
 .dashboard-reference .dashboard-priority-list i {
@@ -5528,7 +5528,7 @@ button.danger,
 .dashboard-reference-footer {
   padding: 12px 4px 0;
   color: #6a82a7;
-  font-size: .64rem;
+  font-size: .72rem;
   text-align: right;
 }
 
@@ -6180,7 +6180,7 @@ button.danger,
   }
 
   .dashboard-reference .dashboard-hero > .dashboard-callout strong {
-    font-size: .66rem;
+    font-size: .72rem;
   }
 }
 
@@ -6577,7 +6577,7 @@ button.danger,
 .booking-service small {
   margin-top: 3px;
   color: #8491a6;
-  font-size: .69rem;
+  font-size: .72rem;
 }
 
 .booking-service i {
@@ -6723,7 +6723,7 @@ button.danger,
   gap: 15px;
   margin-top: 14px;
   color: #76859b;
-  font-size: .66rem;
+  font-size: .72rem;
   font-weight: 700;
 }
 
@@ -7163,7 +7163,7 @@ button.danger,
 }
 .quote-item-total small {
   color: #8490a1;
-  font-size: .69rem;
+  font-size: .72rem;
 }
 .quote-item-total strong {
   color: #2d3b56;
@@ -8279,7 +8279,7 @@ button.danger,
   }
 
   .module-heading .eyebrow {
-    font-size: .66rem;
+    font-size: .72rem;
     letter-spacing: .1em;
   }
 
@@ -8400,7 +8400,7 @@ button.danger,
   }
 
   .dashboard-reference .dashboard-hero > .dashboard-callout strong {
-    font-size: .64rem;
+    font-size: .72rem;
     line-height: 1.15;
   }
 
@@ -8429,7 +8429,7 @@ button.danger,
   }
 
   .dashboard-reference .dashboard-kpi-top > span:last-child {
-    font-size: .66rem;
+    font-size: .72rem;
     line-height: 1.15;
   }
 
@@ -8454,11 +8454,11 @@ button.danger,
   }
 
   .dashboard-reference .dashboard-trend-note b {
-    font-size: .66rem;
+    font-size: .72rem;
   }
 
   .dashboard-reference .dashboard-trend-note small {
-    font-size: .62rem;
+    font-size: .72rem;
   }
 
   .dashboard-reference .dashboard-analytics,
@@ -8513,7 +8513,7 @@ button.danger,
   }
 
   .dashboard-reference .dashboard-performance-list em {
-    font-size: .66rem;
+    font-size: .72rem;
   }
 
   .dashboard-reference .dashboard-agenda-list,
@@ -8536,13 +8536,13 @@ button.danger,
   }
 
   .dashboard-reference .dashboard-agenda-list small {
-    font-size: .69rem;
+    font-size: .72rem;
   }
 
   .dashboard-reference .priority-chip {
     min-width: 58px;
     padding: 4px 6px;
-    font-size: .66rem;
+    font-size: .72rem;
   }
 
   /* Dashboard latest-orders table becomes a true phone table */
@@ -8589,7 +8589,7 @@ button.danger,
   .dashboard-reference .dashboard-table .status-pill {
     max-width: 100%;
     padding: 4px 6px;
-    font-size: .66rem;
+    font-size: .72rem;
     white-space: nowrap;
   }
 
@@ -8632,7 +8632,7 @@ button.danger,
 
   .orders-summary-card small {
     margin-top: 2px;
-    font-size: .66rem;
+    font-size: .72rem;
   }
 
   .orders-filters-card {
@@ -8709,7 +8709,7 @@ button.danger,
 
   .orders-mobile-person small,
   .orders-mobile-meta > span:not(.orders-priority) {
-    font-size: .69rem;
+    font-size: .72rem;
   }
 
   .orders-mobile-problem {
@@ -8729,7 +8729,7 @@ button.danger,
   .orders-priority {
     min-width: 50px;
     padding: 4px 6px;
-    font-size: .66rem;
+    font-size: .72rem;
   }
 
   /* Management screens */
@@ -8967,7 +8967,7 @@ button.danger,
 
 .slug-feedback small {
   color: #7a879a;
-  font-size: .69rem;
+  font-size: .72rem;
   line-height: 1.35;
 }
 
@@ -9027,7 +9027,7 @@ button.danger,
 .auto-filled-note {
   flex: 0 1 auto;
   color: #21835f;
-  font-size: .64rem;
+  font-size: .72rem;
   font-weight: 700;
   white-space: nowrap;
 }
@@ -9036,7 +9036,7 @@ button.danger,
   display: block;
   margin-top: 4px;
   color: #75839a;
-  font-size: .66rem;
+  font-size: .72rem;
 }
 
 @media (max-width: 760px) {
@@ -9049,7 +9049,7 @@ button.danger,
   }
 
   .profile-progress > small {
-    font-size: .69rem;
+    font-size: .72rem;
   }
 
   .field-label-row {
@@ -9107,7 +9107,7 @@ button.danger,
 .company-auto-note,
 .company-color-setting small {
   color: #75839a;
-  font-size: .69rem;
+  font-size: .72rem;
   line-height: 1.4;
 }
 
@@ -9175,7 +9175,7 @@ button.danger,
 .company-color-control button {
   min-height: 30px;
   padding: 5px 8px;
-  font-size: .69rem;
+  font-size: .72rem;
 }
 
 .appearance-preview {
@@ -9371,7 +9371,7 @@ button.danger,
 
 .photo-checklist-heading small {
   color: #8793a5;
-  font-size: .69rem;
+  font-size: .72rem;
 }
 
 .photo-angle-chips {
@@ -9460,7 +9460,7 @@ button.danger,
   color: #fff;
   background: rgb(31 42 68 / 82%);
   border-radius: 999px;
-  font-size: .64rem;
+  font-size: .72rem;
   font-weight: 800;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -9498,7 +9498,7 @@ button.danger,
 
 .photo-stage-angle-select > span {
   color: #7b8799;
-  font-size: .66rem;
+  font-size: .72rem;
   font-weight: 700;
 }
 
@@ -9510,7 +9510,7 @@ button.danger,
   background: #fbfcff;
   border: 1px solid #dce3ed;
   border-radius: 7px;
-  font-size: .69rem;
+  font-size: .72rem;
 }
 
 .photo-stage-add {
@@ -9553,7 +9553,7 @@ button.danger,
   .photo-angle-chip {
     min-height: 30px;
     padding: 5px 9px;
-    font-size: .69rem;
+    font-size: .72rem;
   }
 
   .photo-stage-angle-select {
@@ -9563,7 +9563,7 @@ button.danger,
   .photo-stage-angle-select select {
     min-height: 32px;
     padding-inline: 5px;
-    font-size: .66rem;
+    font-size: .72rem;
   }
 }
 
@@ -9610,7 +9610,7 @@ button.danger,
   border: 1px solid #d6e0fa;
   border-radius: 999px;
   padding: 6px 9px;
-  font-size: .69rem;
+  font-size: .72rem;
 }
 
 .guided-photo-progress {
@@ -9740,7 +9740,7 @@ button.danger,
   background: rgb(238 245 255 / 95%);
   border: 1px solid #b9d0f2;
   border-radius: 999px;
-  font-size: .66rem;
+  font-size: .72rem;
   font-weight: 800;
   white-space: nowrap;
 }
@@ -9852,7 +9852,7 @@ button.danger,
   background: rgb(23 41 70 / 72%);
   border: 1px solid rgb(255 255 255 / 28%);
   border-radius: 999px;
-  font-size: .66rem;
+  font-size: .72rem;
   font-weight: 800;
   white-space: nowrap;
 }
@@ -9914,7 +9914,7 @@ button.danger,
 
 .guided-photo-summary-card small {
   color: #25815e;
-  font-size: .66rem;
+  font-size: .72rem;
 }
 
 .guided-photo-summary-card.is-skipped {
@@ -9945,7 +9945,7 @@ button.danger,
   background: rgb(255 255 255 / 92%);
   border: 1px solid #d6e0ee;
   border-radius: 7px;
-  font-size: .66rem;
+  font-size: .72rem;
   font-weight: 800;
 }
 
@@ -9998,7 +9998,7 @@ button.danger,
   .guided-photo-chip {
     min-height: 31px;
     padding: 5px 8px;
-    font-size: .66rem;
+    font-size: .72rem;
   }
 
   .guided-photo-actions {
@@ -10185,7 +10185,7 @@ button.danger,
 }
 
 .repair-attention-tags .ui-badge {
-  font-size: .66rem;
+  font-size: .72rem;
 }
 
 .repair-customer-actions {
@@ -10272,7 +10272,7 @@ button.danger,
   display: block;
   margin-top: 7px;
   color: #738097;
-  font-size: .69rem;
+  font-size: .72rem;
   line-height: 1.35;
 }
 
@@ -11041,7 +11041,7 @@ svg {
     background: transparent;
     border: 0;
     border-radius: 11px;
-    font-size: .69rem;
+    font-size: .72rem;
     font-weight: 750;
     line-height: 1.05;
     text-align: center;
@@ -11218,7 +11218,7 @@ svg {
   .mobile-bottom-nav > a,
   .mobile-bottom-nav > button {
     padding-inline: 1px;
-    font-size: .66rem;
+    font-size: .72rem;
   }
 
   .mobile-bottom-nav svg {
@@ -11503,7 +11503,7 @@ svg {
 
 .admin-week-spark small {
   color: #73819a;
-  font-size: .66rem;
+  font-size: .72rem;
 }
 
 .admin-companies-layout {
@@ -11606,7 +11606,7 @@ svg {
 
 .admin-companies-table td > small {
   color: #8a95a7;
-  font-size: .69rem;
+  font-size: .72rem;
 }
 
 .admin-companies-table time {
@@ -11779,7 +11779,7 @@ svg {
 
 .admin-company-side-head small {
   color: #8190a7;
-  font-size: .66rem;
+  font-size: .72rem;
   letter-spacing: .08em;
 }
 
@@ -11820,7 +11820,7 @@ svg {
 
 .admin-detail-section-head small {
   color: #8a95a7;
-  font-size: .69rem;
+  font-size: .72rem;
 }
 
 .admin-latest-payment {
@@ -11842,7 +11842,7 @@ svg {
 
 .admin-latest-payment > div > span {
   color: #7a8799;
-  font-size: .69rem;
+  font-size: .72rem;
 }
 
 .admin-latest-payment > div > strong {
@@ -11853,7 +11853,7 @@ svg {
 
 .admin-latest-payment > div > small {
   color: #8a95a7;
-  font-size: .66rem;
+  font-size: .72rem;
 }
 
 .admin-payment-status {
@@ -11861,7 +11861,7 @@ svg {
   color: #6d5a29;
   background: #fff6db;
   border-radius: 999px;
-  font-size: .69rem;
+  font-size: .72rem;
   font-weight: 800;
 }
 
@@ -11887,7 +11887,7 @@ svg {
   padding: 8px 2px;
   border-bottom: 1px solid #edf0f4;
   color: #68768b;
-  font-size: .69rem;
+  font-size: .72rem;
 }
 
 .admin-payment-history strong {
@@ -11921,7 +11921,7 @@ svg {
 
 .admin-note-actions > small {
   color: #8a95a7;
-  font-size: .69rem;
+  font-size: .72rem;
 }
 
 .admin-note-actions .primary {
@@ -11976,7 +11976,7 @@ svg {
 .admin-activity-list small {
   margin-top: 3px;
   color: #8b96a8;
-  font-size: .66rem;
+  font-size: .72rem;
 }
 
 @media (max-width: 1250px) {
@@ -12102,7 +12102,7 @@ svg {
 
 .order-flow-heading > div > span {
   color: #6f7e98;
-  font-size: .69rem;
+  font-size: .72rem;
   font-weight: 800;
   letter-spacing: .12em;
 }
@@ -12222,7 +12222,7 @@ svg {
 .order-flow-steps p {
   margin: 4px 0 0;
   color: #8893a5;
-  font-size: .66rem;
+  font-size: .72rem;
   line-height: 1.35;
 }
 
@@ -12230,7 +12230,7 @@ svg {
   display: block;
   margin-top: 5px;
   color: #9aa4b4;
-  font-size: .64rem;
+  font-size: .72rem;
 }
 
 .order-flow-steps li.is-reached small {
@@ -12249,7 +12249,7 @@ svg {
 
 .order-flow-footer span {
   color: #8792a3;
-  font-size: .69rem;
+  font-size: .72rem;
 }
 
 .order-flow-footer button {
@@ -12258,7 +12258,7 @@ svg {
   color: #365fa8;
   background: #fff;
   border: 1px solid #d5deec;
-  font-size: .69rem;
+  font-size: .72rem;
 }
 
 .repair-daily-pending {
@@ -12390,7 +12390,7 @@ svg {
 
 .repair-daily-copy > div > span {
   color: #7d899b;
-  font-size: .69rem;
+  font-size: .72rem;
   font-weight: 700;
 }
 
@@ -12606,7 +12606,7 @@ svg {
 
 .team-role-guide-head span {
   color: #7c899d;
-  font-size: .66rem;
+  font-size: .72rem;
   font-weight: 850;
   letter-spacing: .11em;
 }
@@ -12647,7 +12647,7 @@ svg {
   min-height: 36px;
   margin: 5px 0 10px;
   color: #778499;
-  font-size: .69rem;
+  font-size: .72rem;
   line-height: 1.45;
 }
 
@@ -12658,7 +12658,7 @@ svg {
 
 .team-role-grid article > div span {
   color: #4f617a;
-  font-size: .69rem;
+  font-size: .72rem;
 }
 
 .team-list-head {
@@ -12735,7 +12735,7 @@ svg {
   color: #315fae;
   background: #eef4ff;
   border-radius: 999px;
-  font-size: .62rem;
+  font-size: .72rem;
   font-weight: 800;
 }
 
@@ -12744,7 +12744,7 @@ svg {
   margin-top: 3px;
   overflow: hidden;
   color: #8792a4;
-  font-size: .66rem;
+  font-size: .72rem;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -12753,7 +12753,7 @@ svg {
   display: grid;
   gap: 4px;
   color: #738097;
-  font-size: .66rem;
+  font-size: .72rem;
   font-weight: 800;
 }
 
@@ -12773,7 +12773,7 @@ svg {
 .team-member-actions .primary {
   min-height: 39px;
   padding: 7px 11px;
-  font-size: .69rem;
+  font-size: .72rem;
 }
 
 .team-empty-note {
@@ -12792,7 +12792,7 @@ svg {
 
 .team-empty-note p {
   margin: 4px 0 0;
-  font-size: .69rem;
+  font-size: .72rem;
   line-height: 1.5;
 }
 
