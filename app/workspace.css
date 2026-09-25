@@ -117,15 +117,46 @@ a.primary {
   margin: 3px 0;
   color: #ccd0cf;
 }
-.main-sidebar nav a > span {
-  width: 18px;
-  text-align: center;
-  font-size: 17px;
+.main-sidebar nav a > .sidebar-nav-icon {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  flex: 0 0 30px;
+  color: #aebfd3;
+  background: rgb(255 255 255 / 4%);
+  border: 1px solid rgb(255 255 255 / 5%);
+  border-radius: 9px;
+  transition:
+    color .18s ease,
+    background .18s ease,
+    border-color .18s ease,
+    transform .18s ease,
+    box-shadow .18s ease;
 }
+
+.main-sidebar nav a .horaria-icon {
+  width: 18px;
+  height: 18px;
+}
+
 .main-sidebar nav a.current,
 .main-sidebar nav a:hover {
   background: #253745;
   color: white;
+}
+
+.main-sidebar nav a.current > .sidebar-nav-icon {
+  color: #fff;
+  background: linear-gradient(145deg, #2776ff, #1756d7);
+  border-color: #4c8eff;
+  box-shadow: 0 6px 16px rgb(23 101 238 / 28%);
+}
+
+.main-sidebar nav a:hover > .sidebar-nav-icon {
+  color: #fff;
+  border-color: rgb(118 166 235 / 30%);
+  transform: translateY(-1px);
 }
 .main-sidebar footer {
   display: flex;
@@ -137,9 +168,18 @@ a.primary {
 }
 .main-sidebar footer a,
 .main-sidebar footer button {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
   padding: 9px 11px;
   font-size: 13px;
   color: #ccd0cf;
+}
+
+.main-sidebar footer .horaria-icon {
+  width: 17px;
+  height: 17px;
+  flex: 0 0 17px;
 }
 .workspace-main {
   margin-left: 245px;
@@ -2874,6 +2914,7 @@ tbody tr:hover td {
   display: flex;
   width: 100%;
   align-items: center;
+  gap: 8px;
   padding: 9px 10px;
   color: #405b7f;
   background: transparent;
@@ -2881,6 +2922,12 @@ tbody tr:hover td {
   border-radius: 8px;
   font-size: .72rem;
   text-align: left;
+}
+
+.workspace-profile-menu .horaria-icon {
+  width: 17px;
+  height: 17px;
+  flex: 0 0 17px;
 }
 
 .workspace-profile-menu > a:hover,
