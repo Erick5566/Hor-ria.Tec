@@ -134,7 +134,7 @@
 .stock-state {
   padding: 5px 9px;
   border-radius: 999px;
-  font-size: 0.72rem;
+  font-size: .8rem;
   font-weight: 800;
 }
 .stock-kind {
@@ -173,7 +173,7 @@
 }
 .inventory-card dt {
   color: #4a5c6a;
-  font-size: 0.72rem;
+  font-size: .8rem;
 }
 .inventory-card dd {
   margin: 3px 0 0;
@@ -319,7 +319,7 @@
   color: #ccd0cf;
   background: #253745;
   border-radius: 999px;
-  font-size: 0.72rem;
+  font-size: .8rem;
 }
 .repair-column > div {
   display: grid;
@@ -349,7 +349,7 @@
 }
 .repair-card-head span {
   color: #4a5c6a;
-  font-size: 0.68rem;
+  font-size: .76rem;
   text-transform: uppercase;
 }
 .repair-card > strong,
@@ -369,7 +369,7 @@
 }
 .repair-card dt {
   color: #4a5c6a;
-  font-size: 0.66rem;
+  font-size: .76rem;
 }
 .repair-card dd {
   margin: 2px 0 0;
@@ -381,7 +381,7 @@
 .repair-card-controls select {
   min-width: 0;
   padding: 8px;
-  font-size: 0.72rem;
+  font-size: .8rem;
 }
 .bench-settings {
   display: grid;
@@ -527,7 +527,7 @@
 }
 .tenant-slogan {
   color: var(--tenant-accent);
-  font-size: 11px;
+  font-size: 13px;
   font-weight: 700;
   letter-spacing: 1.6px;
   text-transform: uppercase;
@@ -562,7 +562,7 @@
 }
 .how-grid b {
   color: var(--tenant-accent);
-  font-size: 12px;
+  font-size: 13px;
 }
 .how-grid h3,
 .services-showcase h3 {
@@ -570,7 +570,7 @@
 }
 .how-grid p,
 .services-showcase p {
-  font-size: 12px;
+  font-size: 13px;
   margin: 0;
 }
 .services-showcase > article > span {
@@ -605,7 +605,7 @@
   padding: 32px 0 4px;
   margin-top: 45px;
   color: var(--tenant-accent);
-  font-size: 11px;
+  font-size: 13px;
   letter-spacing: 1px;
   text-transform: uppercase;
 }
@@ -688,7 +688,7 @@
 .preview-buttons span {
   padding: 10px 13px;
   border-radius: 7px;
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 700;
 }
 .preview-secondary {
@@ -697,7 +697,7 @@
 .preview-steps {
   margin: 24px 0;
   padding: 13px;
-  font-size: 9px;
+  font-size: 12px;
   text-align: center;
   border-block: 1px solid currentColor;
 }
@@ -710,12 +710,12 @@
   border: 1px solid;
   padding: 10px;
   border-radius: 7px;
-  font-size: 9px;
+  font-size: 12px;
 }
 .live-page-preview footer {
   margin-top: 45px;
   text-align: center;
-  font-size: 8px;
+  font-size: 12px;
   letter-spacing: 1px;
   text-transform: uppercase;
 }
@@ -877,7 +877,7 @@
   padding: 5px 9px;
   background: #e5e9e8;
   color: #253745;
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 700;
   text-transform: capitalize;
 }
@@ -899,7 +899,7 @@
 }
 .public-section-heading span {
   color: var(--tenant-secondary);
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 700;
   letter-spacing: 1.7px;
 }
@@ -936,7 +936,7 @@
   font-size: 34px;
 }
 .showcase-grid article > span {
-  font-size: 10px;
+  font-size: 12px;
   color: #4a5c6a;
   text-transform: uppercase;
   letter-spacing: 1px;
@@ -945,7 +945,7 @@
   margin: 8px 0 0;
 }
 .showcase-grid p {
-  font-size: 12px;
+  font-size: 13px;
   flex: 1;
 }
 .showcase-grid strong {
@@ -1444,7 +1444,7 @@
 .admin-identity span,
 .admin-identity small {
   color: #9ba8ab;
-  font-size: 0.68rem;
+  font-size: .76rem;
   letter-spacing: 0.12em;
 }
 .admin-sidebar nav {
@@ -1480,7 +1480,7 @@
   color: #ccd0cf;
   background: #11212d;
   border-radius: 999px;
-  font-size: 0.7rem;
+  font-size: .78rem;
   letter-spacing: 0.09em;
 }
 .admin-module {
@@ -1523,7 +1523,7 @@
   color: #ccd0cf;
   background: #253745;
   border-radius: 999px;
-  font-size: 0.72rem;
+  font-size: .8rem;
   font-weight: 700;
 }
 .account-status.suspended,
@@ -1994,7 +1994,7 @@ button.danger,
 }
 
 .finance-kpis small {
-  font-size: 0.72rem;
+  font-size: .8rem;
 }
 
 .finance-chart-grid {
@@ -2045,7 +2045,7 @@ button.danger,
   border-radius: 9px;
   color: #c7d2e3;
   background: #171b23;
-  font-size: 0.72rem;
+  font-size: .8rem;
 }
 
 .finance-ghost:hover {
@@ -2100,7 +2100,7 @@ button.danger,
 .finance-donut small {
   margin-top: 4px;
   color: #8f9bb0;
-  font-size: 0.68rem;
+  font-size: .76rem;
 }
 
 .finance-donut.small {
@@ -2162,7 +2162,7 @@ button.danger,
   flex-wrap: wrap;
   gap: 14px;
   color: #a9b5c7;
-  font-size: 0.72rem;
+  font-size: .8rem;
 }
 
 .finance-line-legend span {
@@ -2222,7 +2222,7 @@ button.danger,
   justify-content: space-between;
   gap: 8px;
   color: #7f8da3;
-  font-size: 0.68rem;
+  font-size: .76rem;
 }
 
 .finance-movements,
@@ -2265,7 +2265,7 @@ button.danger,
   display: block;
   margin-top: 3px;
   color: #8592a6;
-  font-size: 0.68rem;
+  font-size: .76rem;
 }
 
 .movement-icon {
@@ -2466,7 +2466,7 @@ button.danger,
   background: #eef2ff;
   border: 1px solid #cfd7ee;
   border-radius: 9px;
-  font-size: 0.72rem;
+  font-size: .8rem;
   font-weight: 700;
 }
 
@@ -2606,7 +2606,7 @@ button.danger,
 
 .repair-summary small {
   color: #6e7b93;
-  font-size: .72rem;
+  font-size: .8rem;
   font-weight: 700;
 }
 
@@ -2680,7 +2680,7 @@ button.danger,
   color: #fff !important;
   background: #78859a !important;
   border-radius: 999px !important;
-  font-size: .68rem !important;
+  font-size: .76rem !important;
   font-weight: 800;
 }
 
@@ -2734,14 +2734,14 @@ button.danger,
 
 .repair-card-head a {
   color: #202c46;
-  font-size: .74rem;
+  font-size: .8rem;
   font-weight: 800;
 }
 
 .repair-priority {
   padding: 4px 7px;
   border-radius: 999px;
-  font-size: .61rem !important;
+  font-size: .72rem !important;
   font-weight: 800;
   text-transform: capitalize !important;
   background: #eef3fb;
@@ -2782,14 +2782,14 @@ button.danger,
 .repair-device {
   margin-top: 4px;
   color: #6f7b91;
-  font-size: .69rem;
+  font-size: .78rem;
 }
 
 .repair-problem {
   min-height: auto !important;
   margin: 7px 0 10px !important;
   color: #59677f;
-  font-size: .68rem !important;
+  font-size: .76rem !important;
   line-height: 1.35;
 }
 
@@ -2804,7 +2804,7 @@ button.danger,
 
 .repair-meta > span:first-child {
   color: #65738b;
-  font-size: .64rem;
+  font-size: .74rem;
 }
 
 .repair-meta > span:first-child.overdue {
@@ -2821,7 +2821,7 @@ button.danger,
   border-radius: 50%;
   color: #5b6b85;
   background: #e9eef5;
-  font-size: .59rem;
+  font-size: .72rem;
   font-weight: 800;
 }
 
@@ -2838,7 +2838,7 @@ button.danger,
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  font-size: .58rem;
+  font-size: .72rem;
 }
 
 .repair-card-pro .repair-card-controls {
@@ -2853,7 +2853,7 @@ button.danger,
   color: #64718a;
   background: #fafbfe;
   border-color: #e0e6ef;
-  font-size: .59rem;
+  font-size: .72rem;
 }
 
 .repair-empty-drop {
@@ -2877,11 +2877,11 @@ button.danger,
 
 .repair-empty-drop strong {
   color: #68768f;
-  font-size: .68rem;
+  font-size: .76rem;
 }
 
 .repair-empty-drop small {
-  font-size: .62rem;
+  font-size: .72rem;
 }
 
 .repair-help-bar {
@@ -2906,18 +2906,18 @@ button.danger,
 }
 
 .repair-help-bar strong {
-  font-size: .72rem;
+  font-size: .8rem;
 }
 
 .repair-help-bar small {
   margin-top: 2px;
   color: #7386a5;
-  font-size: .64rem;
+  font-size: .74rem;
 }
 
 .repair-help-bar a {
   color: #287cf3;
-  font-size: .7rem;
+  font-size: .78rem;
   font-weight: 700;
 }
 
@@ -3037,13 +3037,13 @@ button.danger,
 .orders-summary-card b {
   margin-top: 5px;
   color: #31405d;
-  font-size: .74rem;
+  font-size: .8rem;
 }
 
 .orders-summary-card small {
   margin-top: 4px;
   color: #8290a6;
-  font-size: .64rem;
+  font-size: .74rem;
 }
 
 .orders-filters-card,
@@ -3095,7 +3095,7 @@ button.danger,
   background: #fbfcff;
   border: 1px solid #d8e0ec;
   border-radius: 10px;
-  font-size: .72rem;
+  font-size: .8rem;
   font-weight: 700;
 }
 
@@ -3113,7 +3113,7 @@ button.danger,
 
 .orders-filter-grid label > span {
   color: #5f6d85;
-  font-size: .68rem;
+  font-size: .76rem;
   font-weight: 700;
 }
 
@@ -3162,7 +3162,7 @@ button.danger,
   background: #fbfcff;
   border: 1px solid #d8e0ec;
   border-radius: 8px;
-  font-size: .68rem;
+  font-size: .76rem;
 }
 
 .orders-table-wrap {
@@ -3177,7 +3177,7 @@ button.danger,
   padding: 11px 12px;
   color: #64718a;
   background: #f7f9fc;
-  font-size: .63rem;
+  font-size: .74rem;
   letter-spacing: 0;
   text-transform: uppercase;
 }
@@ -3185,7 +3185,7 @@ button.danger,
 .orders-table td {
   padding: 12px;
   color: #35425b;
-  font-size: .69rem;
+  font-size: .78rem;
 }
 
 .orders-table tbody tr {
@@ -3218,7 +3218,7 @@ button.danger,
   border-radius: 50%;
   color: #3658a8;
   background: #e8effc;
-  font-size: .62rem;
+  font-size: .72rem;
   font-weight: 800;
 }
 
@@ -3226,7 +3226,7 @@ button.danger,
 .orders-tech strong {
   min-width: 0;
   color: #35415a;
-  font-size: .68rem;
+  font-size: .76rem;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -3239,13 +3239,13 @@ button.danger,
 
 .orders-device strong {
   color: #31405b;
-  font-size: .68rem;
+  font-size: .76rem;
 }
 
 .orders-device small {
   margin-top: 2px;
   color: #8b96a8;
-  font-size: .6rem;
+  font-size: .72rem;
 }
 
 .orders-problem {
@@ -3272,7 +3272,7 @@ button.danger,
   border-radius: 999px;
   color: #2d78d4;
   background: #eaf3ff;
-  font-size: .61rem;
+  font-size: .72rem;
   font-weight: 800;
 }
 
@@ -3295,12 +3295,12 @@ button.danger,
   display: block;
   margin-top: 4px;
   color: #8d97a8;
-  font-size: .56rem;
+  font-size: .72rem;
 }
 
 .orders-open-link {
   color: #3156c7;
-  font-size: .68rem;
+  font-size: .76rem;
   font-weight: 800;
   text-decoration: underline;
   text-underline-offset: 3px;
@@ -3338,7 +3338,7 @@ button.danger,
   border-radius: 50%;
   color: #3658a8;
   background: #e8effc;
-  font-size: .66rem;
+  font-size: .76rem;
   font-weight: 800;
 }
 
@@ -3355,13 +3355,13 @@ button.danger,
 .orders-mobile-person small {
   margin-top: 2px;
   color: #8390a5;
-  font-size: .64rem;
+  font-size: .74rem;
 }
 
 .orders-mobile-problem {
   margin: 0 !important;
   color: #5d6a81;
-  font-size: .7rem !important;
+  font-size: .78rem !important;
 }
 
 .orders-mobile-meta {
@@ -3375,13 +3375,13 @@ button.danger,
 
 .orders-mobile-meta > span:not(.orders-priority) {
   color: #6f7b91;
-  font-size: .65rem;
+  font-size: .74rem;
 }
 
 .orders-mobile-meta > strong {
   margin-left: auto;
   color: #27344f;
-  font-size: .7rem;
+  font-size: .78rem;
 }
 
 @media (max-width: 1250px) {
@@ -3509,7 +3509,7 @@ button.danger,
 
 .unified-pro label {
   color: #536078;
-  font-size: .74rem;
+  font-size: .8rem;
   font-weight: 700;
 }
 
@@ -3562,7 +3562,7 @@ button.danger,
   color: #68758c;
   background: #f6f8fb;
   border-bottom: 1px solid #e1e7f0;
-  font-size: .64rem;
+  font-size: .74rem;
   letter-spacing: .035em;
 }
 
@@ -3961,7 +3961,7 @@ button.danger,
   border: 0;
   border-radius: 8px;
   background: transparent;
-  font-size: .7rem;
+  font-size: .78rem;
   font-weight: 700;
 }
 
@@ -4041,7 +4041,7 @@ button.danger,
   color: #7a879c;
   background: transparent;
   border-radius: 9px;
-  font-size: .68rem;
+  font-size: .76rem;
   font-weight: 700;
   text-align: center;
 }
@@ -4181,7 +4181,7 @@ button.danger,
 .records-editor-head .eyebrow,
 .catalog-editor-head .eyebrow {
   color: #3a4da1;
-  font-size: .62rem;
+  font-size: .72rem;
   font-weight: 800;
   letter-spacing: .12em;
 }
@@ -4215,7 +4215,7 @@ button.danger,
   color: #65728a;
   background: #f6f8fb;
   border-bottom: 1px solid #e4e9f1;
-  font-size: .62rem;
+  font-size: .72rem;
   letter-spacing: .03em;
 }
 
@@ -4225,7 +4225,7 @@ button.danger,
   padding: 13px 14px;
   color: #43506a;
   border-bottom: 1px solid #edf0f5;
-  font-size: .69rem;
+  font-size: .78rem;
 }
 
 .records-table tbody tr:hover td,
@@ -4251,7 +4251,7 @@ button.danger,
   color: #3a4da1;
   background: #eaf0fb;
   border-radius: 10px;
-  font-size: .62rem;
+  font-size: .72rem;
   font-weight: 800;
 }
 
@@ -4262,7 +4262,7 @@ button.danger,
   background: #eef2ff;
   border: 1px solid #d0d9f0;
   border-radius: 8px;
-  font-size: .64rem;
+  font-size: .74rem;
   font-weight: 800;
 }
 
@@ -4291,7 +4291,7 @@ button.danger,
   align-items: center;
   padding: 5px 9px;
   border-radius: 999px;
-  font-size: .61rem;
+  font-size: .72rem;
   font-weight: 800;
   text-transform: capitalize;
 }
@@ -4354,7 +4354,7 @@ button.danger,
 
 .quotes-status-list b {
   color: #4b5870;
-  font-size: .72rem;
+  font-size: .8rem;
 }
 
 .quotes-status-list strong {
@@ -4424,13 +4424,13 @@ button.danger,
 
 .catalog-ideas strong {
   color: #2b3852;
-  font-size: .72rem;
+  font-size: .8rem;
 }
 
 .catalog-ideas small {
   margin-top: 4px;
   color: #7f8ba0;
-  font-size: .64rem;
+  font-size: .74rem;
   line-height: 1.45;
 }
 
@@ -5052,7 +5052,7 @@ button.danger,
   }
 
   .dashboard-welcome {
-    font-size: .72rem;
+    font-size: .8rem;
   }
 }
 
@@ -5109,12 +5109,12 @@ button.danger,
 }
 
 .dashboard-reference .dashboard-callout strong {
-  font-size: .72rem;
+  font-size: .8rem;
   line-height: 1.25;
 }
 
 .dashboard-reference .dashboard-callout small {
-  font-size: .58rem;
+  font-size: .72rem;
 }
 
 .dashboard-new-order {
@@ -5165,7 +5165,7 @@ button.danger,
 }
 
 .dashboard-reference .dashboard-kpi-top > span:last-child {
-  font-size: .66rem;
+  font-size: .76rem;
   line-height: 1.2;
 }
 
@@ -5244,7 +5244,7 @@ button.danger,
 }
 
 .dashboard-trend-note b {
-  font-size: .65rem;
+  font-size: .74rem;
   white-space: nowrap;
 }
 
@@ -5264,7 +5264,7 @@ button.danger,
   min-width: 0;
   overflow: hidden;
   color: #6e83a4;
-  font-size: .54rem;
+  font-size: .72rem;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -5289,21 +5289,21 @@ button.danger,
 .dashboard-reference .dashboard-card-head h2 {
   margin: 0;
   color: #183764;
-  font-size: .72rem;
+  font-size: .8rem;
   line-height: 1.25;
 }
 
 .dashboard-reference .dashboard-card-head p {
   margin: 3px 0 0;
   color: #7488a7;
-  font-size: .56rem;
+  font-size: .72rem;
 }
 
 .dashboard-reference .dashboard-filter {
   padding: 7px 10px;
   color: #446185;
   border-radius: 8px;
-  font-size: .58rem;
+  font-size: .72rem;
   white-space: nowrap;
 }
 
@@ -5324,14 +5324,14 @@ button.danger,
 
 .dashboard-reference .dashboard-chart-axis {
   margin-top: 0;
-  font-size: .52rem;
+  font-size: .72rem;
 }
 
 .dashboard-reference .dashboard-chart-legend {
   justify-content: center;
   gap: 18px;
   margin-top: 6px;
-  font-size: .55rem;
+  font-size: .72rem;
 }
 
 .dashboard-chart-legend i.active {
@@ -5360,7 +5360,7 @@ button.danger,
 
 .dashboard-reference .dashboard-status-donut small {
   max-width: 72px;
-  font-size: .52rem;
+  font-size: .72rem;
   text-align: center;
 }
 
@@ -5380,7 +5380,7 @@ button.danger,
 
 .dashboard-reference .dashboard-status-legend b,
 .dashboard-reference .dashboard-status-legend strong {
-  font-size: .57rem;
+  font-size: .72rem;
 }
 
 .dashboard-reference .dashboard-performance-list {
@@ -5401,7 +5401,7 @@ button.danger,
 }
 
 .dashboard-reference .dashboard-performance-list small {
-  font-size: .56rem;
+  font-size: .72rem;
 }
 
 .dashboard-reference .dashboard-performance-list strong {
@@ -5413,7 +5413,7 @@ button.danger,
   display: block;
   margin-top: 2px;
   color: #8a96aa;
-  font-size: .48rem;
+  font-size: .72rem;
   font-style: normal;
 }
 
@@ -5433,7 +5433,7 @@ button.danger,
 }
 
 .dashboard-reference .dashboard-bottom .dashboard-card-head a {
-  font-size: .56rem;
+  font-size: .72rem;
 }
 
 .dashboard-reference .dashboard-table {
@@ -5443,22 +5443,22 @@ button.danger,
 
 .dashboard-reference .dashboard-table table {
   min-width: 640px;
-  font-size: .58rem;
+  font-size: .72rem;
 }
 
 .dashboard-reference .dashboard-table th {
   padding: 7px 8px;
-  font-size: .52rem;
+  font-size: .72rem;
 }
 
 .dashboard-reference .dashboard-table td {
   padding: 6px 8px;
-  font-size: .56rem;
+  font-size: .72rem;
 }
 
 .dashboard-reference .dashboard-table .status-pill {
   padding: 4px 7px;
-  font-size: .5rem;
+  font-size: .72rem;
 }
 
 .dashboard-reference .dashboard-agenda-list > a {
@@ -5469,7 +5469,7 @@ button.danger,
 }
 
 .dashboard-reference .dashboard-agenda-list > a > strong {
-  font-size: .6rem;
+  font-size: .72rem;
 }
 
 .dashboard-reference .dashboard-agenda-list > a > span {
@@ -5480,17 +5480,17 @@ button.danger,
 }
 
 .dashboard-reference .dashboard-agenda-list b {
-  font-size: .58rem;
+  font-size: .72rem;
 }
 
 .dashboard-reference .dashboard-agenda-list small {
-  font-size: .51rem;
+  font-size: .72rem;
 }
 
 .dashboard-reference .dashboard-agenda-list i,
 .dashboard-reference .dashboard-agenda-list em {
   color: #4e6688;
-  font-size: .62rem;
+  font-size: .72rem;
   font-style: normal;
 }
 
@@ -5504,19 +5504,19 @@ button.danger,
 .dashboard-reference .dashboard-priority-list > a > strong,
 .dashboard-reference .dashboard-priority-list b,
 .dashboard-reference .dashboard-priority-list em {
-  font-size: .57rem;
+  font-size: .72rem;
 }
 
 .dashboard-reference .priority-chip {
   min-width: 62px;
   padding: 4px 7px;
   text-align: center;
-  font-size: .5rem;
+  font-size: .72rem;
 }
 
 .dashboard-reference .dashboard-priority-list i {
   color: #556b8c;
-  font-size: .62rem;
+  font-size: .72rem;
   font-style: normal;
 }
 
@@ -5528,7 +5528,7 @@ button.danger,
 .dashboard-reference-footer {
   padding: 12px 4px 0;
   color: #6a82a7;
-  font-size: .53rem;
+  font-size: .72rem;
   text-align: right;
 }
 
@@ -5925,7 +5925,7 @@ button.danger,
   }
 
   .dashboard-reference .dashboard-hero-actions .dashboard-callout strong {
-    font-size: .62rem;
+    font-size: .72rem;
   }
 
   .dashboard-reference .dashboard-hero-actions .dashboard-callout small {
@@ -6003,7 +6003,7 @@ button.danger,
 .dashboard-reference .dashboard-hero-actions .dashboard-callout strong {
   display: -webkit-box;
   overflow: hidden;
-  font-size: .61rem;
+  font-size: .72rem;
   line-height: 1.18;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
@@ -6103,7 +6103,7 @@ button.danger,
 .dashboard-reference .dashboard-hero > .dashboard-callout strong {
   display: -webkit-box;
   overflow: hidden;
-  font-size: .61rem;
+  font-size: .72rem;
   line-height: 1.18;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
@@ -6164,7 +6164,7 @@ button.danger,
 
   .dashboard-reference .dashboard-hero > .dashboard-new-order {
     padding-inline: 10px;
-    font-size: .68rem;
+    font-size: .76rem;
   }
 
   .dashboard-reference .dashboard-hero > .dashboard-callout {
@@ -6180,7 +6180,7 @@ button.danger,
   }
 
   .dashboard-reference .dashboard-hero > .dashboard-callout strong {
-    font-size: .54rem;
+    font-size: .72rem;
   }
 }
 
@@ -6421,7 +6421,7 @@ button.danger,
 
 .public-booking-title > span {
   color: var(--tenant-primary, #3a4da1);
-  font-size: .64rem;
+  font-size: .74rem;
   font-weight: 900;
   letter-spacing: .2em;
 }
@@ -6488,7 +6488,7 @@ button.danger,
 .booking-client-title p {
   margin: 4px 0 0;
   color: #718199;
-  font-size: .68rem;
+  font-size: .76rem;
 }
 
 .booking-divider {
@@ -6510,7 +6510,7 @@ button.danger,
 .booking-photo-details summary {
   cursor: pointer;
   color: #425a7e;
-  font-size: .7rem;
+  font-size: .78rem;
   font-weight: 800;
 }
 
@@ -6571,13 +6571,13 @@ button.danger,
 }
 
 .booking-service strong {
-  font-size: .72rem;
+  font-size: .8rem;
 }
 
 .booking-service small {
   margin-top: 3px;
   color: #8491a6;
-  font-size: .57rem;
+  font-size: .72rem;
 }
 
 .booking-service i {
@@ -6588,7 +6588,7 @@ button.danger,
   color: #fff;
   background: var(--tenant-primary, #3a4da1);
   border-radius: 50%;
-  font-size: .6rem;
+  font-size: .72rem;
   font-style: normal;
 }
 
@@ -6614,7 +6614,7 @@ button.danger,
   display: block;
   margin-bottom: 10px;
   color: #4e607d;
-  font-size: .68rem;
+  font-size: .76rem;
   font-weight: 800;
 }
 
@@ -6630,7 +6630,7 @@ button.danger,
   background: #fff;
   border: 1px solid #dce5f0;
   border-radius: 9px;
-  font-size: .68rem;
+  font-size: .76rem;
   font-weight: 800;
 }
 
@@ -6652,7 +6652,7 @@ button.danger,
   color: #74839a;
   background: #f7f9fc;
   border-radius: 10px;
-  font-size: .68rem;
+  font-size: .76rem;
 }
 
 .booking-client-title {
@@ -6669,7 +6669,7 @@ button.danger,
   display: block;
   margin-top: 12px;
   color: #576a85;
-  font-size: .64rem;
+  font-size: .74rem;
   font-weight: 800;
 }
 
@@ -6723,7 +6723,7 @@ button.danger,
   gap: 15px;
   margin-top: 14px;
   color: #76859b;
-  font-size: .56rem;
+  font-size: .72rem;
   font-weight: 700;
 }
 
@@ -6856,7 +6856,7 @@ button.danger,
 }
 
 .public-booking-card .category-cards strong {
-  font-size: .64rem;
+  font-size: .74rem;
 }
 
 .public-booking-card .device-card-media {
@@ -6941,7 +6941,7 @@ button.danger,
 }
 .customer-quote-head small {
   color: #4a5c6a;
-  font-size: .68rem;
+  font-size: .76rem;
   font-weight: 800;
   letter-spacing: .12em;
 }
@@ -6960,7 +6960,7 @@ button.danger,
   border-radius: 999px;
   color: #253745;
   background: #e3e7e6;
-  font-size: .7rem;
+  font-size: .78rem;
   font-weight: 800;
   white-space: nowrap;
 }
@@ -7021,7 +7021,7 @@ button.danger,
 .quote-review-line small {
   margin-top: 4px;
   color: #61717c;
-  font-size: .74rem;
+  font-size: .8rem;
 }
 .customer-quote-line b,
 .quote-review-line b {
@@ -7163,11 +7163,11 @@ button.danger,
 }
 .quote-item-total small {
   color: #8490a1;
-  font-size: .58rem;
+  font-size: .72rem;
 }
 .quote-item-total strong {
   color: #2d3b56;
-  font-size: .72rem;
+  font-size: .8rem;
 }
 .quote-cost-fields {
   margin-top: 20px;
@@ -7229,7 +7229,7 @@ button.danger,
 .mfa-card{padding:clamp(24px,5vw,42px);background:#fff;border:1px solid #dce3eb;border-radius:22px;box-shadow:0 24px 70px rgb(20 36 58 / 12%)}
 .mfa-card h1{margin:10px 0;color:#13233c;font-size:clamp(1.7rem,5vw,2.45rem)}
 .mfa-card>p{color:#68768d;line-height:1.65}
-.mfa-security-badge{display:inline-flex;align-items:center;gap:8px;padding:7px 10px;color:#284c78;background:#eaf3ff;border-radius:999px;font-size:.7rem;font-weight:800}
+.mfa-security-badge{display:inline-flex;align-items:center;gap:8px;padding:7px 10px;color:#284c78;background:#eaf3ff;border-radius:999px;font-size: .78rem;font-weight:800}
 .mfa-setup{display:grid;gap:18px;margin-top:22px}
 .mfa-qr{width:min(240px,100%);margin:0 auto;padding:12px;background:#fff;border:1px solid #dce3eb;border-radius:14px}
 .mfa-secret{display:grid;gap:5px;padding:12px 14px;background:#f6f8fb;border:1px solid #e1e6ed;border-radius:10px}
@@ -7261,13 +7261,13 @@ button.danger,
 
 .dashboard-reference .dashboard-card-head p {
   margin-top: 5px;
-  font-size: .72rem;
+  font-size: .8rem;
   line-height: 1.45;
 }
 
 .dashboard-reference .dashboard-bottom .dashboard-card-head a,
 .dashboard-reference .dashboard-card-head > a {
-  font-size: .72rem;
+  font-size: .8rem;
   font-weight: 800;
 }
 
@@ -7290,7 +7290,7 @@ button.danger,
 }
 
 .dashboard-reference .dashboard-performance-list small {
-  font-size: .7rem;
+  font-size: .78rem;
   line-height: 1.35;
 }
 
@@ -7302,7 +7302,7 @@ button.danger,
 
 .dashboard-reference .dashboard-performance-list em {
   margin-top: 3px;
-  font-size: .64rem;
+  font-size: .74rem;
   line-height: 1.35;
 }
 
@@ -7323,20 +7323,20 @@ button.danger,
 
 .dashboard-reference .dashboard-table th {
   padding: 10px 11px;
-  font-size: .68rem;
+  font-size: .76rem;
   line-height: 1.35;
   font-weight: 850;
 }
 
 .dashboard-reference .dashboard-table td {
   padding: 10px 11px;
-  font-size: .74rem;
+  font-size: .8rem;
   line-height: 1.4;
 }
 
 .dashboard-reference .dashboard-table .status-pill {
   padding: 5px 9px;
-  font-size: .64rem;
+  font-size: .74rem;
   line-height: 1.2;
 }
 
@@ -7361,7 +7361,7 @@ button.danger,
 }
 
 .dashboard-reference .dashboard-agenda-list small {
-  font-size: .68rem;
+  font-size: .76rem;
   line-height: 1.35;
 }
 
@@ -7384,14 +7384,14 @@ button.danger,
 .dashboard-reference .dashboard-priority-list > a > strong,
 .dashboard-reference .dashboard-priority-list b,
 .dashboard-reference .dashboard-priority-list em {
-  font-size: .74rem;
+  font-size: .8rem;
   line-height: 1.35;
 }
 
 .dashboard-reference .priority-chip {
   min-width: 72px;
   padding: 5px 8px;
-  font-size: .64rem;
+  font-size: .74rem;
 }
 
 .dashboard-reference .dashboard-priority-list i {
@@ -7424,15 +7424,15 @@ button.danger,
   .dashboard-reference .dashboard-card-head p,
   .dashboard-reference .dashboard-bottom .dashboard-card-head a,
   .dashboard-reference .dashboard-card-head > a {
-    font-size: .7rem;
+    font-size: .78rem;
   }
 
   .dashboard-reference .dashboard-table th {
-    font-size: .66rem;
+    font-size: .76rem;
   }
 
   .dashboard-reference .dashboard-table td {
-    font-size: .72rem;
+    font-size: .8rem;
   }
 }
 
@@ -7447,7 +7447,7 @@ button.danger,
   }
 
   .dashboard-reference .dashboard-performance-list small {
-    font-size: .68rem;
+    font-size: .76rem;
   }
 
   .dashboard-reference .dashboard-performance-list strong {
@@ -7502,7 +7502,7 @@ button.danger,
   background: #e9f2ff;
   border: 1px solid #cfe1ff;
   border-radius: 8px;
-  font-size: .66rem;
+  font-size: .76rem;
   font-weight: 850;
   line-height: 1;
   opacity: 0;
@@ -7553,7 +7553,7 @@ button.danger,
   .dashboard-reference .dashboard-order-action > a {
     min-width: 62px;
     padding: 6px 8px;
-    font-size: .64rem;
+    font-size: .74rem;
   }
 }
 
@@ -7654,7 +7654,7 @@ button.danger,
 }
 
 .camera-shutter-copy small {
-  font-size: .65rem;
+  font-size: .74rem;
   line-height: 1.2;
   opacity: .86;
 }
@@ -7902,7 +7902,7 @@ button.danger,
 }
 
 .camera-backdrop-portal .camera-shutter-copy small {
-  font-size: .61rem;
+  font-size: .72rem;
 }
 
 /* Tablet */
@@ -7958,7 +7958,7 @@ button.danger,
   }
 
   .camera-backdrop-portal .camera-sheet .panel-head p {
-    font-size: .74rem;
+    font-size: .8rem;
   }
 
   .camera-backdrop-portal .camera-stage {
@@ -8279,14 +8279,14 @@ button.danger,
   }
 
   .module-heading .eyebrow {
-    font-size: .55rem;
+    font-size: .72rem;
     letter-spacing: .1em;
   }
 
   .module-heading .primary {
     min-height: 42px;
     padding: 9px 13px;
-    font-size: .7rem;
+    font-size: .78rem;
   }
 
   .module .panel,
@@ -8309,7 +8309,7 @@ button.danger,
   .module .hint,
   .module .subtle,
   .module .panel p {
-    font-size: .7rem;
+    font-size: .78rem;
     line-height: 1.45;
   }
 
@@ -8343,7 +8343,7 @@ button.danger,
 
   .dashboard-reference .dashboard-welcome {
     margin-bottom: 2px;
-    font-size: .64rem;
+    font-size: .74rem;
   }
 
   .dashboard-reference .dashboard-reference-heading h1,
@@ -8355,7 +8355,7 @@ button.danger,
   .dashboard-reference .dashboard-reference-heading p,
   .dashboard-reference-heading p {
     margin-top: 4px;
-    font-size: .7rem;
+    font-size: .78rem;
     line-height: 1.4;
   }
 
@@ -8379,7 +8379,7 @@ button.danger,
 
   .dashboard-reference .dashboard-hero > .dashboard-new-order {
     padding-inline: 10px;
-    font-size: .66rem;
+    font-size: .76rem;
   }
 
   .dashboard-reference .dashboard-hero > .dashboard-new-order span {
@@ -8396,11 +8396,11 @@ button.danger,
     width: 27px;
     height: 27px;
     flex-basis: 27px;
-    font-size: 12px;
+    font-size: 13px;
   }
 
   .dashboard-reference .dashboard-hero > .dashboard-callout strong {
-    font-size: .52rem;
+    font-size: .72rem;
     line-height: 1.15;
   }
 
@@ -8429,7 +8429,7 @@ button.danger,
   }
 
   .dashboard-reference .dashboard-kpi-top > span:last-child {
-    font-size: .56rem;
+    font-size: .72rem;
     line-height: 1.15;
   }
 
@@ -8454,11 +8454,11 @@ button.danger,
   }
 
   .dashboard-reference .dashboard-trend-note b {
-    font-size: .56rem;
+    font-size: .72rem;
   }
 
   .dashboard-reference .dashboard-trend-note small {
-    font-size: .49rem;
+    font-size: .72rem;
   }
 
   .dashboard-reference .dashboard-analytics,
@@ -8485,7 +8485,7 @@ button.danger,
   .dashboard-reference .dashboard-card-head p,
   .dashboard-reference .dashboard-card-head > a,
   .dashboard-reference .dashboard-bottom .dashboard-card-head a {
-    font-size: .62rem;
+    font-size: .72rem;
   }
 
   .dashboard-reference .dashboard-performance-list {
@@ -8505,7 +8505,7 @@ button.danger,
   }
 
   .dashboard-reference .dashboard-performance-list small {
-    font-size: .61rem;
+    font-size: .72rem;
   }
 
   .dashboard-reference .dashboard-performance-list strong {
@@ -8513,7 +8513,7 @@ button.danger,
   }
 
   .dashboard-reference .dashboard-performance-list em {
-    font-size: .56rem;
+    font-size: .72rem;
   }
 
   .dashboard-reference .dashboard-agenda-list,
@@ -8532,17 +8532,17 @@ button.danger,
   .dashboard-reference .dashboard-priority-list > a > strong,
   .dashboard-reference .dashboard-priority-list b,
   .dashboard-reference .dashboard-priority-list em {
-    font-size: .65rem;
+    font-size: .74rem;
   }
 
   .dashboard-reference .dashboard-agenda-list small {
-    font-size: .58rem;
+    font-size: .72rem;
   }
 
   .dashboard-reference .priority-chip {
     min-width: 58px;
     padding: 4px 6px;
-    font-size: .56rem;
+    font-size: .72rem;
   }
 
   /* Dashboard latest-orders table becomes a true phone table */
@@ -8559,7 +8559,7 @@ button.danger,
   .dashboard-reference .dashboard-table th,
   .dashboard-reference .dashboard-table td {
     padding: 7px 6px;
-    font-size: .62rem;
+    font-size: .72rem;
   }
 
   .dashboard-reference .dashboard-table th:nth-child(3),
@@ -8589,7 +8589,7 @@ button.danger,
   .dashboard-reference .dashboard-table .status-pill {
     max-width: 100%;
     padding: 4px 6px;
-    font-size: .54rem;
+    font-size: .72rem;
     white-space: nowrap;
   }
 
@@ -8627,12 +8627,12 @@ button.danger,
 
   .orders-summary-card b {
     margin-top: 3px;
-    font-size: .64rem;
+    font-size: .74rem;
   }
 
   .orders-summary-card small {
     margin-top: 2px;
-    font-size: .55rem;
+    font-size: .72rem;
   }
 
   .orders-filters-card {
@@ -8661,7 +8661,7 @@ button.danger,
   }
 
   .orders-filter-grid label > span {
-    font-size: .6rem;
+    font-size: .72rem;
   }
 
   .orders-table-head {
@@ -8670,7 +8670,7 @@ button.danger,
   }
 
   .orders-table-head > strong {
-    font-size: .7rem;
+    font-size: .78rem;
   }
 
   .orders-table-head label {
@@ -8704,16 +8704,16 @@ button.danger,
   }
 
   .orders-mobile-person strong {
-    font-size: .7rem;
+    font-size: .78rem;
   }
 
   .orders-mobile-person small,
   .orders-mobile-meta > span:not(.orders-priority) {
-    font-size: .59rem;
+    font-size: .72rem;
   }
 
   .orders-mobile-problem {
-    font-size: .64rem !important;
+    font-size: .74rem !important;
     line-height: 1.4;
   }
 
@@ -8723,13 +8723,13 @@ button.danger,
   }
 
   .orders-mobile-meta > strong {
-    font-size: .65rem;
+    font-size: .74rem;
   }
 
   .orders-priority {
     min-width: 50px;
     padding: 4px 6px;
-    font-size: .56rem;
+    font-size: .72rem;
   }
 
   /* Management screens */
@@ -8807,7 +8807,7 @@ button.danger,
   padding: 0;
   color: #2f63b5;
   background: transparent;
-  font-size: .65rem;
+  font-size: .74rem;
   font-weight: 800;
   text-decoration: underline;
   text-underline-offset: 3px;
@@ -8820,7 +8820,7 @@ button.danger,
 
 @media (max-width: 760px) {
   .new-order-edit-customer {
-    font-size: .62rem;
+    font-size: .72rem;
   }
 }
 
@@ -8920,7 +8920,7 @@ button.danger,
 .profile-progress > strong {
   display: block;
   color: #2f405d;
-  font-size: .72rem;
+  font-size: .8rem;
 }
 
 .profile-progress-track {
@@ -8943,7 +8943,7 @@ button.danger,
 .profile-progress > small {
   display: block;
   color: #75839a;
-  font-size: .61rem;
+  font-size: .72rem;
   line-height: 1.4;
 }
 
@@ -8967,7 +8967,7 @@ button.danger,
 
 .slug-feedback small {
   color: #7a879a;
-  font-size: .58rem;
+  font-size: .72rem;
   line-height: 1.35;
 }
 
@@ -9001,7 +9001,7 @@ button.danger,
   width: max-content;
   margin-top: -5px;
   color: #52627b;
-  font-size: .65rem;
+  font-size: .74rem;
 }
 
 .same-whatsapp-field input {
@@ -9027,7 +9027,7 @@ button.danger,
 .auto-filled-note {
   flex: 0 1 auto;
   color: #21835f;
-  font-size: .52rem;
+  font-size: .72rem;
   font-weight: 700;
   white-space: nowrap;
 }
@@ -9036,7 +9036,7 @@ button.danger,
   display: block;
   margin-top: 4px;
   color: #75839a;
-  font-size: .55rem;
+  font-size: .72rem;
 }
 
 @media (max-width: 760px) {
@@ -9045,11 +9045,11 @@ button.danger,
   }
 
   .profile-progress > strong {
-    font-size: .68rem;
+    font-size: .76rem;
   }
 
   .profile-progress > small {
-    font-size: .58rem;
+    font-size: .72rem;
   }
 
   .field-label-row {
@@ -9065,7 +9065,7 @@ button.danger,
   .same-whatsapp-field {
     width: 100%;
     margin-top: -2px;
-    font-size: .62rem;
+    font-size: .72rem;
   }
 }
 
@@ -9107,7 +9107,7 @@ button.danger,
 .company-auto-note,
 .company-color-setting small {
   color: #75839a;
-  font-size: .58rem;
+  font-size: .72rem;
   line-height: 1.4;
 }
 
@@ -9175,7 +9175,7 @@ button.danger,
 .company-color-control button {
   min-height: 30px;
   padding: 5px 8px;
-  font-size: .58rem;
+  font-size: .72rem;
 }
 
 .appearance-preview {
@@ -9242,7 +9242,7 @@ button.danger,
 
 .inventory-filter > span {
   color: #5f6d85;
-  font-size: .68rem;
+  font-size: .76rem;
   font-weight: 700;
 }
 
@@ -9315,11 +9315,11 @@ button.danger,
 
 .new-order-customer-source > span {
   flex: 0 0 auto;
-  font-size: .68rem;
+  font-size: .76rem;
 }
 
 .new-order-customer-source > small {
-  font-size: .62rem;
+  font-size: .72rem;
   line-height: 1.35;
 }
 
@@ -9366,12 +9366,12 @@ button.danger,
 
 .photo-checklist-heading strong {
   color: #27344f;
-  font-size: .72rem;
+  font-size: .8rem;
 }
 
 .photo-checklist-heading small {
   color: #8793a5;
-  font-size: .58rem;
+  font-size: .72rem;
 }
 
 .photo-angle-chips {
@@ -9388,7 +9388,7 @@ button.danger,
   background: #fff;
   border: 1px solid #d7dfeb;
   border-radius: 999px;
-  font-size: .62rem;
+  font-size: .72rem;
   font-weight: 700;
 }
 
@@ -9460,7 +9460,7 @@ button.danger,
   color: #fff;
   background: rgb(31 42 68 / 82%);
   border-radius: 999px;
-  font-size: .52rem;
+  font-size: .72rem;
   font-weight: 800;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -9498,7 +9498,7 @@ button.danger,
 
 .photo-stage-angle-select > span {
   color: #7b8799;
-  font-size: .54rem;
+  font-size: .72rem;
   font-weight: 700;
 }
 
@@ -9510,7 +9510,7 @@ button.danger,
   background: #fbfcff;
   border: 1px solid #dce3ed;
   border-radius: 7px;
-  font-size: .58rem;
+  font-size: .72rem;
 }
 
 .photo-stage-add {
@@ -9536,7 +9536,7 @@ button.danger,
 }
 
 .photo-stage-add > small {
-  font-size: .7rem;
+  font-size: .78rem;
   font-weight: 700;
 }
 
@@ -9553,7 +9553,7 @@ button.danger,
   .photo-angle-chip {
     min-height: 30px;
     padding: 5px 9px;
-    font-size: .58rem;
+    font-size: .72rem;
   }
 
   .photo-stage-angle-select {
@@ -9563,7 +9563,7 @@ button.danger,
   .photo-stage-angle-select select {
     min-height: 32px;
     padding-inline: 5px;
-    font-size: .55rem;
+    font-size: .72rem;
   }
 }
 
@@ -9594,7 +9594,7 @@ button.danger,
 
 .guided-photo-top small {
   color: #77849a;
-  font-size: .61rem;
+  font-size: .72rem;
   font-weight: 800;
   letter-spacing: .04em;
   text-transform: uppercase;
@@ -9610,7 +9610,7 @@ button.danger,
   border: 1px solid #d6e0fa;
   border-radius: 999px;
   padding: 6px 9px;
-  font-size: .58rem;
+  font-size: .72rem;
 }
 
 .guided-photo-progress {
@@ -9653,7 +9653,7 @@ button.danger,
   background: #fff;
   border: 1px solid #d8dfe9;
   border-radius: 999px;
-  font-size: .61rem;
+  font-size: .72rem;
   font-weight: 800;
 }
 
@@ -9740,7 +9740,7 @@ button.danger,
   background: rgb(238 245 255 / 95%);
   border: 1px solid #b9d0f2;
   border-radius: 999px;
-  font-size: .56rem;
+  font-size: .72rem;
   font-weight: 800;
   white-space: nowrap;
 }
@@ -9754,7 +9754,7 @@ button.danger,
   max-width: 560px;
   margin: 0;
   color: #66748a;
-  font-size: .68rem;
+  font-size: .76rem;
   line-height: 1.5;
 }
 
@@ -9772,7 +9772,7 @@ button.danger,
   color: #748198;
   background: transparent;
   border-color: transparent;
-  font-size: .62rem;
+  font-size: .72rem;
   text-decoration: underline;
   text-underline-offset: 3px;
 }
@@ -9806,7 +9806,7 @@ button.danger,
 
 .guided-photo-current-preview small {
   color: #748198;
-  font-size: .6rem;
+  font-size: .72rem;
   line-height: 1.4;
 }
 
@@ -9852,7 +9852,7 @@ button.danger,
   background: rgb(23 41 70 / 72%);
   border: 1px solid rgb(255 255 255 / 28%);
   border-radius: 999px;
-  font-size: .56rem;
+  font-size: .72rem;
   font-weight: 800;
   white-space: nowrap;
 }
@@ -9860,7 +9860,7 @@ button.danger,
 .camera-guide-instruction {
   margin: 8px 0 0 !important;
   color: #5e6d85;
-  font-size: .65rem !important;
+  font-size: .74rem !important;
   line-height: 1.45;
   text-align: center;
 }
@@ -9909,12 +9909,12 @@ button.danger,
 
 .guided-photo-summary-card strong {
   color: #2d3a53;
-  font-size: .65rem;
+  font-size: .74rem;
 }
 
 .guided-photo-summary-card small {
   color: #25815e;
-  font-size: .56rem;
+  font-size: .72rem;
 }
 
 .guided-photo-summary-card.is-skipped {
@@ -9945,7 +9945,7 @@ button.danger,
   background: rgb(255 255 255 / 92%);
   border: 1px solid #d6e0ee;
   border-radius: 7px;
-  font-size: .54rem;
+  font-size: .72rem;
   font-weight: 800;
 }
 
@@ -9998,7 +9998,7 @@ button.danger,
   .guided-photo-chip {
     min-height: 31px;
     padding: 5px 8px;
-    font-size: .56rem;
+    font-size: .72rem;
   }
 
   .guided-photo-actions {
@@ -10126,7 +10126,7 @@ button.danger,
 .repair-attention-note {
   margin-top: 4px;
   color: #6f7b91;
-  font-size: .66rem;
+  font-size: .76rem;
   line-height: 1.45;
 }
 
@@ -10148,7 +10148,7 @@ button.danger,
   background: #f8faff;
   border: 1px solid #dce4ef;
   border-radius: 10px;
-  font-size: .68rem;
+  font-size: .76rem;
   font-weight: 750;
 }
 
@@ -10168,7 +10168,7 @@ button.danger,
   color: #216ecb;
   background: #e5f1ff;
   border-radius: 999px;
-  font-size: .72rem;
+  font-size: .8rem;
   font-weight: 850;
 }
 
@@ -10185,7 +10185,7 @@ button.danger,
 }
 
 .repair-attention-tags .ui-badge {
-  font-size: .56rem;
+  font-size: .72rem;
 }
 
 .repair-customer-actions {
@@ -10204,7 +10204,7 @@ button.danger,
   background: #f8faff;
   border: 1px solid #dde5ef;
   border-radius: 8px;
-  font-size: .61rem;
+  font-size: .72rem;
   font-weight: 750;
   text-align: center;
 }
@@ -10253,7 +10253,7 @@ button.danger,
   background: #f7faff;
   border: 1px solid #d8e3f1;
   border-radius: 8px;
-  font-size: .61rem;
+  font-size: .72rem;
   font-weight: 800;
 }
 
@@ -10272,7 +10272,7 @@ button.danger,
   display: block;
   margin-top: 7px;
   color: #738097;
-  font-size: .58rem;
+  font-size: .72rem;
   line-height: 1.35;
 }
 
@@ -10295,7 +10295,7 @@ button.danger,
 .settings-purpose-card p {
   margin: 5px 0 0;
   color: #66748c;
-  font-size: .7rem;
+  font-size: .78rem;
   line-height: 1.5;
 }
 
@@ -10325,7 +10325,7 @@ button.danger,
 
 .system-feature-row > span:first-child {
   color: #35425b;
-  font-size: .72rem;
+  font-size: .8rem;
   font-weight: 750;
 }
 
@@ -11041,7 +11041,7 @@ svg {
     background: transparent;
     border: 0;
     border-radius: 11px;
-    font-size: .58rem;
+    font-size: .72rem;
     font-weight: 750;
     line-height: 1.05;
     text-align: center;
@@ -11148,7 +11148,7 @@ svg {
   .mobile-more-sheet-head small {
     margin-top: 3px;
     color: #7b879a;
-    font-size: .65rem;
+    font-size: .74rem;
   }
 
   .mobile-more-sheet-head > button {
@@ -11199,7 +11199,7 @@ svg {
   .mobile-more-grid > a > strong {
     min-width: 0;
     overflow-wrap: anywhere;
-    font-size: .67rem;
+    font-size: .76rem;
     line-height: 1.25;
   }
 
@@ -11218,7 +11218,7 @@ svg {
   .mobile-bottom-nav > a,
   .mobile-bottom-nav > button {
     padding-inline: 1px;
-    font-size: .54rem;
+    font-size: .72rem;
   }
 
   .mobile-bottom-nav svg {
@@ -11334,7 +11334,7 @@ svg {
   gap: 8px;
   min-width: 0;
   color: #7a879b;
-  font-size: .72rem;
+  font-size: .8rem;
 }
 
 .admin-breadcrumb strong {
@@ -11395,7 +11395,7 @@ svg {
 .admin-warning-banner small {
   margin-top: 3px;
   color: #8e6b32;
-  font-size: .65rem;
+  font-size: .74rem;
 }
 
 .admin-warning-banner button {
@@ -11428,7 +11428,7 @@ svg {
   justify-content: space-between;
   gap: 10px;
   color: #697891;
-  font-size: .69rem;
+  font-size: .78rem;
   font-weight: 750;
 }
 
@@ -11441,7 +11441,7 @@ svg {
   color: #2d66c5;
   background: #eef4ff;
   border-radius: 9px;
-  font-size: .72rem;
+  font-size: .8rem;
 }
 
 .admin-overview-card > strong {
@@ -11454,7 +11454,7 @@ svg {
 
 .admin-overview-card > small {
   color: #7f8ba0;
-  font-size: .65rem;
+  font-size: .74rem;
 }
 
 .admin-capacity-track {
@@ -11503,7 +11503,7 @@ svg {
 
 .admin-week-spark small {
   color: #73819a;
-  font-size: .55rem;
+  font-size: .72rem;
 }
 
 .admin-companies-layout {
@@ -11528,7 +11528,7 @@ svg {
 
 .admin-company-toolbar > label > span {
   color: #758199;
-  font-size: .61rem;
+  font-size: .72rem;
   font-weight: 750;
 }
 
@@ -11569,7 +11569,7 @@ svg {
   color: #748097;
   background: #f6f8fb;
   border-bottom: 1px solid #e4e8ef;
-  font-size: .61rem;
+  font-size: .72rem;
   letter-spacing: .02em;
   text-transform: none;
 }
@@ -11577,7 +11577,7 @@ svg {
 .admin-companies-table td {
   padding: 12px 11px;
   color: #384862;
-  font-size: .68rem;
+  font-size: .76rem;
 }
 
 .admin-companies-table tbody tr {
@@ -11601,12 +11601,12 @@ svg {
 
 .admin-companies-table td > strong {
   color: #263853;
-  font-size: .71rem;
+  font-size: .78rem;
 }
 
 .admin-companies-table td > small {
   color: #8a95a7;
-  font-size: .59rem;
+  font-size: .72rem;
 }
 
 .admin-companies-table time {
@@ -11631,7 +11631,7 @@ svg {
   background: #f5f7fa;
   border: 1px solid #e1e6ee;
   border-radius: 999px;
-  font-size: .61rem;
+  font-size: .72rem;
 }
 
 .admin-usage-pills b {
@@ -11716,7 +11716,7 @@ svg {
   background: transparent;
   border-radius: 7px;
   text-align: left;
-  font-size: .65rem;
+  font-size: .74rem;
   font-weight: 700;
 }
 
@@ -11763,7 +11763,7 @@ svg {
   max-width: 280px;
   margin: 7px auto 0;
   color: #7a879a;
-  font-size: .68rem;
+  font-size: .76rem;
   line-height: 1.55;
 }
 
@@ -11779,7 +11779,7 @@ svg {
 
 .admin-company-side-head small {
   color: #8190a7;
-  font-size: .55rem;
+  font-size: .72rem;
   letter-spacing: .08em;
 }
 
@@ -11792,7 +11792,7 @@ svg {
 .admin-company-side-head p {
   margin: 3px 0 0;
   color: #8490a2;
-  font-size: .64rem;
+  font-size: .74rem;
 }
 
 .admin-detail-section {
@@ -11820,7 +11820,7 @@ svg {
 
 .admin-detail-section-head small {
   color: #8a95a7;
-  font-size: .58rem;
+  font-size: .72rem;
 }
 
 .admin-latest-payment {
@@ -11842,7 +11842,7 @@ svg {
 
 .admin-latest-payment > div > span {
   color: #7a8799;
-  font-size: .58rem;
+  font-size: .72rem;
 }
 
 .admin-latest-payment > div > strong {
@@ -11853,7 +11853,7 @@ svg {
 
 .admin-latest-payment > div > small {
   color: #8a95a7;
-  font-size: .56rem;
+  font-size: .72rem;
 }
 
 .admin-payment-status {
@@ -11861,7 +11861,7 @@ svg {
   color: #6d5a29;
   background: #fff6db;
   border-radius: 999px;
-  font-size: .58rem;
+  font-size: .72rem;
   font-weight: 800;
 }
 
@@ -11887,7 +11887,7 @@ svg {
   padding: 8px 2px;
   border-bottom: 1px solid #edf0f4;
   color: #68768b;
-  font-size: .58rem;
+  font-size: .72rem;
 }
 
 .admin-payment-history strong {
@@ -11901,14 +11901,14 @@ svg {
   background: #f8f9fb;
   border: 1px dashed #d7dee9;
   border-radius: 10px;
-  font-size: .64rem;
+  font-size: .74rem;
   line-height: 1.5;
 }
 
 .admin-detail-section textarea {
   min-height: 118px;
   resize: vertical;
-  font-size: .72rem;
+  font-size: .8rem;
 }
 
 .admin-note-actions {
@@ -11921,13 +11921,13 @@ svg {
 
 .admin-note-actions > small {
   color: #8a95a7;
-  font-size: .57rem;
+  font-size: .72rem;
 }
 
 .admin-note-actions .primary {
   min-height: 38px;
   padding: 8px 12px;
-  font-size: .62rem;
+  font-size: .72rem;
 }
 
 .admin-activity-list {
@@ -11963,20 +11963,20 @@ svg {
 
 .admin-activity-list strong {
   color: #41516a;
-  font-size: .65rem;
+  font-size: .74rem;
 }
 
 .admin-activity-list p {
   margin: 3px 0;
   color: #748198;
-  font-size: .6rem;
+  font-size: .72rem;
   line-height: 1.4;
 }
 
 .admin-activity-list small {
   margin-top: 3px;
   color: #8b96a8;
-  font-size: .56rem;
+  font-size: .72rem;
 }
 
 @media (max-width: 1250px) {
@@ -12102,7 +12102,7 @@ svg {
 
 .order-flow-heading > div > span {
   color: #6f7e98;
-  font-size: .59rem;
+  font-size: .72rem;
   font-weight: 800;
   letter-spacing: .12em;
 }
@@ -12116,7 +12116,7 @@ svg {
 .order-flow-heading p {
   margin: 0;
   color: #7b879b;
-  font-size: .67rem;
+  font-size: .76rem;
 }
 
 .order-flow-current {
@@ -12126,7 +12126,7 @@ svg {
   background: #eef4ff;
   border: 1px solid #cddcf5;
   border-radius: 999px;
-  font-size: .61rem;
+  font-size: .72rem;
   font-weight: 800;
 }
 
@@ -12143,7 +12143,7 @@ svg {
   background: #fff4f5;
   border: 1px solid #f0d4d7;
   border-radius: 10px;
-  font-size: .65rem;
+  font-size: .74rem;
 }
 
 .order-flow-steps {
@@ -12186,7 +12186,7 @@ svg {
   background: #f4f6f9;
   border: 2px solid #dfe5ed;
   border-radius: 50%;
-  font-size: .65rem;
+  font-size: .74rem;
   font-weight: 850;
 }
 
@@ -12211,7 +12211,7 @@ svg {
 .order-flow-steps strong {
   display: block;
   color: #3b4b64;
-  font-size: .62rem;
+  font-size: .72rem;
   line-height: 1.25;
 }
 
@@ -12222,7 +12222,7 @@ svg {
 .order-flow-steps p {
   margin: 4px 0 0;
   color: #8893a5;
-  font-size: .55rem;
+  font-size: .72rem;
   line-height: 1.35;
 }
 
@@ -12230,7 +12230,7 @@ svg {
   display: block;
   margin-top: 5px;
   color: #9aa4b4;
-  font-size: .52rem;
+  font-size: .72rem;
 }
 
 .order-flow-steps li.is-reached small {
@@ -12249,7 +12249,7 @@ svg {
 
 .order-flow-footer span {
   color: #8792a3;
-  font-size: .58rem;
+  font-size: .72rem;
 }
 
 .order-flow-footer button {
@@ -12258,7 +12258,7 @@ svg {
   color: #365fa8;
   background: #fff;
   border: 1px solid #d5deec;
-  font-size: .58rem;
+  font-size: .72rem;
 }
 
 .repair-daily-pending {
@@ -12290,7 +12290,7 @@ svg {
 
 .repair-daily-pending-head > div > span {
   color: #7b879c;
-  font-size: .68rem;
+  font-size: .76rem;
   font-weight: 800;
   letter-spacing: .12em;
 }
@@ -12304,7 +12304,7 @@ svg {
 .repair-daily-pending-head > div > small {
   margin-top: 3px;
   color: #8290a5;
-  font-size: .74rem;
+  font-size: .8rem;
   line-height: 1.45;
 }
 
@@ -12385,12 +12385,12 @@ svg {
 
 .repair-daily-copy strong {
   color: #364961;
-  font-size: .66rem;
+  font-size: .76rem;
 }
 
 .repair-daily-copy > div > span {
   color: #7d899b;
-  font-size: .58rem;
+  font-size: .72rem;
   font-weight: 700;
 }
 
@@ -12398,7 +12398,7 @@ svg {
   margin: 5px 0;
   overflow: hidden;
   color: #5e6d83;
-  font-size: .74rem;
+  font-size: .8rem;
   line-height: 1.45;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -12406,7 +12406,7 @@ svg {
 
 .repair-daily-copy small {
   color: #8a95a6;
-  font-size: .68rem;
+  font-size: .76rem;
   line-height: 1.4;
 }
 
@@ -12425,7 +12425,7 @@ svg {
   background: #f4f8ff;
   border: 1px solid #d7e3f5;
   border-radius: 8px;
-  font-size: .7rem;
+  font-size: .78rem;
   font-weight: 750;
   white-space: nowrap;
 }
@@ -12441,7 +12441,7 @@ svg {
   padding: 10px 15px;
   color: #7f8a9c;
   background: #fafbfc;
-  font-size: .66rem;
+  font-size: .76rem;
 }
 
 .repair-daily-empty {
@@ -12470,13 +12470,13 @@ svg {
 
 .repair-daily-empty strong {
   color: #40516a;
-  font-size: .67rem;
+  font-size: .76rem;
 }
 
 .repair-daily-empty small {
   margin-top: 2px;
   color: #8792a3;
-  font-size: .68rem;
+  font-size: .76rem;
 }
 
 @media (max-width: 1100px) {
@@ -12589,7 +12589,7 @@ svg {
 .team-permission-summary small {
   display: block;
   color: #7d899c;
-  font-size: .6rem;
+  font-size: .72rem;
 }
 
 .team-permission-summary strong {
@@ -12606,7 +12606,7 @@ svg {
 
 .team-role-guide-head span {
   color: #7c899d;
-  font-size: .56rem;
+  font-size: .72rem;
   font-weight: 850;
   letter-spacing: .11em;
 }
@@ -12619,7 +12619,7 @@ svg {
   max-width: 760px;
   margin: 0;
   color: #758297;
-  font-size: .66rem;
+  font-size: .76rem;
   line-height: 1.55;
 }
 
@@ -12640,14 +12640,14 @@ svg {
 
 .team-role-grid article > strong {
   color: #315d9f;
-  font-size: .72rem;
+  font-size: .8rem;
 }
 
 .team-role-grid article > p {
   min-height: 36px;
   margin: 5px 0 10px;
   color: #778499;
-  font-size: .59rem;
+  font-size: .72rem;
   line-height: 1.45;
 }
 
@@ -12658,7 +12658,7 @@ svg {
 
 .team-role-grid article > div span {
   color: #4f617a;
-  font-size: .58rem;
+  font-size: .72rem;
 }
 
 .team-list-head {
@@ -12676,7 +12676,7 @@ svg {
 .team-list-head p {
   margin: 0;
   color: #7b879a;
-  font-size: .64rem;
+  font-size: .74rem;
 }
 
 .team-member-list {
@@ -12708,7 +12708,7 @@ svg {
   color: #2e60ad;
   background: #edf4ff;
   border-radius: 11px;
-  font-size: .68rem;
+  font-size: .76rem;
   font-weight: 850;
 }
 
@@ -12725,7 +12725,7 @@ svg {
 .team-member-identity strong {
   overflow: hidden;
   color: #334760;
-  font-size: .68rem;
+  font-size: .76rem;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -12735,7 +12735,7 @@ svg {
   color: #315fae;
   background: #eef4ff;
   border-radius: 999px;
-  font-size: .5rem;
+  font-size: .72rem;
   font-weight: 800;
 }
 
@@ -12744,7 +12744,7 @@ svg {
   margin-top: 3px;
   overflow: hidden;
   color: #8792a4;
-  font-size: .56rem;
+  font-size: .72rem;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -12753,14 +12753,14 @@ svg {
   display: grid;
   gap: 4px;
   color: #738097;
-  font-size: .54rem;
+  font-size: .72rem;
   font-weight: 800;
 }
 
 .team-member-card select {
   min-width: 0;
   min-height: 40px;
-  font-size: .63rem;
+  font-size: .74rem;
 }
 
 .team-member-actions {
@@ -12773,7 +12773,7 @@ svg {
 .team-member-actions .primary {
   min-height: 39px;
   padding: 7px 11px;
-  font-size: .58rem;
+  font-size: .72rem;
 }
 
 .team-empty-note {
@@ -12787,12 +12787,12 @@ svg {
 
 .team-empty-note strong {
   color: #42546d;
-  font-size: .66rem;
+  font-size: .76rem;
 }
 
 .team-empty-note p {
   margin: 4px 0 0;
-  font-size: .59rem;
+  font-size: .72rem;
   line-height: 1.5;
 }
 

@@ -38,8 +38,9 @@
   --ui-button-height: 44px;
   --ui-control-height: 44px;
   --ui-metric-value-size: 1.55rem;
-  --ui-metric-label-size: .74rem;
-  --ui-caption-size: .64rem;
+  --ui-metric-label-size: .82rem;
+  --ui-caption-size: .74rem;
+  --ui-control-font-size: .8rem;
   --ui-space-1: 4px;
   --ui-space-2: 8px;
   --ui-space-3: 12px;
@@ -151,7 +152,7 @@
   padding: 4px 9px;
   border: 1px solid transparent;
   border-radius: var(--ui-radius-pill);
-  font-size: .61rem;
+  font-size: .72rem;
   font-weight: 800;
   line-height: 1.1;
   white-space: nowrap;
@@ -200,7 +201,7 @@
   border: 1px solid #145fe7;
   border-radius: var(--ui-radius-control);
   box-shadow: 0 10px 22px rgb(16 87 236 / 18%);
-  font-size: .72rem;
+  font-size: .8rem;
   font-weight: 800;
   line-height: 1;
 }
@@ -226,6 +227,8 @@
   background: var(--ui-surface);
   border: 1px solid #d8e0ec;
   border-radius: var(--ui-radius-control);
+  font-size: var(--ui-control-font-size);
+  line-height: 1.35;
 }
 
 .workspace textarea,
@@ -236,6 +239,8 @@
   background: var(--ui-surface);
   border: 1px solid #d8e0ec;
   border-radius: var(--ui-radius-control);
+  font-size: var(--ui-control-font-size);
+  line-height: 1.4;
 }
 
 .workspace :is(input, select, textarea):focus,
@@ -248,7 +253,7 @@
   min-height: 24px;
   padding: 4px 9px;
   border-radius: var(--ui-radius-pill);
-  font-size: .61rem;
+  font-size: .72rem;
   font-weight: 800;
 }
 
@@ -346,7 +351,7 @@
   min-height: 24px;
   padding: 4px 9px;
   border-radius: var(--ui-radius-pill);
-  font-size: .61rem;
+  font-size: .72rem;
   font-weight: 800;
   line-height: 1.1;
   white-space: nowrap;
