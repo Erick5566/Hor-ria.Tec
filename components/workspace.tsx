@@ -834,12 +834,7 @@ export default function Workspace({
       : []),
   ];
 
-  const mobileMoreLinks: Array<{
-    label: string;
-    href: string;
-    icon: HorariaIconName;
-    managerOnly?: boolean;
-  }> = [
+  const mobileMoreLinks = ([
     { label: "Recebimento", href: "/painel/ordens/nova", icon: "receive" },
     { label: "Clientes", href: "/painel/clientes", icon: "clients" },
     { label: "Equipamentos", href: "/painel/equipamentos", icon: "devices" },
@@ -855,7 +850,12 @@ export default function Workspace({
     { label: "Configurações", href: "/painel/configuracoes", icon: "settings", managerOnly: true },
     { label: "Perfil", href: "/painel/perfil", icon: "profile" },
     { label: "Ajuda", href: "/painel/ajuda", icon: "help" },
-  ].filter(
+  ] satisfies Array<{
+    label: string;
+    href: string;
+    icon: HorariaIconName;
+    managerOnly?: boolean;
+  }>).filter(
     (item) =>
       !item.managerOnly ||
       ["OWNER", "ADMIN"].includes(access.company?.role || ""),
