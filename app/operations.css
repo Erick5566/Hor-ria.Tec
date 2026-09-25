@@ -3152,7 +3152,7 @@ button.danger,
 
 .orders-table-head label > span {
   color: #76839a;
-  font-size: .67rem;
+  font-size: .78rem;
 }
 
 .orders-table-head select {
@@ -4486,7 +4486,7 @@ button.danger,
 .agenda-main-card .day-group > h3 {
   margin: 0 0 12px;
   color: #26344e;
-  font-size: .78rem;
+  font-size: .92rem;
 }
 
 .agenda-main-card .appointment {
@@ -9536,7 +9536,7 @@ button.danger,
 }
 
 .photo-stage-add > small {
-  font-size: .58rem;
+  font-size: .7rem;
   font-weight: 700;
 }
 
@@ -11636,7 +11636,7 @@ svg {
 
 .admin-usage-pills b {
   color: #3d6fc3;
-  font-size: .66rem;
+  font-size: .82rem;
 }
 
 .account-status.trial {
@@ -12290,7 +12290,7 @@ svg {
 
 .repair-daily-pending-head > div > span {
   color: #7b879c;
-  font-size: .56rem;
+  font-size: .68rem;
   font-weight: 800;
   letter-spacing: .12em;
 }
@@ -12298,13 +12298,14 @@ svg {
 .repair-daily-pending-head > div > strong {
   margin-top: 4px;
   color: #263b58;
-  font-size: .79rem;
+  font-size: 1rem;
 }
 
 .repair-daily-pending-head > div > small {
   margin-top: 3px;
   color: #8290a5;
-  font-size: .6rem;
+  font-size: .74rem;
+  line-height: 1.45;
 }
 
 .repair-daily-pending-head > b {
@@ -12331,7 +12332,7 @@ svg {
   gap: 10px;
   align-items: center;
   min-width: 0;
-  padding: 11px 15px;
+  padding: 14px 16px;
   border-bottom: 1px solid #eef1f5;
 }
 
@@ -12394,17 +12395,19 @@ svg {
 }
 
 .repair-daily-copy p {
-  margin: 3px 0;
+  margin: 5px 0;
   overflow: hidden;
   color: #5e6d83;
-  font-size: .61rem;
+  font-size: .74rem;
+  line-height: 1.45;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .repair-daily-copy small {
   color: #8a95a6;
-  font-size: .56rem;
+  font-size: .68rem;
+  line-height: 1.4;
 }
 
 .repair-daily-actions {
@@ -12414,7 +12417,7 @@ svg {
 }
 
 .repair-daily-actions a {
-  min-height: 35px;
+  min-height: 38px;
   display: inline-flex;
   align-items: center;
   padding: 6px 9px;
@@ -12422,7 +12425,7 @@ svg {
   background: #f4f8ff;
   border: 1px solid #d7e3f5;
   border-radius: 8px;
-  font-size: .57rem;
+  font-size: .7rem;
   font-weight: 750;
   white-space: nowrap;
 }
@@ -12438,7 +12441,7 @@ svg {
   padding: 10px 15px;
   color: #7f8a9c;
   background: #fafbfc;
-  font-size: .56rem;
+  font-size: .66rem;
 }
 
 .repair-daily-empty {
@@ -12473,7 +12476,7 @@ svg {
 .repair-daily-empty small {
   margin-top: 2px;
   color: #8792a3;
-  font-size: .57rem;
+  font-size: .68rem;
 }
 
 @media (max-width: 1100px) {
