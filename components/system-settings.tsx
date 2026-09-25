@@ -2,16 +2,9 @@
 
 import { useState } from "react";
 import { useWorkspace } from "./workspace";
-import { ErrorBox, SemanticBadge } from "./ui";
+import { ErrorBox } from "./ui";
 import { message, supabase } from "@/lib/supabase";
 
-const featureNames: Record<string, string> = {
-  appointmentsEnabled: "Agenda",
-  financialEnabled: "Financeiro",
-  stockEnabled: "Estoque",
-  whatsappEnabled: "WhatsApp",
-  aiEnabled: "Recursos de IA",
-};
 
 export default function SystemSettings() {
   const { empresa, access, refresh } = useWorkspace();
@@ -38,16 +31,9 @@ export default function SystemSettings() {
     );
   }
 
-  const features = access.company?.featureFlags || {
-    aiEnabled: false,
-    financialEnabled: false,
-    stockEnabled: false,
-    whatsappEnabled: false,
-    appointmentsEnabled: false,
-  };
 
   return (
-    <div className="system-settings-layout">
+    <div className="system-settings-layout system-settings-single">
       <section className="panel">
         <ErrorBox error={error} />
         {saved && <p className="notice" role="status">Configurações atualizadas.</p>}
@@ -131,23 +117,6 @@ export default function SystemSettings() {
         </form>
       </section>
 
-      <section className="panel">
-        <h2>Módulos da conta</h2>
-        <p className="hint">
-          Esta área mostra quais módulos estão liberados para a assistência. A
-          ativação é controlada pelo plano/administrador da plataforma.
-        </p>
-        <div className="system-feature-list">
-          {Object.entries(features).map(([key, enabled]) => (
-            <div key={key} className="system-feature-row">
-              <span>{featureNames[key] || key}</span>
-              <SemanticBadge tone={enabled ? "success" : "neutral"}>
-                {enabled ? "Ativo" : "Inativo"}
-              </SemanticBadge>
-            </div>
-          ))}
-        </div>
-      </section>
     </div>
   );
 }
