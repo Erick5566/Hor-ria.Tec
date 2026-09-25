@@ -3,7 +3,8 @@ import { useCallback, useEffect, useState } from "react";
 import { useWorkspace } from "./workspace";
 import { saveRow, categories, money } from "@/lib/assistencia";
 import { message, supabase } from "@/lib/supabase";
-import { ErrorBox, Empty, MetricCard, MetricGrid, Pagination } from "./ui";
+import { ErrorBox, Empty, MetricCard, MetricGrid, Pagination, PanelTitle } from "./ui";
+import type { HorariaIconName } from "./horaria-icon";
 
 type CatalogItem = {
   id: string;
@@ -119,21 +120,21 @@ export default function CatalogManagement({
     {
       name: stock ? "Itens cadastrados" : "Serviços cadastrados",
       value: data?.metrics.total ?? 0,
-      icon: stock ? "▦" : "⌘",
+      iconName: (stock ? "category" : "services") as HorariaIconName,
       tone: "blue",
       note: "Catálogo total",
     },
     {
       name: stock ? "Com estoque" : "Serviços ativos",
       value: data?.metrics.active ?? 0,
-      icon: "✓",
+      iconName: "check" as HorariaIconName,
       tone: "green",
       note: stock ? "Disponíveis agora" : "Disponíveis para atendimento",
     },
     {
       name: "Preço médio",
       value: money(data?.metrics.averagePrice ?? 0),
-      icon: "▥",
+      iconName: "receipt" as HorariaIconName,
       tone: "purple",
       note: "Valor médio do catálogo",
     },
@@ -142,7 +143,7 @@ export default function CatalogManagement({
       value: stock
         ? data?.metrics.secondary ?? 0
         : `${data?.metrics.secondary ?? 0} min`,
-      icon: stock ? "▣" : "◷",
+      iconName: (stock ? "stock" : "clock") as HorariaIconName,
       tone: "amber",
       note: stock ? "Grupos cadastrados" : "Tempo estimado",
     },
@@ -161,7 +162,7 @@ export default function CatalogManagement({
             label={metric.name}
             value={loading && !data ? "—" : metric.value}
             note={metric.note}
-            icon={metric.icon}
+            iconName={metric.iconName}
             tone={metric.tone as "blue" | "green" | "purple" | "amber"}
           />
         ))}
@@ -169,14 +170,15 @@ export default function CatalogManagement({
 
       <section className="dashboard-card catalog-main-card">
         <div className="dashboard-card-head catalog-card-head">
-          <div>
-            <h2>{stock ? "Estoque e peças" : "Catálogo de serviços"}</h2>
-            <p>
-              {stock
+          <PanelTitle
+            title={stock ? "Estoque e peças" : "Catálogo de serviços"}
+            icon={stock ? "stock" : "services"}
+            subtitle={
+              stock
                 ? "Organize peças, disponibilidade e preços."
-                : "Defina os serviços que sua assistência oferece aos clientes."}
-            </p>
-          </div>
+                : "Defina os serviços que sua assistência oferece aos clientes."
+            }
+          />
           <div className="catalog-actions">
             <input
               aria-label="Buscar"
@@ -509,12 +511,11 @@ export default function CatalogManagement({
       {!stock && (
         <section className="dashboard-card catalog-insights">
           <div className="dashboard-card-head">
-            <div>
-              <h2>Oportunidades para o catálogo</h2>
-              <p>
-                Alguns serviços comuns que podem ajudar a completar sua oferta.
-              </p>
-            </div>
+            <PanelTitle
+              title="Oportunidades para o catálogo"
+              icon="category"
+              subtitle="Alguns serviços comuns que podem ajudar a completar sua oferta."
+            />
           </div>
           <div className="catalog-ideas">
             <article>
