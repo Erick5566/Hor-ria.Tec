@@ -4,7 +4,7 @@ import { createPortal } from "react-dom";
 import { PendingPhoto, preparePhoto, uploadPhotos } from "@/lib/photos";
 import { Foto, photoCategories, stamp } from "@/lib/assistencia";
 import { supabase, message } from "@/lib/supabase";
-import { ErrorBox, Empty } from "./ui";
+import { ErrorBox, Empty, PanelTitle } from "./ui";
 import { useWorkspace } from "./workspace";
 
 function InlineCamera({
@@ -1033,7 +1033,7 @@ export function PhotosPanel({
         </section>
       )}
       <section className="panel">
-        <h2>Histórico visual</h2>
+        <PanelTitle title="Histórico visual" icon="devices" />
         {!photos.length && (
           <Empty title="Nenhuma foto registrada nesta ordem." />
         )}
