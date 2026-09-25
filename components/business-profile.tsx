@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { useWorkspace } from "./workspace";
-import { ErrorBox } from "./ui";
+import { ErrorBox, PanelTitle } from "./ui";
 import { message, supabase } from "@/lib/supabase";
 
 type CepLookup = {
@@ -135,7 +135,7 @@ export default function BusinessProfile() {
         </p>
       </section>
 
-      <h2>Identificação do negócio</h2>
+      <PanelTitle title="Identificação do negócio" icon="business" />
       <div className="form-grid">
         <label>
           Nome da assistência
@@ -169,7 +169,7 @@ export default function BusinessProfile() {
         </label>
       </div>
 
-      <h2>Endereço operacional</h2>
+      <PanelTitle title="Endereço operacional" icon="publicPage" />
       <div className="form-grid company-address-grid">
         <label>
           CEP
@@ -250,7 +250,7 @@ export default function BusinessProfile() {
       </div>
       {completeAddress && <p className="hint">Endereço: {completeAddress}</p>}
 
-      <h2>Horário de funcionamento</h2>
+      <PanelTitle title="Horário de funcionamento" icon="clock" />
       <p className="hint">
         Estes são os horários reais da assistência. A agenda usa essa informação para
         orientar os atendimentos.
