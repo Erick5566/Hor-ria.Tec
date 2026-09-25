@@ -15,6 +15,7 @@ import {
   Pagination,
   PanelTitle,
 } from "./ui";
+import { HorariaIcon } from "./horaria-icon";
 
 const originLabel: Record<"reparo" | "loja" | "seminovo" | "manual", string> = {
   reparo: "Reparos",
@@ -255,6 +256,19 @@ export default function Finance({ ordemId }: { ordemId?: string }) {
   const entries = data?.entries || [];
   const recent = data?.recent || [];
   const pending = data?.pending || [];
+  const currentDate = today();
+  const margin = receita > 0 ? (saldo / receita) * 100 : 0;
+  const expenseShare =
+    receita > 0 ? Math.min(100, (despesa / receita) * 100) : despesa > 0 ? 100 : 0;
+  const overdueCount = pending.filter(
+    (item) => item.status === "pendente" && item.vencimento < currentDate,
+  ).length;
+  const topOrigin = origins.reduce(
+    (best, item) => (item.value > best.value ? item : best),
+    origins[0],
+  );
+  const topOriginPercent =
+    originTotal && topOrigin ? Math.round((topOrigin.value / originTotal) * 100) : 0;
 
   return (
     <div className={ordemId ? "" : "finance-dashboard"}>
@@ -262,6 +276,54 @@ export default function Finance({ ordemId }: { ordemId?: string }) {
 
       {!ordemId && (
         <>
+          <section className="finance-overview-hero">
+            <div className="finance-overview-main">
+              <span className="finance-overview-kicker">
+                <HorariaIcon name="finance" />
+                Visão financeira
+              </span>
+              <span className="finance-overview-label">Saldo realizado</span>
+              <strong className={saldo < 0 ? "is-negative" : ""}>
+                {loading && !data ? "—" : money(saldo)}
+              </strong>
+              <div className="finance-overview-meta">
+                <span>
+                  <b>{loading && !data ? "—" : `${margin.toFixed(1)}%`}</b>
+                  margem sobre a receita
+                </span>
+                <span>
+                  <b>{metrics?.pendingCount || 0}</b>
+                  contas aguardando recebimento
+                </span>
+                <span className={overdueCount > 0 ? "has-alert" : ""}>
+                  <b>{overdueCount}</b>
+                  contas vencidas
+                </span>
+              </div>
+            </div>
+
+            <div className="finance-overview-actions">
+              <div className="finance-overview-stat">
+                <span>Recebido</span>
+                <strong>{loading && !data ? "—" : money(receita)}</strong>
+                <small>{paidRevenueCount} recebimentos confirmados</small>
+              </div>
+              <div className="finance-overview-stat">
+                <span>A receber</span>
+                <strong>{loading && !data ? "—" : money(pendingRevenue)}</strong>
+                <small>
+                  {overdueCount > 0
+                    ? `${overdueCount} vencida${overdueCount === 1 ? "" : "s"}`
+                    : "Nenhuma conta vencida"}
+                </small>
+              </div>
+              <button className="primary finance-overview-new" onClick={openNewLaunch}>
+                <HorariaIcon name="receipt" />
+                Novo lançamento
+              </button>
+            </div>
+          </section>
+
           <MetricGrid columns={6} className="finance-kpis">
             <MetricCard
               label="Receita do período"
@@ -320,7 +382,11 @@ export default function Finance({ ordemId }: { ordemId?: string }) {
                     subtitle="Veja de onde vem sua receita."
                   />
                 </div>
-                <span className="finance-period">Período atual</span>
+                <span className="finance-period">
+                  {topOrigin && originTotal > 0
+                    ? `Maior origem: ${originLabel[topOrigin.origin]} · ${topOriginPercent}%`
+                    : "Período atual"}
+                </span>
               </div>
               <div className="finance-donut-layout">
                 <div className="finance-donut" style={{ background: donut }}>
@@ -427,7 +493,9 @@ export default function Finance({ ordemId }: { ordemId?: string }) {
                           : "movement-icon out"
                       }
                     >
-                      {item.tipo === "receita" ? "↗" : "↘"}
+                      <HorariaIcon
+                        name={item.tipo === "receita" ? "trend" : "receipt"}
+                      />
                     </span>
                     <div>
                       <strong>{item.descricao}</strong>
@@ -451,44 +519,47 @@ export default function Finance({ ordemId }: { ordemId?: string }) {
               </div>
             </section>
 
-            <section className="finance-card">
+            <section className="finance-card finance-health-card">
               <div className="finance-card-head">
-                <div>
-                  <PanelTitle
-                    title="Receitas x despesas"
-                    icon="donut"
-                    subtitle="Distribuição do valor realizado."
-                  />
-                </div>
+                <PanelTitle
+                  title="Saúde do caixa"
+                  icon="finance"
+                  subtitle="Quanto das receitas já foi consumido por despesas."
+                />
               </div>
-              <div className="finance-balance-ring">
-                <div
-                  className="finance-donut small"
-                  style={{
-                    background:
-                      receita + despesa > 0
-                        ? `conic-gradient(#68b5e4 0 ${
-                            (receita / (receita + despesa)) * 100
-                          }%, #9a6070 ${
-                            (receita / (receita + despesa)) * 100
-                          }% 100%)`
-                        : "conic-gradient(#30384a 0 100%)",
-                  }}
-                >
-                  <div>
-                    <strong>{money(receita + despesa)}</strong>
-                    <small>Movimentado</small>
-                  </div>
+              <div className="finance-health">
+                <div className="finance-health-score">
+                  <span>Saldo</span>
+                  <strong className={saldo < 0 ? "is-negative" : ""}>
+                    {money(saldo)}
+                  </strong>
+                  <small>
+                    Margem de {margin.toFixed(1)}% sobre a receita recebida
+                  </small>
                 </div>
-                <div className="finance-balance-summary">
+                <div className="finance-health-progress">
                   <div>
-                    <span className="legend-dot repair" />
-                    <b>Receitas</b>
+                    <span>Comprometimento da receita</span>
+                    <b>{expenseShare.toFixed(0)}%</b>
+                  </div>
+                  <div className="finance-health-track" aria-hidden="true">
+                    <i style={{ width: `${expenseShare}%` }} />
+                  </div>
+                  <small>
+                    {expenseShare <= 60
+                      ? "Despesas sob controle no período."
+                      : expenseShare <= 90
+                        ? "Atenção: despesas consumindo boa parte da receita."
+                        : "Alerta: despesas muito próximas ou acima da receita."}
+                  </small>
+                </div>
+                <div className="finance-health-split">
+                  <div>
+                    <span>Receitas</span>
                     <strong>{money(receita)}</strong>
                   </div>
                   <div>
-                    <span className="legend-dot expense" />
-                    <b>Despesas</b>
+                    <span>Despesas</span>
                     <strong>{money(despesa)}</strong>
                   </div>
                 </div>
@@ -506,17 +577,31 @@ export default function Finance({ ordemId }: { ordemId?: string }) {
                 </div>
               </div>
               <div className="finance-pending">
-                {pending.map((item) => (
-                  <div key={item.id}>
-                    <div>
-                      <strong>{item.descricao}</strong>
-                      <small>
-                        Vence {item.vencimento.split("-").reverse().join("/")}
-                      </small>
+                {pending.map((item) => {
+                  const overdue =
+                    item.status === "pendente" && item.vencimento < currentDate;
+                  return (
+                    <div key={item.id} className={overdue ? "is-overdue" : ""}>
+                      <div>
+                        <strong>{item.descricao}</strong>
+                        <small>
+                          {overdue ? "Vencida em " : "Vence "}
+                          {item.vencimento.split("-").reverse().join("/")}
+                        </small>
+                      </div>
+                      <div className="finance-pending-value">
+                        <b>{money(item.valor)}</b>
+                        <button
+                          type="button"
+                          disabled={busy}
+                          onClick={() => pay(item)}
+                        >
+                          Receber
+                        </button>
+                      </div>
                     </div>
-                    <b>{money(item.valor)}</b>
-                  </div>
-                ))}
+                  );
+                })}
                 {!pending.length && <Empty title="Nenhuma conta pendente." />}
               </div>
             </section>
@@ -579,6 +664,17 @@ export default function Finance({ ordemId }: { ordemId?: string }) {
               }
             }}
           >
+            <div className="finance-entry-intro">
+              <span aria-hidden="true">
+                <HorariaIcon name="receipt" />
+              </span>
+              <div>
+                <strong>Novo lançamento financeiro</strong>
+                <small>
+                  Registre uma entrada ou saída e escolha se ela já foi paga.
+                </small>
+              </div>
+            </div>
             <div className="form-grid">
               <label>
                 Descrição
@@ -655,27 +751,78 @@ export default function Finance({ ordemId }: { ordemId?: string }) {
                   </tr>
                 </thead>
                 <tbody>
-                  {entries.map((item) => (
-                    <tr key={item.id}>
-                      <td>{item.descricao}</td>
-                      <td>{item.tipo}</td>
-                      <td>{money(item.valor)}</td>
-                      <td>{item.vencimento.split("-").reverse().join("/")}</td>
-                      <td>{item.status}</td>
-                      <td>
-                        {item.status === "pendente" ? (
-                          <button disabled={busy} onClick={() => pay(item)}>
-                            Registrar{" "}
-                            {item.tipo === "receita"
-                              ? "recebimento"
-                              : "pagamento"}
-                          </button>
-                        ) : (
-                          item.pago_em?.split("-").reverse().join("/")
-                        )}
-                      </td>
-                    </tr>
-                  ))}
+                  {entries.map((item) => {
+                    const overdue =
+                      item.status === "pendente" && item.vencimento < currentDate;
+                    return (
+                      <tr key={item.id}>
+                        <td>
+                          <strong className="finance-table-description">
+                            {item.descricao}
+                          </strong>
+                        </td>
+                        <td>
+                          <span
+                            className={`finance-type-pill ${
+                              item.tipo === "receita" ? "income" : "expense"
+                            }`}
+                          >
+                            {item.tipo === "receita" ? "Receita" : "Despesa"}
+                          </span>
+                        </td>
+                        <td>
+                          <strong
+                            className={
+                              item.tipo === "receita" ? "money-in" : "money-out"
+                            }
+                          >
+                            {item.tipo === "receita" ? "+" : "-"} {money(item.valor)}
+                          </strong>
+                        </td>
+                        <td>
+                          <span className={overdue ? "finance-date-overdue" : ""}>
+                            {item.vencimento.split("-").reverse().join("/")}
+                          </span>
+                        </td>
+                        <td>
+                          <span
+                            className={`finance-status-pill ${
+                              item.status === "pago"
+                                ? "paid"
+                                : overdue
+                                  ? "overdue"
+                                  : "pending"
+                            }`}
+                          >
+                            {item.status === "pago"
+                              ? "Pago"
+                              : overdue
+                                ? "Vencido"
+                                : "Pendente"}
+                          </span>
+                        </td>
+                        <td>
+                          {item.status === "pendente" ? (
+                            <button
+                              type="button"
+                              className="finance-table-action"
+                              disabled={busy}
+                              onClick={() => pay(item)}
+                            >
+                              Registrar{" "}
+                              {item.tipo === "receita"
+                                ? "recebimento"
+                                : "pagamento"}
+                            </button>
+                          ) : (
+                            <span className="finance-paid-date">
+                              {item.pago_em?.split("-").reverse().join("/") || "Pago"}
+                            </span>
+                          )}
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
