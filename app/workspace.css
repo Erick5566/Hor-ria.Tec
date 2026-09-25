@@ -67,6 +67,21 @@ a.primary {
   display: grid;
   place-items: center;
   border-radius: 9px;
+  overflow: hidden;
+  flex: 0 0 34px;
+}
+
+.workspace-company-avatar.has-logo {
+  background: #fff;
+  border: 1px solid rgb(255 255 255 / 12%);
+}
+
+.workspace-company-avatar img,
+.workspace-profile-avatar img {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: contain;
 }
 .workspace-company strong {
   font-size: 13px;
@@ -2186,6 +2201,7 @@ body {
   box-shadow: 0 6px 16px rgb(18 89 235 / 25%);
   font-size: .74rem;
   font-weight: 800;
+  overflow: hidden;
 }
 
 .workspace-profile-chip > div {
@@ -3656,4 +3672,10 @@ tbody tr:hover td {
   .workspace-alert-popover {
     top: 118px;
   }
+}
+
+
+.workspace-profile-avatar.has-logo {
+  background: #fff;
+  color: transparent;
 }

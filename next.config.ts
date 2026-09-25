@@ -42,6 +42,15 @@ const noStoreHeaders = [
 
 const config: NextConfig = {
   poweredByHeader: false,
+  images: {
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "**.supabase.co",
+        pathname: "/storage/v1/object/public/**",
+      },
+    ],
+  },
   experimental: { workerThreads: true, cpus: 1, useTypeScriptCli: false },
   async headers() {
     return [
