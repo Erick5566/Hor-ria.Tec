@@ -3866,6 +3866,84 @@ button.danger,
   color: #6f7c92;
 }
 
+.agenda-pro .appointment details {
+  margin-top: 10px;
+}
+
+.agenda-pro .appointment summary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  min-height: 38px;
+  padding: 8px 13px;
+  color: #2457c5;
+  background: #eef4ff;
+  border: 1px solid #bfd1f2;
+  border-radius: 10px;
+  box-shadow: 0 4px 10px rgb(36 87 197 / 8%);
+  font-size: .78rem;
+  font-weight: 800;
+  line-height: 1.2;
+  list-style: none;
+  cursor: pointer;
+  transition:
+    background .18s ease,
+    border-color .18s ease,
+    color .18s ease,
+    box-shadow .18s ease,
+    transform .18s ease;
+}
+
+.agenda-pro .appointment summary::-webkit-details-marker {
+  display: none;
+}
+
+.agenda-pro .appointment summary::after {
+  content: "▾";
+  font-size: .72rem;
+  transition: transform .18s ease;
+}
+
+.agenda-pro .appointment details[open] summary::after {
+  transform: rotate(180deg);
+}
+
+.agenda-pro .appointment summary:hover,
+.agenda-pro .appointment summary:focus-visible {
+  color: #174bb5;
+  background: #dfeaff;
+  border-color: #8fb0ea;
+  box-shadow: 0 6px 14px rgb(36 87 197 / 13%);
+}
+
+.agenda-pro .appointment summary:active {
+  transform: translateY(1px);
+}
+
+.agenda-pro .appointment details[open] {
+  padding: 10px 12px 12px;
+  background: #f8fbff;
+  border: 1px solid #dbe7f7;
+  border-radius: 11px;
+}
+
+.agenda-pro .appointment details[open] summary {
+  margin-bottom: 8px;
+}
+
+.agenda-pro .appointment details > p,
+.agenda-pro .appointment details > a {
+  font-size: .76rem;
+}
+
+@media (max-width: 760px) {
+  .agenda-pro .appointment summary {
+    width: 100%;
+    min-height: 42px;
+  }
+}
+
 .agenda-pro .badge {
   border-radius: 999px;
   border: 0;
