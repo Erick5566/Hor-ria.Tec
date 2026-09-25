@@ -902,7 +902,7 @@ tbody tr:last-child td {
     min-height: 48px;
   }
   .user-chip {
-    font-size: 11px;
+    font-size: 12px;
   }
   .lightbox {
     padding: 15px;
@@ -1971,7 +1971,7 @@ body {
 .main-sidebar nav h2 {
   margin: 0 12px 7px;
   color: #7289aa;
-  font-size: .64rem;
+  font-size: .72rem;
   letter-spacing: .14em;
 }
 
@@ -2052,7 +2052,7 @@ body {
 .sidebar-promo small {
   margin-top: 5px;
   color: #91a8c8;
-  font-size: .66rem;
+  font-size: .72rem;
   line-height: 1.35;
 }
 
@@ -2210,7 +2210,7 @@ body {
   margin-top: 2px;
   max-width: 135px;
   color: #7489aa;
-  font-size: .66rem;
+  font-size: .72rem;
 }
 
 .workspace-profile-chip > b {
@@ -2599,7 +2599,7 @@ tbody tr:hover td {
 
 .workspace-profile-chip small {
   color: #5d7397;
-  font-size: .69rem;
+  font-size: .72rem;
 }
 
 .module {
@@ -2733,7 +2733,7 @@ tbody tr:hover td {
   background: #ef3347;
   border: 2px solid #fff;
   border-radius: 999px;
-  font-size: .62rem;
+  font-size: .72rem;
   font-weight: 800;
   line-height: 1;
 }
@@ -2755,7 +2755,7 @@ tbody tr:hover td {
 
 .workspace-popover-head small {
   color: #8291a9;
-  font-size: .66rem;
+  font-size: .72rem;
 }
 
 .workspace-alert-list {
@@ -2812,7 +2812,7 @@ tbody tr:hover td {
 .workspace-alert-item small {
   margin-top: 3px;
   color: #7a8ba5;
-  font-size: .66rem;
+  font-size: .72rem;
   line-height: 1.4;
 }
 
@@ -2848,7 +2848,7 @@ tbody tr:hover td {
   margin-top: 3px;
   overflow: hidden;
   color: #7b8ba2;
-  font-size: .66rem;
+  font-size: .72rem;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -3071,7 +3071,7 @@ tbody tr:hover td {
   display: grid;
   gap: 5px;
   color: #607695;
-  font-size: .66rem;
+  font-size: .72rem;
   font-weight: 800;
 }
 
@@ -3105,7 +3105,7 @@ tbody tr:hover td {
   top: 3px;
   width: 18px;
   height: 18px;
-  font-size: .62rem;
+  font-size: .72rem;
 }
 
 .workspace-popover-head > div {
@@ -3117,7 +3117,7 @@ tbody tr:hover td {
   color: #1761d2;
   background: transparent;
   border: 0;
-  font-size: .66rem;
+  font-size: .72rem;
   font-weight: 800;
   white-space: nowrap;
 }
@@ -3156,7 +3156,7 @@ tbody tr:hover td {
   display: block;
   margin-top: 5px;
   color: #9aa7b9;
-  font-size: .62rem;
+  font-size: .72rem;
 }
 
 @media (max-width: 920px) {
@@ -3245,7 +3245,7 @@ tbody tr:hover td {
   min-height: 34px;
   padding: 7px 30px 0;
   color: #7c8da7;
-  font-size: .69rem;
+  font-size: .72rem;
   font-weight: 700;
 }
 
@@ -3582,7 +3582,7 @@ tbody tr:hover td {
     min-height: 28px;
     gap: 5px;
     padding: 4px 10px 0;
-    font-size: .66rem;
+    font-size: .72rem;
   }
 
   .module {
