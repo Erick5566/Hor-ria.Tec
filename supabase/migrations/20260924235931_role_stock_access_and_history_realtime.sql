@@ -201,4 +201,14 @@ using (
   and private.feature_enabled(empresa_id, 'stockEnabled')
 );
 
-alter publication supabase_realtime add table public.historico_os;
+do $
+begin
+  if exists (
+    select 1
+    from pg_publication
+    where pubname = 'supabase_realtime'
+  ) then
+    alter publication supabase_realtime add table public.historico_os;
+  end if;
+end
+$;
