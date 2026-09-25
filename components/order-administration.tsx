@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { MesaReparo, Ordem, useRows } from "@/lib/assistencia";
 import { supabase, message } from "@/lib/supabase";
-import { ErrorBox } from "./ui";
+import { ErrorBox, PanelTitle } from "./ui";
 export default function OrderAdministration({
   order,
   onChanged,
@@ -17,7 +17,7 @@ export default function OrderAdministration({
   const benches = useRows<MesaReparo>("mesas_reparo");
   return (
     <section className="panel">
-      <h2>Responsável e previsão</h2>
+      <PanelTitle title="Responsável e previsão" icon="team" />
       <ErrorBox error={error} />
       <p role="status">{notice}</p>
       <form
@@ -111,7 +111,7 @@ export default function OrderAdministration({
           Salvar organização da OS
         </button>
       </form>
-      <h3>Acompanhamento do cliente</h3>
+      <PanelTitle title="Acompanhamento do cliente" icon="publicPage" as="h3" />
       <p>O link individual mostra somente os dados públicos desta ordem.</p>
       <div className="inline-actions">
         <a
@@ -143,7 +143,7 @@ export default function OrderAdministration({
           O cliente também pode consultar com o código e o telefone cadastrados.
         </p>
       </details>
-      <h3>Senha do equipamento</h3>
+      <PanelTitle title="Senha do equipamento" icon="devices" as="h3" />
       {secret === null ? (
         <button
           onClick={async () => {
