@@ -69,12 +69,12 @@ a.primary {
   border-radius: 9px;
 }
 .workspace-company strong {
-  font-size: 12px;
+  font-size: 13px;
   display: block;
 }
 .workspace-company small {
   display: block;
-  font-size: 10px;
+  font-size: 12px;
   color: #9ba8ab;
   margin-top: 4px;
 }
@@ -97,7 +97,7 @@ a.primary {
   align-items: center;
   gap: 11px;
   padding: 10px 12px;
-  font-size: 12px;
+  font-size: 13px;
   border-radius: 6px;
   margin: 3px 0;
   color: #ccd0cf;
@@ -118,12 +118,12 @@ a.primary {
   gap: 5px;
   border-top: 1px solid #253745;
   padding-top: 12px;
-  font-size: 11px;
+  font-size: 13px;
 }
 .main-sidebar footer a,
 .main-sidebar footer button {
   padding: 9px 11px;
-  font-size: 11px;
+  font-size: 13px;
   color: #ccd0cf;
 }
 .workspace-main {
@@ -138,7 +138,7 @@ a.primary {
   padding: 0 36px;
   border-bottom: 1px solid #b5bebf;
   background: #e3e7e6;
-  font-size: 12px;
+  font-size: 13px;
 }
 .workspace-top > span > span {
   color: #4a5c6a;
@@ -146,7 +146,7 @@ a.primary {
 }
 .user-chip {
   color: #4a5c6a;
-  font-size: 11px;
+  font-size: 13px;
   max-width: 50%;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -172,7 +172,7 @@ a.primary {
   margin: 0;
 }
 .module-heading .primary {
-  font-size: 12px;
+  font-size: 13px;
 }
 .mobile-top,
 .nav-scrim {
@@ -202,7 +202,7 @@ a.primary {
   color: #06141b;
 }
 .metric span {
-  font-size: 11px;
+  font-size: 13px;
 }
 .metric strong {
   display: block;
@@ -248,7 +248,7 @@ a.primary {
 .dashboard-operation small {
   display: block;
   color: #4a5c6a;
-  font-size: 10px;
+  font-size: 12px;
 }
 .dashboard-operation strong {
   display: block;
@@ -281,7 +281,7 @@ a.primary {
   gap: 10px;
   padding: 7px 0;
   text-transform: capitalize;
-  font-size: 11px;
+  font-size: 13px;
 }
 .finance-origin-bars .bar {
   height: 7px;
@@ -319,7 +319,7 @@ a.primary {
   gap: 15px;
 }
 .panel-head a {
-  font-size: 11px;
+  font-size: 13px;
   text-decoration: underline;
 }
 .table-wrap {
@@ -328,11 +328,11 @@ a.primary {
 table {
   border-collapse: collapse;
   width: 100%;
-  font-size: 12px;
+  font-size: 13px;
 }
 th {
   text-align: left;
-  font-size: 10px;
+  font-size: 12px;
   color: #4a5c6a;
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -378,11 +378,11 @@ tbody tr:last-child td {
   color: #253745;
 }
 .empty-state p {
-  font-size: 12px;
+  font-size: 13px;
 }
 .status-pill {
   display: inline-block;
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 600;
   white-space: nowrap;
   padding: 6px 9px;
@@ -424,11 +424,11 @@ tbody tr:last-child td {
   margin-top: 20px;
 }
 .hint {
-  font-size: 12px;
+  font-size: 13px;
   color: #4a5c6a;
 }
 .subtle {
-  font-size: 11px;
+  font-size: 13px;
   color: #4a5c6a;
 }
 .tabs {
@@ -441,7 +441,7 @@ tbody tr:last-child td {
 .tabs button {
   padding: 13px 17px;
   border-radius: 0;
-  font-size: 12px;
+  font-size: 13px;
   white-space: nowrap;
 }
 .tabs button.active {
@@ -454,7 +454,7 @@ tbody tr:last-child td {
   gap: 22px;
 }
 .definition-grid dt {
-  font-size: 10px;
+  font-size: 12px;
   text-transform: uppercase;
   color: #4a5c6a;
   margin-bottom: 7px;
@@ -475,10 +475,10 @@ tbody tr:last-child td {
   border: 0;
 }
 .list-line strong {
-  font-size: 12px;
+  font-size: 13px;
 }
 .list-line p {
-  font-size: 11px;
+  font-size: 13px;
   margin: 5px 0;
 }
 .bar {
@@ -582,7 +582,7 @@ tbody tr:last-child td {
 }
 .step-navigation span {
   padding: 10px 14px;
-  font-size: 11px;
+  font-size: 13px;
   white-space: nowrap;
   border-bottom: 2px solid #ccd0cf;
 }
@@ -599,7 +599,7 @@ tbody tr:last-child td {
 .checklist label {
   flex-direction: row;
   align-items: center;
-  font-size: 12px;
+  font-size: 13px;
 }
 .timeline {
   list-style: none;
@@ -622,14 +622,14 @@ tbody tr:last-child td {
   background: #253745;
 }
 .timeline li strong {
-  font-size: 12px;
+  font-size: 13px;
 }
 .timeline li p {
-  font-size: 12px;
+  font-size: 13px;
   margin: 6px 0;
 }
 .timeline li small {
-  font-size: 10px;
+  font-size: 12px;
 }
 .photos-grid {
   display: grid;
@@ -650,10 +650,10 @@ tbody tr:last-child td {
 }
 .photo-card .photo-meta {
   padding: 12px;
-  font-size: 11px;
+  font-size: 13px;
 }
 .photo-card button {
-  font-size: 11px;
+  font-size: 13px;
 }
 .upload-actions {
   display: flex;
@@ -708,7 +708,7 @@ tbody tr:last-child td {
   flex-wrap: wrap;
 }
 .inline-actions button {
-  font-size: 11px;
+  font-size: 13px;
   border: 1px solid #9ba8ab;
 }
 .saved {
@@ -718,7 +718,7 @@ tbody tr:last-child td {
   border-radius: 8px;
 }
 .warning-label {
-  font-size: 10px;
+  font-size: 12px;
   border: 1px solid #4a5c6a;
   border-radius: 5px;
   padding: 4px 7px;
@@ -885,7 +885,7 @@ tbody tr:last-child td {
   }
   .mobile-order p {
     margin: 9px 0;
-    font-size: 12px;
+    font-size: 13px;
   }
   .toolbar input,
   .toolbar select {
@@ -902,7 +902,7 @@ tbody tr:last-child td {
     min-height: 48px;
   }
   .user-chip {
-    font-size: 9px;
+    font-size: 11px;
   }
   .lightbox {
     padding: 15px;
@@ -911,7 +911,7 @@ tbody tr:last-child td {
     min-height: 46px;
   }
   .module-heading p {
-    font-size: 12px;
+    font-size: 13px;
   }
   .public-repair {
     padding: 0 17px;
@@ -1350,7 +1350,7 @@ tbody tr:hover td {
 .dashboard-callout small {
   margin-top: 4px;
   color: #70809d;
-  font-size: 0.69rem;
+  font-size: .78rem;
 }
 
 .dashboard-kpis {
@@ -1375,7 +1375,7 @@ tbody tr:hover td {
   align-items: center;
   gap: 10px;
   color: #202b45;
-  font-size: 0.74rem;
+  font-size: .8rem;
   font-weight: 700;
   line-height: 1.2;
 }
@@ -1448,7 +1448,7 @@ tbody tr:hover td {
 
 .dashboard-kpi small {
   color: #8390a6;
-  font-size: 0.68rem;
+  font-size: .76rem;
 }
 
 .dashboard-analytics {
@@ -1484,12 +1484,12 @@ tbody tr:hover td {
 .dashboard-card-head p {
   margin: 4px 0 0;
   color: #8591a7;
-  font-size: 0.7rem;
+  font-size: .78rem;
 }
 
 .dashboard-card-head a {
   color: #287cf3;
-  font-size: 0.7rem;
+  font-size: .78rem;
   font-weight: 700;
 }
 
@@ -1499,7 +1499,7 @@ tbody tr:hover td {
   background: #fbfcff;
   border: 1px solid #dfe6f1;
   border-radius: 9px;
-  font-size: 0.68rem;
+  font-size: .76rem;
 }
 
 .dashboard-line-chart {
@@ -1539,7 +1539,7 @@ tbody tr:hover td {
   justify-content: space-between;
   gap: 8px;
   color: #8a96aa;
-  font-size: 0.65rem;
+  font-size: .74rem;
 }
 
 .dashboard-chart-legend {
@@ -1548,7 +1548,7 @@ tbody tr:hover td {
   gap: 18px;
   margin-top: 8px;
   color: #526078;
-  font-size: 0.67rem;
+  font-size: .76rem;
 }
 
 .dashboard-chart-legend span {
@@ -1611,7 +1611,7 @@ tbody tr:hover td {
 .dashboard-status-donut small {
   max-width: 82px;
   color: #7e8aa0;
-  font-size: 0.64rem;
+  font-size: .74rem;
 }
 
 .dashboard-status-legend {
@@ -1624,7 +1624,7 @@ tbody tr:hover td {
   grid-template-columns: auto minmax(0, 1fr) auto;
   align-items: center;
   gap: 8px;
-  font-size: 0.68rem;
+  font-size: .76rem;
 }
 
 .dashboard-status-legend > div > span {
@@ -1677,7 +1677,7 @@ tbody tr:hover td {
 
 .dashboard-performance-list small {
   color: #71809a;
-  font-size: 0.66rem;
+  font-size: .76rem;
 }
 
 .dashboard-performance-list strong {
@@ -1696,14 +1696,14 @@ tbody tr:hover td {
   padding: 9px 10px;
   color: #66748d;
   background: #f7f9fc;
-  font-size: 0.65rem;
+  font-size: .74rem;
   letter-spacing: 0;
   text-transform: none;
 }
 
 .dashboard-table td {
   padding: 10px;
-  font-size: 0.69rem;
+  font-size: .78rem;
 }
 
 .dashboard-agenda-list,
@@ -1727,7 +1727,7 @@ tbody tr:hover td {
 
 .dashboard-agenda-list > a > strong {
   color: #1f2b49;
-  font-size: 0.72rem;
+  font-size: .8rem;
 }
 
 .dashboard-agenda-list > a > span {
@@ -1744,13 +1744,13 @@ tbody tr:hover td {
 
 .dashboard-agenda-list b {
   color: #273451;
-  font-size: 0.72rem;
+  font-size: .8rem;
 }
 
 .dashboard-agenda-list small {
   margin-top: 2px;
   color: #8691a4;
-  font-size: 0.64rem;
+  font-size: .74rem;
 }
 
 .dashboard-agenda-list i {
@@ -1765,7 +1765,7 @@ tbody tr:hover td {
   gap: 8px;
   min-height: 55px;
   border-bottom: 1px solid #edf0f5;
-  font-size: 0.68rem;
+  font-size: .76rem;
 }
 
 .dashboard-priority-list > a > strong {
@@ -1784,7 +1784,7 @@ tbody tr:hover td {
 .dashboard-priority-list small {
   margin-top: 2px;
   color: #8a95a8;
-  font-size: 0.62rem;
+  font-size: .72rem;
 }
 
 .dashboard-priority-list em {
@@ -1961,7 +1961,7 @@ body {
 .workspace-company small {
   margin-top: 3px;
   color: #9db4d4;
-  font-size: .62rem;
+  font-size: .72rem;
 }
 
 .main-sidebar nav section {
@@ -1971,7 +1971,7 @@ body {
 .main-sidebar nav h2 {
   margin: 0 12px 7px;
   color: #7289aa;
-  font-size: .52rem;
+  font-size: .64rem;
   letter-spacing: .14em;
 }
 
@@ -1981,7 +1981,7 @@ body {
   padding: 9px 12px;
   color: #dce8f7;
   border-radius: 9px;
-  font-size: .72rem;
+  font-size: .8rem;
   transition: background .16s ease, color .16s ease, transform .16s ease;
 }
 
@@ -2045,14 +2045,14 @@ body {
 
 .sidebar-promo strong {
   color: #fff;
-  font-size: .66rem;
+  font-size: .76rem;
   line-height: 1.4;
 }
 
 .sidebar-promo small {
   margin-top: 5px;
   color: #91a8c8;
-  font-size: .56rem;
+  font-size: .66rem;
   line-height: 1.35;
 }
 
@@ -2064,7 +2064,7 @@ body {
   color: #fff;
   background: #1261ff;
   border-radius: 50%;
-  font-size: .68rem;
+  font-size: .76rem;
 }
 
 .main-sidebar footer {
@@ -2076,7 +2076,7 @@ body {
 .main-sidebar footer a,
 .main-sidebar footer button {
   color: #9fb1c9;
-  font-size: .62rem;
+  font-size: .72rem;
 }
 
 .workspace-main {
@@ -2152,7 +2152,7 @@ body {
 
 .workspace-breadcrumb {
   color: #385781;
-  font-size: .67rem;
+  font-size: .76rem;
   white-space: nowrap;
 }
 
@@ -2184,7 +2184,7 @@ body {
   background: linear-gradient(145deg, #2875ff, #1056e9);
   border-radius: 50%;
   box-shadow: 0 6px 16px rgb(18 89 235 / 25%);
-  font-size: .65rem;
+  font-size: .74rem;
   font-weight: 800;
 }
 
@@ -2203,19 +2203,19 @@ body {
 
 .workspace-profile-chip strong {
   color: #18345e;
-  font-size: .67rem;
+  font-size: .76rem;
 }
 
 .workspace-profile-chip small {
   margin-top: 2px;
   max-width: 135px;
   color: #7489aa;
-  font-size: .55rem;
+  font-size: .66rem;
 }
 
 .workspace-profile-chip > b {
   color: #7189ad;
-  font-size: .68rem;
+  font-size: .76rem;
 }
 
 .module {
@@ -2346,7 +2346,7 @@ tbody tr:hover td {
 
   .workspace-global-search input {
     min-height: 42px;
-    font-size: .68rem;
+    font-size: .76rem;
   }
 
   .workspace-profile-chip {
@@ -2465,7 +2465,7 @@ tbody tr:hover td {
   padding: 10px 12px;
   border-radius: 8px;
   color: #e4edf9;
-  font-size: .72rem;
+  font-size: .8rem;
 }
 
 .main-sidebar nav a > span {
@@ -2537,7 +2537,7 @@ tbody tr:hover td {
   border: 1px solid rgb(160 190 228 / 48%);
   border-radius: 11px;
   box-shadow: 0 7px 22px rgb(45 92 151 / 6%);
-  font-size: .65rem;
+  font-size: .74rem;
   font-weight: 800;
   white-space: nowrap;
 }
@@ -2594,12 +2594,12 @@ tbody tr:hover td {
 
 .workspace-profile-chip strong {
   color: #17365f;
-  font-size: .69rem;
+  font-size: .78rem;
 }
 
 .workspace-profile-chip small {
   color: #5d7397;
-  font-size: .58rem;
+  font-size: .69rem;
 }
 
 .module {
@@ -2688,7 +2688,7 @@ tbody tr:hover td {
 .workspace-popover-head strong {
   display: block;
   color: #17365f;
-  font-size: .72rem;
+  font-size: .8rem;
 }
 
 .workspace-period-popover label {
@@ -2696,7 +2696,7 @@ tbody tr:hover td {
   gap: 6px;
   margin-top: 11px;
   color: #667c9c;
-  font-size: .6rem;
+  font-size: .72rem;
   font-weight: 700;
 }
 
@@ -2717,7 +2717,7 @@ tbody tr:hover td {
   background: #edf5ff;
   border: 1px solid #d4e5fb;
   border-radius: 8px;
-  font-size: .62rem;
+  font-size: .72rem;
   font-weight: 800;
 }
 
@@ -2733,7 +2733,7 @@ tbody tr:hover td {
   background: #ef3347;
   border: 2px solid #fff;
   border-radius: 999px;
-  font-size: .48rem;
+  font-size: .62rem;
   font-weight: 800;
   line-height: 1;
 }
@@ -2755,7 +2755,7 @@ tbody tr:hover td {
 
 .workspace-popover-head small {
   color: #8291a9;
-  font-size: .55rem;
+  font-size: .66rem;
 }
 
 .workspace-alert-list {
@@ -2806,13 +2806,13 @@ tbody tr:hover td {
 
 .workspace-alert-item strong {
   color: #244263;
-  font-size: .64rem;
+  font-size: .74rem;
 }
 
 .workspace-alert-item small {
   margin-top: 3px;
   color: #7a8ba5;
-  font-size: .55rem;
+  font-size: .66rem;
   line-height: 1.4;
 }
 
@@ -2820,7 +2820,7 @@ tbody tr:hover td {
   margin: 0;
   padding: 22px 14px;
   color: #7a8ba5;
-  font-size: .62rem;
+  font-size: .72rem;
   text-align: center;
 }
 
@@ -2841,14 +2841,14 @@ tbody tr:hover td {
 
 .workspace-profile-menu > div strong {
   color: #17365f;
-  font-size: .68rem;
+  font-size: .76rem;
 }
 
 .workspace-profile-menu > div small {
   margin-top: 3px;
   overflow: hidden;
   color: #7b8ba2;
-  font-size: .54rem;
+  font-size: .66rem;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -2863,7 +2863,7 @@ tbody tr:hover td {
   background: transparent;
   border: 0;
   border-radius: 8px;
-  font-size: .62rem;
+  font-size: .72rem;
   text-align: left;
 }
 
@@ -2964,7 +2964,7 @@ tbody tr:hover td {
 
   .workspace-global-search input {
     min-height: 42px;
-    font-size: .68rem;
+    font-size: .76rem;
   }
 
   .workspace-alert-button {
@@ -3050,7 +3050,7 @@ tbody tr:hover td {
   background: #f5f9ff;
   border: 1px solid #dbe7f5;
   border-radius: 9px;
-  font-size: .6rem;
+  font-size: .72rem;
   font-weight: 800;
 }
 
@@ -3071,7 +3071,7 @@ tbody tr:hover td {
   display: grid;
   gap: 5px;
   color: #607695;
-  font-size: .56rem;
+  font-size: .66rem;
   font-weight: 800;
 }
 
@@ -3105,7 +3105,7 @@ tbody tr:hover td {
   top: 3px;
   width: 18px;
   height: 18px;
-  font-size: .49rem;
+  font-size: .62rem;
 }
 
 .workspace-popover-head > div {
@@ -3117,7 +3117,7 @@ tbody tr:hover td {
   color: #1761d2;
   background: transparent;
   border: 0;
-  font-size: .54rem;
+  font-size: .66rem;
   font-weight: 800;
   white-space: nowrap;
 }
@@ -3156,7 +3156,7 @@ tbody tr:hover td {
   display: block;
   margin-top: 5px;
   color: #9aa7b9;
-  font-size: .49rem;
+  font-size: .62rem;
 }
 
 @media (max-width: 920px) {
@@ -3245,7 +3245,7 @@ tbody tr:hover td {
   min-height: 34px;
   padding: 7px 30px 0;
   color: #7c8da7;
-  font-size: .58rem;
+  font-size: .69rem;
   font-weight: 700;
 }
 
@@ -3277,7 +3277,7 @@ tbody tr:hover td {
   gap: 16px;
   padding: 16px 4px 2px;
   color: #6e7f99;
-  font-size: .68rem;
+  font-size: .76rem;
   font-weight: 700;
 }
 
@@ -3311,7 +3311,7 @@ tbody tr:hover td {
 
 .data-pagination strong {
   color: #405776;
-  font-size: .65rem;
+  font-size: .74rem;
   white-space: nowrap;
 }
 
@@ -3366,7 +3366,7 @@ tbody tr:hover td {
 
 .module-inline-loading small {
   color: #7d8da3;
-  font-size: .65rem;
+  font-size: .74rem;
 }
 
 @keyframes module-loading-spin {
@@ -3575,14 +3575,14 @@ tbody tr:hover td {
     width: 30px;
     height: 30px;
     flex-basis: 30px;
-    font-size: .62rem;
+    font-size: .72rem;
   }
 
   .workspace-breadcrumbs {
     min-height: 28px;
     gap: 5px;
     padding: 4px 10px 0;
-    font-size: .54rem;
+    font-size: .66rem;
   }
 
   .module {
@@ -3603,7 +3603,7 @@ tbody tr:hover td {
   .data-pagination {
     gap: 9px;
     padding-top: 11px;
-    font-size: .62rem;
+    font-size: .72rem;
   }
 
   .data-pagination button {
