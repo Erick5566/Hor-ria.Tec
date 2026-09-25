@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import { supabase, message } from "@/lib/supabase";
-import { ErrorBox } from "./ui";
+import { ErrorBox, PanelTitle } from "./ui";
 import { Diagnostico } from "@/lib/assistencia";
 import AppliedParts from "./applied-parts";
 import { PhotosPanel } from "./photos";
@@ -56,7 +56,7 @@ export default function Diagnosis({
   return (
     <>
       <section className="panel">
-        <h2>Diagnóstico técnico</h2>
+        <PanelTitle title="Diagnóstico técnico" icon="services" />
         <p className="hint">
           Informações internas da assistência. Não aparecem na consulta pública.
         </p>
