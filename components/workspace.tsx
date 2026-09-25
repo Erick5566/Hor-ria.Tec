@@ -8,6 +8,7 @@ import {
   useCallback,
 } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import {
   supabase,
@@ -935,7 +936,25 @@ export default function Workspace({
       <aside className={`main-sidebar ${open ? "is-open" : ""}`}>
         <Brand />
         <div className="workspace-company">
-          <span>{empresa?.nome.slice(0, 1) || "H"}</span>
+          <span
+            className={
+              "workspace-company-avatar " +
+              (empresa?.logo_url ? "has-logo" : "")
+            }
+            aria-hidden="true"
+          >
+            {empresa?.logo_url ? (
+              <Image
+                src={empresa.logo_url}
+                alt=""
+                width={34}
+                height={34}
+                unoptimized
+              />
+            ) : (
+              empresa?.nome.slice(0, 1).toUpperCase() || "H"
+            )}
+          </span>
           <div>
             <strong>{empresa?.nome || "Sua assistência"}</strong>
             <small>Gestão técnica</small>
@@ -1134,7 +1153,25 @@ export default function Workspace({
                             setAlertsOpen(false);
                 }}
               >
-                <span>{empresa?.nome?.slice(0, 2).toUpperCase() || "H"}</span>
+                <span
+                  className={
+                    "workspace-profile-avatar " +
+                    (empresa?.logo_url ? "has-logo" : "")
+                  }
+                  aria-hidden="true"
+                >
+                  {empresa?.logo_url ? (
+                    <Image
+                      src={empresa.logo_url}
+                      alt=""
+                      width={32}
+                      height={32}
+                      unoptimized
+                    />
+                  ) : (
+                    empresa?.nome?.slice(0, 2).toUpperCase() || "H"
+                  )}
+                </span>
                 <div>
                   <strong>{empresa?.nome || "Sua assistência"}</strong>
                   <small>Gestor da loja</small>
