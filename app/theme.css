@@ -484,3 +484,28 @@
     height: 32px;
   }
 }
+
+
+.dashboard-main-title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.dashboard-main-title > div {
+  min-width: 0;
+}
+
+.dashboard-main-title h1 {
+  margin: 0;
+}
+
+.dashboard-main-title p {
+  margin-top: 6px;
+}
+
+@media (max-width: 520px) {
+  .dashboard-main-title {
+    align-items: flex-start;
+  }
+}
