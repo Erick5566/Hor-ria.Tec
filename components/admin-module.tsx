@@ -25,6 +25,9 @@ const BusinessProfile = dynamic(() => import("./business-profile"), {
 const SystemSettings = dynamic(() => import("./system-settings"), {
   loading: ModuleLoading,
 });
+const TeamPermissions = dynamic(() => import("./team-permissions"), {
+  loading: ModuleLoading,
+});
 const Finance = dynamic(() => import("./finance"), {
   loading: ModuleLoading,
 });
@@ -50,6 +53,7 @@ const titles: Record<string, string> = {
   relatorios: "Relatórios",
   empresa: "Minha assistência",
   configuracoes: "Configurações",
+  equipe: "Equipe e permissões",
   "pagina-cliente": "Página do cliente",
   "minha-pagina": "Minha página",
   perfil: "Perfil",
@@ -64,6 +68,7 @@ const subtitles: Record<string, string> = {
   relatorios: "Analise resultados e indicadores sem alterar a operação do dia a dia.",
   empresa: "Mantenha os dados operacionais, endereço e horários reais do negócio.",
   configuracoes: "Defina regras de atendimento e comportamento do sistema.",
+  equipe: "Controle funções e acessos dos funcionários vinculados à assistência.",
   "minha-pagina": "Edite a apresentação, conteúdo e aparência que seus clientes enxergam.",
 };
 export default function AdminModule({ module }: { module: string }) {
@@ -82,6 +87,7 @@ export default function AdminModule({ module }: { module: string }) {
       {module === "minha-pagina" && <PublicPageSettings />}
       {module === "empresa" && <BusinessProfile />}
       {module === "configuracoes" && <SystemSettings />}
+      {module === "equipe" && <TeamPermissions />}
       {module === "pagina-cliente" && (
         <section className="panel">
           <h2>Receba solicitações pela sua página</h2>

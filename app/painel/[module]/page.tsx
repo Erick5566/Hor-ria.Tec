@@ -9,6 +9,7 @@ const betaModules = [
   "relatorios",
   "empresa",
   "configuracoes",
+  "equipe",
   "pagina-cliente",
   "minha-pagina",
   "perfil",

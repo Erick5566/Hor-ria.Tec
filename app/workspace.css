@@ -3633,3 +3633,27 @@ tbody tr:hover td {
     padding-inline: 8px;
   }
 }
+
+
+/* Useful notification tones + mobile access */
+.workspace-alert-item.appointment > span {
+  background: #3a74d8;
+}
+
+.workspace-alert-item.stock > span {
+  background: #875ac0;
+}
+
+.workspace-alert-item.approval > span {
+  background: #d58a28;
+}
+
+@media (max-width: 520px) {
+  .workspace-alert-button {
+    display: grid;
+  }
+
+  .workspace-alert-popover {
+    top: 118px;
+  }
+}
