@@ -12952,3 +12952,137 @@ svg {
     grid-template-columns: 1fr;
   }
 }
+
+/* Super Admin light balance — 2026-09-26 */
+.admin-workspace {
+  background:
+    radial-gradient(circle at 90% 0%, rgb(104 181 228 / 10%), transparent 30rem),
+    #f6f8fb;
+}
+
+.admin-sidebar {
+  color: #eaf0f7;
+  background: linear-gradient(180deg, #263754 0%, #1f2f49 100%);
+  border-right: 1px solid rgb(255 255 255 / 10%);
+  box-shadow: 10px 0 26px rgb(31 47 73 / 8%);
+}
+
+.admin-sidebar .brand-logo {
+  filter: brightness(0) invert(1);
+}
+
+.admin-identity {
+  border-block-color: rgb(255 255 255 / 12%);
+}
+
+.admin-identity span,
+.admin-identity small {
+  color: #aebed2;
+}
+
+.admin-sidebar nav a {
+  color: #dce5ef;
+}
+
+.admin-sidebar nav a > span {
+  color: #c4d8f2;
+  background: rgb(255 255 255 / 7%);
+}
+
+.admin-sidebar nav a:hover {
+  color: #fff;
+  background: rgb(104 181 228 / 16%);
+  border-color: rgb(143 199 233 / 20%);
+}
+
+.admin-main {
+  background: transparent;
+}
+
+.admin-main > header {
+  color: #667085;
+  background: rgb(255 255 255 / 92%);
+  border-bottom: 1px solid #e1e6ee;
+  box-shadow: 0 1px 0 rgb(25 45 75 / 3%);
+}
+
+.admin-breadcrumb strong {
+  color: #263853;
+}
+
+.admin-module {
+  color: #344054;
+}
+
+.admin-module .page-heading h1,
+.admin-module h1,
+.admin-module h2,
+.admin-module h3 {
+  color: #1f2f49;
+}
+
+.admin-module .page-heading p,
+.admin-module p,
+.admin-module small {
+  color: #758198;
+}
+
+.admin-workspace .panel,
+.admin-overview-card,
+.admin-company-side {
+  background: #ffffff;
+  border-color: #e0e6ef;
+  box-shadow: 0 8px 24px rgb(31 47 73 / 5%);
+}
+
+.admin-overview-card {
+  background:
+    linear-gradient(180deg, #ffffff 0%, #fbfcfe 100%);
+}
+
+.admin-overview-card-head {
+  color: #66758c;
+}
+
+.admin-overview-card > strong {
+  color: #1f2f49;
+}
+
+.admin-company-toolbar input,
+.admin-company-toolbar select {
+  color: #344054;
+  background: #ffffff;
+  border-color: #d8e0ea;
+}
+
+.admin-companies-table th {
+  color: #68758b;
+  background: #f7f9fc;
+  border-bottom-color: #e4e9f0;
+}
+
+.admin-companies-table td {
+  color: #3f4f68;
+  background: #ffffff;
+}
+
+.admin-companies-table tbody tr:hover td,
+.admin-companies-table tbody tr:focus td {
+  background: #f5f9ff;
+}
+
+.admin-companies-table tbody tr.is-selected td {
+  background: #eef5ff;
+}
+
+.admin-row-actions summary,
+.admin-usage-pills > span {
+  background: #f7f9fc;
+  border-color: #e1e6ee;
+}
+
+@media (max-width: 900px) {
+  .admin-sidebar {
+    background: linear-gradient(135deg, #263754, #22334f);
+  }
+}
