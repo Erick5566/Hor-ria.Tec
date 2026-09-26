@@ -13881,3 +13881,10 @@ svg {
   color: #086ff0;
   font-weight: 800;
 }
+
+
+/* Financeiro: título principal mais aceso sobre o fundo navy. */
+.dashboard-finance-reference .dashboard-finance-toolbar-copy strong {
+  color: #4da3ff;
+  text-shadow: 0 0 14px rgb(77 163 255 / 28%);
+}
