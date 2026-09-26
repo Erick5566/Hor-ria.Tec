@@ -13867,3 +13867,17 @@ svg {
     padding: 15px;
   }
 }
+
+
+/* Financeiro: títulos com mais presença visual, sem alterar outras áreas. */
+.dashboard-finance-reference .dashboard-finance-toolbar-copy strong,
+.dashboard-finance-reference .dashboard-finance-metric-head > strong,
+.dashboard-finance-reference .dashboard-finance-card-head > div > strong {
+  color: #0d3fb8;
+  font-weight: 800;
+}
+
+.dashboard-finance-reference .dashboard-finance-card-head > a {
+  color: #086ff0;
+  font-weight: 800;
+}
