@@ -128,7 +128,7 @@ function FinanceMetricCard({
   );
 }
 
-export default function DashboardFinance() {
+export default function DashboardFinance({ onNewLaunch }: { onNewLaunch?: () => void }) {
   const { empresa } = useWorkspace();
   const [rows, setRows] = useState<Lancamento[]>([]);
   const [orderDetails, setOrderDetails] = useState<Record<string, OrderDetail>>(
@@ -452,14 +452,26 @@ export default function DashboardFinance() {
             </select>
           </label>
 
-          <Link
-            className="dashboard-finance-new"
-            href="/painel/financeiro"
-            aria-label="Ir para o financeiro e criar novo lançamento"
-          >
-            <span aria-hidden="true">＋</span>
-            Novo lançamento
-          </Link>
+          {onNewLaunch ? (
+            <button
+              type="button"
+              className="dashboard-finance-new"
+              onClick={onNewLaunch}
+              aria-label="Criar novo lançamento"
+            >
+              <span aria-hidden="true">＋</span>
+              Novo lançamento
+            </button>
+          ) : (
+            <Link
+              className="dashboard-finance-new"
+              href="/painel/financeiro"
+              aria-label="Ir para o financeiro"
+            >
+              <span aria-hidden="true">＋</span>
+              Novo lançamento
+            </Link>
+          )}
         </div>
       </div>
 
