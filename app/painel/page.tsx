@@ -480,6 +480,8 @@ export default function Overview() {
         </Link>
       </div>
 
+      <DashboardFinance />
+
       <ErrorBox error={error} />
 
       <MetricGrid columns={6} className="dashboard-kpis">
@@ -512,8 +514,6 @@ export default function Overview() {
           />
         ))}
       </MetricGrid>
-
-      <DashboardFinance />
 
       <div className="dashboard-analytics">
         <section className="dashboard-card dashboard-trend">
