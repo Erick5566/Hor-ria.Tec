@@ -12,7 +12,6 @@ import {
   PanelTitle,
 } from "@/components/ui";
 import { HorariaIcon, type HorariaIconName } from "@/components/horaria-icon";
-import DashboardFinance from "@/components/dashboard-finance";
 import { money, type Status } from "@/lib/assistencia";
 import { message, supabase, time } from "@/lib/supabase";
 
@@ -479,8 +478,6 @@ export default function Overview() {
           <span>→</span>
         </Link>
       </div>
-
-      <DashboardFinance />
 
       <ErrorBox error={error} />
 
