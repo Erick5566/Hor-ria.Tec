@@ -1,11 +1,7 @@
 "use client";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useWorkspace } from "./workspace";
-import {
-  type Lancamento,
-  money,
-  saveRow,
-} from "@/lib/assistencia";
+import { type Lancamento, money, saveRow } from "@/lib/assistencia";
 import { supabase, message, today } from "@/lib/supabase";
 import {
   ErrorBox,
@@ -166,12 +162,7 @@ export default function Finance({ ordemId }: { ordemId?: string }) {
     } finally {
       setOrdersLoading(false);
     }
-  }, [
-    ordemId,
-    empresa.id,
-    orderOptions.length,
-    ordersLoading,
-  ]);
+  }, [ordemId, empresa.id, orderOptions.length, ordersLoading]);
 
   function openNewLaunch() {
     setAdding(true);
@@ -182,16 +173,15 @@ export default function Finance({ ordemId }: { ordemId?: string }) {
   const receita = Number(metrics?.revenue || 0);
   const despesa = Number(metrics?.expense || 0);
   const saldo = receita - despesa;
-  const pendingRevenue = Number(metrics?.pendingRevenue || 0);
   const paidRevenueCount = metrics?.paidRevenueCount || 0;
   const ticket = paidRevenueCount ? receita / paidRevenueCount : 0;
 
-  const origins = (
-    ["reparo", "loja", "seminovo", "manual"] as const
-  ).map((origin) => ({
-    origin,
-    value: Number(data?.origins?.[origin] || 0),
-  }));
+  const origins = (["reparo", "loja", "seminovo", "manual"] as const).map(
+    (origin) => ({
+      origin,
+      value: Number(data?.origins?.[origin] || 0),
+    }),
+  );
   const originTotal = origins.reduce((total, item) => total + item.value, 0);
 
   const evolution = useMemo(
@@ -218,6 +208,14 @@ export default function Finance({ ordemId }: { ordemId?: string }) {
         return `${x},${y}`;
       })
       .join(" ");
+  const chartRevenue = evolution.reduce(
+    (sum, item) => sum + Number(item.receita || 0),
+    0,
+  );
+  const chartExpense = evolution.reduce(
+    (sum, item) => sum + Number(item.despesa || 0),
+    0,
+  );
 
   const donut = originTotal
     ? (() => {
@@ -259,16 +257,50 @@ export default function Finance({ ordemId }: { ordemId?: string }) {
   const currentDate = today();
   const margin = receita > 0 ? (saldo / receita) * 100 : 0;
   const expenseShare =
-    receita > 0 ? Math.min(100, (despesa / receita) * 100) : despesa > 0 ? 100 : 0;
-  const overdueCount = pending.filter(
-    (item) => item.status === "pendente" && item.vencimento < currentDate,
-  ).length;
+    receita > 0
+      ? Math.min(100, (despesa / receita) * 100)
+      : despesa > 0
+        ? 100
+        : 0;
   const topOrigin = origins.reduce(
     (best, item) => (item.value > best.value ? item : best),
     origins[0],
   );
   const topOriginPercent =
-    originTotal && topOrigin ? Math.round((topOrigin.value / originTotal) * 100) : 0;
+    originTotal && topOrigin
+      ? Math.round((topOrigin.value / originTotal) * 100)
+      : 0;
+
+  function exportEntries() {
+    if (!entries.length) return;
+    const rows = [
+      ["Descrição", "Tipo", "Valor", "Vencimento", "Status"],
+      ...entries.map((item) => [
+        item.descricao,
+        item.tipo,
+        String(item.valor).replace(".", ","),
+        item.vencimento,
+        item.status,
+      ]),
+    ];
+    const csv =
+      "\uFEFF" +
+      rows
+        .map((row) =>
+          row
+            .map((value) => `"${String(value ?? "").replaceAll('"', '""')}"`)
+            .join(";"),
+        )
+        .join("\r\n");
+    const url = URL.createObjectURL(
+      new Blob([csv], { type: "text/csv;charset=utf-8" }),
+    );
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `horaria-financeiro-${today()}-pagina-${page}.csv`;
+    link.click();
+    window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+  }
 
   return (
     <div className={ordemId ? "" : "finance-dashboard"}>
@@ -276,77 +308,140 @@ export default function Finance({ ordemId }: { ordemId?: string }) {
 
       {!ordemId && (
         <>
-          <section className="finance-overview-hero">
-            <div className="finance-overview-main">
-              <span className="finance-overview-kicker">
-                <HorariaIcon name="finance" />
-                Visão financeira
-              </span>
-              <span className="finance-overview-label">Saldo realizado</span>
-              <strong className={saldo < 0 ? "is-negative" : ""}>
-                {loading && !data ? "—" : money(saldo)}
-              </strong>
-              <div className="finance-overview-meta">
-                <span>
-                  <b>{loading && !data ? "—" : `${margin.toFixed(1)}%`}</b>
-                  margem sobre a receita
-                </span>
-                <span>
-                  <b>{metrics?.pendingCount || 0}</b>
-                  contas aguardando recebimento
-                </span>
-                <span className={overdueCount > 0 ? "has-alert" : ""}>
-                  <b>{overdueCount}</b>
-                  contas vencidas
-                </span>
-              </div>
-            </div>
-
-            <div className="finance-overview-actions">
-              <div className="finance-overview-stat">
-                <span>Recebido</span>
-                <strong>{loading && !data ? "—" : money(receita)}</strong>
-                <small>{paidRevenueCount} recebimentos confirmados</small>
-              </div>
-              <div className="finance-overview-stat">
-                <span>A receber</span>
-                <strong>{loading && !data ? "—" : money(pendingRevenue)}</strong>
-                <small>
-                  {overdueCount > 0
-                    ? `${overdueCount} vencida${overdueCount === 1 ? "" : "s"}`
-                    : "Nenhuma conta vencida"}
-                </small>
-              </div>
-              <button className="primary finance-overview-new" onClick={openNewLaunch}>
-                <HorariaIcon name="receipt" />
-                Novo lançamento
+          <div className="finance-toolbar">
+            <span>
+              Visão geral · valores acumulados e gráficos dos últimos 14 dias
+            </span>
+            <div>
+              <button
+                type="button"
+                className="finance-ghost"
+                onClick={exportEntries}
+                disabled={!entries.length}
+              >
+                Exportar página CSV
+              </button>
+              <button type="button" className="primary" onClick={openNewLaunch}>
+                + Novo lançamento
               </button>
             </div>
-          </section>
+          </div>
+          <div className="finance-chart-grid">
+            <section className="finance-card finance-evolution-card">
+              <div className="finance-card-head">
+                <div>
+                  <span className="finance-chart-kicker">Receita recebida</span>
+                  <strong className="finance-chart-total">
+                    {loading && !data ? "—" : money(chartRevenue)}
+                  </strong>
+                  <p className="finance-chart-subtitle">
+                    Evolução diária · últimos 14 dias
+                  </p>
+                </div>
+                <span className="finance-chart-period">14 dias</span>
+              </div>
+              <div className="finance-line-chart">
+                <svg
+                  viewBox="0 0 100 100"
+                  preserveAspectRatio="none"
+                  aria-label="Gráfico de evolução financeira"
+                >
+                  <defs>
+                    <linearGradient id="incomeFill" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="#68b5e4" stopOpacity=".35" />
+                      <stop offset="100%" stopColor="#68b5e4" stopOpacity="0" />
+                    </linearGradient>
+                  </defs>
+                  {[20, 40, 60, 80].map((y) => (
+                    <line
+                      key={y}
+                      x1="0"
+                      x2="100"
+                      y1={y}
+                      y2={y}
+                      className="grid-line"
+                    />
+                  ))}
+                  <polygon
+                    points={"0,92 " + points("receita") + " 100,92"}
+                    fill="url(#incomeFill)"
+                  />
+                  <polyline
+                    points={points("receita")}
+                    className="income-line"
+                  />
+                </svg>
+                <div className="finance-axis">
+                  {evolution
+                    .filter((_, index) => index % 3 === 0)
+                    .map((item) => (
+                      <span key={item.key}>{item.label}</span>
+                    ))}
+                </div>
+              </div>
+            </section>
+            <section className="finance-card finance-cost-card">
+              <div className="finance-card-head">
+                <div>
+                  <span className="finance-chart-kicker">
+                    Despesas realizadas
+                  </span>
+                  <strong className="finance-chart-total">
+                    {loading && !data ? "—" : money(chartExpense)}
+                  </strong>
+                  <p>Pagamentos por dia · últimos 14 dias</p>
+                </div>
+              </div>
+              <div
+                className="finance-bars"
+                role="img"
+                aria-label="Gráfico de despesas realizadas por dia nos últimos 14 dias"
+              >
+                {evolution.map((item) => (
+                  <div
+                    className="finance-bar-column"
+                    key={item.key}
+                    title={`${item.label}: ${money(item.despesa)}`}
+                  >
+                    <span
+                      style={{
+                        height: `${Math.max(item.despesa > 0 ? 3 : 0, (item.despesa / maxEvolution) * 100)}%`,
+                      }}
+                    />
+                    <small>{item.label}</small>
+                  </div>
+                ))}
+                {!evolution.length && (
+                  <span className="finance-chart-empty">
+                    Sem dados no período.
+                  </span>
+                )}
+              </div>
+            </section>
+          </div>
 
-          <MetricGrid columns={6} className="finance-kpis">
+          <MetricGrid columns={4} className="finance-kpis">
             <MetricCard
-              label="Receita do período"
+              label="Receita total"
               value={loading && !data ? "—" : money(receita)}
-              note="Valores recebidos"
+              note="Recebido desde o início"
               iconName="trend"
               tone="success"
             />
             <MetricCard
-              label="Despesas"
-              value={loading && !data ? "—" : money(despesa)}
-              note="Pagamentos realizados"
-              iconName="receipt"
-              tone="danger"
-            />
-            <MetricCard
               label="Lucro / saldo"
               value={loading && !data ? "—" : money(saldo)}
-              note="Receitas menos despesas"
+              note="Receita menos despesas"
               iconName="finance"
               tone={saldo < 0 ? "danger" : "primary"}
-              active={saldo !== 0}
               emphasizeValue={saldo < 0}
+            />
+            <MetricCard
+              label="Despesas"
+              value={loading && !data ? "—" : money(despesa)}
+              note="Pago desde o início"
+              iconName="receipt"
+              tone="danger"
             />
             <MetricCard
               label="Ticket médio"
@@ -355,24 +450,9 @@ export default function Finance({ ordemId }: { ordemId?: string }) {
               iconName="receipt"
               tone="purple"
             />
-            <MetricCard
-              label="A receber"
-              value={loading && !data ? "—" : money(pendingRevenue)}
-              note={`${metrics?.pendingCount || 0} títulos pendentes`}
-              iconName="clock"
-              tone="warning"
-              active={pendingRevenue > 0}
-            />
-            <MetricCard
-              label="Ordens finalizadas"
-              value={loading && !data ? "—" : metrics?.finalizedOrders || 0}
-              note="Total concluído"
-              iconName="check"
-              tone="success"
-            />
           </MetricGrid>
 
-          <div className="finance-chart-grid">
+          <div className="finance-lower-grid">
             <section className="finance-card finance-origin-card">
               <div className="finance-card-head">
                 <div>
@@ -415,61 +495,6 @@ export default function Finance({ ordemId }: { ordemId?: string }) {
               </div>
             </section>
 
-            <section className="finance-card finance-evolution-card">
-              <div className="finance-card-head">
-                <div>
-                  <PanelTitle
-                    title="Evolução financeira"
-                    icon="trend"
-                    subtitle="Receitas e despesas dos últimos 14 dias."
-                  />
-                </div>
-                <div className="finance-line-legend">
-                  <span><i className="income" /> Receita</span>
-                  <span><i className="outcome" /> Despesas</span>
-                </div>
-              </div>
-              <div className="finance-line-chart">
-                <svg
-                  viewBox="0 0 100 100"
-                  preserveAspectRatio="none"
-                  aria-label="Gráfico de evolução financeira"
-                >
-                  <defs>
-                    <linearGradient id="incomeFill" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="#68b5e4" stopOpacity=".35" />
-                      <stop offset="100%" stopColor="#68b5e4" stopOpacity="0" />
-                    </linearGradient>
-                  </defs>
-                  {[20, 40, 60, 80].map((y) => (
-                    <line
-                      key={y}
-                      x1="0"
-                      x2="100"
-                      y1={y}
-                      y2={y}
-                      className="grid-line"
-                    />
-                  ))}
-                  <polygon
-                    points={"0,92 " + points("receita") + " 100,92"}
-                    fill="url(#incomeFill)"
-                  />
-                  <polyline points={points("receita")} className="income-line" />
-                  <polyline points={points("despesa")} className="expense-line" />
-                </svg>
-                <div className="finance-axis">
-                  {evolution
-                    .filter((_, index) => index % 3 === 0)
-                    .map((item) => (
-                      <span key={item.key}>{item.label}</span>
-                    ))}
-                </div>
-              </div>
-            </section>
-          </div>
-
-          <div className="finance-lower-grid">
             <section className="finance-card">
               <div className="finance-card-head">
                 <div>
@@ -515,7 +540,9 @@ export default function Finance({ ordemId }: { ordemId?: string }) {
                     </b>
                   </div>
                 ))}
-                {!recent.length && <Empty title="Nenhuma movimentação ainda." />}
+                {!recent.length && (
+                  <Empty title="Nenhuma movimentação ainda." />
+                )}
               </div>
             </section>
 
@@ -609,13 +636,17 @@ export default function Finance({ ordemId }: { ordemId?: string }) {
         </>
       )}
 
-      <section className={ordemId ? "panel" : "finance-card finance-entry-card"}>
+      <section
+        className={ordemId ? "panel" : "finance-card finance-entry-card"}
+      >
         <div className="panel-head">
           <div>
             <PanelTitle
               title="Lançamentos"
               icon="receipt"
-              subtitle={!ordemId ? "Controle manual de entradas e saídas." : undefined}
+              subtitle={
+                !ordemId ? "Controle manual de entradas e saídas." : undefined
+              }
             />
           </div>
           <button
@@ -678,7 +709,12 @@ export default function Finance({ ordemId }: { ordemId?: string }) {
             <div className="form-grid">
               <label>
                 Descrição
-                <input name="descricao" required minLength={2} maxLength={300} />
+                <input
+                  name="descricao"
+                  required
+                  minLength={2}
+                  maxLength={300}
+                />
               </label>
               <label>
                 Tipo
@@ -753,7 +789,8 @@ export default function Finance({ ordemId }: { ordemId?: string }) {
                 <tbody>
                   {entries.map((item) => {
                     const overdue =
-                      item.status === "pendente" && item.vencimento < currentDate;
+                      item.status === "pendente" &&
+                      item.vencimento < currentDate;
                     return (
                       <tr key={item.id}>
                         <td>
@@ -776,11 +813,14 @@ export default function Finance({ ordemId }: { ordemId?: string }) {
                               item.tipo === "receita" ? "money-in" : "money-out"
                             }
                           >
-                            {item.tipo === "receita" ? "+" : "-"} {money(item.valor)}
+                            {item.tipo === "receita" ? "+" : "-"}{" "}
+                            {money(item.valor)}
                           </strong>
                         </td>
                         <td>
-                          <span className={overdue ? "finance-date-overdue" : ""}>
+                          <span
+                            className={overdue ? "finance-date-overdue" : ""}
+                          >
                             {item.vencimento.split("-").reverse().join("/")}
                           </span>
                         </td>
@@ -816,7 +856,8 @@ export default function Finance({ ordemId }: { ordemId?: string }) {
                             </button>
                           ) : (
                             <span className="finance-paid-date">
-                              {item.pago_em?.split("-").reverse().join("/") || "Pago"}
+                              {item.pago_em?.split("-").reverse().join("/") ||
+                                "Pago"}
                             </span>
                           )}
                         </td>
