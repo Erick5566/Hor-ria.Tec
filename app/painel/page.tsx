@@ -12,6 +12,7 @@ import {
   PanelTitle,
 } from "@/components/ui";
 import { HorariaIcon, type HorariaIconName } from "@/components/horaria-icon";
+import DashboardFinance from "@/components/dashboard-finance";
 import { money, type Status } from "@/lib/assistencia";
 import { message, supabase, time } from "@/lib/supabase";
 
@@ -511,6 +512,8 @@ export default function Overview() {
           />
         ))}
       </MetricGrid>
+
+      <DashboardFinance />
 
       <div className="dashboard-analytics">
         <section className="dashboard-card dashboard-trend">
