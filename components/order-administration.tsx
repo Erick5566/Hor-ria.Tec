@@ -16,7 +16,7 @@ export default function OrderAdministration({
     [secret, setSecret] = useState<string | null>(null);
   const benches = useRows<MesaReparo>("mesas_reparo");
   return (
-    <section className="panel">
+    <section className="panel order-administration-panel">
       <PanelTitle title="Responsável e previsão" icon="team" />
       <ErrorBox error={error} />
       <p role="status">{notice}</p>
@@ -113,57 +113,64 @@ export default function OrderAdministration({
       </form>
       <PanelTitle title="Acompanhamento do cliente" icon="publicPage" as="h3" />
       <p>O link individual mostra somente os dados públicos desta ordem.</p>
-      <div className="inline-actions">
-        <a
-          className="outline"
-          href={`/acompanhar/${order.token_acompanhamento}`}
-          target="_blank"
-          rel="noreferrer"
-        >
-          Abrir acompanhamento ↗
-        </a>
-        <button
-          type="button"
-          onClick={async () => {
-            await navigator.clipboard.writeText(
-              `${window.location.origin}/acompanhar/${order.token_acompanhamento}`,
-            );
-            setNotice("Link de acompanhamento copiado.");
-          }}
-        >
-          Copiar link
-        </button>
+      <div className="order-tracking-row">
+        <div className="order-tracking-links">
+          <div className="inline-actions">
+            <a
+              className="outline"
+              href={`/acompanhar/${order.token_acompanhamento}`}
+              target="_blank"
+              rel="noreferrer"
+            >
+              Abrir acompanhamento ↗
+            </a>
+            <button
+              type="button"
+              onClick={async () => {
+                await navigator.clipboard.writeText(
+                  `${window.location.origin}/acompanhar/${order.token_acompanhamento}`,
+                );
+                setNotice("Link de acompanhamento copiado.");
+              }}
+            >
+              Copiar link
+            </button>
+          </div>
+          <details>
+            <summary>Consulta alternativa</summary>
+            <p>
+              Código: <strong>{order.codigo_publico}</strong>
+            </p>
+            <p>
+              O cliente também pode consultar com o código e o telefone cadastrados.
+            </p>
+          </details>
+        </div>
+
+        <div className="order-device-password">
+          <PanelTitle title="Senha do equipamento" icon="devices" as="h3" />
+          {secret === null ? (
+            <button
+              onClick={async () => {
+                const r = await supabase!
+                  .from("equipamento_segredos")
+                  .select("senha")
+                  .eq("ordem_id", order.id)
+                  .maybeSingle();
+                if (r.error) setError(message(r.error));
+                else setSecret(r.data?.senha || "Não informada");
+              }}
+            >
+              Mostrar senha registrada
+            </button>
+          ) : (
+            <div className="order-device-secret">
+              <p>{secret}</p>
+              <button onClick={() => setSecret(null)}>Ocultar senha</button>
+            </div>
+          )}
+        </div>
       </div>
-      <details>
-        <summary>Consulta alternativa</summary>
-        <p>
-          Código: <strong>{order.codigo_publico}</strong>
-        </p>
-        <p>
-          O cliente também pode consultar com o código e o telefone cadastrados.
-        </p>
-      </details>
-      <PanelTitle title="Senha do equipamento" icon="devices" as="h3" />
-      {secret === null ? (
-        <button
-          onClick={async () => {
-            const r = await supabase!
-              .from("equipamento_segredos")
-              .select("senha")
-              .eq("ordem_id", order.id)
-              .maybeSingle();
-            if (r.error) setError(message(r.error));
-            else setSecret(r.data?.senha || "Não informada");
-          }}
-        >
-          Mostrar senha registrada
-        </button>
-      ) : (
-        <>
-          <p>{secret}</p>
-          <button onClick={() => setSecret(null)}>Ocultar senha</button>
-        </>
-      )}
     </section>
   );
 }
