@@ -510,7 +510,7 @@
   }
 }
 
-/* OS detail layout normalization — 2026-09-26 */
+/* OS detail layout normalization — 2026-09-27 */
 .order-detail-pro {
   --order-section-gap: 32px;
   --order-title-gap: 14px;
@@ -539,20 +539,20 @@
 }
 
 .order-detail-pro .order-tracking-section {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) 260px;
-  gap: clamp(28px, 4vw, 48px);
-  align-items: start;
   margin-top: var(--order-section-gap);
 }
 
-.order-detail-pro .order-tracking-main,
-.order-detail-pro .order-tracking-links {
-  min-width: 0;
+.order-detail-pro .order-tracking-heading-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: clamp(24px, 4vw, 48px);
 }
 
 .order-detail-pro .order-section-heading {
-  margin: 0 0 var(--order-title-gap);
+  flex: 1 1 auto;
+  min-width: 0;
+  margin: 0;
 }
 
 .order-detail-pro .order-section-heading .panel-title-wrap {
@@ -568,8 +568,12 @@
   line-height: 1.25;
 }
 
-.order-detail-pro .order-tracking-main > p {
-  margin: 0 0 var(--order-title-gap);
+.order-detail-pro .order-tracking-section > p {
+  margin: var(--order-title-gap) 0;
+}
+
+.order-detail-pro .order-tracking-links {
+  min-width: 0;
 }
 
 .order-detail-pro .order-tracking-links .inline-actions {
@@ -581,11 +585,13 @@
 }
 
 .order-detail-pro .order-device-password {
-  align-self: start;
-  position: static;
-  top: auto;
+  flex: 0 0 260px;
   width: 260px;
   min-width: 0;
+  align-self: flex-start;
+  position: static;
+  top: auto;
+  inset: auto;
   margin: 0;
   padding: 10px 14px;
   box-sizing: border-box;
@@ -639,12 +645,8 @@
 }
 
 @media (max-width: 900px) {
-  .order-detail-pro .order-tracking-section {
-    grid-template-columns: minmax(0, 1fr) 230px;
-    gap: 24px;
-  }
-
   .order-detail-pro .order-device-password {
+    flex-basis: 230px;
     width: 230px;
   }
 
@@ -659,28 +661,16 @@
     --order-title-gap: 12px;
   }
 
-  .order-detail-pro .order-tracking-section {
-    grid-template-columns: 1fr;
+  .order-detail-pro .order-tracking-heading-row {
+    flex-direction: column;
   }
 
   .order-detail-pro .order-device-password {
+    flex: 0 0 auto;
     width: 100%;
   }
 
   .order-detail-pro .order-summary-panel > .definition-grid {
     grid-template-columns: 1fr;
   }
-}
-
-/* OS detail hard alignment guard — 2026-09-27 */
-.order-detail-pro .order-administration-panel .order-tracking-section-top {
-  align-items: start !important;
-}
-
-.order-detail-pro .order-administration-panel .order-device-password-top {
-  align-self: start !important;
-  position: static !important;
-  inset: auto !important;
-  top: auto !important;
-  margin-top: 0 !important;
 }
