@@ -112,37 +112,35 @@ export default function OrderAdministration({
         </button>
       </form>
       <div className="order-tracking-section">
-        <div className="order-tracking-heading-row">
-          <div className="order-section-heading">
-            <PanelTitle title="Acompanhamento do cliente" icon="publicPage" as="h3" />
-          </div>
-
-          <div className="order-device-password">
-            <PanelTitle title="Senha do aparelho" icon="devices" as="h3" />
-            {secret === null ? (
-              <button
-                onClick={async () => {
-                  const r = await supabase!
-                    .from("equipamento_segredos")
-                    .select("senha")
-                    .eq("ordem_id", order.id)
-                    .maybeSingle();
-                  if (r.error) setError(message(r.error));
-                  else setSecret(r.data?.senha || "Não informada");
-                }}
-              >
-                Mostrar senha do aparelho
-              </button>
-            ) : (
-              <div className="order-device-secret">
-                <p><strong>Senha:</strong> {secret}</p>
-                <button onClick={() => setSecret(null)}>Ocultar senha</button>
-              </div>
-            )}
-          </div>
+        <div className="order-section-heading">
+          <PanelTitle title="Acompanhamento do cliente" icon="publicPage" as="h3" />
         </div>
 
-        <p>O link individual mostra somente os dados públicos desta ordem.</p>
+        <div className="order-device-password">
+          <PanelTitle title="Senha do aparelho" icon="devices" as="h3" />
+          {secret === null ? (
+            <button
+              onClick={async () => {
+                const r = await supabase!
+                  .from("equipamento_segredos")
+                  .select("senha")
+                  .eq("ordem_id", order.id)
+                  .maybeSingle();
+                if (r.error) setError(message(r.error));
+                else setSecret(r.data?.senha || "Não informada");
+              }}
+            >
+              Mostrar senha do aparelho
+            </button>
+          ) : (
+            <div className="order-device-secret">
+              <p><strong>Senha:</strong> {secret}</p>
+              <button onClick={() => setSecret(null)}>Ocultar senha</button>
+            </div>
+          )}
+        </div>
+
+        <p className="order-tracking-description">O link individual mostra somente os dados públicos desta ordem.</p>
         <div className="order-tracking-links">
           <div className="inline-actions">
             <a
