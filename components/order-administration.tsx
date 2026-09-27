@@ -107,35 +107,9 @@ export default function OrderAdministration({
             />
           </label>
         </div>
-        <div className="order-administration-actions">
-          <button disabled={busy} className="outline">
-            Salvar organização da OS
-          </button>
-          <div className="order-device-password">
-            <PanelTitle title="Senha do aparelho" icon="devices" as="h3" />
-            {secret === null ? (
-              <button
-                type="button"
-                onClick={async () => {
-                  const r = await supabase!
-                    .from("equipamento_segredos")
-                    .select("senha")
-                    .eq("ordem_id", order.id)
-                    .maybeSingle();
-                  if (r.error) setError(message(r.error));
-                  else setSecret(r.data?.senha || "Não informada");
-                }}
-              >
-                Mostrar senha do aparelho
-              </button>
-            ) : (
-              <div className="order-device-secret">
-                <p><strong>Senha:</strong> {secret}</p>
-                <button type="button" onClick={() => setSecret(null)}>Ocultar senha</button>
-              </div>
-            )}
-          </div>
-        </div>
+        <button disabled={busy} className="outline">
+          Salvar organização da OS
+        </button>
       </form>
       <PanelTitle title="Acompanhamento do cliente" icon="publicPage" as="h3" />
       <p>O link individual mostra somente os dados públicos desta ordem.</p>
@@ -173,7 +147,29 @@ export default function OrderAdministration({
           </details>
         </div>
 
-
+        <div className="order-device-password">
+          <PanelTitle title="Senha do aparelho" icon="devices" as="h3" />
+          {secret === null ? (
+            <button
+              onClick={async () => {
+                const r = await supabase!
+                  .from("equipamento_segredos")
+                  .select("senha")
+                  .eq("ordem_id", order.id)
+                  .maybeSingle();
+                if (r.error) setError(message(r.error));
+                else setSecret(r.data?.senha || "Não informada");
+              }}
+            >
+              Mostrar senha do aparelho
+            </button>
+          ) : (
+            <div className="order-device-secret">
+              <p><strong>Senha:</strong> {secret}</p>
+              <button onClick={() => setSecret(null)}>Ocultar senha</button>
+            </div>
+          )}
+        </div>
       </div>
     </section>
   );
