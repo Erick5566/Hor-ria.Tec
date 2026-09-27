@@ -148,7 +148,7 @@ export default function OrderAdministration({
         </div>
 
         <div className="order-device-password">
-          <PanelTitle title="Senha do equipamento" icon="devices" as="h3" />
+          <PanelTitle title="Senha do aparelho" icon="devices" as="h3" />
           {secret === null ? (
             <button
               onClick={async () => {
@@ -161,11 +161,11 @@ export default function OrderAdministration({
                 else setSecret(r.data?.senha || "Não informada");
               }}
             >
-              Mostrar senha registrada
+              Mostrar senha do aparelho
             </button>
           ) : (
             <div className="order-device-secret">
-              <p>{secret}</p>
+              <p><strong>Senha:</strong> {secret}</p>
               <button onClick={() => setSecret(null)}>Ocultar senha</button>
             </div>
           )}
