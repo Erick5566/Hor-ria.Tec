@@ -13929,6 +13929,8 @@ svg {
   flex: 0 0 auto;
   min-width: 260px;
   margin-left: auto;
+  position: relative;
+  top: -12px;
   padding: 10px 14px;
   background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
   border: 1px solid #dbe5f2;
@@ -13970,5 +13972,6 @@ svg {
     min-width: 0;
     width: 100%;
     margin-left: 0;
+    top: 0;
   }
 }
