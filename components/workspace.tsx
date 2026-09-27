@@ -1001,7 +1001,12 @@ export default function Workspace({
       <main className="workspace-main">
         <header className="workspace-top">
           <form className="workspace-global-search" onSubmit={submitGlobalSearch}>
-            <span aria-hidden="true">⌕</span>
+            <span className="workspace-search-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" focusable="false">
+                <circle cx="11" cy="11" r="6.5" />
+                <path d="m16 16 4 4" />
+              </svg>
+            </span>
             <input
               aria-label="Buscar área do sistema"
               placeholder="Buscar cliente, OS, equipamento, serviço..."
