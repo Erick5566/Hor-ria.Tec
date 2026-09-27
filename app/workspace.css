@@ -4751,3 +4751,54 @@ tbody tr:hover td {
   .finance-dashboard .finance-chart-grid > .finance-card { min-height: 320px; padding: 18px; }
   .finance-bar-column:nth-child(even) > small { display: none; }
 }
+
+/* Dashboard search alignment fix — 2026-09-26 */
+.workspace-global-search {
+  position: relative;
+}
+
+.workspace-global-search .workspace-search-icon {
+  position: absolute;
+  left: 16px;
+  top: 50%;
+  width: 20px;
+  height: 20px;
+  display: grid;
+  place-items: center;
+  transform: translateY(-50%);
+  color: #3c5f96;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.workspace-global-search .workspace-search-icon svg {
+  width: 20px;
+  height: 20px;
+  display: block;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.workspace-global-search input {
+  padding-left: 50px !important;
+}
+
+@media (max-width: 520px) {
+  .workspace-global-search .workspace-search-icon {
+    left: 12px;
+    width: 18px;
+    height: 18px;
+  }
+
+  .workspace-global-search .workspace-search-icon svg {
+    width: 18px;
+    height: 18px;
+  }
+
+  .workspace-global-search input {
+    padding-left: 42px !important;
+  }
+}
