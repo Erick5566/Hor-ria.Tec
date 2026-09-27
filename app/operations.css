@@ -4855,11 +4855,17 @@ button.danger,
 }
 
 .dashboard-line-chart .dash-open-line {
-  stroke: #1261ff;
+  fill: none;
+  stroke: #2563eb;
+  stroke-width: 1.8;
+  vector-effect: non-scaling-stroke;
 }
 
 .dashboard-line-chart .dash-final-line {
-  stroke: #46aaf4;
+  fill: none;
+  stroke: #16a34a;
+  stroke-width: 1.8;
+  vector-effect: non-scaling-stroke;
 }
 
 .dashboard-chart-axis,
@@ -5395,8 +5401,8 @@ button.danger,
 
 .dashboard-line-chart .dash-active-line {
   fill: none;
-  stroke: #35a7f6;
-  stroke-width: 1.5;
+  stroke: #f59e0b;
+  stroke-width: 1.8;
   vector-effect: non-scaling-stroke;
 }
 
@@ -5413,7 +5419,15 @@ button.danger,
 }
 
 .dashboard-chart-legend i.active {
-  background: #35a7f6;
+  background: #f59e0b;
+}
+
+.dashboard-chart-legend i.open {
+  background: #2563eb;
+}
+
+.dashboard-chart-legend i.done {
+  background: #16a34a;
 }
 
 .dashboard-reference .dashboard-status-layout {
