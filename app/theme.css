@@ -671,3 +671,16 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* OS detail hard alignment guard — 2026-09-27 */
+.order-detail-pro .order-administration-panel .order-tracking-section-top {
+  align-items: start !important;
+}
+
+.order-detail-pro .order-administration-panel .order-device-password-top {
+  align-self: start !important;
+  position: static !important;
+  inset: auto !important;
+  top: auto !important;
+  margin-top: 0 !important;
+}

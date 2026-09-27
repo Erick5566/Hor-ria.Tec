@@ -111,7 +111,7 @@ export default function OrderAdministration({
           Salvar organização da OS
         </button>
       </form>
-      <div className="order-tracking-section">
+      <div className="order-tracking-section order-tracking-section-top">
         <div className="order-tracking-main">
           <div className="order-section-heading">
             <PanelTitle title="Acompanhamento do cliente" icon="publicPage" as="h3" />
@@ -151,7 +151,7 @@ export default function OrderAdministration({
           </div>
         </div>
 
-        <div className="order-device-password">
+        <div className="order-device-password order-device-password-top">
           <PanelTitle title="Senha do aparelho" icon="devices" as="h3" />
           {secret === null ? (
             <button
