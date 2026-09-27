@@ -240,8 +240,8 @@ export default function OrderDetail({
                   order={order}
                   onChanged={() => void load(true)}
                 />
-                <section className="panel">
-                  <h2>Resumo do atendimento</h2>
+                <section className="panel order-summary-panel">
+                  <h2 className="order-section-title">Resumo do atendimento</h2>
                   <dl className="definition-grid">
                     <div>
                       <dt>Cliente</dt>
@@ -271,10 +271,10 @@ export default function OrderDetail({
                     </div>
                   </dl>
 
-                  <h3>Problema relatado pelo cliente</h3>
+                  <h3 className="order-section-title">Problema relatado pelo cliente</h3>
                   <p className="prose">{order.problema}</p>
 
-                  <h3>Estado do equipamento</h3>
+                  <h3 className="order-section-title">Estado do equipamento</h3>
                   <p>{order.estado.join(" · ") || "Sem marcas registradas"}</p>
                   <p className="prose">{order.observacoes_estado}</p>
                 </section>

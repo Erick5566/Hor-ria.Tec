@@ -111,40 +111,44 @@ export default function OrderAdministration({
           Salvar organização da OS
         </button>
       </form>
-      <PanelTitle title="Acompanhamento do cliente" icon="publicPage" as="h3" />
-      <p>O link individual mostra somente os dados públicos desta ordem.</p>
-      <div className="order-tracking-row">
-        <div className="order-tracking-links">
-          <div className="inline-actions">
-            <a
-              className="outline"
-              href={`/acompanhar/${order.token_acompanhamento}`}
-              target="_blank"
-              rel="noreferrer"
-            >
-              Abrir acompanhamento ↗
-            </a>
-            <button
-              type="button"
-              onClick={async () => {
-                await navigator.clipboard.writeText(
-                  `${window.location.origin}/acompanhar/${order.token_acompanhamento}`,
-                );
-                setNotice("Link de acompanhamento copiado.");
-              }}
-            >
-              Copiar link
-            </button>
+      <div className="order-tracking-section">
+        <div className="order-tracking-main">
+          <div className="order-section-heading">
+            <PanelTitle title="Acompanhamento do cliente" icon="publicPage" as="h3" />
           </div>
-          <details>
-            <summary>Consulta alternativa</summary>
-            <p>
-              Código: <strong>{order.codigo_publico}</strong>
-            </p>
-            <p>
-              O cliente também pode consultar com o código e o telefone cadastrados.
-            </p>
-          </details>
+          <p>O link individual mostra somente os dados públicos desta ordem.</p>
+          <div className="order-tracking-links">
+            <div className="inline-actions">
+              <a
+                className="outline"
+                href={`/acompanhar/${order.token_acompanhamento}`}
+                target="_blank"
+                rel="noreferrer"
+              >
+                Abrir acompanhamento ↗
+              </a>
+              <button
+                type="button"
+                onClick={async () => {
+                  await navigator.clipboard.writeText(
+                    `${window.location.origin}/acompanhar/${order.token_acompanhamento}`,
+                  );
+                  setNotice("Link de acompanhamento copiado.");
+                }}
+              >
+                Copiar link
+              </button>
+            </div>
+            <details>
+              <summary>Consulta alternativa</summary>
+              <p>
+                Código: <strong>{order.codigo_publico}</strong>
+              </p>
+              <p>
+                O cliente também pode consultar com o código e o telefone cadastrados.
+              </p>
+            </details>
+          </div>
         </div>
 
         <div className="order-device-password">
