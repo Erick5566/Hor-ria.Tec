@@ -458,7 +458,6 @@ export default function Overview() {
               </span>
               <div>
                 <h1>Visão geral</h1>
-                <p>Tudo o que importa da sua assistência técnica, em um só lugar.</p>
               </div>
             </div>
           </div>
