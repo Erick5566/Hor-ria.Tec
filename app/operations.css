@@ -13955,3 +13955,163 @@ svg {
   max-width: none;
   box-sizing: border-box;
 }
+
+
+/* Video-reference UI pass — 2026-09-28 */
+.repair-board-pro{
+  display:grid!important;
+  grid-auto-flow:column;
+  grid-auto-columns:minmax(300px,340px);
+  gap:16px!important;
+  overflow-x:auto;
+  padding:6px 2px 22px;
+  scroll-snap-type:x proximity;
+}
+.repair-column-pro{
+  min-width:300px!important;
+  border:1px solid #e8ebf2!important;
+  border-radius:14px!important;
+  background:#f8f9fc!important;
+  box-shadow:none!important;
+  scroll-snap-align:start;
+}
+.repair-column-pro>header{
+  position:sticky;
+  top:0;
+  z-index:2;
+  padding:14px 14px 10px!important;
+  background:#f8f9fc;
+  border-bottom:1px solid #eceff5;
+}
+.repair-column-title h2{
+  font-size:12px!important;
+  letter-spacing:.06em;
+  text-transform:uppercase;
+}
+.repair-card-pro{
+  position:relative;
+  margin:10px!important;
+  border:1px solid #e5e8ef!important;
+  border-left:4px solid #f2a51a!important;
+  border-radius:12px!important;
+  background:#fff!important;
+  box-shadow:0 8px 20px rgba(15,23,42,.05)!important;
+}
+.repair-card-pro.priority-urgente{border-left-color:#ef4444!important}
+.repair-card-pro.priority-alta{border-left-color:#f97316!important}
+.repair-card-pro .repair-customer{font-size:15px!important}
+.repair-card-pro .repair-device{color:#3b5ccc!important;font-weight:600}
+.repair-ready-action{
+  background:#111827!important;
+  color:#fff!important;
+  border-color:#111827!important;
+}
+.repair-ready-backdrop{
+  position:fixed;
+  inset:0;
+  z-index:1000;
+  display:grid;
+  place-items:center;
+  padding:20px;
+  background:rgba(15,23,42,.48);
+  backdrop-filter:blur(3px);
+}
+.repair-ready-modal{
+  position:relative;
+  width:min(100%,520px);
+  padding:24px;
+  border:1px solid #dbe7dc;
+  border-radius:18px;
+  background:#fff;
+  box-shadow:0 24px 80px rgba(15,23,42,.24);
+}
+.repair-ready-close{
+  position:absolute;
+  right:16px;
+  top:14px;
+  border:0!important;
+  background:transparent!important;
+  font-size:24px;
+}
+.repair-ready-title{display:flex;gap:12px;align-items:center;padding-bottom:18px;border-bottom:1px solid #edf1ee}
+.repair-ready-title>span{display:grid;place-items:center;width:44px;height:44px;border-radius:12px;background:#e8fff0;font-size:22px}
+.repair-ready-title strong{display:block;font-size:20px}
+.repair-ready-title small{display:block;margin-top:3px;color:#6b7280}
+.repair-ready-customer{display:flex;flex-direction:column;gap:4px;padding:18px 0}
+.repair-ready-customer strong{font-size:17px}
+.repair-ready-customer span{color:#6b7280}
+.repair-ready-preview{padding:16px;border:1px solid #e5e7eb;border-radius:12px;background:#fafafa}
+.repair-ready-preview small{font-size:10px;letter-spacing:.12em;color:#6b7280}
+.repair-ready-preview p{margin:8px 0 0;white-space:pre-line;line-height:1.55;color:#374151}
+.repair-ready-actions{display:grid;grid-template-columns:auto 1fr 1.25fr;gap:10px;margin-top:18px}
+.repair-ready-actions>*{min-height:44px;display:flex;align-items:center;justify-content:center;text-align:center}
+
+.fiscal-video-page{display:grid;gap:22px}
+.fiscal-video-header{display:flex;align-items:center;gap:14px}
+.fiscal-video-header h2{margin:0;font-size:30px}
+.fiscal-video-header p{margin:4px 0 0;color:#6b7280}
+.fiscal-video-icon{display:grid;place-items:center;width:48px;height:48px;border-radius:13px;background:#eef3ff;color:#2759d7}
+.fiscal-video-icon svg{width:24px;height:24px}
+.fiscal-video-setup{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(260px,.75fr);gap:20px;padding:26px;border:1px solid #e5e7eb;border-radius:16px;background:#fff}
+.fiscal-video-copy>small{font-size:10px;letter-spacing:.14em;color:#6b7280}
+.fiscal-video-copy h3{margin:7px 0 4px;font-size:25px}
+.fiscal-video-copy>p{margin:0;color:#6b7280}
+.fiscal-video-steps{display:grid;gap:16px;margin:24px 0;padding:0;list-style:none}
+.fiscal-video-steps li{display:grid;grid-template-columns:32px 1fr;gap:12px;align-items:start}
+.fiscal-video-steps li>span{display:grid;place-items:center;width:28px;height:28px;border-radius:999px;background:#111827;color:#fff;font-size:12px;font-weight:800}
+.fiscal-video-steps strong,.fiscal-video-steps small{display:block}
+.fiscal-video-steps small{margin-top:3px;color:#6b7280;line-height:1.4}
+.fiscal-video-continue{min-height:44px;padding-inline:22px!important}
+.fiscal-video-warning{align-self:start;padding:18px;border:1px solid #dbe4ff;border-radius:14px;background:#f6f8ff}
+.fiscal-video-warning strong{display:block}
+.fiscal-video-warning p{color:#566074;line-height:1.5}
+.fiscal-video-warning a{font-weight:700}
+.fiscal-video-stats{display:grid;grid-template-columns:repeat(3,1fr);border:1px solid #e5e7eb;border-radius:16px;background:#fff;overflow:hidden}
+.fiscal-video-stats article{padding:22px;border-right:1px solid #eef0f4}
+.fiscal-video-stats article:last-child{border-right:0}
+.fiscal-video-stats span,.fiscal-video-stats small{display:block;color:#6b7280}
+.fiscal-video-stats span{font-size:10px;letter-spacing:.12em}
+.fiscal-video-stats strong{display:block;margin:8px 0 5px;font-size:30px}
+.fiscal-video-bottom{padding:24px;border:1px solid #e5e7eb;border-radius:16px;background:#fff}
+.fiscal-video-bottom h3{margin:0}
+.fiscal-video-bottom p{color:#6b7280}
+.fiscal-video-empty{display:grid;place-items:center;min-height:170px;border:1px dashed #d8dde7;border-radius:14px;color:#6b7280;text-align:center}
+.fiscal-video-empty svg{width:30px;height:30px;margin-bottom:8px}
+
+.tracking-phone-card{
+  overflow:hidden;
+  border:1px solid #e4e7ee;
+  border-radius:24px;
+  background:#fff;
+  box-shadow:0 16px 48px rgba(15,23,42,.08);
+}
+.tracking-phone-brand{display:flex;align-items:center;gap:12px;padding:22px 22px 16px;border-top:5px solid #2459df}
+.tracking-phone-logo{display:grid;place-items:center;width:46px;height:46px;border-radius:12px;background:#2459df;color:#fff;font-size:24px;font-weight:900}
+.tracking-phone-brand strong,.tracking-phone-brand small{display:block}
+.tracking-phone-brand small{margin-top:2px;font-size:9px;letter-spacing:.14em;color:#8a93a3}
+.tracking-phone-order{display:flex;justify-content:space-between;gap:16px;padding:18px 22px;border-top:1px solid #eef0f4}
+.tracking-phone-order h2{margin:3px 0 7px;font-size:24px}
+.tracking-phone-order p{margin:0;color:#697386}
+.tracking-phone-status{align-self:start;padding:7px 10px;border-radius:999px;background:#eef3ff;color:#2459df;font-size:11px;white-space:nowrap}
+.tracking-phone-status.pronto_retirada,.tracking-phone-status.finalizado{background:#e9fbef;color:#168346}
+.tracking-phone-progress{padding:20px 22px;border-top:1px solid #eef0f4}
+.tracking-phone-progress>div:first-child{display:flex;justify-content:space-between;gap:12px}
+.tracking-phone-bar{height:6px;margin:12px 0 10px;border-radius:999px;background:#e8edf8;overflow:hidden}
+.tracking-phone-bar span{display:block;height:100%;border-radius:inherit;background:#2459df}
+.tracking-phone-progress small{color:#697386}
+.tracking-phone-warranty{padding:18px 22px;border-top:1px solid #eef0f4;background:#fafbfe}
+.tracking-phone-warranty strong{font-size:11px;letter-spacing:.08em;text-transform:uppercase}
+.tracking-phone-warranty p{margin:7px 0 0;color:#697386;line-height:1.5}
+.tracking-timeline{position:relative;margin:0;padding-left:8px!important}
+.tracking-timeline li{grid-template-columns:20px 1fr!important;gap:12px!important;padding-bottom:20px!important}
+.tracking-timeline li>span{width:10px!important;height:10px!important;margin-top:5px;background:#2459df!important;box-shadow:0 0 0 5px #edf2ff}
+.tracking-timeline li:not(:last-child)::after{content:"";position:absolute;left:12px;width:2px;height:36px;margin-top:15px;background:#e5eaf5}
+
+@media (max-width:780px){
+  .repair-ready-actions{grid-template-columns:1fr}
+  .fiscal-video-setup{grid-template-columns:1fr}
+  .fiscal-video-stats{grid-template-columns:1fr}
+  .fiscal-video-stats article{border-right:0;border-bottom:1px solid #eef0f4}
+  .tracking-phone-order{flex-direction:column}
+  .tracking-phone-card{border-radius:18px}
+}
