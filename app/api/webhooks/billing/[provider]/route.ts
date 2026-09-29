@@ -50,16 +50,21 @@ export async function POST(
     return NextResponse.json({ error: "Assinatura inválida" }, { status: 401 });
   let event: BillingEvent;
   try {
-    event = JSON.parse(raw) as BillingEvent;
+    const parsed: unknown = JSON.parse(raw);
+    if (!parsed || typeof parsed !== "object" || Array.isArray(parsed))
+      return NextResponse.json({ error: "Payload inválido" }, { status: 400 });
+    event = parsed as BillingEvent;
   } catch {
     return NextResponse.json({ error: "Payload inválido" }, { status: 400 });
   }
   const eventId = request.headers.get("x-horaria-event-id") || event.eventId;
   if (
-    !eventId ||
+    typeof eventId !== "string" ||
+    !eventId.trim() ||
     eventId.length > 200 ||
+    typeof event.eventType !== "string" ||
     !event.eventType ||
-    !event.companyId ||
+    typeof event.companyId !== "string" ||
     !uuid.test(event.companyId)
   )
     return NextResponse.json({ error: "Evento incompleto" }, { status: 400 });

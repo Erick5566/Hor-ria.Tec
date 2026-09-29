@@ -20,9 +20,18 @@ Deno.serve(async (request) => {
     phoneId = Deno.env.get("WHATSAPP_PHONE_NUMBER_ID");
   if (!apiToken || !phoneId)
     return json({ error: "whatsapp_not_configured" }, 503);
-  const body = await request.json();
+  let body: { id?: unknown; record?: { id?: unknown } };
+  try {
+    const parsed: unknown = await request.json();
+    if (!parsed || typeof parsed !== "object" || Array.isArray(parsed))
+      return json({ error: "invalid_payload" }, 400);
+    body = parsed;
+  } catch {
+    return json({ error: "invalid_payload" }, 400);
+  }
   const id = body.id ?? body.record?.id;
-  if (!id) return json({ error: "notification_id_required" }, 400);
+  if (typeof id !== "string" || !id.trim())
+    return json({ error: "notification_id_required" }, 400);
 
   const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
   const serviceKey =
