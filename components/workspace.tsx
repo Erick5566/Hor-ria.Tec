@@ -69,34 +69,45 @@ export function useWorkspace() {
 }
 export const menu = [
   [
-    "ATENDIMENTO",
+    "OPERAÇÃO",
     [
       ["Painel", "/painel", "home"],
       ["Recebimento", "/painel/ordens/nova", "receive"],
       ["Mesa de reparo", "/painel/mesa-reparo", "central"],
-      ["Agenda", "/painel/agenda", "calendar"],
       ["Ordens de serviço", "/painel/ordens", "orders"],
-      ["Clientes", "/painel/clientes", "clients"],
-      ["Equipamentos", "/painel/equipamentos", "devices"],
+      ["Orçamentos", "/painel/orcamentos", "receipt"],
+      ["Agenda", "/painel/agenda", "calendar"],
     ],
   ],
   [
-    "GESTÃO",
+    "CLIENTES E VENDAS",
     [
+      ["Clientes", "/painel/clientes", "clients"],
       ["Estoque", "/painel/estoque", "stock"],
-      ["Financeiro", "/painel/financeiro", "finance"],
-      ["Notas fiscais", "/painel/notas-fiscais", "receipt"],
-      ["Relatórios", "/painel/relatorios", "reports"],
-      ["Serviços", "/painel/servicos", "services"],
+      ["Vendas de produtos", "/painel/vendas", "finance"],
+      ["Aparelhos", "/painel/equipamentos", "devices"],
+      ["Seminovos", "/painel/seminovos", "devices"],
+      ["Vitrine online", "/painel/vitrine", "publicPage"],
+      ["Pós-venda", "/painel/pos-venda", "clients"],
     ],
   ],
   [
-    "EMPRESA",
+    "ADMINISTRATIVO",
+    [
+      ["Serviços", "/painel/servicos", "services"],
+      ["Financeiro", "/painel/financeiro", "finance"],
+      ["Relatórios", "/painel/relatorios", "reports"],
+      ["Notas fiscais", "/painel/notas-fiscais", "receipt"],
+      ["Equipe", "/painel/equipe", "team"],
+    ],
+  ],
+  [
+    "SUPORTE E AJUSTES",
     [
       ["Minha assistência", "/painel/empresa", "business"],
       ["Minha página", "/painel/minha-pagina", "publicPage"],
-      ["Equipe", "/painel/equipe", "team"],
       ["Configurações", "/painel/configuracoes", "settings"],
+      ["Ajuda", "/painel/ajuda", "help"],
     ],
   ],
 ] as const satisfies ReadonlyArray<
