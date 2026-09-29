@@ -472,6 +472,14 @@ export default function PublicPageSettings() {
           </div>
         </div>
         <div className="inline-actions">
+          <button type="button" onClick={async () => {
+            try {
+              await navigator.clipboard.writeText(publicUrl);
+              setNotice("Link copiado.");
+            } catch {
+              setError("Não foi possível copiar. Use o endereço exibido na página.");
+            }
+          }}>Copiar link</button>
           <button
             type="button"
             onClick={async () => {

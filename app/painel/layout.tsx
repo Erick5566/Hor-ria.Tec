@@ -1,4 +1,5 @@
 import "../theme.css";
+import "../consolidated.css";
 import type { Metadata } from "next";
 import Workspace from "@/components/workspace";
 import { redirect } from "next/navigation";

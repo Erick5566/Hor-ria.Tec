@@ -28,17 +28,17 @@ const SystemSettings = dynamic(() => import("./system-settings"), {
 const TeamPermissions = dynamic(() => import("./team-permissions"), {
   loading: ModuleLoading,
 });
-const Finance = dynamic(() => import("./finance"), {
-  loading: ModuleLoading,
-});
 const FiscalNotes = dynamic(() => import("./fiscal-notes"), {
   loading: ModuleLoading,
 });
 const Sales = dynamic(() => import("./sales"), { loading: ModuleLoading });
-const UsedDevices = dynamic(() => import("./used-devices"), { loading: ModuleLoading });
-const Showcase = dynamic(() => import("./showcase"), { loading: ModuleLoading });
-const AfterSales = dynamic(() => import("./after-sales"), { loading: ModuleLoading });
-const RepairBench = dynamic(() => import("./repair-bench"), {
+const UsedDevices = dynamic(() => import("./used-devices"), {
+  loading: ModuleLoading,
+});
+const Showcase = dynamic(() => import("./showcase"), {
+  loading: ModuleLoading,
+});
+const AfterSales = dynamic(() => import("./after-sales"), {
   loading: ModuleLoading,
 });
 const PublicPageSettings = dynamic(() => import("./public-page-settings"), {
@@ -47,9 +47,7 @@ const PublicPageSettings = dynamic(() => import("./public-page-settings"), {
 const InventoryManagement = dynamic(() => import("./inventory-management"), {
   loading: ModuleLoading,
 });
-const Reports = dynamic(() => import("./reports"), {
-  loading: ModuleLoading,
-});
+import FinanceWorkspace from "./finance-workspace";
 import { useWorkspace } from "./workspace";
 import { supabase, message } from "@/lib/supabase";
 const titles: Record<string, string> = {
@@ -73,22 +71,37 @@ const titles: Record<string, string> = {
 };
 
 const subtitles: Record<string, string> = {
-  servicos: "Cadastre o que a assistência vende e executa, com preço, duração e garantia.",
-  "mesa-reparo": "Acompanhe cada aparelho por etapa, mova OS entre bancadas e finalize o atendimento com rapidez.",
-  financeiro: "Controle receitas, despesas, contas a receber e movimentações financeiras.",
-  "notas-fiscais": "Organize a rotina fiscal da assistência e acompanhe o que está pronto para emissão.",
+  servicos:
+    "Cadastre o que a assistência vende e executa, com preço, duração e garantia.",
+  "mesa-reparo":
+    "Acompanhe cada aparelho por etapa, mova OS entre bancadas e finalize o atendimento com rapidez.",
+  financeiro:
+    "Controle receitas, despesas, contas a receber e movimentações financeiras.",
+  "notas-fiscais":
+    "Organize a rotina fiscal da assistência e acompanhe o que está pronto para emissão.",
   vendas: "Venda acessórios e produtos do estoque com registro financeiro.",
   seminovos: "Avalie, prepare e comercialize aparelhos seminovos.",
   vitrine: "Escolha os produtos e aparelhos que aparecem na página pública.",
-  "pos-venda": "Acompanhe contatos depois da entrega e mantenha o relacionamento com o cliente.",
+  "pos-venda":
+    "Acompanhe contatos depois da entrega e mantenha o relacionamento com o cliente.",
   estoque: "Controle peças, produtos, quantidades, entradas e saídas.",
-  relatorios: "Analise resultados e indicadores sem alterar a operação do dia a dia.",
-  empresa: "Mantenha os dados operacionais, endereço e horários reais do negócio.",
+  relatorios:
+    "Analise resultados e indicadores sem alterar a operação do dia a dia.",
+  empresa:
+    "Mantenha os dados operacionais, endereço e horários reais do negócio.",
   configuracoes: "Defina regras de atendimento e comportamento do sistema.",
-  equipe: "Controle funções e acessos dos funcionários vinculados à assistência.",
-  "minha-pagina": "Edite a apresentação, conteúdo e aparência que seus clientes enxergam.",
+  equipe:
+    "Controle funções e acessos dos funcionários vinculados à assistência.",
+  "minha-pagina":
+    "Edite a apresentação, conteúdo e aparência que seus clientes enxergam.",
 };
-export default function AdminModule({ module }: { module: string }) {
+export default function AdminModule({
+  module,
+  view = "",
+}: {
+  module: string;
+  view?: string;
+}) {
   const { empresa, email } = useWorkspace(),
     [notice, setNotice] = useState(""),
     [error, setError] = useState(""),
@@ -97,57 +110,17 @@ export default function AdminModule({ module }: { module: string }) {
     <section className={`module module-${module}`}>
       <Heading title={titles[module]} subtitle={subtitles[module]} />
       {module === "servicos" && <CatalogManagement />}
-      {module === "mesa-reparo" && <RepairBench />}
-      {module === "financeiro" && <Finance />}
+      {module === "financeiro" && <FinanceWorkspace view={view} />}
       {module === "notas-fiscais" && <FiscalNotes />}
       {module === "vendas" && <Sales />}
       {module === "seminovos" && <UsedDevices />}
       {module === "vitrine" && <Showcase />}
       {module === "pos-venda" && <AfterSales />}
       {module === "estoque" && <InventoryManagement />}
-      {module === "relatorios" && <Reports />}
       {module === "minha-pagina" && <PublicPageSettings />}
       {module === "empresa" && <BusinessProfile />}
       {module === "configuracoes" && <SystemSettings />}
       {module === "equipe" && <TeamPermissions />}
-      {module === "pagina-cliente" && (
-        <section className="panel">
-          <PanelTitle title="Receba solicitações pela sua página" icon="publicPage" />
-          <p>
-            Seu cliente poderá cadastrar o equipamento, informar o problema,
-            enviar fotos e escolher um horário.
-          </p>
-          <p>Endereço: /{empresa.slug}</p>
-          <div className="inline-actions">
-            <Link className="primary" href={`/${empresa.slug}`} target="_blank">
-              Abrir página ↗
-            </Link>
-            <button
-              onClick={async () => {
-                try {
-                  await navigator.clipboard.writeText(
-                    `${location.origin}/${empresa.slug}`,
-                  );
-                  setNotice("Link copiado.");
-                } catch {
-                  setError("Não foi possível copiar. Use o endereço exibido.");
-                }
-              }}
-            >
-              Copiar link
-            </button>
-            <Link className="outline" href="/painel/empresa">
-              Editar apresentação
-            </Link>
-          </div>
-          <p role="status">{notice}</p>
-          <ErrorBox error={error} />
-          <PanelTitle title="Agendamento direto" icon="calendar" as="h3" />
-          <Link href={`/agendar/${empresa.slug}`}>
-            Abrir agenda pública existente →
-          </Link>
-        </section>
-      )}
       {module === "perfil" && (
         <section className="panel">
           <PanelTitle title="Sua conta" icon="profile" />

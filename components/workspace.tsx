@@ -74,10 +74,9 @@ export const menu = [
   [
     "OPERAÇÃO",
     [
-      ["Painel", "/painel", "home"],
+      ["Visão geral", "/painel", "home"],
       ["Recebimento", "/painel/ordens/nova", "receive"],
-      ["Mesa de reparo", "/painel/mesa-reparo", "central"],
-      ["Ordens de serviço", "/painel/ordens", "orders"],
+      ["Ordens", "/painel/ordens", "orders"],
       ["Orçamentos", "/painel/orcamentos", "receipt"],
       ["Agenda", "/painel/agenda", "calendar"],
     ],
@@ -99,7 +98,6 @@ export const menu = [
     [
       ["Serviços", "/painel/servicos", "services"],
       ["Financeiro", "/painel/financeiro", "finance"],
-      ["Relatórios", "/painel/relatorios", "reports"],
       ["Notas fiscais", "/painel/notas-fiscais", "receipt"],
       ["Equipe", "/painel/equipe", "team"],
     ],
@@ -717,8 +715,8 @@ export default function Workspace({
       { words: ["serviços", "servicos"], href: "/painel/servicos" },
       { words: ["financeiro", "finanças", "financas"], href: "/painel/financeiro" },
       { words: ["estoque"], href: "/painel/estoque" },
-      { words: ["relatórios", "relatorios"], href: "/painel/relatorios" },
-      { words: ["central de atendimento", "atendimento", "diagnósticos", "diagnosticos", "mesa de reparo"], href: "/painel/mesa-reparo" },
+      { words: ["relatórios", "relatorios"], href: "/painel/financeiro?visao=relatorios" },
+      { words: ["central de atendimento", "atendimento", "diagnósticos", "diagnosticos", "mesa de reparo"], href: "/painel/ordens?visao=bancada" },
       { words: ["recebimento", "nova ordem"], href: "/painel/ordens/nova" },
       { words: ["equipe", "funcionários", "funcionarios", "permissões", "permissoes"], href: "/painel/equipe" },
     ];
@@ -842,7 +840,6 @@ export default function Workspace({
     icon: HorariaIconName;
   }> = [
     { label: "Painel", href: "/painel", icon: "home" },
-    { label: "Central", href: "/painel/mesa-reparo", icon: "central" },
     { label: "Ordens", href: "/painel/ordens", icon: "orders" },
     ...(access.company?.featureFlags.appointmentsEnabled
       ? [{ label: "Agenda", href: "/painel/agenda", icon: "calendar" as const }]
@@ -857,7 +854,6 @@ export default function Workspace({
       ? [{ label: "Estoque", href: "/painel/estoque", icon: "stock" as const }]
       : []),
     { label: "Financeiro", href: "/painel/financeiro", icon: "finance", managerOnly: true },
-    { label: "Relatórios", href: "/painel/relatorios", icon: "reports", managerOnly: true },
     { label: "Serviços", href: "/painel/servicos", icon: "services" },
     { label: "Minha assistência", href: "/painel/empresa", icon: "business", managerOnly: true },
     { label: "Minha página", href: "/painel/minha-pagina", icon: "publicPage", managerOnly: true },

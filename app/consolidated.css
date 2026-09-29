@@ -1,0 +1,304 @@
+/* Consolidated workspace: keep public pages and private administration untouched. */
+.workspace {
+  --ui-primary: #1463ff;
+  --ui-text: #142038;
+  --ui-surface: #fff;
+  --ui-border: #e2e9f3;
+  background: #f3f6fb;
+}
+.workspace .main-sidebar {
+  background: linear-gradient(180deg, #0c2341, #071a31);
+  color: #dce7fa;
+}
+.workspace .main-sidebar nav a {
+  color: #dce7fa;
+  border-radius: 9px;
+}
+.workspace .main-sidebar nav a.current {
+  background: #1463ff;
+  color: #fff;
+  box-shadow: 0 5px 15px rgb(0 70 210 / 20%);
+}
+.workspace .main-sidebar nav h2 {
+  color: #8fa7c7;
+}
+.workspace .workspace-main {
+  background: #f3f6fb;
+}
+.workspace .workspace-top {
+  background: #fff;
+  border-bottom: 1px solid #e2e9f3;
+}
+.workspace .workspace-company {
+  border-color: #29405e;
+}
+.workspace .workspace-top input {
+  background: #f8faff;
+  border-color: #dce5f2;
+}
+.consolidated-orders {
+  min-width: 0;
+}
+.consolidated-orders > .module-heading {
+  margin-bottom: 20px;
+}
+.consolidated-orders > .module-heading h1 {
+  font-size: clamp(25px, 2.4vw, 36px);
+  letter-spacing: -0.035em;
+}
+.consolidated-orders > .module-heading p {
+  margin-top: 8px;
+  font-size: 16px;
+  color: #63748e;
+}
+.consolidated-orders > .module-heading .eyebrow {
+  display: none;
+}
+.consolidated-view-nav {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
+  margin-bottom: 20px;
+}
+.consolidated-view-nav a {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  min-height: 58px;
+  padding: 12px 16px;
+  border: 1px solid #e1e8f3;
+  border-radius: 10px;
+  background: #fff;
+  color: #43546f;
+  font-size: 16px;
+  font-weight: 600;
+  text-decoration: none;
+}
+.consolidated-view-nav a[aria-current] {
+  color: #1463ff;
+  background: #e9f1ff;
+  border-bottom: 3px solid #1463ff;
+}
+.consolidated-view-nav svg {
+  width: 23px;
+  height: 23px;
+  flex-shrink: 0;
+}
+.consolidated-view-nav a:focus-visible,
+.consolidated-shortcuts a:focus-visible,
+.repair-pending-disclosure summary:focus-visible {
+  outline: 3px solid #1463ff;
+  outline-offset: 3px;
+}
+.consolidated-list {
+  margin: 0;
+  padding: 0;
+}
+.consolidated-orders .repair-compact {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.repair-compact > .repair-summary {
+  order: 0;
+  margin: 0;
+}
+.repair-compact > .repair-pro-toolbar {
+  order: 1;
+  margin: 0;
+  background: #fff;
+  border: 1px solid #e2e9f3;
+  border-radius: 12px;
+  padding: 12px;
+}
+.repair-compact > .repair-board {
+  order: 2;
+}
+.repair-compact > .repair-pending-disclosure {
+  order: 3;
+}
+.repair-compact > .repair-settings {
+  order: 1;
+}
+.repair-compact > .repair-help-bar {
+  order: 4;
+}
+.repair-compact > .module-inline-loading {
+  order: 2;
+}
+.consolidated-orders .repair-compact .repair-board.repair-board-pro {
+  grid-auto-columns: minmax(250px, calc((100% - 48px) / 4));
+  gap: 16px !important;
+  padding-bottom: 16px;
+}
+.consolidated-orders .repair-compact .repair-column-pro {
+  min-width: 250px !important;
+  background: #edf3fa !important;
+  border: 1px solid #e1e8f3 !important;
+  border-radius: 12px !important;
+}
+.consolidated-orders .repair-compact .repair-column-pro > header {
+  background: #edf3fa;
+}
+.consolidated-orders .repair-compact .repair-column-title h2 {
+  text-transform: none;
+  font-size: 14px !important;
+  letter-spacing: 0;
+  white-space: normal;
+}
+.consolidated-orders .repair-compact .repair-card-pro {
+  border-left: 1px solid #e1e8f3 !important;
+  box-shadow: none !important;
+  padding: 14px;
+}
+.consolidated-orders .repair-compact .repair-customer {
+  color: #142038;
+}
+.consolidated-orders .repair-compact .repair-device {
+  color: #526888 !important;
+  font-weight: 400;
+}
+.repair-pending-disclosure {
+  background: #fff;
+  border: 1px solid #e2e9f3;
+  border-radius: 12px;
+  padding: 14px;
+}
+.repair-pending-disclosure > summary {
+  cursor: pointer;
+  font-weight: 600;
+  color: #243958;
+}
+.repair-pending-disclosure > summary span {
+  margin-left: 12px;
+  font-size: 12px;
+  color: #687b96;
+}
+.repair-pending-disclosure[open] > summary {
+  margin-bottom: 16px;
+}
+.consolidated-shortcuts {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  margin-top: 22px;
+}
+.consolidated-shortcuts > a {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: #fff;
+  border: 1px solid #e2e9f3;
+  border-radius: 12px;
+  padding: 18px;
+  text-decoration: none;
+  color: #263951;
+}
+.consolidated-shortcuts > a > svg {
+  width: 28px;
+  height: 28px;
+  color: #1463ff;
+  flex-shrink: 0;
+}
+.consolidated-shortcuts > a > div {
+  flex: 1;
+}
+.consolidated-shortcuts strong,
+.consolidated-shortcuts div > span {
+  display: block;
+}
+.consolidated-shortcuts div > span {
+  margin-top: 5px;
+  font-size: 13px;
+  color: #687b96;
+}
+@media (max-width: 700px) {
+  .consolidated-view-nav {
+    margin-bottom: 16px;
+  }
+  .consolidated-view-nav a {
+    font-size: 14px;
+    min-height: 48px;
+    padding: 10px;
+    gap: 8px;
+  }
+  .consolidated-orders > .module-heading {
+    align-items: flex-start;
+    gap: 14px;
+  }
+  .consolidated-shortcuts {
+    grid-template-columns: 1fr;
+  }
+  .consolidated-orders .repair-compact .repair-board.repair-board-pro {
+    grid-auto-columns: minmax(260px, 85vw);
+  }
+  .consolidated-orders .repair-compact .repair-pro-toolbar {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .consolidated-orders .repair-compact .repair-search {
+    grid-column: 1 / -1;
+  }
+  .repair-pending-disclosure > summary span {
+    display: block;
+    margin: 6px 0 0;
+  }
+}
+
+.workspace .workspace-main::before,
+.workspace .workspace-main::after {
+  display: none;
+}
+.consolidated-orders .repair-compact .repair-search {
+  position: relative;
+}
+.consolidated-orders .repair-compact .repair-search > span {
+  position: absolute;
+  left: 13px;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+}
+.consolidated-orders .repair-compact .repair-search input {
+  padding-left: 36px;
+}
+.consolidated-orders .repair-compact .repair-column-pro > header {
+  gap: 8px;
+  min-height: 58px;
+}
+.consolidated-orders .repair-compact .repair-column-title {
+  min-width: 0;
+  flex: 1;
+  gap: 8px;
+}
+.consolidated-orders .repair-compact .repair-column-title h2 {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.consolidated-orders .repair-compact .repair-column-count {
+  flex-shrink: 0;
+}
+.consolidated-orders .repair-compact .repair-search input {
+  padding-left: 36px !important;
+}
+.consolidated-orders .repair-compact .repair-column-title h2 {
+  text-transform: none !important;
+  letter-spacing: 0 !important;
+}
+
+.consolidated-orders .repair-summary .ui-metric-content {
+  display: flex;
+  flex-direction: column;
+}
+.consolidated-orders .repair-summary .ui-metric-content > b {
+  order: -1;
+  font-size: 13px;
+  font-weight: 500;
+}
+.consolidated-orders .repair-summary .ui-metric-value-row {
+  margin-top: 4px;
+}
+.consolidated-orders .repair-summary .ui-metric-value-row strong {
+  color: var(--tone-ink, #1463ff);
+}

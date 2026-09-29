@@ -1,11 +1,7 @@
 "use client";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import {
-  MesaReparo,
-  Status,
-  useRows,
-} from "@/lib/assistencia";
+import { MesaReparo, Status, useRows } from "@/lib/assistencia";
 import { message, supabase } from "@/lib/supabase";
 import { useWorkspace } from "./workspace";
 import {
@@ -23,7 +19,12 @@ const columns: {
   statuses: Status[];
   tone: string;
 }[] = [
-  { title: "Recebidos", target: "recebido", statuses: ["novo", "recebido"], tone: "slate" },
+  {
+    title: "Recebidos",
+    target: "recebido",
+    statuses: ["novo", "recebido"],
+    tone: "slate",
+  },
   {
     title: "Diagnóstico",
     target: "em_diagnostico",
@@ -48,7 +49,12 @@ const columns: {
     statuses: ["orcamento_aprovado", "em_reparo"],
     tone: "indigo",
   },
-  { title: "Testes", target: "em_testes", statuses: ["em_testes"], tone: "cyan" },
+  {
+    title: "Testes",
+    target: "em_testes",
+    statuses: ["em_testes"],
+    tone: "cyan",
+  },
   {
     title: "Pronto para retirada",
     target: "pronto_retirada",
@@ -162,7 +168,6 @@ function whatsappMessage(order: BenchOrder, companyName: string) {
   return `Olá, ${customer}! Aqui é da ${companyName}. Estou entrando em contato para dar continuidade à OS #${order.numero}.`;
 }
 
-
 type DailyPending = {
   order: BenchOrder;
   kind: "overdue" | "urgent" | "followup" | "quote" | "part" | "stalled";
@@ -175,7 +180,9 @@ function staleLabel(value: string) {
   const hours = hoursSince(value);
   if (hours < 48) return "";
   const days = Math.floor(hours / 24);
-  return days <= 1 ? "Sem atualização há 2 dias" : `Sem atualização há ${days} dias`;
+  return days <= 1
+    ? "Sem atualização há 2 dias"
+    : `Sem atualização há ${days} dias`;
 }
 
 function dailyPending(order: BenchOrder): DailyPending | null {
@@ -250,7 +257,13 @@ function dailyPending(order: BenchOrder): DailyPending | null {
   return null;
 }
 
-export default function RepairBench() {
+export default function RepairBench({
+  compact = false,
+  initialQuery = "",
+}: {
+  compact?: boolean;
+  initialQuery?: string;
+}) {
   const { empresa } = useWorkspace();
   const benches = useRows<MesaReparo>("mesas_reparo");
   const [benchData, setBenchData] = useState<BenchData>({
@@ -259,8 +272,9 @@ export default function RepairBench() {
   });
   const [loadingBench, setLoadingBench] = useState(true);
 
-  const [query, setQuery] = useState("");
+  const [query, setQuery] = useState(initialQuery);
   const [bench, setBench] = useState("");
+  const [priority, setPriority] = useState("");
   const [technician, setTechnician] = useState("");
   const [attentionFilter, setAttentionFilter] = useState<
     "all" | "waiting" | "quote" | "followup"
@@ -344,11 +358,12 @@ export default function RepairBench() {
         if (["finalizado", "cancelado"].includes(order.status)) return false;
         if (bench && order.mesa_id !== bench) return false;
         if (technician && order.tecnico !== technician) return false;
+        if (priority && order.prioridade !== priority) return false;
         return `${order.numero} ${order.problema} ${order.cliente_nome || ""} ${order.equipamento_marca || ""} ${order.equipamento_modelo || ""}`
           .toLowerCase()
           .includes(query.toLowerCase());
       }),
-    [benchData.items, bench, technician, query],
+    [benchData.items, bench, technician, query, priority],
   );
 
   const waitingCount = baseVisible.filter(waitingForCustomer).length;
@@ -372,19 +387,25 @@ export default function RepairBench() {
   );
 
   const visible = useMemo(() => {
-    if (attentionFilter === "waiting") return baseVisible.filter(waitingForCustomer);
+    if (attentionFilter === "waiting")
+      return baseVisible.filter(waitingForCustomer);
     if (attentionFilter === "quote") return baseVisible.filter(quotePending);
-    if (attentionFilter === "followup") return baseVisible.filter(needsCustomerFollowup);
+    if (attentionFilter === "followup")
+      return baseVisible.filter(needsCustomerFollowup);
     return baseVisible;
   }, [baseVisible, attentionFilter]);
 
-  const urgentCount = visible.filter((order) => order.prioridade === "urgente").length;
+  const urgentCount = visible.filter(
+    (order) => order.prioridade === "urgente",
+  ).length;
   const overdueCount = visible.filter((order) => {
     const days = daysUntil(order.prazo_previsto);
     return days !== null && days < 0;
   }).length;
   const readyToday = visible.filter(
-    (order) => order.status === "pronto_retirada" && daysUntil(order.prazo_previsto) === 0,
+    (order) =>
+      order.status === "pronto_retirada" &&
+      daysUntil(order.prazo_previsto) === 0,
   ).length;
 
   async function registerCustomerFollowup(order: BenchOrder) {
@@ -424,10 +445,8 @@ export default function RepairBench() {
   }
 
   return (
-    <div className="repair-pro">
-      <ErrorBox
-        error={error || benches.error}
-      />
+    <div className={`repair-pro ${compact ? "repair-compact" : ""}`}>
+      <ErrorBox error={error || benches.error} />
 
       <div className="repair-pro-toolbar">
         <label className="repair-search">
@@ -466,158 +485,263 @@ export default function RepairBench() {
           ))}
         </select>
 
-        <button className="repair-config-button" onClick={() => setConfiguring(!configuring)}>
+        <select
+          aria-label="Filtrar por prioridade"
+          value={priority}
+          onChange={(event) => setPriority(event.target.value)}
+        >
+          <option value="">Todas as prioridades</option>
+          {Object.entries(priorityLabel).map(([value, label]) => (
+            <option key={value} value={value}>
+              {label}
+            </option>
+          ))}
+        </select>
+
+        <button
+          className="repair-config-button"
+          onClick={() => setConfiguring(!configuring)}
+        >
           {configuring ? "Fechar mesas" : "Configurar mesas"}
         </button>
 
-        <Link className="primary repair-new-order" href="/painel/ordens/nova">
-          + Nova ordem
-        </Link>
+        {!compact && (
+          <Link className="primary repair-new-order" href="/painel/ordens/nova">
+            + Nova ordem
+          </Link>
+        )}
       </div>
 
-      <MetricGrid columns={4} className="repair-summary">
-        <MetricCard
-          label="Em andamento"
-          value={visible.length}
-          note="Ordens na mesa"
-          iconName="services"
-        />
-        <MetricCard
-          label="Urgentes"
-          value={urgentCount}
-          note="Precisam de atenção"
-          iconName="alert"
-          tone="danger"
-          active={urgentCount > 0}
-          emphasizeValue
-        />
-        <MetricCard
-          label="Atrasadas"
-          value={overdueCount}
-          note="Prazo vencido"
-          iconName="clock"
-          tone="warning"
-          active={overdueCount > 0}
-          emphasizeValue
-        />
-        <MetricCard
-          label="Prontas hoje"
-          value={readyToday}
-          note="Disponíveis para retirada"
-          iconName="check"
-          tone="success"
-        />
-      </MetricGrid>
+      {compact ? (
+        <MetricGrid columns={4} className="repair-summary">
+          <MetricCard
+            label="Abertas"
+            value={loadingBench ? "—" : visible.length}
+            note="No filtro atual"
+            iconName="orders"
+          />
+          <MetricCard
+            label="Em reparo"
+            value={
+              loadingBench
+                ? "—"
+                : visible.filter((order) =>
+                    ["orcamento_aprovado", "em_reparo"].includes(order.status),
+                  ).length
+            }
+            note="Em execução"
+            iconName="services"
+            tone="warning"
+          />
+          <MetricCard
+            label="Aguardando aprovação"
+            value={
+              loadingBench
+                ? "—"
+                : visible.filter((order) =>
+                    ["orcamento_enviado", "aguardando_aprovacao"].includes(
+                      order.status,
+                    ),
+                  ).length
+            }
+            note="Resposta do cliente"
+            iconName="clock"
+            tone="warning"
+          />
+          <MetricCard
+            label="Prontas"
+            value={
+              loadingBench
+                ? "—"
+                : visible.filter((order) => order.status === "pronto_retirada")
+                    .length
+            }
+            note="Disponíveis para retirada"
+            iconName="check"
+            tone="success"
+          />
+        </MetricGrid>
+      ) : (
+        <MetricGrid columns={4} className="repair-summary">
+          <MetricCard
+            label="Em andamento"
+            value={visible.length}
+            note="Ordens na mesa"
+            iconName="services"
+          />
+          <MetricCard
+            label="Urgentes"
+            value={urgentCount}
+            note="Precisam de atenção"
+            iconName="alert"
+            tone="danger"
+            active={urgentCount > 0}
+            emphasizeValue
+          />
+          <MetricCard
+            label="Atrasadas"
+            value={overdueCount}
+            note="Prazo vencido"
+            iconName="clock"
+            tone="warning"
+            active={overdueCount > 0}
+            emphasizeValue
+          />
+          <MetricCard
+            label="Prontas hoje"
+            value={readyToday}
+            note="Disponíveis para retirada"
+            iconName="check"
+            tone="success"
+          />
+        </MetricGrid>
+      )}
 
-      <section className="repair-daily-pending" aria-label="Pendências do dia">
-        <div className="repair-daily-pending-head">
-          <div>
-            <span>PRIORIDADES DO DIA</span>
-            <strong className="repair-daily-title-with-icon">
-              <HorariaIcon name="alert" />
-              Pendências que precisam de ação
-            </strong>
+      <details
+        className="repair-pending-disclosure"
+        open={compact ? undefined : true}
+      >
+        <summary>
+          Pendências e atendimento{" "}
+          <span>{dailyPendings.length} prioridade(s)</span>
+        </summary>
+        <section
+          className="repair-daily-pending"
+          aria-label="Pendências do dia"
+        >
+          <div className="repair-daily-pending-head">
+            <div>
+              <span>PRIORIDADES DO DIA</span>
+              <strong className="repair-daily-title-with-icon">
+                <HorariaIcon name="alert" />
+                Pendências que precisam de ação
+              </strong>
+              <small>
+                Atrasos, retornos, orçamentos, peças e OS sem movimentação
+                aparecem aqui automaticamente.
+              </small>
+            </div>
+            <b>{dailyPendings.length}</b>
+          </div>
+
+          {dailyPendings.length ? (
+            <div className="repair-daily-pending-list">
+              {dailyPendings.slice(0, 8).map((pending) => {
+                const order = pending.order;
+                const number = whatsappNumber(order.cliente_whatsapp);
+                return (
+                  <article
+                    className={`repair-daily-item kind-${pending.kind}`}
+                    key={order.id}
+                  >
+                    <span className="repair-daily-dot" aria-hidden="true" />
+                    <div className="repair-daily-copy">
+                      <div>
+                        <strong>{pending.title}</strong>
+                        <span>OS #{order.numero}</span>
+                      </div>
+                      <p>
+                        {order.cliente_nome || "Cliente"} ·{" "}
+                        {`${order.equipamento_marca || ""} ${order.equipamento_modelo || ""}`.trim() ||
+                          "Equipamento"}
+                      </p>
+                      <small>{pending.detail}</small>
+                    </div>
+                    <div className="repair-daily-actions">
+                      {pending.kind === "followup" && number && (
+                        <a
+                          href={`https://wa.me/${number}?text=${encodeURIComponent(
+                            whatsappMessage(
+                              order,
+                              empresa.nome || "assistência",
+                            ),
+                          )}`}
+                          target="_blank"
+                          rel="noreferrer"
+                        >
+                          WhatsApp ↗
+                        </a>
+                      )}
+                      <Link href={`/painel/ordens/${order.id}`}>Abrir OS</Link>
+                    </div>
+                  </article>
+                );
+              })}
+              {dailyPendings.length > 8 && (
+                <small className="repair-daily-more">
+                  + {dailyPendings.length - 8} pendência(s) adicional(is). Use
+                  os filtros abaixo para revisar todas.
+                </small>
+              )}
+            </div>
+          ) : (
+            <div className="repair-daily-empty">
+              <span aria-hidden="true">✓</span>
+              <div>
+                <strong>Nenhuma pendência crítica agora.</strong>
+                <small>
+                  A Central continua acompanhando as OS em andamento.
+                </small>
+              </div>
+            </div>
+          )}
+        </section>
+
+        <section
+          className="repair-attention-center"
+          aria-label="Pendências de atendimento"
+        >
+          <div className="repair-attention-copy">
+            <strong>Atendimento ao cliente</strong>
             <small>
-              Atrasos, retornos, orçamentos, peças e OS sem movimentação aparecem aqui automaticamente.
+              Use estes atalhos para encontrar quem está esperando orçamento ou
+              precisa de retorno.
             </small>
           </div>
-          <b>{dailyPendings.length}</b>
-        </div>
-
-        {dailyPendings.length ? (
-          <div className="repair-daily-pending-list">
-            {dailyPendings.slice(0, 8).map((pending) => {
-              const order = pending.order;
-              const number = whatsappNumber(order.cliente_whatsapp);
-              return (
-                <article
-                  className={`repair-daily-item kind-${pending.kind}`}
-                  key={order.id}
-                >
-                  <span className="repair-daily-dot" aria-hidden="true" />
-                  <div className="repair-daily-copy">
-                    <div>
-                      <strong>{pending.title}</strong>
-                      <span>OS #{order.numero}</span>
-                    </div>
-                    <p>
-                      {order.cliente_nome || "Cliente"} ·{" "}
-                      {`${order.equipamento_marca || ""} ${order.equipamento_modelo || ""}`.trim() ||
-                        "Equipamento"}
-                    </p>
-                    <small>{pending.detail}</small>
-                  </div>
-                  <div className="repair-daily-actions">
-                    {pending.kind === "followup" && number && (
-                      <a
-                        href={`https://wa.me/${number}?text=${encodeURIComponent(
-                          whatsappMessage(order, empresa.nome || "assistência"),
-                        )}`}
-                        target="_blank"
-                        rel="noreferrer"
-                      >
-                        WhatsApp ↗
-                      </a>
-                    )}
-                    <Link href={`/painel/ordens/${order.id}`}>Abrir OS</Link>
-                  </div>
-                </article>
-              );
-            })}
-            {dailyPendings.length > 8 && (
-              <small className="repair-daily-more">
-                + {dailyPendings.length - 8} pendência(s) adicional(is). Use os filtros abaixo para revisar todas.
-              </small>
-            )}
+          <div className="repair-attention-filters">
+            <button
+              type="button"
+              className={attentionFilter === "waiting" ? "active" : ""}
+              onClick={() =>
+                setAttentionFilter(
+                  attentionFilter === "waiting" ? "all" : "waiting",
+                )
+              }
+            >
+              <span>{waitingCount}</span>
+              Aguardando cliente
+            </button>
+            <button
+              type="button"
+              className={attentionFilter === "quote" ? "active" : ""}
+              onClick={() =>
+                setAttentionFilter(
+                  attentionFilter === "quote" ? "all" : "quote",
+                )
+              }
+            >
+              <span>{quotePendingCount}</span>
+              Orçamento pendente
+            </button>
+            <button
+              type="button"
+              className={attentionFilter === "followup" ? "active" : ""}
+              onClick={() =>
+                setAttentionFilter(
+                  attentionFilter === "followup" ? "all" : "followup",
+                )
+              }
+            >
+              <span>{followupCount}</span>
+              Precisa de retorno
+            </button>
           </div>
-        ) : (
-          <div className="repair-daily-empty">
-            <span aria-hidden="true">✓</span>
-            <div>
-              <strong>Nenhuma pendência crítica agora.</strong>
-              <small>A Central continua acompanhando as OS em andamento.</small>
-            </div>
-          </div>
-        )}
-      </section>
-
-      <section className="repair-attention-center" aria-label="Pendências de atendimento">
-        <div className="repair-attention-copy">
-          <strong>Atendimento ao cliente</strong>
-          <small>
-            Use estes atalhos para encontrar quem está esperando orçamento ou precisa de retorno.
+          <small className="repair-attention-note">
+            “Precisa de retorno” inclui equipamento pronto para retirada ou
+            orçamento sem resposta há pelo menos 24 horas.
           </small>
-        </div>
-        <div className="repair-attention-filters">
-          <button
-            type="button"
-            className={attentionFilter === "waiting" ? "active" : ""}
-            onClick={() => setAttentionFilter(attentionFilter === "waiting" ? "all" : "waiting")}
-          >
-            <span>{waitingCount}</span>
-            Aguardando cliente
-          </button>
-          <button
-            type="button"
-            className={attentionFilter === "quote" ? "active" : ""}
-            onClick={() => setAttentionFilter(attentionFilter === "quote" ? "all" : "quote")}
-          >
-            <span>{quotePendingCount}</span>
-            Orçamento pendente
-          </button>
-          <button
-            type="button"
-            className={attentionFilter === "followup" ? "active" : ""}
-            onClick={() => setAttentionFilter(attentionFilter === "followup" ? "all" : "followup")}
-          >
-            <span>{followupCount}</span>
-            Precisa de retorno
-          </button>
-        </div>
-        <small className="repair-attention-note">
-          “Precisa de retorno” inclui equipamento pronto para retirada ou orçamento sem resposta há pelo menos 24 horas.
-        </small>
-      </section>
+        </section>
+      </details>
 
       {configuring && (
         <section className="panel bench-settings repair-settings">
@@ -655,14 +779,26 @@ export default function RepairBench() {
             <div className="form-grid">
               <label>
                 Nome
-                <input name="nome" required minLength={2} maxLength={80} placeholder="Ex.: Microsoldagem" />
+                <input
+                  name="nome"
+                  required
+                  minLength={2}
+                  maxLength={80}
+                  placeholder="Ex.: Microsoldagem"
+                />
               </label>
               <label>
                 Descrição
-                <input name="descricao" maxLength={200} placeholder="Uso opcional" />
+                <input
+                  name="descricao"
+                  maxLength={200}
+                  placeholder="Uso opcional"
+                />
               </label>
             </div>
-            <button className="primary" disabled={busy}>Adicionar mesa</button>
+            <button className="primary" disabled={busy}>
+              Adicionar mesa
+            </button>
           </form>
           <div className="bench-list">
             {benches.data.map((item) => (
@@ -697,7 +833,9 @@ export default function RepairBench() {
 
       <div className="repair-board repair-board-pro">
         {columns.map((column) => {
-          const cards = visible.filter((order) => column.statuses.includes(order.status));
+          const cards = visible.filter((order) =>
+            column.statuses.includes(order.status),
+          );
           return (
             <section
               className={`repair-column repair-column-pro tone-${column.tone}`}
@@ -705,7 +843,8 @@ export default function RepairBench() {
               onDragOver={(event) => event.preventDefault()}
               onDrop={(event) => {
                 const order = benchData.items.find(
-                  (item) => item.id === event.dataTransfer.getData("text/order-id"),
+                  (item) =>
+                    item.id === event.dataTransfer.getData("text/order-id"),
                 );
                 if (order) void move(order, column.target);
               }}
@@ -721,7 +860,8 @@ export default function RepairBench() {
               <div className="repair-column-cards">
                 {cards.map((order) => {
                   const benchName =
-                    benches.data.find((item) => item.id === order.mesa_id)?.nome || "Sem mesa";
+                    benches.data.find((item) => item.id === order.mesa_id)
+                      ?.nome || "Sem mesa";
                   const overdue = (daysUntil(order.prazo_previsto) ?? 0) < 0;
 
                   return (
@@ -734,35 +874,54 @@ export default function RepairBench() {
                       }
                     >
                       <div className="repair-card-head">
-                        <Link href={`/painel/ordens/${order.id}`}>#{order.numero}</Link>
-                        <SemanticBadge tone={repairPriorityTone(order.prioridade)}>
+                        <Link href={`/painel/ordens/${order.id}`}>
+                          #{order.numero}
+                        </Link>
+                        <SemanticBadge
+                          tone={repairPriorityTone(order.prioridade)}
+                        >
                           {priorityLabel[order.prioridade]}
                         </SemanticBadge>
                       </div>
 
-                      <strong className="repair-customer">{order.cliente_nome || "Cliente"}</strong>
+                      <strong className="repair-customer">
+                        {order.cliente_nome || "Cliente"}
+                      </strong>
                       <span className="repair-device">
-                        {`${order.equipamento_marca || ""} ${order.equipamento_modelo || ""}`.trim() || "Equipamento"}
+                        {`${order.equipamento_marca || ""} ${order.equipamento_modelo || ""}`.trim() ||
+                          "Equipamento"}
                       </span>
                       <p className="repair-problem">{order.problema}</p>
 
-                      {(waitingForCustomer(order) || quotePending(order) || needsCustomerFollowup(order)) && (
+                      {(waitingForCustomer(order) ||
+                        quotePending(order) ||
+                        needsCustomerFollowup(order)) && (
                         <div className="repair-attention-tags">
                           {quotePending(order) && (
-                            <SemanticBadge tone="primary">Orçamento pendente</SemanticBadge>
+                            <SemanticBadge tone="primary">
+                              Orçamento pendente
+                            </SemanticBadge>
                           )}
                           {waitingForCustomer(order) && (
-                            <SemanticBadge tone="warning">Aguardando cliente</SemanticBadge>
+                            <SemanticBadge tone="warning">
+                              Aguardando cliente
+                            </SemanticBadge>
                           )}
                           {needsCustomerFollowup(order) && (
-                            <SemanticBadge tone="danger">Retorno necessário</SemanticBadge>
+                            <SemanticBadge tone="danger">
+                              Retorno necessário
+                            </SemanticBadge>
                           )}
                         </div>
                       )}
 
                       <div className="repair-meta">
-                        <span className={overdue ? "overdue" : ""}>◷ {relativeDeadline(order.prazo_previsto)}</span>
-                        <span title={order.tecnico || "Técnico não definido"}>{(order.tecnico || "—").slice(0, 2).toUpperCase()}</span>
+                        <span className={overdue ? "overdue" : ""}>
+                          ◷ {relativeDeadline(order.prazo_previsto)}
+                        </span>
+                        <span title={order.tecnico || "Técnico não definido"}>
+                          {(order.tecnico || "—").slice(0, 2).toUpperCase()}
+                        </span>
                       </div>
 
                       <div className="repair-card-details">
@@ -776,7 +935,9 @@ export default function RepairBench() {
                           value={column.title}
                           disabled={busy}
                           onChange={(event) => {
-                            const next = columns.find((item) => item.title === event.target.value);
+                            const next = columns.find(
+                              (item) => item.title === event.target.value,
+                            );
                             if (next) void move(order, next.target);
                           }}
                         >
@@ -789,14 +950,20 @@ export default function RepairBench() {
                           value={order.mesa_id || ""}
                           disabled={busy}
                           onChange={(event) =>
-                            void move(order, order.status, event.target.value || null)
+                            void move(
+                              order,
+                              order.status,
+                              event.target.value || null,
+                            )
                           }
                         >
                           <option value="">Sem mesa</option>
                           {benches.data
                             .filter((item) => item.ativo)
                             .map((item) => (
-                              <option key={item.id} value={item.id}>{item.nome}</option>
+                              <option key={item.id} value={item.id}>
+                                {item.nome}
+                              </option>
                             ))}
                         </select>
                       </div>
@@ -805,7 +972,11 @@ export default function RepairBench() {
                         <Link href={`/painel/ordens/${order.id}`}>
                           Abrir OS
                         </Link>
-                        {["orcamento_aprovado", "em_reparo", "em_testes"].includes(order.status) && (
+                        {[
+                          "orcamento_aprovado",
+                          "em_reparo",
+                          "em_testes",
+                        ].includes(order.status) && (
                           <button
                             type="button"
                             className="repair-ready-action"
@@ -818,7 +989,10 @@ export default function RepairBench() {
                         {whatsappNumber(order.cliente_whatsapp) && (
                           <a
                             href={`https://wa.me/${whatsappNumber(order.cliente_whatsapp)}?text=${encodeURIComponent(
-                              whatsappMessage(order, empresa.nome || "assistência"),
+                              whatsappMessage(
+                                order,
+                                empresa.nome || "assistência",
+                              ),
                             )}`}
                             target="_blank"
                             rel="noreferrer"
@@ -826,7 +1000,8 @@ export default function RepairBench() {
                             WhatsApp ↗
                           </a>
                         )}
-                        {(waitingForCustomer(order) || order.status === "pronto_retirada") && (
+                        {(waitingForCustomer(order) ||
+                          order.status === "pronto_retirada") && (
                           <button
                             type="button"
                             className="repair-followup-done"
@@ -843,7 +1018,10 @@ export default function RepairBench() {
                       </div>
                       {order.ultimo_contato_cliente_em && (
                         <small className="repair-last-contact">
-                          Último retorno: {new Date(order.ultimo_contato_cliente_em).toLocaleString("pt-BR", {
+                          Último retorno:{" "}
+                          {new Date(
+                            order.ultimo_contato_cliente_em,
+                          ).toLocaleString("pt-BR", {
                             timeZone: "America/Sao_Paulo",
                             dateStyle: "short",
                             timeStyle: "short",
@@ -867,9 +1045,12 @@ export default function RepairBench() {
         })}
       </div>
 
-
       {readyPreview && (
-        <div className="repair-ready-backdrop" role="presentation" onMouseDown={() => setReadyPreview(null)}>
+        <div
+          className="repair-ready-backdrop"
+          role="presentation"
+          onMouseDown={() => setReadyPreview(null)}
+        >
           <section
             className="repair-ready-modal"
             role="dialog"
@@ -908,7 +1089,9 @@ export default function RepairBench() {
 
             <div className="repair-ready-preview">
               <small>PRÉVIA DA MENSAGEM</small>
-              <p>{whatsappMessage(readyPreview, empresa.nome || "assistência")}</p>
+              <p>
+                {whatsappMessage(readyPreview, empresa.nome || "assistência")}
+              </p>
             </div>
 
             <div className="repair-ready-actions">
@@ -932,7 +1115,10 @@ export default function RepairBench() {
                   target="_blank"
                   rel="noreferrer"
                   href={`https://wa.me/${whatsappNumber(readyPreview.cliente_whatsapp)}?text=${encodeURIComponent(
-                    whatsappMessage(readyPreview, empresa.nome || "assistência"),
+                    whatsappMessage(
+                      readyPreview,
+                      empresa.nome || "assistência",
+                    ),
                   )}`}
                   onClick={() => {
                     void move(readyPreview, "pronto_retirada");
