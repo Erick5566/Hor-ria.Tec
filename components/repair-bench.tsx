@@ -804,6 +804,16 @@ export default function RepairBench() {
                         <Link href={`/painel/ordens/${order.id}`}>
                           Abrir OS
                         </Link>
+                        {["orcamento_aprovado", "em_reparo", "em_testes"].includes(order.status) && (
+                          <button
+                            type="button"
+                            className="repair-ready-action"
+                            disabled={busy}
+                            onClick={() => void move(order, "pronto_retirada")}
+                          >
+                            ✓ Aparelho pronto
+                          </button>
+                        )}
                         {whatsappNumber(order.cliente_whatsapp) && (
                           <a
                             href={`https://wa.me/${whatsappNumber(order.cliente_whatsapp)}?text=${encodeURIComponent(
