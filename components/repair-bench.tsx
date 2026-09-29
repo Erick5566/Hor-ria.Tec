@@ -267,6 +267,7 @@ export default function RepairBench() {
   >("all");
   const [configuring, setConfiguring] = useState(false);
   const [contactBusyOrder, setContactBusyOrder] = useState("");
+  const [readyPreview, setReadyPreview] = useState<BenchOrder | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
 
@@ -809,7 +810,7 @@ export default function RepairBench() {
                             type="button"
                             className="repair-ready-action"
                             disabled={busy}
-                            onClick={() => void move(order, "pronto_retirada")}
+                            onClick={() => setReadyPreview(order)}
                           >
                             ✓ Aparelho pronto
                           </button>
@@ -865,6 +866,98 @@ export default function RepairBench() {
           );
         })}
       </div>
+
+
+      {readyPreview && (
+        <div className="repair-ready-backdrop" role="presentation" onMouseDown={() => setReadyPreview(null)}>
+          <section
+            className="repair-ready-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="repair-ready-title"
+            onMouseDown={(event) => event.stopPropagation()}
+          >
+            <button
+              className="repair-ready-close"
+              type="button"
+              aria-label="Fechar"
+              onClick={() => setReadyPreview(null)}
+            >
+              ×
+            </button>
+            <div className="repair-ready-title">
+              <span aria-hidden="true">🎉</span>
+              <div>
+                <strong id="repair-ready-title">Aparelho pronto!</strong>
+                <small>Conclua a OS e escolha como avisar o cliente.</small>
+              </div>
+            </div>
+
+            <div className="repair-ready-customer">
+              <strong>{readyPreview.cliente_nome || "Cliente"}</strong>
+              <span>
+                OS #{readyPreview.numero} ·{" "}
+                {[
+                  readyPreview.equipamento_marca,
+                  readyPreview.equipamento_modelo,
+                ]
+                  .filter(Boolean)
+                  .join(" ") || "Equipamento"}
+              </span>
+            </div>
+
+            <div className="repair-ready-preview">
+              <small>PRÉVIA DA MENSAGEM</small>
+              <p>{whatsappMessage(readyPreview, empresa.nome || "assistência")}</p>
+            </div>
+
+            <div className="repair-ready-actions">
+              <button type="button" onClick={() => setReadyPreview(null)}>
+                Cancelar
+              </button>
+              <button
+                type="button"
+                className="outline"
+                disabled={busy}
+                onClick={async () => {
+                  await move(readyPreview, "pronto_retirada");
+                  setReadyPreview(null);
+                }}
+              >
+                Apenas concluir
+              </button>
+              {whatsappNumber(readyPreview.cliente_whatsapp) ? (
+                <a
+                  className="primary"
+                  target="_blank"
+                  rel="noreferrer"
+                  href={`https://wa.me/${whatsappNumber(readyPreview.cliente_whatsapp)}?text=${encodeURIComponent(
+                    whatsappMessage(readyPreview, empresa.nome || "assistência"),
+                  )}`}
+                  onClick={() => {
+                    void move(readyPreview, "pronto_retirada");
+                    setReadyPreview(null);
+                  }}
+                >
+                  Avisar cliente ↗
+                </a>
+              ) : (
+                <button
+                  className="primary"
+                  type="button"
+                  disabled={busy}
+                  onClick={async () => {
+                    await move(readyPreview, "pronto_retirada");
+                    setReadyPreview(null);
+                  }}
+                >
+                  Concluir OS
+                </button>
+              )}
+            </div>
+          </section>
+        </div>
+      )}
 
       <div className="repair-help-bar">
         <span>↔</span>
