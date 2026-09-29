@@ -1,5 +1,6 @@
 "use client";
 import { useCallback, useEffect, useMemo, useState } from "react";
+import dynamic from "next/dynamic";
 import { useWorkspace } from "./workspace";
 import { type Lancamento, money, saveRow } from "@/lib/assistencia";
 import { supabase, message, today } from "@/lib/supabase";
@@ -12,7 +13,13 @@ import {
   PanelTitle,
 } from "./ui";
 import { HorariaIcon } from "./horaria-icon";
-import DashboardFinance from "./dashboard-finance";
+const DashboardFinance = dynamic(() => import("./dashboard-finance"), {
+  loading: () => (
+    <section className="finance-card">
+      <p>Carregando resumo financeiro…</p>
+    </section>
+  ),
+});
 
 const originLabel: Record<"reparo" | "loja" | "seminovo" | "manual", string> = {
   reparo: "Reparos",
