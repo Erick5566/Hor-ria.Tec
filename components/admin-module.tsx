@@ -31,6 +31,9 @@ const TeamPermissions = dynamic(() => import("./team-permissions"), {
 const Finance = dynamic(() => import("./finance"), {
   loading: ModuleLoading,
 });
+const FiscalNotes = dynamic(() => import("./fiscal-notes"), {
+  loading: ModuleLoading,
+});
 const RepairBench = dynamic(() => import("./repair-bench"), {
   loading: ModuleLoading,
 });
@@ -47,8 +50,9 @@ import { useWorkspace } from "./workspace";
 import { supabase, message } from "@/lib/supabase";
 const titles: Record<string, string> = {
   servicos: "Serviços",
-  "mesa-reparo": "Central de Atendimento",
+  "mesa-reparo": "Mesa de reparo",
   financeiro: "Financeiro",
+  "notas-fiscais": "Notas fiscais",
   estoque: "Estoque",
   relatorios: "Relatórios",
   empresa: "Minha assistência",
@@ -62,8 +66,9 @@ const titles: Record<string, string> = {
 
 const subtitles: Record<string, string> = {
   servicos: "Cadastre o que a assistência vende e executa, com preço, duração e garantia.",
-  "mesa-reparo": "Trabalhe nas OS em andamento, acompanhe etapas e organize retornos aos clientes.",
+  "mesa-reparo": "Acompanhe cada aparelho por etapa, mova OS entre bancadas e finalize o atendimento com rapidez.",
   financeiro: "Controle receitas, despesas, contas a receber e movimentações financeiras.",
+  "notas-fiscais": "Organize a rotina fiscal da assistência e acompanhe o que está pronto para emissão.",
   estoque: "Controle peças, produtos, quantidades, entradas e saídas.",
   relatorios: "Analise resultados e indicadores sem alterar a operação do dia a dia.",
   empresa: "Mantenha os dados operacionais, endereço e horários reais do negócio.",
@@ -82,6 +87,7 @@ export default function AdminModule({ module }: { module: string }) {
       {module === "servicos" && <CatalogManagement />}
       {module === "mesa-reparo" && <RepairBench />}
       {module === "financeiro" && <Finance />}
+      {module === "notas-fiscais" && <FiscalNotes />}
       {module === "estoque" && <InventoryManagement />}
       {module === "relatorios" && <Reports />}
       {module === "minha-pagina" && <PublicPageSettings />}
