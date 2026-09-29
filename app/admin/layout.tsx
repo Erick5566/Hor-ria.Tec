@@ -1,3 +1,4 @@
+import "../theme.css";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";

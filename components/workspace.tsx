@@ -8,6 +8,7 @@ import {
   useCallback,
 } from "react";
 import Link from "next/link";
+import dynamic from "next/dynamic";
 import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import {
@@ -19,7 +20,9 @@ import {
 } from "@/lib/supabase";
 import type { AccessContext } from "@/lib/access";
 import { Brand, MissingConfig } from "./brand";
-import Setup from "./setup";
+const Setup = dynamic(() => import("./setup"), {
+  loading: () => <div className="module-inline-loading">Preparando configuração…</div>,
+});
 import { HorariaIcon, type HorariaIconName } from "./horaria-icon";
 type WorkspaceValue = {
   empresa: Empresa;

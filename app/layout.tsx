@@ -1,7 +1,6 @@
 import "./globals.css";
 import "./workspace.css";
 import "./operations.css";
-import "./theme.css";
 import type { Metadata, Viewport } from "next";
 
 const base =
