@@ -34,6 +34,10 @@ const Finance = dynamic(() => import("./finance"), {
 const FiscalNotes = dynamic(() => import("./fiscal-notes"), {
   loading: ModuleLoading,
 });
+const Sales = dynamic(() => import("./sales"), { loading: ModuleLoading });
+const UsedDevices = dynamic(() => import("./used-devices"), { loading: ModuleLoading });
+const Showcase = dynamic(() => import("./showcase"), { loading: ModuleLoading });
+const AfterSales = dynamic(() => import("./after-sales"), { loading: ModuleLoading });
 const RepairBench = dynamic(() => import("./repair-bench"), {
   loading: ModuleLoading,
 });
@@ -53,6 +57,10 @@ const titles: Record<string, string> = {
   "mesa-reparo": "Mesa de reparo",
   financeiro: "Financeiro",
   "notas-fiscais": "Notas fiscais",
+  vendas: "Vendas de produtos",
+  seminovos: "Aparelhos seminovos",
+  vitrine: "Vitrine online",
+  "pos-venda": "Pós-venda",
   estoque: "Estoque",
   relatorios: "Relatórios",
   empresa: "Minha assistência",
@@ -69,6 +77,10 @@ const subtitles: Record<string, string> = {
   "mesa-reparo": "Acompanhe cada aparelho por etapa, mova OS entre bancadas e finalize o atendimento com rapidez.",
   financeiro: "Controle receitas, despesas, contas a receber e movimentações financeiras.",
   "notas-fiscais": "Organize a rotina fiscal da assistência e acompanhe o que está pronto para emissão.",
+  vendas: "Venda acessórios e produtos do estoque com registro financeiro.",
+  seminovos: "Avalie, prepare e comercialize aparelhos seminovos.",
+  vitrine: "Escolha os produtos e aparelhos que aparecem na página pública.",
+  "pos-venda": "Acompanhe contatos depois da entrega e mantenha o relacionamento com o cliente.",
   estoque: "Controle peças, produtos, quantidades, entradas e saídas.",
   relatorios: "Analise resultados e indicadores sem alterar a operação do dia a dia.",
   empresa: "Mantenha os dados operacionais, endereço e horários reais do negócio.",
@@ -88,6 +100,10 @@ export default function AdminModule({ module }: { module: string }) {
       {module === "mesa-reparo" && <RepairBench />}
       {module === "financeiro" && <Finance />}
       {module === "notas-fiscais" && <FiscalNotes />}
+      {module === "vendas" && <Sales />}
+      {module === "seminovos" && <UsedDevices />}
+      {module === "vitrine" && <Showcase />}
+      {module === "pos-venda" && <AfterSales />}
       {module === "estoque" && <InventoryManagement />}
       {module === "relatorios" && <Reports />}
       {module === "minha-pagina" && <PublicPageSettings />}

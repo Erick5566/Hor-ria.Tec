@@ -73,30 +73,65 @@ export default function TrackingResult({
 
   return (
     <>
-      <section className="panel tracking-hero">
-        <div>
-          <small>ORDEM DE SERVIÇO</small>
-          <h2>
-            OS #{data.numero} · {data.empresa}
-          </h2>
-          <p>
-            {data.equipamento.categoria} ·{" "}
-            {[data.equipamento.marca, data.equipamento.modelo]
-              .filter(Boolean)
-              .join(" ")}
-          </p>
+      <section className="tracking-phone-card">
+        <div className="tracking-phone-brand">
+          <span className="tracking-phone-logo">H</span>
+          <div>
+            <strong>{data.empresa}</strong>
+            <small>ACOMPANHAMENTO DA OS</small>
+          </div>
         </div>
-        <div className="tracking-status-copy">
-          <strong className={`badge ${data.status}`}>
+
+        <div className="tracking-phone-order">
+          <div>
+            <small>OS #{data.numero}</small>
+            <h2>
+              {[data.equipamento.marca, data.equipamento.modelo]
+                .filter(Boolean)
+                .join(" ") || data.equipamento.categoria}
+            </h2>
+            <p>{data.problema || "Acompanhe abaixo cada atualização do reparo."}</p>
+          </div>
+          <strong className={`tracking-phone-status ${data.status}`}>
             {customerStatus(data.status)}
           </strong>
-          {!waitingForTeam && !["finalizado", "cancelado"].includes(data.status) && (
-            <small>Etapa atual: {statuses[data.status] || data.status}</small>
-          )}
         </div>
-        <p>
-          <strong>Previsão:</strong> {forecast}
-        </p>
+
+        <div className="tracking-phone-progress">
+          <div>
+            <span>Andamento</span>
+            <strong>{statuses[data.status] || data.status}</strong>
+          </div>
+          <div className="tracking-phone-bar">
+            <span
+              style={{
+                width:
+                  data.status === "finalizado"
+                    ? "100%"
+                    : data.status === "pronto_retirada"
+                      ? "92%"
+                      : ["em_reparo", "aguardando_peca", "em_testes"].includes(data.status)
+                        ? "72%"
+                        : ["orcamento_aprovado"].includes(data.status)
+                          ? "55%"
+                          : ["orcamento_enviado", "aguardando_aprovacao"].includes(data.status)
+                            ? "42%"
+                            : ["em_diagnostico", "aguardando_orcamento"].includes(data.status)
+                              ? "26%"
+                              : "10%",
+              }}
+            />
+          </div>
+          <small><strong>Previsão:</strong> {forecast}</small>
+        </div>
+
+        <div className="tracking-phone-warranty">
+          <strong>Termos de garantia e responsabilidade técnica</strong>
+          <p>
+            O histórico abaixo registra as mudanças públicas desta ordem para
+            você acompanhar o serviço com transparência.
+          </p>
+        </div>
       </section>
 
       {quote && (
