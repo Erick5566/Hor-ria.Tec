@@ -140,6 +140,19 @@ export default function OrderDetail({
   const client = data?.client;
   const equipment = data?.equipment;
 
+  const whatsappNumber = (client?.whatsapp || "").replace(/\D/g, "");
+  const readyWhatsapp =
+    whatsappNumber && order
+      ? `https://wa.me/${whatsappNumber.length <= 11 ? "55" + whatsappNumber : whatsappNumber}?text=${encodeURIComponent(
+          `Olá, ${client?.nome?.split(" ")[0] || "tudo bem"}! Seu equipamento da OS #${order.numero} está pronto para retirada. Podemos combinar a entrega?`,
+        )}`
+      : "";
+
+  async function advanceStatus(next: Status, nextTab?: Tab) {
+    await updateStatus(next);
+    if (nextTab) setTab(nextTab);
+  }
+
   return (
     <section className="module unified-pro order-detail-pro">
       <Link className="subtle" href="/painel/ordens">
@@ -179,6 +192,145 @@ export default function OrderDetail({
                 ))}
               </select>
             </div>
+
+            <section className="panel order-next-action">
+              <div className="order-next-action-copy">
+                <span>PRÓXIMA AÇÃO</span>
+                <strong>
+                  {["novo", "recebido"].includes(order.status) && "Iniciar diagnóstico"}
+                  {order.status === "em_diagnostico" && "Preparar orçamento"}
+                  {order.status === "aguardando_orcamento" && "Montar e enviar orçamento"}
+                  {["orcamento_enviado", "aguardando_aprovacao"].includes(order.status) && "Aguardar decisão do cliente"}
+                  {order.status === "orcamento_aprovado" && "Iniciar reparo"}
+                  {order.status === "aguardando_peca" && "Retomar reparo quando a peça chegar"}
+                  {order.status === "em_reparo" && "Enviar aparelho para testes"}
+                  {order.status === "em_testes" && "Liberar aparelho para retirada"}
+                  {order.status === "pronto_retirada" && "Avisar cliente e finalizar entrega"}
+                  {order.status === "finalizado" && "Atendimento concluído"}
+                  {order.status === "cancelado" && "Ordem cancelada"}
+                </strong>
+                <small>
+                  O Horária usa o status atual da OS para destacar a próxima etapa operacional.
+                </small>
+              </div>
+
+              <div className="inline-actions order-next-action-buttons">
+                {["novo", "recebido"].includes(order.status) && (
+                  <button
+                    className="primary"
+                    disabled={busy}
+                    onClick={() => void advanceStatus("em_diagnostico", "Diagnóstico")}
+                  >
+                    Iniciar diagnóstico
+                  </button>
+                )}
+
+                {order.status === "em_diagnostico" && (
+                  <button
+                    className="primary"
+                    disabled={busy}
+                    onClick={() => void advanceStatus("aguardando_orcamento", "Orçamento")}
+                  >
+                    Preparar orçamento
+                  </button>
+                )}
+
+                {order.status === "aguardando_orcamento" && (
+                  <button className="primary" onClick={() => setTab("Orçamento")}>
+                    Abrir orçamento
+                  </button>
+                )}
+
+                {["orcamento_enviado", "aguardando_aprovacao"].includes(order.status) && (
+                  <>
+                    <button className="outline" onClick={() => setTab("Orçamento")}>
+                      Ver orçamento
+                    </button>
+                    <a
+                      className="outline"
+                      href={`/acompanhar/${order.token_acompanhamento}`}
+                      target="_blank"
+                      rel="noreferrer"
+                    >
+                      Ver como cliente ↗
+                    </a>
+                  </>
+                )}
+
+                {order.status === "orcamento_aprovado" && (
+                  <button
+                    className="primary"
+                    disabled={busy}
+                    onClick={() => void advanceStatus("em_reparo", "Resumo")}
+                  >
+                    Iniciar reparo
+                  </button>
+                )}
+
+                {order.status === "aguardando_peca" && (
+                  <button
+                    className="primary"
+                    disabled={busy}
+                    onClick={() => void advanceStatus("em_reparo", "Resumo")}
+                  >
+                    Peça chegou · retomar reparo
+                  </button>
+                )}
+
+                {order.status === "em_reparo" && (
+                  <button
+                    className="primary"
+                    disabled={busy}
+                    onClick={() => void advanceStatus("em_testes", "Resumo")}
+                  >
+                    Enviar para testes
+                  </button>
+                )}
+
+                {order.status === "em_testes" && (
+                  <button
+                    className="primary"
+                    disabled={busy}
+                    onClick={() => void advanceStatus("pronto_retirada", "Resumo")}
+                  >
+                    ✓ Aparelho pronto
+                  </button>
+                )}
+
+                {order.status === "pronto_retirada" && (
+                  <>
+                    {readyWhatsapp && (
+                      <a
+                        className="outline"
+                        href={readyWhatsapp}
+                        target="_blank"
+                        rel="noreferrer"
+                      >
+                        Avisar no WhatsApp ↗
+                      </a>
+                    )}
+                    <button
+                      className="primary"
+                      disabled={busy}
+                      onClick={() => void advanceStatus("finalizado", "Resumo")}
+                    >
+                      Finalizar entrega
+                    </button>
+                  </>
+                )}
+
+                {order.status === "finalizado" && (
+                  <a
+                    className="outline"
+                    href={`/acompanhar/${order.token_acompanhamento}`}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    Ver acompanhamento final ↗
+                  </a>
+                )}
+              </div>
+            </section>
 
             <div className="tabs">
               {tabs.map((item) => (
