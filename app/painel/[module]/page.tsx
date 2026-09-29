@@ -5,6 +5,7 @@ const betaModules = [
   "servicos",
   "mesa-reparo",
   "financeiro",
+  "notas-fiscais",
   "estoque",
   "relatorios",
   "empresa",
