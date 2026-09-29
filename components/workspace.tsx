@@ -73,7 +73,7 @@ export const menu = [
     [
       ["Painel", "/painel", "home"],
       ["Recebimento", "/painel/ordens/nova", "receive"],
-      ["Central de Atendimento", "/painel/mesa-reparo", "central"],
+      ["Mesa de reparo", "/painel/mesa-reparo", "central"],
       ["Agenda", "/painel/agenda", "calendar"],
       ["Ordens de serviço", "/painel/ordens", "orders"],
       ["Clientes", "/painel/clientes", "clients"],
@@ -85,6 +85,7 @@ export const menu = [
     [
       ["Estoque", "/painel/estoque", "stock"],
       ["Financeiro", "/painel/financeiro", "finance"],
+      ["Notas fiscais", "/painel/notas-fiscais", "receipt"],
       ["Relatórios", "/painel/relatorios", "reports"],
       ["Serviços", "/painel/servicos", "services"],
     ],
