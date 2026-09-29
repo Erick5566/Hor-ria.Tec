@@ -122,7 +122,7 @@ export default function Quote({
     setBusy(true);
     setError("");
     try {
-      const { error } = await supabase!.rpc("salvar_orcamento", {
+      const { data: quoteId, error } = await supabase!.rpc("salvar_orcamento", {
         p_ordem: ordemId,
         p_servicos: services,
         p_pecas: parts,
@@ -131,6 +131,11 @@ export default function Quote({
         p_validade: validity,
       });
       if (error) throw error;
+      if (!quoteId) throw new Error("Orçamento salvo sem identificador.");
+      const sendResult = await supabase!.rpc("enviar_orcamento", {
+        p_orcamento: quoteId,
+      });
+      if (sendResult.error) throw sendResult.error;
       setEditing(false);
       await load();
       onChanged();
