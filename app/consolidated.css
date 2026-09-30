@@ -416,3 +416,65 @@
   font-size: 11px;
   line-height: 1.4;
 }
+
+.dashboard-four-charts {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+.dashboard-series-chart {
+  margin: 0;
+  min-width: 0;
+  padding: 10px;
+  border: 1px solid #e2e9f3;
+  border-radius: 9px;
+  background: #fff;
+}
+.dashboard-series-chart figcaption {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  margin-bottom: 8px;
+}
+.dashboard-series-chart figcaption i {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: currentColor;
+  flex-shrink: 0;
+}
+.dashboard-series-chart svg {
+  display: block;
+  width: 100%;
+  height: 90px;
+}
+.dashboard-series-line {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+}
+.dashboard-series-axis {
+  display: flex;
+  justify-content: space-between;
+  gap: 5px;
+  margin-top: 5px;
+  color: #64748b;
+  font-size: 10px;
+}
+.dashboard-series-empty {
+  min-height: 110px;
+  display: grid;
+  place-content: center;
+  color: #64748b;
+  font-size: 11px;
+  text-align: center;
+}
+@media (max-width: 480px) {
+  .dashboard-four-charts {
+    grid-template-columns: 1fr;
+  }
+}

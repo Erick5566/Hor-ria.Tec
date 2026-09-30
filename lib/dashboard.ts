@@ -26,6 +26,7 @@ export type DashboardData = {
     opened: number;
     active: number;
     finalized: number;
+    parts?: number;
   }>;
   status: {
     concluidas: number;
@@ -102,19 +103,28 @@ export function appointmentOverdue(
 export function trendGeometry(trend: DashboardData["trend"]) {
   const max = Math.max(
     1,
-    ...trend.flatMap((item) => [item.opened, item.active, item.finalized]),
+    ...trend.flatMap((item) => [
+      item.opened,
+      item.active,
+      item.finalized,
+      item.parts ?? 0,
+    ]),
   );
-  const points = (key: "opened" | "active" | "finalized") =>
+  const points = (key: "opened" | "active" | "finalized" | "parts") =>
     trend.map((item, index) => ({
       x: trend.length === 1 ? 50 : 4 + (index / (trend.length - 1)) * 92,
-      y: 88 - (item[key] / max) * 72,
-      value: item[key],
+      y: 88 - ((item[key] ?? 0) / max) * 72,
+      value: item[key] ?? 0,
       key: item.key,
     }));
   return {
     points,
     hasData: trend.some(
-      (item) => item.opened > 0 || item.active > 0 || item.finalized > 0,
+      (item) =>
+        item.opened > 0 ||
+        item.active > 0 ||
+        item.finalized > 0 ||
+        (item.parts ?? 0) > 0,
     ),
   };
 }
@@ -162,6 +172,7 @@ export function normalizeDashboard(value: unknown): DashboardData {
         opened: number(item.opened),
         active: number(item.active),
         finalized: number(item.finalized),
+        parts: number(item.parts),
       })),
   };
 }

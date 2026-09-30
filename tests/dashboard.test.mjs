@@ -228,7 +228,12 @@ test("painel: SQL real ordena antes do limite, herda prioridade na agenda e pres
         id,
       ]);
     }
+    await db.query(
+      "update ordens_servico set status='aguardando_peca' where id=$1",
+      [orders[1]],
+    );
     const loaded = await overview();
+    assert.ok(loaded.trend.some((point) => point.parts === 1));
     assert.equal(loaded.latestOrders.length, 6);
     assert.equal(loaded.latestOrders[0].id, orders[7]);
     assert.equal(loaded.latestOrders[1].id, orders[6]);

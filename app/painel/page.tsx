@@ -1,11 +1,11 @@
 "use client";
 
 import Link from "next/link";
+import { DashboardOrderCharts } from "@/components/dashboard-order-charts";
 import { watchDashboard } from "@/lib/dashboard-live";
 import {
   normalizeDashboard,
   sparkGeometry,
-  trendGeometry,
   orderOverdue,
   appointmentOverdue,
   priorityLabels,
@@ -208,8 +208,6 @@ export default function Overview() {
     ];
   }, [data]);
 
-  const trendData = data?.trend ?? [];
-  const trend = trendGeometry(trendData);
   const allStatusData = [
     {
       key: "concluidas",
@@ -348,84 +346,7 @@ export default function Overview() {
           </div>
 
           <DashboardContent {...contentProps}>
-            {trend.hasData ? (
-              <div className="dashboard-line-chart dashboard-line-chart-reference">
-                <svg
-                  viewBox="0 0 100 100"
-                  preserveAspectRatio="none"
-                  aria-label="Evolução das ordens"
-                >
-                  {[18, 36, 54, 72, 90].map((y) => (
-                    <line
-                      key={y}
-                      x1="0"
-                      x2="100"
-                      y1={y}
-                      y2={y}
-                      className="dash-grid-line"
-                    />
-                  ))}
-                  {(["opened", "active", "finalized"] as const).map((key) => {
-                    const points = trend.points(key);
-                    const lineClass =
-                      key === "opened"
-                        ? "dash-open-line"
-                        : key === "active"
-                          ? "dash-active-line"
-                          : "dash-final-line";
-                    return (
-                      <g key={key}>
-                        <polyline
-                          points={points.map((p) => `${p.x},${p.y}`).join(" ")}
-                          className={lineClass}
-                        />
-                        {points
-                          .filter((p) => p.value > 0 || points.length === 1)
-                          .map((p) => (
-                            <circle
-                              key={p.key}
-                              cx={p.x}
-                              cy={p.y}
-                              r="1.2"
-                              className={`dash-point ${key}`}
-                            >
-                              <title>{`${formatShortDate(p.key)}: ${p.value}`}</title>
-                            </circle>
-                          ))}
-                      </g>
-                    );
-                  })}
-                </svg>
-
-                <div className="dashboard-chart-axis">
-                  {trendData
-                    .filter(
-                      (_, index) =>
-                        index % 6 === 0 || index === trendData.length - 1,
-                    )
-                    .map((item) => (
-                      <span key={item.key}>{formatShortDate(item.key)}</span>
-                    ))}
-                </div>
-
-                <div className="dashboard-chart-legend">
-                  <span>
-                    <i className="open-line" /> Ordens abertas
-                  </span>
-                  <span>
-                    <i className="open" /> Abertas
-                  </span>
-                  <span>
-                    <i className="active" /> Em andamento
-                  </span>
-                  <span>
-                    <i className="done" /> Concluídas
-                  </span>
-                </div>
-              </div>
-            ) : (
-              <Empty title="Nenhuma ordem no período selecionado." />
-            )}
+            <DashboardOrderCharts trend={data?.trend ?? []} />
           </DashboardContent>
         </section>
 
