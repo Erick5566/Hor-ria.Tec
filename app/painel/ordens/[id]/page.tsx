@@ -193,7 +193,16 @@ export default function OrderDetail({
               </select>
             </div>
 
-            <section className="panel order-next-action">
+            <section
+              className="panel order-next-action"
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                textAlign: "center",
+                gap: "16px",
+              }}
+            >
               <div className="order-next-action-copy">
                 {["novo", "recebido"].includes(order.status) ? (
                   <strong>PROXIMA AÇAO</strong>
@@ -219,7 +228,10 @@ export default function OrderDetail({
                 )}
               </div>
 
-              <div className="inline-actions order-next-action-buttons">
+              <div
+                className="inline-actions order-next-action-buttons"
+                style={{ justifyContent: "center", width: "100%" }}
+              >
                 {["novo", "recebido"].includes(order.status) && (
                   <button
                     className="primary"
