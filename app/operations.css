@@ -12348,6 +12348,30 @@ svg {
   color: #697791;
 }
 
+.order-flow-advance {
+  min-height: 26px;
+  margin-top: 8px;
+  padding: 4px 9px;
+  color: #fff;
+  background: #3a4da1;
+  border: 1px solid #3a4da1;
+  border-radius: 7px;
+  font-size: .68rem;
+  font-weight: 800;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.order-flow-advance:hover:not(:disabled) {
+  background: #4459b5;
+  border-color: #4459b5;
+}
+
+.order-flow-advance:disabled {
+  cursor: wait;
+  opacity: .65;
+}
+
 .order-flow-footer {
   display: flex;
   align-items: center;
