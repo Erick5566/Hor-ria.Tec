@@ -1,4 +1,5 @@
 "use client";
+import { localDay, validateDelivery } from "@/lib/receipt-dates";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useWorkspace } from "./workspace";
@@ -95,8 +96,7 @@ export default function OrderForm() {
           id: draft.selectedCustomerId || "",
         }));
       }
-      if (draft.device)
-        setDevice({ ...draft.device, senha: "" });
+      if (draft.device) setDevice({ ...draft.device, senha: "" });
       if (Array.isArray(draft.state)) setState(draft.state);
       if (draft.details) setDetails(draft.details);
       if (draft.editingCustomer === true) setEditingCustomer(true);
@@ -277,6 +277,7 @@ export default function OrderForm() {
           if (customerUpdate.error) throw customerUpdate.error;
         }
 
+        validateDelivery(details.previsao, localDay());
         const { data, error } = await supabase!.rpc("criar_ordem", {
           p_empresa: empresa.id,
           p_cliente: customer,
@@ -286,7 +287,7 @@ export default function OrderForm() {
             estado: state,
             observacoes_estado: form.get("observacoes_estado"),
             tecnico: form.get("tecnico"),
-            previsao: form.get("previsao"),
+            previsao: details.previsao || null,
           },
         });
         if (error) throw error;
@@ -389,7 +390,9 @@ export default function OrderForm() {
                           : "text"
                     }
                     minLength={name === "nome" ? 2 : undefined}
-                    pattern={name === "whatsapp" ? "[+0-9 \\(\\)\\-]{8,25}" : undefined}
+                    pattern={
+                      name === "whatsapp" ? "[+0-9 \\(\\)\\-]{8,25}" : undefined
+                    }
                     maxLength={name === "whatsapp" ? 25 : 120}
                     value={customer[String(name)] || ""}
                     placeholder={
@@ -527,6 +530,7 @@ export default function OrderForm() {
               <label>
                 Previsão (opcional)
                 <input
+                  min={localDay()}
                   name="previsao"
                   type="date"
                   value={details.previsao}

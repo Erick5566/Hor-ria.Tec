@@ -1,4 +1,5 @@
 "use client";
+import { localDay } from "@/lib/receipt-dates";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { MesaReparo, Status, useRows } from "@/lib/assistencia";
@@ -72,11 +73,11 @@ const priorityLabel = {
 
 function daysUntil(value: string | null) {
   if (!value) return null;
-  const start = new Date();
-  start.setHours(0, 0, 0, 0);
-  const end = new Date(value);
-  end.setHours(0, 0, 0, 0);
-  return Math.ceil((end.getTime() - start.getTime()) / 86400000);
+  return Math.round(
+    (Date.parse(localDay(value) + "T12:00:00Z") -
+      Date.parse(localDay() + "T12:00:00Z")) /
+      86400000,
+  );
 }
 
 function relativeDeadline(value: string | null) {

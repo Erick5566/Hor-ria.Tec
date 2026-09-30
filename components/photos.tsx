@@ -1,215 +1,12 @@
 "use client";
 import { useEffect, useRef, useState, useCallback } from "react";
-import { createPortal } from "react-dom";
+import InlineCamera from "./inline-camera";
 import { PendingPhoto, preparePhoto, uploadPhotos } from "@/lib/photos";
 import { Foto, photoCategories, stamp } from "@/lib/assistencia";
 import { supabase, message } from "@/lib/supabase";
 import { ErrorBox, Empty, PanelTitle } from "./ui";
 import { useWorkspace } from "./workspace";
 
-function InlineCamera({
-  onUse,
-  onClose,
-  onCancel,
-  guideLabel,
-  guideInstruction,
-}: {
-  onUse: (file: File) => void;
-  onClose: () => void;
-  onCancel?: () => void;
-  guideLabel?: string;
-  guideInstruction?: string;
-}) {
-  const video = useRef<HTMLVideoElement>(null);
-  const stream = useRef<MediaStream | null>(null);
-  const [preview, setPreview] = useState("");
-  const [capturedBlob, setCapturedBlob] = useState<Blob | null>(null);
-  const [error, setError] = useState("");
-  const [cameraReady, setCameraReady] = useState(false);
-
-  const start = useCallback(async () => {
-    setError("");
-    setCameraReady(false);
-    try {
-      let next: MediaStream;
-      try {
-        // Prioriza explicitamente a câmera traseira para evitar que alguns
-        // navegadores móveis abram a frontal/espelhada por padrão.
-        next = await navigator.mediaDevices.getUserMedia({
-          video: { facingMode: { exact: "environment" } },
-          audio: false,
-        });
-      } catch {
-        next = await navigator.mediaDevices.getUserMedia({
-          video: { facingMode: { ideal: "environment" } },
-          audio: false,
-        });
-      }
-      stream.current = next;
-      if (video.current) {
-        video.current.srcObject = next;
-        video.current.style.transform = "none";
-      }
-    } catch {
-      setError(
-        "Não foi possível abrir a câmera traseira. Verifique a permissão do navegador.",
-      );
-    }
-  }, []);
-
-  useEffect(() => {
-    start();
-    const previousOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-
-    return () => {
-      stream.current?.getTracks().forEach((track) => track.stop());
-      document.body.style.overflow = previousOverflow;
-    };
-  }, [start]);
-
-  async function capture() {
-    if (
-      !video.current ||
-      !cameraReady ||
-      !video.current.videoWidth ||
-      !video.current.videoHeight
-    ) {
-      setError("A câmera ainda está iniciando. Aguarde um instante e tente novamente.");
-      return;
-    }
-    setError("");
-    const canvas = document.createElement("canvas");
-    canvas.width = video.current.videoWidth;
-    canvas.height = video.current.videoHeight;
-    canvas.getContext("2d")?.drawImage(video.current, 0, 0);
-    const blob = await new Promise<Blob | null>((resolve) =>
-      canvas.toBlob(resolve, "image/jpeg", 0.9),
-    );
-    if (!blob) {
-      setError("Não foi possível gerar a foto. Tente novamente.");
-      return;
-    }
-    stream.current?.getTracks().forEach((track) => track.stop());
-    setCapturedBlob(blob);
-    setPreview(URL.createObjectURL(blob));
-  }
-
-  if (typeof document === "undefined") return null;
-
-  return createPortal(
-    <div
-      className="camera-backdrop camera-backdrop-portal"
-      role="dialog"
-      aria-modal="true"
-      aria-label="Câmera"
-    >
-      <section className="camera-sheet">
-        <div className="panel-head">
-          <div>
-            <h2>{guideLabel ? `Foto: ${guideLabel}` : "Tirar foto"}</h2>
-            <p>
-              {guideInstruction ||
-                "Posicione o equipamento dentro da área."}
-            </p>
-          </div>
-          <button
-            type="button"
-            className="close"
-            onClick={onCancel || onClose}
-            aria-label="Fechar câmera"
-          >
-            ×
-          </button>
-        </div>
-        {error && <ErrorBox error={error} />}
-        <div className="camera-stage">
-          {guideLabel && (
-            <div className="camera-guide-overlay" aria-hidden="true">
-              <div className="camera-guide-frame">
-                <span>Alinhe aqui</span>
-              </div>
-            </div>
-          )}
-          {preview ? (
-            <img className="camera-preview" src={preview} alt="Foto capturada" />
-          ) : (
-            <>
-              <video
-                ref={video}
-                className="camera-preview camera-preview-live"
-                autoPlay
-                muted
-                playsInline
-                onLoadedMetadata={() => setCameraReady(true)}
-                onPlaying={() => setCameraReady(true)}
-              />
-              <div className="camera-live-action">
-                <button
-                  type="button"
-                  className="primary camera-shutter"
-                  onClick={capture}
-                  disabled={!cameraReady}
-                  aria-label={cameraReady ? "Tirar foto" : "Aguardando câmera"}
-                >
-                  <span className="camera-shutter-icon" aria-hidden="true" />
-                  <span className="camera-shutter-copy">
-                    <strong>{cameraReady ? "Tirar foto" : "Abrindo câmera…"}</strong>
-                    <small>{cameraReady ? "Toque para capturar" : "Aguarde um instante"}</small>
-                  </span>
-                </button>
-              </div>
-            </>
-          )}
-        </div>
-        {guideInstruction && (
-          <p className="camera-guide-instruction">{guideInstruction}</p>
-        )}
-
-        {preview && (
-          <div className="camera-actions">
-            <button
-              type="button"
-              className="outline"
-              onClick={() => {
-                URL.revokeObjectURL(preview);
-                setPreview("");
-                setCapturedBlob(null);
-                void start();
-              }}
-            >
-              Tirar novamente
-            </button>
-            <button
-              type="button"
-              className="primary"
-              disabled={!capturedBlob}
-              onClick={() => {
-                if (!capturedBlob) {
-                  setError("A foto ainda não está pronta. Tire a foto novamente.");
-                  return;
-                }
-                const file = new File(
-                  [capturedBlob],
-                  `camera-${Date.now()}.jpg`,
-                  { type: "image/jpeg" },
-                );
-                onUse(file);
-                URL.revokeObjectURL(preview);
-                setPreview("");
-                setCapturedBlob(null);
-                onClose();
-              }}
-            >
-              Usar esta foto
-            </button>
-          </div>
-        )}
-      </section>
-    </div>,
-    document.body,
-  );
-}
 export const guidedPhotoAngles = [
   "Frente",
   "Traseira",
@@ -228,15 +25,17 @@ export type GuidedPhotoState = {
   resumeIndex: number | null;
 };
 
-const guidedPhotoInstructions: Record<(typeof guidedPhotoAngles)[number], string> = {
+const guidedPhotoInstructions: Record<
+  (typeof guidedPhotoAngles)[number],
+  string
+> = {
   Frente:
     "Centralize a frente do aparelho dentro da moldura, mostrando o equipamento inteiro com boa iluminação.",
   Traseira:
     "Centralize a parte de trás do aparelho dentro da moldura, com boa iluminação e sem reflexos.",
   Laterais:
     "Fotografe as laterais de forma que bordas, botões e possíveis marcas fiquem visíveis.",
-  Tela:
-    "Ligue a tela do aparelho, se possível, e evite reflexos de luz para registrar riscos, manchas ou trincas.",
+  Tela: "Ligue a tela do aparelho, se possível, e evite reflexos de luz para registrar riscos, manchas ou trincas.",
   Conectores:
     "Aproxime os conectores e entradas sem perder o foco, mostrando sujeira, oxidação ou danos visíveis.",
   Acessórios:
@@ -324,7 +123,7 @@ export function GuidedPhotoSequence({
       setCameraOpen(true);
       return;
     }
-    window.setTimeout(() => fallbackCamera.current?.click(), 0);
+    fallbackCamera.current?.click();
   }
 
   function revisit(index: number) {
@@ -341,16 +140,11 @@ export function GuidedPhotoSequence({
 
   function skipCurrent() {
     if (activeIndex === 0 || state.resumeIndex !== null) return;
-    const nextSkipped = Array.from(
-      new Set([...state.skipped, activeAngle]),
-    );
+    const nextSkipped = Array.from(new Set([...state.skipped, activeAngle]));
     onStateChange({
       ...state,
       skipped: nextSkipped,
-      currentIndex: Math.min(
-        guidedPhotoAngles.length,
-        state.currentIndex + 1,
-      ),
+      currentIndex: Math.min(guidedPhotoAngles.length, state.currentIndex + 1),
     });
   }
 
@@ -427,7 +221,9 @@ export function GuidedPhotoSequence({
             aria-label="Foto ampliada"
             onClick={() => setZoom("")}
           >
-            <button type="button" aria-label="Fechar foto">×</button>
+            <button type="button" aria-label="Fechar foto">
+              ×
+            </button>
             <img src={zoom} alt="Registro do equipamento ampliado" />
           </div>
         )}
@@ -500,7 +296,9 @@ export function GuidedPhotoSequence({
               alt={`Foto atual: ${activeAngle}`}
             />
           </button>
-          <small>Foto atual · ao capturar novamente, ela será substituída.</small>
+          <small>
+            Foto atual · ao capturar novamente, ela será substituída.
+          </small>
         </div>
       )}
 
@@ -558,7 +356,11 @@ export function GuidedPhotoSequence({
         }}
       />
 
-      {busy && <p className="hint" role="status">Preparando foto…</p>}
+      {busy && (
+        <p className="hint" role="status">
+          Preparando foto…
+        </p>
+      )}
       <ErrorBox error={error} />
 
       {cameraOpen && (
@@ -587,7 +389,9 @@ export function GuidedPhotoSequence({
           aria-label="Foto ampliada"
           onClick={() => setZoom("")}
         >
-          <button type="button" aria-label="Fechar foto">×</button>
+          <button type="button" aria-label="Fechar foto">
+            ×
+          </button>
           <img src={zoom} alt="Registro do equipamento ampliado" />
         </div>
       )}
@@ -732,9 +536,7 @@ export function PhotoPicker({
                   className="photo-stage-remove"
                   aria-label={`Remover foto ${index + 1}`}
                   onClick={() => {
-                    if (
-                      !window.confirm("Remover esta foto do rascunho?")
-                    )
+                    if (!window.confirm("Remover esta foto do rascunho?"))
                       return;
                     onChange(value.filter((item) => item.id !== photo.id));
                   }}
@@ -835,64 +637,70 @@ export function PhotoPicker({
       <ErrorBox error={error} />
       {!suggestedChecklist && (
         <div className="photos-grid">
-        {value.map((p, i) => (
-          <article className="photo-card" key={p.id}>
-            <button
-              type="button"
-              style={{ padding: 0, width: "100%" }}
-              onClick={() => setZoom(p.preview)}
-              aria-label={`Ampliar foto ${i + 1}`}
-            >
-              <img src={p.preview} alt={`Foto ${i + 1} do equipamento`} loading="lazy" decoding="async" />
-            </button>
-            <div className="photo-meta">
-              {!publicMode && (
+          {value.map((p, i) => (
+            <article className="photo-card" key={p.id}>
+              <button
+                type="button"
+                style={{ padding: 0, width: "100%" }}
+                onClick={() => setZoom(p.preview)}
+                aria-label={`Ampliar foto ${i + 1}`}
+              >
+                <img
+                  src={p.preview}
+                  alt={`Foto ${i + 1} do equipamento`}
+                  loading="lazy"
+                  decoding="async"
+                />
+              </button>
+              <div className="photo-meta">
+                {!publicMode && (
+                  <label>
+                    Categoria
+                    <select
+                      value={p.categoria}
+                      onChange={(e) =>
+                        onChange(
+                          value.map((x, j) =>
+                            i === j ? { ...x, categoria: e.target.value } : x,
+                          ),
+                        )
+                      }
+                    >
+                      {photoCategories.map((c) => (
+                        <option key={c}>{c}</option>
+                      ))}
+                    </select>
+                  </label>
+                )}
                 <label>
-                  Categoria
-                  <select
-                    value={p.categoria}
+                  Observação
+                  <input
+                    maxLength={1000}
+                    value={p.descricao}
                     onChange={(e) =>
                       onChange(
                         value.map((x, j) =>
-                          i === j ? { ...x, categoria: e.target.value } : x,
+                          i === j ? { ...x, descricao: e.target.value } : x,
                         ),
                       )
                     }
-                  >
-                    {photoCategories.map((c) => (
-                      <option key={c}>{c}</option>
-                    ))}
-                  </select>
+                  />
                 </label>
-              )}
-              <label>
-                Observação
-                <input
-                  maxLength={1000}
-                  value={p.descricao}
-                  onChange={(e) =>
-                    onChange(
-                      value.map((x, j) =>
-                        i === j ? { ...x, descricao: e.target.value } : x,
-                      ),
-                    )
-                  }
-                />
-              </label>
-              <button
-                type="button"
-                disabled={p.uploaded}
-                onClick={() => {
-                  if (!window.confirm("Remover esta foto do rascunho?")) return;
-                  onChange(value.filter((x) => x.id !== p.id));
-                }}
-              >
-                Remover foto
-              </button>
-              {p.saved && <small>Salva</small>}
-            </div>
-          </article>
-        ))}
+                <button
+                  type="button"
+                  disabled={p.uploaded}
+                  onClick={() => {
+                    if (!window.confirm("Remover esta foto do rascunho?"))
+                      return;
+                    onChange(value.filter((x) => x.id !== p.id));
+                  }}
+                >
+                  Remover foto
+                </button>
+                {p.saved && <small>Salva</small>}
+              </div>
+            </article>
+          ))}
         </div>
       )}
       {zoom && (

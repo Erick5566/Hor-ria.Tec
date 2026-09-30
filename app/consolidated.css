@@ -473,3 +473,18 @@
   height: 10px;
   border-radius: 2px;
 }
+
+.delivery-alert {
+  padding: 10px 12px;
+  border: 1px solid #f59e0b;
+  border-radius: 8px;
+  color: #92400e;
+  background: #fffbeb;
+}
+.camera-actions {
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.camera-actions select {
+  max-width: 100%;
+}

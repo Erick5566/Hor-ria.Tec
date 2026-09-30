@@ -25,7 +25,10 @@ function openPhotoDraftDb(): Promise<IDBDatabase> {
     };
     request.onsuccess = () => resolve(request.result);
     request.onerror = () =>
-      reject(request.error || new Error("Não foi possível abrir o rascunho de fotos."));
+      reject(
+        request.error ||
+          new Error("Não foi possível abrir o rascunho de fotos."),
+      );
   });
 }
 
@@ -107,17 +110,41 @@ export async function clearPendingPhotosDraft(key: string) {
 }
 
 export async function preparePhoto(file: File): Promise<File> {
-  if (!["image/jpeg", "image/png", "image/webp"].includes(file.type))
-    throw new Error(
-      "Use fotos JPEG, PNG ou WebP. Converta imagens HEIC antes do envio.",
-    );
+  if (
+    !file.type.startsWith("image/") &&
+    !/\.(jpe?g|png|webp|heic|heif)$/i.test(file.name)
+  )
+    throw new Error("Escolha um arquivo de imagem.");
   if (file.size > 25 * 1024 * 1024)
     throw new Error(
       "Cada imagem deve ter no máximo 25 MB antes da otimização.",
     );
-  const bitmap = await createImageBitmap(file);
+  let bitmap: ImageBitmap | HTMLImageElement;
+  let objectUrl = "";
   try {
-    const ratio = Math.min(1, 1920 / Math.max(bitmap.width, bitmap.height));
+    bitmap = await createImageBitmap(file);
+  } catch {
+    objectUrl = URL.createObjectURL(file);
+    const img = new Image();
+    try {
+      await new Promise<void>((resolve, reject) => {
+        img.onload = () => resolve();
+        img.onerror = () =>
+          reject(
+            new Error(
+              "Este navegador não conseguiu ler a foto. Use JPEG/PNG ou tire uma foto pela câmera ao vivo.",
+            ),
+          );
+        img.src = objectUrl;
+      });
+      bitmap = img;
+    } catch (error) {
+      URL.revokeObjectURL(objectUrl);
+      throw error;
+    }
+  }
+  try {
+    const ratio = Math.min(1, 1600 / Math.max(bitmap.width, bitmap.height));
     const canvas = document.createElement("canvas");
     canvas.width = Math.round(bitmap.width * ratio);
     canvas.height = Math.round(bitmap.height * ratio);
@@ -140,7 +167,8 @@ export async function preparePhoto(file: File): Promise<File> {
       type: "image/jpeg",
     });
   } finally {
-    bitmap.close();
+    if ("close" in bitmap) bitmap.close();
+    if (objectUrl) URL.revokeObjectURL(objectUrl);
   }
 }
 export async function uploadPhotos(

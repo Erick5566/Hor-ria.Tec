@@ -1,7 +1,15 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { MesaReparo, Ordem, useRows } from "@/lib/assistencia";
 import { supabase, message } from "@/lib/supabase";
+import {
+  localDay,
+  localDateTime,
+  saveLocalDateTime,
+  validateDelivery,
+  deliveryState,
+  formatDelivery,
+} from "@/lib/receipt-dates";
 import { ErrorBox, PanelTitle } from "./ui";
 export default function OrderAdministration({
   order,
@@ -14,12 +22,24 @@ export default function OrderAdministration({
     [notice, setNotice] = useState(""),
     [busy, setBusy] = useState(false),
     [secret, setSecret] = useState<string | null>(null);
+  const [delivery, setDelivery] = useState(order.previsao || "");
+  useEffect(
+    () => setDelivery(order.previsao || ""),
+    [order.id, order.previsao],
+  );
+  const deadlineNotice = deliveryState(delivery || null, order.status);
   const benches = useRows<MesaReparo>("mesas_reparo");
   return (
     <section className="panel order-administration-panel">
       <PanelTitle title="Responsável e previsão" icon="team" />
       <ErrorBox error={error} />
       <p role="status">{notice}</p>
+      {delivery && (
+        <p className={deadlineNotice ? "delivery-alert" : "hint"} role="status">
+          Entrega: {formatDelivery(delivery)}
+          {deadlineNotice ? ` — ${deadlineNotice}` : ""}
+        </p>
+      )}
       <form
         onSubmit={async (e) => {
           e.preventDefault();
@@ -27,24 +47,35 @@ export default function OrderAdministration({
           setError("");
           setNotice("");
           const f = new FormData(e.currentTarget);
-          const r = await supabase!
-            .from("ordens_servico")
-            .update({
-              tecnico: f.get("tecnico"),
-              previsao: f.get("previsao") || null,
-              mesa_id: f.get("mesa") || null,
-              prioridade: f.get("prioridade"),
-              iniciado_em: f.get("iniciado_em") || null,
-              prazo_previsto: f.get("prazo_previsto") || null,
-            })
-            .eq("id", order.id)
-            .select("id")
-            .single();
-          setBusy(false);
-          if (r.error) setError(message(r.error));
-          else {
-            setNotice("Dados atualizados.");
-            onChanged();
+          try {
+            validateDelivery(delivery, order.criado_em);
+            const operational = String(f.get("prazo_previsto") || "");
+            if (operational)
+              validateDelivery(operational.slice(0, 10), order.criado_em);
+            const r = await supabase!
+              .from("ordens_servico")
+              .update({
+                tecnico: f.get("tecnico"),
+                previsao: delivery || null,
+                mesa_id: f.get("mesa") || null,
+                prioridade: f.get("prioridade"),
+                iniciado_em: saveLocalDateTime(
+                  String(f.get("iniciado_em") || ""),
+                ),
+                prazo_previsto: saveLocalDateTime(operational),
+              })
+              .eq("id", order.id)
+              .select("id")
+              .single();
+            if (r.error) setError(message(r.error));
+            else {
+              setNotice("Dados atualizados.");
+              onChanged();
+            }
+          } catch (caught) {
+            setError(message(caught as Error));
+          } finally {
+            setBusy(false);
           }
         }}
       >
@@ -62,7 +93,9 @@ export default function OrderAdministration({
             <input
               name="previsao"
               type="date"
-              defaultValue={order.previsao || ""}
+              min={localDay(order.criado_em)}
+              value={delivery}
+              onChange={(e) => setDelivery(e.target.value)}
             />
           </label>
           <label>
@@ -95,7 +128,7 @@ export default function OrderAdministration({
             <input
               name="iniciado_em"
               type="datetime-local"
-              defaultValue={order.iniciado_em?.slice(0, 16) || ""}
+              defaultValue={localDateTime(order.iniciado_em)}
             />
           </label>
           <label>
@@ -103,7 +136,7 @@ export default function OrderAdministration({
             <input
               name="prazo_previsto"
               type="datetime-local"
-              defaultValue={order.prazo_previsto?.slice(0, 16) || ""}
+              defaultValue={localDateTime(order.prazo_previsto)}
             />
           </label>
         </div>
@@ -113,7 +146,11 @@ export default function OrderAdministration({
       </form>
       <div className="order-tracking-section">
         <div className="order-section-heading">
-          <PanelTitle title="Acompanhamento do cliente" icon="publicPage" as="h3" />
+          <PanelTitle
+            title="Acompanhamento do cliente"
+            icon="publicPage"
+            as="h3"
+          />
         </div>
 
         <div className="order-device-password">
@@ -134,13 +171,17 @@ export default function OrderAdministration({
             </button>
           ) : (
             <div className="order-device-secret">
-              <p><strong>Senha:</strong> {secret}</p>
+              <p>
+                <strong>Senha:</strong> {secret}
+              </p>
               <button onClick={() => setSecret(null)}>Ocultar senha</button>
             </div>
           )}
         </div>
 
-        <p className="order-tracking-description">O link individual mostra somente os dados públicos desta ordem.</p>
+        <p className="order-tracking-description">
+          O link individual mostra somente os dados públicos desta ordem.
+        </p>
         <div className="order-tracking-links">
           <div className="inline-actions">
             <a
@@ -169,7 +210,8 @@ export default function OrderAdministration({
               Código: <strong>{order.codigo_publico}</strong>
             </p>
             <p>
-              O cliente também pode consultar com o código e o telefone cadastrados.
+              O cliente também pode consultar com o código e o telefone
+              cadastrados.
             </p>
           </details>
         </div>
