@@ -95,7 +95,7 @@ const fixture = () => ({
 });
 test("painel renderizado: vazio amigável e sem total fictício no donut", () => {
   const html = render(fixture());
-  assert.match(html, /Nenhuma ordem no período selecionado/);
+  assert.match(html, /Nenhum serviço ou agendamento no período selecionado/);
   assert.match(html, /Nenhuma ordem para este status no período/);
   assert.doesNotMatch(html, /dashboard-status-donut/);
 });
@@ -126,7 +126,7 @@ test("painel renderizado: dia único sem bolinhas, badges e atrasos", () => {
     },
   ];
   const html = render(data);
-  assert.match(html, /points="462,20 472,20"/);
+  assert.doesNotMatch(html, /dashboard-series-line/);
   assert.doesNotMatch(html, /dash-point/);
   assert.match(html, /dashboard-priority-badge urgente/);
   assert.match(html, /dashboard-priority-badge alta/);
@@ -166,44 +166,44 @@ test("cards superiores renderizados: movimento do período vira curva; zero most
   assert.equal((html.match(/class="kpi-trend-empty"/g) || []).length, 3);
 });
 
-test("região de evolução: um gráfico com quatro linhas de cores e legenda próprias", () => {
+test("serviços: barras com valores reais, seis categorias e sem bolinhas", () => {
   const data = fixture();
-  data.trend = [
-    {
-      key: "2026-09-29",
-      opened: 4,
-      active: 2,
-      finalized: 0,
-      ready: 1,
-      parts: 1,
-    },
-  ];
+  data.serviceChart = {
+    bookings: 4,
+    opened: 3,
+    active: 2,
+    parts: 1,
+    ready: 1,
+    finished: 5,
+  };
   const html = render(data);
-  assert.equal((html.match(/<figure/g) || []).length, 1);
-  for (const label of [
-    "Abertas",
-    "Em andamento",
-    "Pronto para retirada",
-    "Aguardando peças",
+  assert.equal((html.match(/class="dashboard-service-bar"/g) || []).length, 6);
+  for (const [label, count] of [
+    ["Agendamentos", 4],
+    ["Abertos", 3],
+    ["Em andamento", 2],
+    ["Aguardando peça", 1],
+    ["Pronto para retirada", 1],
+    ["Concluídos", 5],
   ])
-    assert.match(html, new RegExp(`aria-label="${label}"`));
-  assert.equal((html.match(/class="dashboard-series-line"/g) || []).length, 4);
-  for (const color of ["#7c3aed", "#2563eb", "#16a34a", "#d97706"])
-    assert.ok(html.includes(color));
+    assert.ok(html.includes(`aria-label="${label}: ${count}"`));
+  assert.doesNotMatch(html, /dash-point|dashboard-series-line/);
+  assert.match(html, /text-anchor="end">5</);
 });
-
-test("evolução: eixos mostram todos os dias do mês e quantidades sem bolinhas", () => {
-  const data = fixture();
-  data.trend = Array.from({ length: 29 }, (_, index) => ({
-    key: `2026-09-${String(index + 1).padStart(2, "0")}`,
-    opened: index === 14 ? 3 : 0,
-    active: 0,
-    finalized: 0,
-    parts: 0,
-  }));
-  const html = render(data);
-  assert.match(html, /M44 20 V216 H890/);
-  assert.match(html, /text-anchor="middle">30</);
-  assert.match(html, /text-anchor="end">3</);
-  assert.doesNotMatch(html, /dash-point/);
+test("serviços: somente agendamentos ou somente concluídos também exibem barras", () => {
+  for (const key of ["bookings", "finished"]) {
+    const data = fixture();
+    data.serviceChart = {
+      bookings: 0,
+      opened: 0,
+      active: 0,
+      parts: 0,
+      ready: 0,
+      finished: 0,
+      [key]: 2,
+    };
+    const html = render(data);
+    assert.match(html, /dashboard-service-bar/);
+    assert.doesNotMatch(html, /Nenhum serviço ou agendamento/);
+  }
 });

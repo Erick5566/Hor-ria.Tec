@@ -339,14 +339,14 @@ export default function Overview() {
         <section className="dashboard-card dashboard-trend">
           <div className="dashboard-card-head">
             <PanelTitle
-              title="Evolução de ordens de serviço"
+              title="Serviços e agendamentos"
               icon="trend"
-              subtitle="Quantidade por status atual e dia de abertura."
+              subtitle="Dados reais do período selecionado."
             />
           </div>
 
           <DashboardContent {...contentProps}>
-            <DashboardOrderCharts trend={data?.trend ?? []} />
+            <DashboardOrderCharts counts={data?.serviceChart} />
           </DashboardContent>
         </section>
 

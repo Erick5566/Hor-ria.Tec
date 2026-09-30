@@ -245,6 +245,14 @@ test("painel: SQL real ordena antes do limite, herda prioridade na agenda e pres
     assert.equal(statusDay.active, 1);
     assert.equal(statusDay.parts, 1);
     assert.equal(statusDay.ready, 1);
+    assert.deepEqual(loaded.serviceChart, {
+      bookings: 0,
+      opened: 5,
+      active: 1,
+      parts: 1,
+      ready: 1,
+      finished: 0,
+    });
     await db.query(
       "update ordens_servico set status='aguardando_peca' where id=$1",
       [orders[2]],
@@ -282,6 +290,7 @@ test("painel: SQL real ordena antes do limite, herda prioridade na agenda e pres
     );
     let agenda = (await overview()).todayAgenda;
     assert.equal(agenda.length, 3);
+    assert.equal((await overview()).serviceChart.bookings, 3);
     assert.equal(agenda[0].prioridade, "urgente");
     assert.equal(agenda[1].prioridade, "normal");
     assert.ok(agenda[1].inicio < agenda[2].inicio);
@@ -298,6 +307,14 @@ test("painel: SQL real ordena antes do limite, herda prioridade na agenda e pres
     const finishedDay = finished.trend.find((point) => point.key === day);
     assert.equal(finishedDay.opened, 4);
     assert.equal(finishedDay.ready, 1);
+    assert.deepEqual(finished.serviceChart, {
+      bookings: 3,
+      opened: 4,
+      active: 0,
+      parts: 2,
+      ready: 1,
+      finished: 1,
+    });
     assert.ok(finished.performance.completionRate > 0);
     assert.notEqual(finished.performance.averageRepairDays, null);
     await db.exec(`set request.jwt.claim.sub='${outsider}'`);

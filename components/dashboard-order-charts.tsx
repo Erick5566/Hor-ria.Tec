@@ -1,125 +1,120 @@
-import { trendGeometry, type DashboardData } from "@/lib/dashboard";
+import type { DashboardData } from "@/lib/dashboard";
 import { Empty } from "./ui";
 
 const series = [
-  { key: "opened", label: "Abertas", color: "#7c3aed" },
-  { key: "active", label: "Em andamento", color: "#2563eb" },
-  { key: "ready", label: "Pronto para retirada", color: "#16a34a" },
-  { key: "parts", label: "Aguardando peças", color: "#d97706" },
+  {
+    key: "bookings",
+    label: "Agendamentos",
+    lines: ["Agendamentos"],
+    color: "#f97316",
+  },
+  { key: "opened", label: "Abertos", lines: ["Abertos"], color: "#7c3aed" },
+  {
+    key: "active",
+    label: "Em andamento",
+    lines: ["Em", "andamento"],
+    color: "#2563eb",
+  },
+  {
+    key: "parts",
+    label: "Aguardando peça",
+    lines: ["Aguardando", "peça"],
+    color: "#d97706",
+  },
+  {
+    key: "ready",
+    label: "Pronto para retirada",
+    lines: ["Pronto para", "retirada"],
+    color: "#0d9488",
+  },
+  {
+    key: "finished",
+    label: "Concluídos",
+    lines: ["Concluídos"],
+    color: "#16a34a",
+  },
 ] as const;
-const shortDate = (day: string) =>
-  new Date(day + "T12:00:00Z").toLocaleDateString("pt-BR", {
-    day: "2-digit",
-    month: "2-digit",
-    timeZone: "America/Sao_Paulo",
-  });
 
 export function DashboardOrderCharts({
-  trend,
+  counts,
 }: {
-  trend: DashboardData["trend"];
+  counts: DashboardData["serviceChart"];
 }) {
-  const geometry = trendGeometry(trend);
-  const firstDay = trend[0]?.key;
-  const lastDay = trend.at(-1)?.key;
-  const monthView =
-    firstDay?.endsWith("-01") && firstDay?.slice(0, 7) === lastDay?.slice(0, 7);
-  const daysInMonth = firstDay
-    ? new Date(
-        Date.UTC(Number(firstDay.slice(0, 4)), Number(firstDay.slice(5, 7)), 0),
-      ).getUTCDate()
-    : 0;
-  const axisDays = monthView
-    ? Array.from(
-        { length: daysInMonth },
-        (_, index) =>
-          `${firstDay!.slice(0, 7)}-${String(index + 1).padStart(2, "0")}`,
-      )
-    : trend.map((point) => point.key);
-  const maxValue = Math.max(
-    1,
-    ...trend.flatMap((point) => [
-      point.opened,
-      point.active,
-      point.ready ?? 0,
-      point.parts ?? 0,
-    ]),
-  );
-  const tickStep = Math.max(1, Math.ceil(maxValue / 5));
-  const axisMax = Math.ceil(maxValue / tickStep) * tickStep;
-  const yTicks = Array.from(
+  const values = series.map((item) => counts?.[item.key] ?? 0);
+  const hasData = values.some((value) => value > 0);
+  const tickStep = Math.max(1, Math.ceil(Math.max(1, ...values) / 5));
+  const axisMax = Math.ceil(Math.max(1, ...values) / tickStep) * tickStep;
+  const ticks = Array.from(
     { length: axisMax / tickStep + 1 },
     (_, index) => index * tickStep,
   );
-  const x = (index: number) =>
-    axisDays.length === 1 ? 467 : 44 + (index / (axisDays.length - 1)) * 846;
-  const y = (value: number) => 216 - (value / axisMax) * 196;
+  const y = (value: number) => 230 - (value / axisMax) * 196;
   return (
     <figure className="dashboard-order-chart">
-      {geometry.hasData ? (
+      {hasData ? (
         <div className="dashboard-order-plot-scroll">
           <svg
-            viewBox="0 0 910 252"
-            preserveAspectRatio="none"
+            viewBox="0 0 720 290"
             role="img"
-            aria-label="Evolução diária das ordens: abertas, em andamento, prontas para retirada e aguardando peças. Eixo horizontal: dias. Eixo vertical: quantidade de ordens."
+            aria-label="Quantidade de agendamentos e serviços por status no período selecionado"
           >
-            {yTicks.map((value) => (
+            {ticks.map((value) => (
               <g key={value} className="dashboard-chart-tick">
                 <line
-                  x1="44"
-                  x2="890"
+                  x1="46"
+                  x2="708"
                   y1={y(value)}
                   y2={y(value)}
                   className="dash-grid-line"
                 />
-                <text x="34" y={y(value) + 4} textAnchor="end">
+                <text x="36" y={y(value) + 4} textAnchor="end">
                   {value}
                 </text>
               </g>
             ))}
-            <path d="M44 20 V216 H890" className="dashboard-chart-axis-line" />
-            {axisDays.map((day, index) => (
-              <g key={day} className="dashboard-chart-tick">
-                <line
-                  x1={x(index)}
-                  x2={x(index)}
-                  y1="216"
-                  y2="222"
-                  className="dashboard-chart-axis-line"
-                />
-                <text x={x(index)} y="240" textAnchor="middle">
-                  {Number(day.slice(8, 10))}
-                  <title>{shortDate(day)}</title>
-                </text>
-              </g>
-            ))}
-            {series.map((item) => {
-              const points = trend.map((point, index) => ({
-                x: x(index),
-                y: y(point[item.key] ?? 0),
-              }));
-              // A short segment keeps a single day's value visible without a dot.
-              const linePoints =
-                points.length === 1
-                  ? `${points[0].x - 5},${points[0].y} ${points[0].x + 5},${points[0].y}`
-                  : points.map((point) => `${point.x},${point.y}`).join(" ");
+            <path d="M46 34 V230 H708" className="dashboard-chart-axis-line" />
+            {series.map((item, index) => {
+              const value = values[index];
+              const x = 104 + index * 108;
               return (
-                <polyline
-                  key={item.key}
-                  style={{ color: item.color }}
-                  aria-label={item.label}
-                  points={linePoints}
-                  className="dashboard-series-line"
-                >
-                  <title>{`${item.label}: ${trend.map((point) => `${shortDate(point.key)}: ${point[item.key] ?? 0}`).join("; ")}`}</title>
-                </polyline>
+                <g key={item.key} aria-label={`${item.label}: ${value}`}>
+                  <rect
+                    x={x - 24}
+                    y={y(value)}
+                    width="48"
+                    height={230 - y(value)}
+                    fill={item.color}
+                    className="dashboard-service-bar"
+                  >
+                    <title>{`${item.label}: ${value}`}</title>
+                  </rect>
+                  <text
+                    x={x}
+                    y={y(value) - 9}
+                    textAnchor="middle"
+                    className="dashboard-bar-value"
+                  >
+                    {value}
+                  </text>
+                  <text
+                    x={x}
+                    y="252"
+                    textAnchor="middle"
+                    className="dashboard-bar-label"
+                  >
+                    {item.lines.map((line, lineIndex) => (
+                      <tspan key={line} x={x} dy={lineIndex === 0 ? 0 : 15}>
+                        {line}
+                      </tspan>
+                    ))}
+                  </text>
+                </g>
               );
             })}
           </svg>
         </div>
       ) : (
-        <Empty title="Nenhuma ordem no período selecionado." />
+        <Empty title="Nenhum serviço ou agendamento no período selecionado." />
       )}
       <figcaption className="dashboard-order-legend">
         {series.map((item) => (

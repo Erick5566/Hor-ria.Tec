@@ -29,6 +29,14 @@ export type DashboardData = {
     parts?: number;
     ready?: number;
   }>;
+  serviceChart?: {
+    bookings: number;
+    opened: number;
+    active: number;
+    parts: number;
+    ready: number;
+    finished: number;
+  };
   status: {
     concluidas: number;
     andamento: number;
@@ -166,6 +174,14 @@ export function normalizeDashboard(value: unknown): DashboardData {
         Array.isArray(values) ? values.map(number) : [],
       ]),
     ) as DashboardData["spark"],
+    serviceChart: {
+      bookings: number(data.serviceChart?.bookings),
+      opened: number(data.serviceChart?.opened),
+      active: number(data.serviceChart?.active),
+      parts: number(data.serviceChart?.parts),
+      ready: number(data.serviceChart?.ready),
+      finished: number(data.serviceChart?.finished),
+    },
     trend: data.trend
       .filter((item) => item && /^\d{4}-\d{2}-\d{2}$/.test(item.key))
       .map((item) => ({
