@@ -99,7 +99,7 @@ test("painel renderizado: vazio amigável e sem total fictício no donut", () =>
   assert.match(html, /Nenhuma ordem para este status no período/);
   assert.doesNotMatch(html, /dashboard-status-donut/);
 });
-test("painel renderizado: ponto único, badges e atrasos", () => {
+test("painel renderizado: dia único sem bolinhas, badges e atrasos", () => {
   const data = fixture();
   data.trend = [{ key: "2026-09-29", opened: 1, active: 0, finalized: 0 }];
   data.status.andamento = 1;
@@ -126,8 +126,8 @@ test("painel renderizado: ponto único, badges e atrasos", () => {
     },
   ];
   const html = render(data);
-  assert.match(html, /cx="50"/);
-  assert.match(html, /dash-point opened/);
+  assert.match(html, /points="462,20 472,20"/);
+  assert.doesNotMatch(html, /dash-point/);
   assert.match(html, /dashboard-priority-badge urgente/);
   assert.match(html, /dashboard-priority-badge alta/);
   assert.match(html, /dashboard-overdue/);
@@ -183,4 +183,20 @@ test("região de evolução: um gráfico com quatro linhas de cores e legenda pr
   assert.equal((html.match(/class="dashboard-series-line"/g) || []).length, 4);
   for (const color of ["#7c3aed", "#2563eb", "#16a34a", "#d97706"])
     assert.ok(html.includes(color));
+});
+
+test("evolução: eixos mostram todos os dias do mês e quantidades sem bolinhas", () => {
+  const data = fixture();
+  data.trend = Array.from({ length: 29 }, (_, index) => ({
+    key: `2026-09-${String(index + 1).padStart(2, "0")}`,
+    opened: index === 14 ? 3 : 0,
+    active: 0,
+    finalized: 0,
+    parts: 0,
+  }));
+  const html = render(data);
+  assert.match(html, /M44 20 V216 H890/);
+  assert.match(html, /text-anchor="middle">30</);
+  assert.match(html, /text-anchor="end">3</);
+  assert.doesNotMatch(html, /dash-point/);
 });
