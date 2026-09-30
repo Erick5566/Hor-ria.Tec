@@ -204,9 +204,7 @@ export default function OrderDetail({
               }}
             >
               <div className="order-next-action-copy">
-                {["novo", "recebido"].includes(order.status) ? (
-                  <strong>PROXIMA AÇAO</strong>
-                ) : (
+                {["novo", "recebido"].includes(order.status) ? null : (
                   <>
                     <span>PRÓXIMA AÇÃO</span>
                     <strong>
