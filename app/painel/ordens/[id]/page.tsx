@@ -196,7 +196,7 @@ export default function OrderDetail({
             <section className="panel order-next-action">
               <div className="order-next-action-copy">
                 {["novo", "recebido"].includes(order.status) ? (
-                  <strong>PROXIMA AÇAO - INICIAR DIAGNOSTICO</strong>
+                  <strong>PROXIMA AÇAO</strong>
                 ) : (
                   <>
                     <span>PRÓXIMA AÇÃO</span>
