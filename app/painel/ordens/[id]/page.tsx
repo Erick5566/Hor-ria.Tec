@@ -235,6 +235,7 @@ export default function OrderDetail({
                 {["novo", "recebido"].includes(order.status) && (
                   <button
                     className="primary"
+                    style={{ width: "100%" }}
                     disabled={busy}
                     onClick={() => void advanceStatus("em_diagnostico", "Diagnóstico")}
                   >
