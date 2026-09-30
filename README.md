@@ -52,6 +52,8 @@ O endpoint `/api/webhooks/billing/[provider]` fica inativo até que `HORARIA_BIL
 - `node tests/runtime-smoke.mjs`: sobe a build e verifica as rotas essenciais por HTTP.
 - `tests/remote-isolation.sql`: valida isolamento no Supabase real e termina com `ROLLBACK`, sem deixar fixtures.
 
-A autenticação por e-mail real depende da configuração de confirmação e entrega de e-mail do projeto Supabase. O gateway de cobrança está preparado, mas só processa pagamentos quando um provedor e suas credenciais forem configurados. Emissão fiscal e envio automático de WhatsApp/SMS não fazem parte desta versão.
+A autenticação por e-mail real depende da configuração de confirmação e entrega de e-mail do projeto Supabase. Para cadastro sem confirmação por e-mail, desative **Authentication > Providers > Email > Confirm email**. O cadastro possui honeypot, limite local de tentativas e tratamento dos limites nativos do Supabase Auth. Para proteção anti-bot completa, defina `NEXT_PUBLIC_TURNSTILE_SITE_KEY` na aplicação e habilite **Authentication > Bot and Abuse Protection > CAPTCHA > Cloudflare Turnstile** no Supabase usando a Secret Key do widget.
+
+O gateway de cobrança está preparado, mas só processa pagamentos quando um provedor e suas credenciais forem configurados. Emissão fiscal e envio automático de WhatsApp/SMS não fazem parte desta versão.
 
 Referências: [RLS no Supabase](https://supabase.com/docs/guides/database/postgres/row-level-security), [Storage Access Control](https://supabase.com/docs/guides/storage/security/access-control), [Next.js App Router](https://nextjs.org/docs/app/getting-started/installation).
