@@ -119,10 +119,6 @@ export function GuidedPhotoSequence({
   }
 
   function openCameraCapture() {
-    if (typeof navigator.mediaDevices !== "undefined") {
-      setCameraOpen(true);
-      return;
-    }
     fallbackCamera.current?.click();
   }
 
@@ -135,7 +131,7 @@ export function GuidedPhotoSequence({
     });
     // Ao refazer, já abrimos a câmera da etapa escolhida. O novo estado
     // é aplicado no mesmo ciclo de render e a captura substitui aquela foto.
-    openCameraCapture();
+    setCameraOpen(true);
   }
 
   function skipCurrent() {
@@ -309,7 +305,18 @@ export function GuidedPhotoSequence({
           disabled={busy}
           onClick={openCameraCapture}
         >
-          ◎ {activeExisting ? "Refazer foto" : "Tirar foto"}
+          ◎{" "}
+          {activeExisting
+            ? "Refazer com câmera do aparelho"
+            : "Câmera do aparelho"}
+        </button>
+        <button
+          type="button"
+          className="outline"
+          disabled={busy}
+          onClick={() => setCameraOpen(true)}
+        >
+          Câmera ao vivo / webcam
         </button>
         <button
           type="button"
@@ -584,12 +591,17 @@ export function PhotoPicker({
           className="primary"
           type="button"
           disabled={busy}
-          onClick={() => {
-            if (navigator.mediaDevices) setCameraOpen(true);
-            else fallbackCamera.current?.click();
-          }}
+          onClick={() => fallbackCamera.current?.click()}
         >
-          ◎ Tirar foto
+          ◎ Câmera do aparelho
+        </button>
+        <button
+          type="button"
+          className="outline"
+          disabled={busy}
+          onClick={() => setCameraOpen(true)}
+        >
+          Câmera ao vivo / webcam
         </button>
         <input
           ref={fallbackCamera}
