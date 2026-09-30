@@ -140,6 +140,11 @@ small {
   width: 118px;
   height: auto;
 }
+
+/* Cadastro/login: destaque maior para a marca sem alterar o restante do sistema */
+.login-story .brand-logo {
+  width: clamp(220px, 24vw, 320px);
+}
 .brand-dot {
   color: #4a5c6a;
   margin-left: -8px;
@@ -983,6 +988,10 @@ small {
   }
 }
 @media (max-width: 800px) {
+  .login-story .brand-logo {
+    width: 220px;
+  }
+
   .sidebar {
     position: static;
     width: 100%;
@@ -1065,6 +1074,10 @@ small {
   }
 }
 @media (max-width: 600px) {
+  .login-story .brand-logo {
+    width: 180px;
+  }
+
   .login-layout {
     display: block;
   }
