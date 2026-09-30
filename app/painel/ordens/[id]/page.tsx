@@ -403,6 +403,7 @@ export default function OrderDetail({
                   orderId={id}
                   status={order.status}
                   createdAt={order.criado_em}
+                  onChanged={() => load(true)}
                 />
                 <OrderAdministration
                   order={order}
