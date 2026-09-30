@@ -12321,6 +12321,13 @@ svg {
   box-shadow: 0 0 0 5px #eaf2ff;
 }
 
+.order-flow-steps li.is-active.is-complete .order-flow-marker {
+  color: #fff;
+  background: #22a447;
+  border-color: #22a447;
+  box-shadow: 0 0 0 5px rgb(34 164 71 / 14%);
+}
+
 .order-flow-steps strong {
   display: block;
   color: #3b4b64;
