@@ -90,6 +90,11 @@ export function message(error: { message: string; code?: string }) {
     return error.message.includes("clientes")
       ? "Já existe um cliente com este WhatsApp. Selecione o cadastro existente."
       : "Já existe um cadastro com estes dados. Confira o endereço da página ou o registro selecionado.";
+  if (
+    error.code === "23514" &&
+    error.message.includes("ordens_servico_problema_check")
+  )
+    return "Descreva o problema do aparelho com 3 a 5.000 caracteres, sem contar espaços no início e no fim. Exemplo: Não liga.";
   if (error.code === "23514")
     return "Confira os campos e os horários informados.";
   if (error.code === "23503")

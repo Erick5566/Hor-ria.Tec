@@ -270,3 +270,24 @@ test("recebimento: banco conserva YYYY-MM-DD e rejeita entrega anterior à entra
     await db.close();
   }
 });
+
+test("criação da OS: descrição válida é preservada; texto curto ou só espaços é rejeitado antes do envio", () => {
+  const { prepareOrderDetails } = load("lib/order-input.ts");
+  const details = {
+    problema: "",
+    observacoes_estado: " Marcas na tampa ",
+    tecnico: "",
+    previsao: "2026-10-01",
+  };
+  for (const problema of ["", "  ", "ab", " a "])
+    assert.throws(
+      () => prepareOrderDetails({ ...details, problema }, []),
+      /Descreva o problema/,
+    );
+  const result = prepareOrderDetails({ ...details, problema: " Não liga " }, [
+    "Riscos",
+  ]);
+  assert.equal(result.problema, "Não liga");
+  assert.equal(result.previsao, "2026-10-01");
+  assert.equal(result.observacoes_estado, "Marcas na tampa");
+});

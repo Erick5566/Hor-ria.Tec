@@ -1,4 +1,5 @@
 "use client";
+import { prepareOrderDetails } from "@/lib/order-input";
 import { localDay, validateDelivery } from "@/lib/receipt-dates";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -256,10 +257,20 @@ export default function OrderForm() {
     }
     setBusy(true);
     setError("");
-    const form = new FormData(e.currentTarget);
+    const problemField = e.currentTarget.elements.namedItem(
+      "problema",
+    ) as HTMLTextAreaElement | null;
     try {
       let orderId = createdId;
       if (!orderId) {
+        let orderDetails;
+        try {
+          orderDetails = prepareOrderDetails(details, state);
+        } catch (error) {
+          problemField?.focus();
+          throw error;
+        }
+        validateDelivery(details.previsao, localDay());
         if (customer.id && editingCustomer) {
           // Decisão atual de produto: "Editar dados" atualiza o cadastro
           // permanente do cliente, não apenas os dados desta OS.
@@ -277,18 +288,11 @@ export default function OrderForm() {
           if (customerUpdate.error) throw customerUpdate.error;
         }
 
-        validateDelivery(details.previsao, localDay());
         const { data, error } = await supabase!.rpc("criar_ordem", {
           p_empresa: empresa.id,
           p_cliente: customer,
           p_equipamento: device,
-          p_ordem: {
-            problema: form.get("problema"),
-            estado: state,
-            observacoes_estado: form.get("observacoes_estado"),
-            tecnico: form.get("tecnico"),
-            previsao: details.previsao || null,
-          },
+          p_ordem: orderDetails,
         });
         if (error) throw error;
         orderId = String(data);
@@ -512,8 +516,13 @@ export default function OrderForm() {
                 required
                 minLength={3}
                 maxLength={5000}
+                aria-describedby="order-problem-help"
                 placeholder="Cliente informa que o aparelho parou de carregar após queda."
               />
+              <small id="order-problem-help">
+                Descreva o defeito com pelo menos 3 caracteres. Exemplo: Não
+                liga.
+              </small>
             </label>
             <div className="form-grid">
               <label>
