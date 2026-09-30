@@ -176,7 +176,7 @@ small {
 .login-story .brand::after {
   width: 280px;
   height: 62px;
-  margin-top: -2px;
+  margin-top: 2px;
   background-size: 292px 248px;
   background-position: -6px -177px;
 }
