@@ -141,9 +141,9 @@ small {
   height: auto;
 }
 
-/* Cadastro/login: símbolo H maior, mantendo o nome Horária proporcional */
+/* Cadastro/login: H maior com recorte estável e sem distorcer o wordmark */
 .login-story .brand {
-  width: 340px;
+  width: 280px;
   max-width: 100%;
   flex-direction: column;
   align-items: flex-start;
@@ -158,26 +158,27 @@ small {
 .login-story .brand::after {
   content: "";
   display: block;
+  flex: 0 0 auto;
   background-image: url("/brand/horaria-logo.png");
   background-repeat: no-repeat;
 }
 
-/* Recorta apenas o símbolo H e o exibe maior que o nome */
+/* Símbolo H: maior que o wordmark, mas sem estourar o bloco */
 .login-story .brand::before {
-  width: 250px;
-  height: 270px;
-  margin-left: 22px;
-  background-size: 480px auto;
-  background-position: center top;
+  width: 220px;
+  height: 239px;
+  margin-left: 30px;
+  background-size: 449px 381px;
+  background-position: -114px -12px;
 }
 
-/* Recorta apenas o wordmark Horária */
+/* Nome Horária: recorte separado para evitar sobreposição ou corte */
 .login-story .brand::after {
-  width: 340px;
-  height: 82px;
-  margin-top: -4px;
-  background-size: 340px auto;
-  background-position: center bottom;
+  width: 280px;
+  height: 62px;
+  margin-top: -2px;
+  background-size: 292px 248px;
+  background-position: -6px -177px;
 }
 .brand-dot {
   color: #4a5c6a;
@@ -1023,20 +1024,22 @@ small {
 }
 @media (max-width: 800px) {
   .login-story .brand {
-    width: 300px;
+    width: 250px;
   }
 
   .login-story .brand::before {
-    width: 220px;
-    height: 238px;
-    margin-left: 18px;
-    background-size: 423px auto;
+    width: 195px;
+    height: 212px;
+    margin-left: 28px;
+    background-size: 397px 337px;
+    background-position: -101px -10px;
   }
 
   .login-story .brand::after {
-    width: 300px;
-    height: 73px;
-    background-size: 300px auto;
+    width: 250px;
+    height: 55px;
+    background-size: 260px 221px;
+    background-position: -5px -158px;
   }
 
   .sidebar {
@@ -1122,20 +1125,22 @@ small {
 }
 @media (max-width: 600px) {
   .login-story .brand {
-    width: 250px;
+    width: 220px;
   }
 
   .login-story .brand::before {
-    width: 190px;
-    height: 205px;
-    margin-left: 12px;
-    background-size: 365px auto;
+    width: 175px;
+    height: 190px;
+    margin-left: 23px;
+    background-size: 357px 303px;
+    background-position: -91px -9px;
   }
 
   .login-story .brand::after {
-    width: 250px;
-    height: 61px;
-    background-size: 250px auto;
+    width: 220px;
+    height: 49px;
+    background-size: 229px 194px;
+    background-position: -5px -139px;
   }
 
   .login-layout {
