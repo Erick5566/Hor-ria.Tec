@@ -113,17 +113,30 @@ function stepDate(
   });
 }
 
+const nextStatusByStage: Partial<Record<number, Status>> = {
+  0: "em_diagnostico",
+  1: "orcamento_enviado",
+  2: "orcamento_aprovado",
+  3: "em_reparo",
+  4: "em_testes",
+  5: "pronto_retirada",
+  6: "finalizado",
+};
+
 export default function OrderTimeline({
   orderId,
   status,
   createdAt,
+  onChanged,
 }: {
   orderId: string;
   status: Status;
   createdAt: string;
+  onChanged?: () => void | Promise<void>;
 }) {
   const [rows, setRows] = useState<Historico[]>([]);
   const [loading, setLoading] = useState(true);
+  const [advancing, setAdvancing] = useState(false);
   const [error, setError] = useState("");
 
   const load = useCallback(async () => {
@@ -150,6 +163,29 @@ export default function OrderTimeline({
   }, [load, status]);
 
   const currentStage = stageByStatus[status];
+
+  const advanceStep = useCallback(async () => {
+    const nextStatus = nextStatusByStage[currentStage];
+    if (!nextStatus || status === "cancelado" || status === "finalizado") return;
+
+    setAdvancing(true);
+    setError("");
+    try {
+      const result = await supabase!
+        .from("ordens_servico")
+        .update({ status: nextStatus })
+        .eq("id", orderId)
+        .select("id")
+        .single();
+      if (result.error) throw result.error;
+      await load();
+      await onChanged?.();
+    } catch (caught) {
+      setError(message(caught as Error));
+    } finally {
+      setAdvancing(false);
+    }
+  }, [currentStage, load, onChanged, orderId, status]);
 
   const mapped = useMemo(
     () =>
@@ -230,6 +266,23 @@ export default function OrderTimeline({
                       ? "Etapa atual"
                       : "Ainda não iniciada"}
               </small>
+              {step.active &&
+                status !== "cancelado" &&
+                status !== "finalizado" &&
+                nextStatusByStage[step.index] && (
+                  <button
+                    type="button"
+                    className="order-flow-advance"
+                    disabled={advancing}
+                    onClick={() => void advanceStep()}
+                  >
+                    {advancing
+                      ? "Salvando…"
+                      : step.key === "tests"
+                        ? "Pronto"
+                        : "Feito"}
+                  </button>
+                )}
             </div>
           </li>
         ))}
