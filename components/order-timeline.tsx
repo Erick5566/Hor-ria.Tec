@@ -197,6 +197,7 @@ export default function OrderTimeline({
         const completed =
           status === "finalizado" ||
           currentStage > index ||
+          (step.key === "received" && status === "recebido") ||
           (Boolean(stepDate(step, rows, createdAt)) && !active);
         return {
           ...step,
