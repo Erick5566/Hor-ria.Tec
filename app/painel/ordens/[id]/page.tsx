@@ -195,23 +195,28 @@ export default function OrderDetail({
 
             <section className="panel order-next-action">
               <div className="order-next-action-copy">
-                <span>PRÓXIMA AÇÃO</span>
-                <strong>
-                  {["novo", "recebido"].includes(order.status) && "Iniciar diagnóstico"}
-                  {order.status === "em_diagnostico" && "Preparar orçamento"}
-                  {order.status === "aguardando_orcamento" && "Montar e enviar orçamento"}
-                  {["orcamento_enviado", "aguardando_aprovacao"].includes(order.status) && "Aguardar decisão do cliente"}
-                  {order.status === "orcamento_aprovado" && "Iniciar reparo"}
-                  {order.status === "aguardando_peca" && "Retomar reparo quando a peça chegar"}
-                  {order.status === "em_reparo" && "Enviar aparelho para testes"}
-                  {order.status === "em_testes" && "Liberar aparelho para retirada"}
-                  {order.status === "pronto_retirada" && "Avisar cliente e finalizar entrega"}
-                  {order.status === "finalizado" && "Atendimento concluído"}
-                  {order.status === "cancelado" && "Ordem cancelada"}
-                </strong>
-                <small>
-                  O Horária usa o status atual da OS para destacar a próxima etapa operacional.
-                </small>
+                {["novo", "recebido"].includes(order.status) ? (
+                  <strong>PROXIMA AÇAO - INICIAR DIAGNOSTICO</strong>
+                ) : (
+                  <>
+                    <span>PRÓXIMA AÇÃO</span>
+                    <strong>
+                      {order.status === "em_diagnostico" && "Preparar orçamento"}
+                      {order.status === "aguardando_orcamento" && "Montar e enviar orçamento"}
+                      {["orcamento_enviado", "aguardando_aprovacao"].includes(order.status) && "Aguardar decisão do cliente"}
+                      {order.status === "orcamento_aprovado" && "Iniciar reparo"}
+                      {order.status === "aguardando_peca" && "Retomar reparo quando a peça chegar"}
+                      {order.status === "em_reparo" && "Enviar aparelho para testes"}
+                      {order.status === "em_testes" && "Liberar aparelho para retirada"}
+                      {order.status === "pronto_retirada" && "Avisar cliente e finalizar entrega"}
+                      {order.status === "finalizado" && "Atendimento concluído"}
+                      {order.status === "cancelado" && "Ordem cancelada"}
+                    </strong>
+                    <small>
+                      O Horária usa o status atual da OS para destacar a próxima etapa operacional.
+                    </small>
+                  </>
+                )}
               </div>
 
               <div className="inline-actions order-next-action-buttons">
