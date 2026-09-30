@@ -1892,6 +1892,32 @@ hr {
   margin: -4px 0 4px;
 }
 
+.anti-bot-field {
+  position: absolute !important;
+  left: -10000px !important;
+  width: 1px !important;
+  height: 1px !important;
+  overflow: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
+.captcha-wrap {
+  display: grid;
+  gap: 8px;
+  min-height: 70px;
+  overflow: hidden;
+}
+
+.captcha-wrap > div {
+  max-width: 100%;
+}
+
+.captcha-wrap small {
+  color: #75839a;
+  font-size: 11px;
+}
+
 .auth-help-row a,
 .privacy a {
   color: #315f9e;
