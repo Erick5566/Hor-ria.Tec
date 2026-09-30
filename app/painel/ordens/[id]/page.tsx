@@ -198,8 +198,8 @@ export default function OrderDetail({
               style={{
                 display: "flex",
                 flexDirection: "column",
-                alignItems: "center",
-                textAlign: "center",
+                alignItems: "flex-start",
+                textAlign: "left",
                 gap: "16px",
               }}
             >
@@ -230,7 +230,7 @@ export default function OrderDetail({
 
               <div
                 className="inline-actions order-next-action-buttons"
-                style={{ justifyContent: "center", width: "100%" }}
+                style={{ justifyContent: "flex-start", width: "100%" }}
               >
                 {["novo", "recebido"].includes(order.status) && (
                   <button
