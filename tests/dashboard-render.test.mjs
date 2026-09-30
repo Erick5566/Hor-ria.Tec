@@ -169,14 +169,21 @@ test("cards superiores renderizados: movimento do período vira curva; zero most
 test("região de evolução: um gráfico com quatro linhas de cores e legenda próprias", () => {
   const data = fixture();
   data.trend = [
-    { key: "2026-09-29", opened: 4, active: 2, finalized: 1, parts: 1 },
+    {
+      key: "2026-09-29",
+      opened: 4,
+      active: 2,
+      finalized: 0,
+      ready: 1,
+      parts: 1,
+    },
   ];
   const html = render(data);
   assert.equal((html.match(/<figure/g) || []).length, 1);
   for (const label of [
     "Abertas",
     "Em andamento",
-    "Concluídas",
+    "Pronto para retirada",
     "Aguardando peças",
   ])
     assert.match(html, new RegExp(`aria-label="${label}"`));

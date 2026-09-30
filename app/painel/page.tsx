@@ -341,7 +341,7 @@ export default function Overview() {
             <PanelTitle
               title="Evolução de ordens de serviço"
               icon="trend"
-              subtitle="Acompanhe o volume de ordens ao longo do tempo."
+              subtitle="Quantidade por status atual e dia de abertura."
             />
           </div>
 

@@ -232,8 +232,28 @@ test("painel: SQL real ordena antes do limite, herda prioridade na agenda e pres
       "update ordens_servico set status='aguardando_peca' where id=$1",
       [orders[1]],
     );
+    await db.query("update ordens_servico set status='em_reparo' where id=$1", [
+      orders[2],
+    ]);
+    await db.query(
+      "update ordens_servico set status='pronto_retirada' where id=$1",
+      [orders[3]],
+    );
     const loaded = await overview();
-    assert.ok(loaded.trend.some((point) => point.parts === 1));
+    const statusDay = loaded.trend.find((point) => point.key === day);
+    assert.equal(statusDay.opened, 5);
+    assert.equal(statusDay.active, 1);
+    assert.equal(statusDay.parts, 1);
+    assert.equal(statusDay.ready, 1);
+    await db.query(
+      "update ordens_servico set status='aguardando_peca' where id=$1",
+      [orders[2]],
+    );
+    const changedDay = (await overview()).trend.find(
+      (point) => point.key === day,
+    );
+    assert.equal(changedDay.active, 0);
+    assert.equal(changedDay.parts, 2);
     assert.equal(loaded.latestOrders.length, 6);
     assert.equal(loaded.latestOrders[0].id, orders[7]);
     assert.equal(loaded.latestOrders[1].id, orders[6]);
@@ -275,6 +295,9 @@ test("painel: SQL real ordena antes do limite, herda prioridade na agenda e pres
       [orders[0]],
     );
     const finished = await overview();
+    const finishedDay = finished.trend.find((point) => point.key === day);
+    assert.equal(finishedDay.opened, 4);
+    assert.equal(finishedDay.ready, 1);
     assert.ok(finished.performance.completionRate > 0);
     assert.notEqual(finished.performance.averageRepairDays, null);
     await db.exec(`set request.jwt.claim.sub='${outsider}'`);

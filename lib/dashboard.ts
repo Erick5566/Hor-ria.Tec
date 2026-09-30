@@ -27,6 +27,7 @@ export type DashboardData = {
     active: number;
     finalized: number;
     parts?: number;
+    ready?: number;
   }>;
   status: {
     concluidas: number;
@@ -106,11 +107,11 @@ export function trendGeometry(trend: DashboardData["trend"]) {
     ...trend.flatMap((item) => [
       item.opened,
       item.active,
-      item.finalized,
+      item.ready ?? 0,
       item.parts ?? 0,
     ]),
   );
-  const points = (key: "opened" | "active" | "finalized" | "parts") =>
+  const points = (key: "opened" | "active" | "finalized" | "parts" | "ready") =>
     trend.map((item, index) => ({
       x: trend.length === 1 ? 50 : 4 + (index / (trend.length - 1)) * 92,
       y: 88 - ((item[key] ?? 0) / max) * 72,
@@ -123,7 +124,7 @@ export function trendGeometry(trend: DashboardData["trend"]) {
       (item) =>
         item.opened > 0 ||
         item.active > 0 ||
-        item.finalized > 0 ||
+        (item.ready ?? 0) > 0 ||
         (item.parts ?? 0) > 0,
     ),
   };
@@ -173,6 +174,7 @@ export function normalizeDashboard(value: unknown): DashboardData {
         active: number(item.active),
         finalized: number(item.finalized),
         parts: number(item.parts),
+        ready: number(item.ready),
       })),
   };
 }

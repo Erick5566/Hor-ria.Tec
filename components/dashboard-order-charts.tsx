@@ -4,7 +4,7 @@ import { Empty } from "./ui";
 const series = [
   { key: "opened", label: "Abertas", color: "#7c3aed" },
   { key: "active", label: "Em andamento", color: "#2563eb" },
-  { key: "finalized", label: "Concluídas", color: "#16a34a" },
+  { key: "ready", label: "Pronto para retirada", color: "#16a34a" },
   { key: "parts", label: "Aguardando peças", color: "#d97706" },
 ] as const;
 const shortDate = (day: string) =>
@@ -41,7 +41,7 @@ export function DashboardOrderCharts({
     ...trend.flatMap((point) => [
       point.opened,
       point.active,
-      point.finalized,
+      point.ready ?? 0,
       point.parts ?? 0,
     ]),
   );
@@ -62,7 +62,7 @@ export function DashboardOrderCharts({
             viewBox="0 0 910 252"
             preserveAspectRatio="none"
             role="img"
-            aria-label="Evolução diária das ordens: abertas, em andamento, concluídas e aguardando peças. Eixo horizontal: dias. Eixo vertical: quantidade de ordens."
+            aria-label="Evolução diária das ordens: abertas, em andamento, prontas para retirada e aguardando peças. Eixo horizontal: dias. Eixo vertical: quantidade de ordens."
           >
             {yTicks.map((value) => (
               <g key={value} className="dashboard-chart-tick">
