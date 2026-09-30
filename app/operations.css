@@ -12308,8 +12308,10 @@ svg {
 }
 
 .order-flow-steps li.is-complete .order-flow-marker {
-  background: #3a4da1;
-  border-color: #3a4da1;
+  color: #fff;
+  background: #22a447;
+  border-color: #22a447;
+  box-shadow: 0 0 0 4px rgb(34 164 71 / 12%);
 }
 
 .order-flow-steps li.is-active .order-flow-marker {
