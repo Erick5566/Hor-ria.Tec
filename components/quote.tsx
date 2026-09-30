@@ -3,6 +3,7 @@ import { useEffect, useState, useCallback } from "react";
 import { supabase, message, today, shift, Servico } from "@/lib/supabase";
 import { Item, Orcamento, money } from "@/lib/assistencia";
 import { ErrorBox, Empty, PanelTitle } from "./ui";
+import { parseDiagnosisParts } from "@/lib/diagnosis-structured";
 
 function quoteStatus(status: string) {
   const labels: Record<string, string> = {
@@ -109,12 +110,41 @@ export default function Quote({
 
   async function start() {
     setServices(latest?.servicos || []);
-    setParts(latest?.pecas || []);
     setLabor(Number(latest?.mao_obra) || 0);
     setDiscount(Number(latest?.desconto) || 0);
     setValidity(shift(today(), 7));
     setEditing(true);
-    await ensureCatalog();
+
+    try {
+      const [diagnosisResult] = await Promise.all([
+        supabase!
+          .from("diagnosticos")
+          .select("pecas_necessarias")
+          .eq("ordem_id", ordemId)
+          .maybeSingle(),
+        ensureCatalog(),
+      ]);
+
+      if (diagnosisResult.error) throw diagnosisResult.error;
+
+      const diagnosisParts = parseDiagnosisParts(
+        diagnosisResult.data?.pecas_necessarias,
+      ).items
+        .filter((item) => item.nome.trim().length >= 2)
+        .map((item) => ({
+          nome: item.nome.trim(),
+          quantidade: Math.max(1, Number(item.quantidade) || 1),
+          valor: Math.max(0, Number(item.valor) || 0),
+          ...(item.stockId ? { peca_id: item.stockId } : {}),
+        }));
+
+      setParts(
+        latest?.pecas?.length ? latest.pecas : diagnosisParts,
+      );
+    } catch (caught) {
+      setParts(latest?.pecas || []);
+      setError(message(caught as Error));
+    }
   }
 
   async function save(event: React.FormEvent) {
