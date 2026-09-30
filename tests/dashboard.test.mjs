@@ -278,3 +278,70 @@ test("painel: SQL real ordena antes do limite, herda prioridade na agenda e pres
     await db.close();
   }
 });
+
+test("cards superiores: minigráficos têm variação real e base zero, sem inventar movimento", async () => {
+  const { sparkGeometry } = await loadTS("lib/dashboard.ts");
+  const movement = sparkGeometry([0, 3, 0]);
+  assert.equal(movement.hasData, true);
+  assert.notEqual(movement.line, sparkGeometry([0, 0, 0]).line);
+  assert.equal(movement.last.y, 42);
+  assert.equal(sparkGeometry([0, 0, 0]).hasData, false);
+  assert.equal(sparkGeometry([]).hasData, false);
+  assert.equal(sparkGeometry([3]).last.x, 50);
+});
+
+test("cards superiores: SQL mantém movimento anterior aos últimos sete dias do período", async () => {
+  const db = await database();
+  try {
+    const uid = "10000000-0000-0000-0000-000000000001";
+    await db.exec(
+      `insert into auth.users values('${uid}');set request.jwt.claim.sub='${uid}';set role authenticated`,
+    );
+    const eid = (
+      await db.query(
+        `select configurar_empresa('Cards','cards-test','{}',false,'[{"nome":"Reparo","duracao":30}]') id`,
+      )
+    ).rows[0].id;
+    const oid = (
+      await db.query("select criar_ordem($1,$2,$3,$4) id", [
+        eid,
+        { nome: "Teste", whatsapp: "11000000000" },
+        { categoria: "Notebook", modelo: "Teste" },
+        { problema: "Não liga" },
+      ])
+    ).rows[0].id;
+    const range = (
+      await db.query(
+        `select (now() at time zone 'America/Sao_Paulo')::date::text as end_date,((now() at time zone 'America/Sao_Paulo')::date-20)::text as start_date`,
+      )
+    ).rows[0];
+    // Historical fixture for aggregation only; never modifies a production record.
+    await db.exec("reset role;alter table ordens_servico disable trigger user");
+    await db.query(
+      `update ordens_servico set criado_em=($1::date+interval '12 hours') at time zone 'America/Sao_Paulo' where id=$2`,
+      [range.start_date, oid],
+    );
+    await db.exec(
+      "alter table ordens_servico enable trigger user;set role authenticated",
+    );
+    const data = (
+      await db.query("select dashboard_overview($1,$2) data", [
+        range.start_date,
+        range.end_date,
+      ])
+    ).rows[0].data;
+    assert.equal(data.metrics.periodOrders, 1);
+    assert.equal(data.spark.orders.length, 21);
+    assert.equal(data.spark.orders[0], 1);
+    assert.equal(
+      data.spark.orders.reduce((a, b) => a + b, 0),
+      1,
+    );
+    assert.equal(
+      data.spark.orders.slice(-7).reduce((a, b) => a + b, 0),
+      0,
+    );
+  } finally {
+    await db.close();
+  }
+});

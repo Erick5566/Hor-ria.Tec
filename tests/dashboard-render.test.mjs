@@ -148,3 +148,20 @@ test("painel renderizado: falha de atualização preserva dados anteriores", () 
   assert.match(html, /Exibindo os últimos dados/);
   assert.match(html, /Desempenho da assistência/);
 });
+
+test("cards superiores renderizados: movimento do período vira curva; zero mostra estado vazio", () => {
+  const data = fixture();
+  data.spark = {
+    orders: [0, 3, 0],
+    active: [0, 3, 0],
+    clients: [0, 3, 0],
+    finished: [0, 0, 0],
+    parts: [0, 0, 0],
+    revenue: [0, 0, 0],
+  };
+  const html = render(data);
+  assert.match(html, /Evolução diária: Ordens de serviço/);
+  assert.match(html, /Evolução diária: Novos clientes/);
+  assert.equal((html.match(/class="kpi-trend-v2-line"/g) || []).length, 3);
+  assert.equal((html.match(/Sem movimento/g) || []).length, 3);
+});

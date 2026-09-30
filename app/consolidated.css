@@ -408,3 +408,11 @@
   border-radius: 6px;
   margin-bottom: 8px;
 }
+
+.dashboard-reference .kpi-trend-empty {
+  margin-left: auto;
+  max-width: 124px;
+  color: #64748b;
+  font-size: 11px;
+  line-height: 1.4;
+}
