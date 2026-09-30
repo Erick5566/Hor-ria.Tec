@@ -1,7 +1,25 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useEffect, useId, useMemo, useState } from "react";
+import { watchDashboard } from "@/lib/dashboard-live";
+import {
+  normalizeDashboard,
+  trendGeometry,
+  orderOverdue,
+  appointmentOverdue,
+  priorityLabels,
+  saoPauloDay,
+  type DashboardData,
+} from "@/lib/dashboard";
+import { PriorityBadge, DashboardContent } from "@/components/dashboard-state";
+import {
+  useCallback,
+  useEffect,
+  useId,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { useWorkspace } from "@/components/workspace";
 import {
   Badge,
@@ -12,70 +30,8 @@ import {
   PanelTitle,
 } from "@/components/ui";
 import { HorariaIcon, type HorariaIconName } from "@/components/horaria-icon";
-import { money, type Status } from "@/lib/assistencia";
+import { money } from "@/lib/assistencia";
 import { message, supabase, time } from "@/lib/supabase";
-
-type DashboardData = {
-  metrics: {
-    periodOrders: number;
-    previousPeriodOrders: number;
-    periodFinished: number;
-    previousPeriodFinished: number;
-    periodClients: number;
-    previousPeriodClients: number;
-    periodRevenue: number;
-    previousPeriodRevenue: number;
-    inProgress: number;
-    awaitingParts: number;
-  };
-  spark: {
-    orders: number[];
-    active: number[];
-    finished: number[];
-    parts: number[];
-    clients: number[];
-    revenue: number[];
-  };
-  trend: Array<{
-    key: string;
-    opened: number;
-    active: number;
-    finalized: number;
-  }>;
-  status: {
-    concluidas: number;
-    andamento: number;
-    pecas: number;
-    orcamento: number;
-    canceladas: number;
-    outros: number;
-  };
-  performance: {
-    completionRate: number;
-    averageRepairDays: number | null;
-  };
-  latestOrders: Array<{
-    id: string;
-    numero: number;
-    status: Status;
-    criado_em: string;
-    cliente_nome: string;
-    equipamento_modelo: string;
-  }>;
-  todayAgenda: Array<{
-    id: string;
-    inicio: string;
-    nome_cliente: string | null;
-    descricao: string | null;
-  }>;
-  priorities: Array<{
-    id: string;
-    numero: number;
-    prioridade: "baixa" | "normal" | "alta" | "urgente";
-    prazo_previsto: string;
-    equipamento_modelo: string;
-  }>;
-};
 
 function percentageDelta(current: number, previous?: number | null) {
   if (previous == null || previous <= 0) return null;
@@ -109,9 +65,7 @@ function sparkGeometry(
     const y =
       max === min
         ? height / 2
-        : height -
-          padding -
-          ((value - min) / range) * (height - padding * 2);
+        : height - padding - ((value - min) / range) * (height - padding * 2);
     return { x, y };
   });
 
@@ -152,13 +106,7 @@ function sparkGeometry(
   return { line, area, last };
 }
 
-function KpiSparkline({
-  values,
-  tone,
-}: {
-  values: number[];
-  tone: string;
-}) {
+function KpiSparkline({ values, tone }: { values: number[]; tone: string }) {
   const rawId = useId();
   const gradientId = `kpi-${rawId.replace(/:/g, "")}`;
   const { line, area, last } = sparkGeometry(values);
@@ -178,12 +126,7 @@ function KpiSparkline({
           fill={`url(#${gradientId})`}
         />
         <path className="kpi-trend-v2-line" d={line} />
-        <circle
-          className="kpi-trend-v2-dot"
-          cx={last.x}
-          cy={last.y}
-          r="2.35"
-        />
+        <circle className="kpi-trend-v2-dot" cx={last.x} cy={last.y} r="2.35" />
       </svg>
     </span>
   );
@@ -203,90 +146,48 @@ export default function Overview() {
   const [error, setError] = useState("");
   const [statusFilter, setStatusFilter] = useState("todos");
 
+  const requestRef = useRef<AbortController | null>(null);
   const load = useCallback(
     async (silent = false) => {
-      if (!supabase) return;
+      requestRef.current?.abort();
+      const controller = new AbortController();
+      requestRef.current = controller;
       if (!silent) setLoading(true);
       try {
-        const result = await supabase.rpc("dashboard_overview", {
-          p_start: periodStart,
-          p_end: periodEnd,
-        });
+        if (!supabase) throw new Error("Conexão com o banco não configurada.");
+        const result = await supabase
+          .rpc("dashboard_overview", { p_start: periodStart, p_end: periodEnd })
+          .abortSignal(controller.signal);
+        if (controller.signal.aborted) return;
         if (result.error) throw result.error;
-        setData(result.data as DashboardData);
+        setData(normalizeDashboard(result.data));
         setError("");
-      } catch (e) {
-        setError(message(e as Error));
+      } catch (caught) {
+        if (!controller.signal.aborted) setError(message(caught as Error));
       } finally {
-        if (!silent) setLoading(false);
+        if (!controller.signal.aborted) setLoading(false);
       }
     },
-    [periodStart, periodEnd],
+    [empresa.id, periodStart, periodEnd],
   );
 
   useEffect(() => {
-    void load(false);
+    setData(null);
+    void load();
+    return () => requestRef.current?.abort();
   }, [load]);
 
   useEffect(() => {
     if (!supabase || !empresa.id) return;
-
-    let timer: number | undefined;
-    const refreshSoon = () => {
-      window.clearTimeout(timer);
-      timer = window.setTimeout(() => void load(true), 250);
-    };
-
-    const channel = supabase
-      .channel(`dashboard-${empresa.id}`)
-      .on(
-        "postgres_changes",
-        {
-          event: "*",
-          schema: "public",
-          table: "ordens_servico",
-          filter: `empresa_id=eq.${empresa.id}`,
-        },
-        refreshSoon,
-      )
-      .on(
-        "postgres_changes",
-        {
-          event: "*",
-          schema: "public",
-          table: "clientes",
-          filter: `empresa_id=eq.${empresa.id}`,
-        },
-        refreshSoon,
-      )
-      .on(
-        "postgres_changes",
-        {
-          event: "*",
-          schema: "public",
-          table: "financeiro",
-          filter: `empresa_id=eq.${empresa.id}`,
-        },
-        refreshSoon,
-      )
-      .on(
-        "postgres_changes",
-        {
-          event: "*",
-          schema: "public",
-          table: "agendamentos",
-          filter: `empresa_id=eq.${empresa.id}`,
-        },
-        refreshSoon,
-      )
-      .subscribe();
-
-    return () => {
-      window.clearTimeout(timer);
-      void supabase!.removeChannel(channel);
-    };
+    return watchDashboard(supabase, empresa.id, () => load(true));
   }, [empresa.id, load]);
 
+  const contentProps = {
+    loading,
+    error,
+    hasData: !!data,
+    retry: () => void load(!!data),
+  };
   const metrics = useMemo(() => {
     const m = data?.metrics;
     const spark = data?.spark;
@@ -296,10 +197,7 @@ export default function Overview() {
         value: m?.periodOrders ?? 0,
         iconName: "orders" as HorariaIconName,
         tone: "blue",
-        trend: percentageDelta(
-          m?.periodOrders ?? 0,
-          m?.previousPeriodOrders,
-        ),
+        trend: percentageDelta(m?.periodOrders ?? 0, m?.previousPeriodOrders),
         note: comparisonNote(m?.previousPeriodOrders),
         spark: spark?.orders ?? [],
       },
@@ -338,10 +236,7 @@ export default function Overview() {
         value: m?.periodClients ?? 0,
         iconName: "clients" as HorariaIconName,
         tone: "sky",
-        trend: percentageDelta(
-          m?.periodClients ?? 0,
-          m?.previousPeriodClients,
-        ),
+        trend: percentageDelta(m?.periodClients ?? 0, m?.previousPeriodClients),
         note: comparisonNote(m?.previousPeriodClients),
         spark: spark?.clients ?? [],
       },
@@ -350,10 +245,7 @@ export default function Overview() {
         value: money(m?.periodRevenue ?? 0),
         iconName: "finance" as HorariaIconName,
         tone: "green",
-        trend: percentageDelta(
-          m?.periodRevenue ?? 0,
-          m?.previousPeriodRevenue,
-        ),
+        trend: percentageDelta(m?.periodRevenue ?? 0, m?.previousPeriodRevenue),
         note: comparisonNote(m?.previousPeriodRevenue),
         spark: spark?.revenue ?? [],
       },
@@ -361,19 +253,7 @@ export default function Overview() {
   }, [data]);
 
   const trendData = data?.trend ?? [];
-  const maxTrend = Math.max(
-    1,
-    ...trendData.flatMap((item) => [item.opened, item.active, item.finalized]),
-  );
-  const trendPoints = (key: "opened" | "active" | "finalized") =>
-    trendData
-      .map((item, index) => {
-        const x = (index / Math.max(1, trendData.length - 1)) * 100;
-        const y = 88 - (item[key] / maxTrend) * 72;
-        return `${x},${y}`;
-      })
-      .join(" ");
-
+  const trend = trendGeometry(trendData);
   const allStatusData = [
     {
       key: "concluidas",
@@ -416,10 +296,7 @@ export default function Overview() {
     statusFilter === "todos"
       ? allStatusData
       : allStatusData.filter((item) => item.key === statusFilter);
-  const statusTotal = Math.max(
-    1,
-    statusData.reduce((sum, item) => sum + item.count, 0),
-  );
+  const statusTotal = statusData.reduce((sum, item) => sum + item.count, 0);
   let cursor = 0;
   const donut = `conic-gradient(${statusData
     .map((item) => {
@@ -429,22 +306,7 @@ export default function Overview() {
     })
     .join(",")})`;
 
-  const priorityLabel: Record<
-    DashboardData["priorities"][number]["prioridade"],
-    string
-  > = {
-    urgente: "Urgente",
-    alta: "Alta",
-    normal: "Normal",
-    baixa: "Baixa",
-  };
-
-  const today = new Intl.DateTimeFormat("en-CA", {
-    timeZone: "America/Sao_Paulo",
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  }).format(new Date());
+  const today = saoPauloDay();
 
   return (
     <section className="module dashboard-pro dashboard-reference">
@@ -469,7 +331,9 @@ export default function Overview() {
         </Link>
 
         <Link className="dashboard-callout" href="/painel/ajuda">
-          <span className="dashboard-callout-icon"><HorariaIcon name="trend" /></span>
+          <span className="dashboard-callout-icon">
+            <HorariaIcon name="trend" />
+          </span>
           <div>
             <strong>Aumente a produtividade da sua assistência</strong>
             <small>Dicas, tutoriais e novidades da Horária.</small>
@@ -480,36 +344,38 @@ export default function Overview() {
 
       <ErrorBox error={error} />
 
-      <MetricGrid columns={6} className="dashboard-kpis">
-        {metrics.map((metric) => (
-          <MetricCard
-            key={metric.name}
-            label={metric.name}
-            value={loading && !data ? "—" : metric.value}
-            iconName={metric.iconName}
-            tone={
-              metric.tone === "sky"
-                ? "primary"
-                : (metric.tone as "blue" | "amber" | "green" | "purple")
-            }
-            afterValue={
-              <KpiSparkline values={metric.spark} tone={metric.tone} />
-            }
-            footer={
-              <div className="dashboard-trend-note">
-                {metric.trend !== null ? (
-                  <b className={metric.trend >= 0 ? "positive" : "negative"}>
-                    {metric.trend >= 0 ? "↑" : "↓"} {Math.abs(metric.trend)}%
-                  </b>
-                ) : (
-                  <b className="neutral">—</b>
-                )}
-                <small>{metric.note}</small>
-              </div>
-            }
-          />
-        ))}
-      </MetricGrid>
+      <DashboardContent {...contentProps}>
+        <MetricGrid columns={6} className="dashboard-kpis">
+          {metrics.map((metric) => (
+            <MetricCard
+              key={metric.name}
+              label={metric.name}
+              value={loading && !data ? "—" : metric.value}
+              iconName={metric.iconName}
+              tone={
+                metric.tone === "sky"
+                  ? "primary"
+                  : (metric.tone as "blue" | "amber" | "green" | "purple")
+              }
+              afterValue={
+                <KpiSparkline values={metric.spark} tone={metric.tone} />
+              }
+              footer={
+                <div className="dashboard-trend-note">
+                  {metric.trend !== null ? (
+                    <b className={metric.trend >= 0 ? "positive" : "negative"}>
+                      {metric.trend >= 0 ? "↑" : "↓"} {Math.abs(metric.trend)}%
+                    </b>
+                  ) : (
+                    <b className="neutral">—</b>
+                  )}
+                  <small>{metric.note}</small>
+                </div>
+              }
+            />
+          ))}
+        </MetricGrid>
+      </DashboardContent>
 
       <div className="dashboard-analytics">
         <section className="dashboard-card dashboard-trend">
@@ -521,47 +387,86 @@ export default function Overview() {
             />
           </div>
 
-          <div className="dashboard-line-chart dashboard-line-chart-reference">
-            <svg
-              viewBox="0 0 100 100"
-              preserveAspectRatio="none"
-              aria-label="Evolução das ordens"
-            >
-              {[18, 36, 54, 72, 90].map((y) => (
-                <line
-                  key={y}
-                  x1="0"
-                  x2="100"
-                  y1={y}
-                  y2={y}
-                  className="dash-grid-line"
-                />
-              ))}
-              <polyline points={trendPoints("opened")} className="dash-open-line" />
-              <polyline points={trendPoints("active")} className="dash-active-line" />
-              <polyline
-                points={trendPoints("finalized")}
-                className="dash-final-line"
-              />
-            </svg>
+          <DashboardContent {...contentProps}>
+            {trend.hasData ? (
+              <div className="dashboard-line-chart dashboard-line-chart-reference">
+                <svg
+                  viewBox="0 0 100 100"
+                  preserveAspectRatio="none"
+                  aria-label="Evolução das ordens"
+                >
+                  {[18, 36, 54, 72, 90].map((y) => (
+                    <line
+                      key={y}
+                      x1="0"
+                      x2="100"
+                      y1={y}
+                      y2={y}
+                      className="dash-grid-line"
+                    />
+                  ))}
+                  {(["opened", "active", "finalized"] as const).map((key) => {
+                    const points = trend.points(key);
+                    const lineClass =
+                      key === "opened"
+                        ? "dash-open-line"
+                        : key === "active"
+                          ? "dash-active-line"
+                          : "dash-final-line";
+                    return (
+                      <g key={key}>
+                        <polyline
+                          points={points.map((p) => `${p.x},${p.y}`).join(" ")}
+                          className={lineClass}
+                        />
+                        {points
+                          .filter((p) => p.value > 0 || points.length === 1)
+                          .map((p) => (
+                            <circle
+                              key={p.key}
+                              cx={p.x}
+                              cy={p.y}
+                              r="1.2"
+                              className={`dash-point ${key}`}
+                            >
+                              <title>{`${formatShortDate(p.key)}: ${p.value}`}</title>
+                            </circle>
+                          ))}
+                      </g>
+                    );
+                  })}
+                </svg>
 
-            <div className="dashboard-chart-axis">
-              {trendData
-                .filter(
-                  (_, index) =>
-                    index % 6 === 0 || index === trendData.length - 1,
-                )
-                .map((item) => (
-                  <span key={item.key}>{formatShortDate(item.key)}</span>
-                ))}
-            </div>
+                <div className="dashboard-chart-axis">
+                  {trendData
+                    .filter(
+                      (_, index) =>
+                        index % 6 === 0 || index === trendData.length - 1,
+                    )
+                    .map((item) => (
+                      <span key={item.key}>{formatShortDate(item.key)}</span>
+                    ))}
+                </div>
 
-            <div className="dashboard-chart-legend">
-              <span><i className="open" /> Abertas</span>
-              <span><i className="active" /> Em andamento</span>
-              <span><i className="done" /> Concluídas</span>
-            </div>
-          </div>
+                <div className="dashboard-chart-legend">
+                  <span>
+                    <i className="open-line" /> Ordens abertas
+                  </span>
+                  <span>
+                    <i className="open" /> Abertas
+                  </span>
+                  <span>
+                    <i className="active" /> Em andamento
+                  </span>
+                  <span>
+                    <i className="done" /> Concluídas
+                  </span>
+                </div>
+              </div>
+            ) : (
+              <Empty title="Nenhuma ordem no período selecionado." />
+            )}
+          </DashboardContent>
         </section>
 
         <section className="dashboard-card dashboard-status">
@@ -587,125 +492,188 @@ export default function Overview() {
             </select>
           </div>
 
-          <div className="dashboard-status-layout">
-            <div className="dashboard-status-donut" style={{ background: donut }}>
-              <div>
-                <strong>{statusTotal}</strong>
-                <small>Ordens no período</small>
-              </div>
-            </div>
-            <div className="dashboard-status-legend">
-              {statusData.map((item) => (
-                <div key={item.key}>
-                  <span style={{ background: item.color }} />
-                  <b>{item.label}</b>
-                  <strong>{Math.round((item.count / statusTotal) * 100)}%</strong>
+          <DashboardContent {...contentProps}>
+            {statusTotal > 0 ? (
+              <div className="dashboard-status-layout">
+                <div
+                  className="dashboard-status-donut"
+                  style={{ background: donut }}
+                >
+                  <div>
+                    <strong>{statusTotal}</strong>
+                    <small>Ordens no período</small>
+                  </div>
                 </div>
-              ))}
-            </div>
-          </div>
+                <div className="dashboard-status-legend">
+                  {statusData.map((item) => (
+                    <div key={item.key}>
+                      <span style={{ background: item.color }} />
+                      <b>{item.label}</b>
+                      <strong>
+                        {Math.round((item.count / statusTotal) * 100)}%
+                      </strong>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ) : (
+              <Empty title="Nenhuma ordem para este status no período." />
+            )}
+          </DashboardContent>
         </section>
 
         <section className="dashboard-card dashboard-performance">
           <div className="dashboard-card-head">
             <PanelTitle title="Desempenho da assistência" icon="reports" />
           </div>
-          <div className="dashboard-performance-list">
-            <article>
-              <span><HorariaIcon name="clock" /></span>
-              <div>
-                <small>Tempo médio de reparo</small>
-                <strong>
-                  {data?.performance.averageRepairDays == null
-                    ? "—"
-                    : data.performance.averageRepairDays + " dias"}
-                </strong>
-              </div>
-            </article>
-            <article>
-              <span><HorariaIcon name="check" /></span>
-              <div>
-                <small>Taxa de conclusão</small>
-                <strong>{data?.performance.completionRate ?? 0}%</strong>
-              </div>
-            </article>
-            <article>
-              <span><HorariaIcon name="star" /></span>
-              <div>
-                <small>Avaliação dos clientes</small>
-                <strong>—</strong>
-                <em>Sem avaliações conectadas</em>
-              </div>
-            </article>
-          </div>
+          <DashboardContent {...contentProps}>
+            <div className="dashboard-performance-list">
+              <article>
+                <span>
+                  <HorariaIcon name="clock" />
+                </span>
+                <div>
+                  <small>Tempo médio de reparo</small>
+                  <strong>
+                    {data?.performance.averageRepairDays == null
+                      ? "—"
+                      : data.performance.averageRepairDays + " dias"}
+                  </strong>
+                </div>
+              </article>
+              <article>
+                <span>
+                  <HorariaIcon name="check" />
+                </span>
+                <div>
+                  <small>Taxa de conclusão</small>
+                  <strong>{data?.performance.completionRate ?? 0}%</strong>
+                </div>
+              </article>
+              <article>
+                <span>
+                  <HorariaIcon name="star" />
+                </span>
+                <div>
+                  <small>Avaliação dos clientes</small>
+                  <strong>—</strong>
+                  <em>Sem avaliações conectadas</em>
+                </div>
+              </article>
+            </div>
+          </DashboardContent>
         </section>
       </div>
 
       <div className="dashboard-bottom">
         <section className="dashboard-card">
           <div className="dashboard-card-head">
-            <PanelTitle title="Últimas ordens de serviço" icon="orders" />
+            <PanelTitle title="Ordens de serviço" icon="orders" />
             <Link href="/painel/ordens">Ver todas</Link>
           </div>
-          {data?.latestOrders.length ? (
-            <div className="table-wrap dashboard-table">
-              <table>
-                <thead>
-                  <tr>
-                    <th>#OS</th>
-                    <th>Cliente</th>
-                    <th>Equipamento</th>
-                    <th>Status</th>
-                    <th>Data</th>
-                    <th />
-                  </tr>
-                </thead>
-                <tbody>
-                  {data.latestOrders.map((order) => {
-                    const orderHref = "/painel/ordens/" + order.id;
-                    const orderLabel = `Abrir ordem #${order.numero}`;
-                    return (
-                      <tr key={order.id} className="dashboard-order-row">
-                        <td>
-                          <Link className="dashboard-order-cell-link" href={orderHref} aria-label={orderLabel}>
-                            #{order.numero}
-                          </Link>
-                        </td>
-                        <td>
-                          <Link className="dashboard-order-cell-link" href={orderHref} aria-label={orderLabel}>
-                            {order.cliente_nome}
-                          </Link>
-                        </td>
-                        <td>
-                          <Link className="dashboard-order-cell-link" href={orderHref} aria-label={orderLabel}>
-                            {order.equipamento_modelo}
-                          </Link>
-                        </td>
-                        <td>
-                          <Link className="dashboard-order-cell-link" href={orderHref} aria-label={orderLabel}>
-                            <Badge status={order.status} />
-                          </Link>
-                        </td>
-                        <td>
-                          <Link className="dashboard-order-cell-link" href={orderHref} aria-label={orderLabel}>
-                            {new Date(order.criado_em).toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" })}
-                          </Link>
-                        </td>
-                        <td className="dashboard-order-action">
-                          <Link href={orderHref} aria-label={orderLabel}>
-                            <span>Abrir</span>
-                            <b aria-hidden="true">→</b>
-                          </Link>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
-          ) : (
-            <Empty title="Nenhuma ordem cadastrada." />
-          )}
+          <DashboardContent {...contentProps}>
+            {data?.latestOrders.length ? (
+              <div className="table-wrap dashboard-table">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>#OS</th>
+                      <th>Cliente</th>
+                      <th>Equipamento</th>
+                      <th>Status</th>
+                      <th>Prioridade</th>
+                      <th>Horário / Prazo</th>
+                      <th />
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {data.latestOrders.map((order) => {
+                      const orderHref = "/painel/ordens/" + order.id;
+                      const orderLabel = `Abrir ordem #${order.numero}`;
+                      return (
+                        <tr
+                          key={order.id}
+                          className={`dashboard-order-row ${order.prioridade === "urgente" ? "dashboard-urgent" : ""} ${orderOverdue(order) ? "dashboard-overdue" : ""}`}
+                        >
+                          <td>
+                            <Link
+                              className="dashboard-order-cell-link"
+                              href={orderHref}
+                              aria-label={orderLabel}
+                            >
+                              #{order.numero}
+                            </Link>
+                          </td>
+                          <td>
+                            <Link
+                              className="dashboard-order-cell-link"
+                              href={orderHref}
+                              aria-label={orderLabel}
+                            >
+                              {order.cliente_nome}
+                            </Link>
+                          </td>
+                          <td>
+                            <Link
+                              className="dashboard-order-cell-link"
+                              href={orderHref}
+                              aria-label={orderLabel}
+                            >
+                              {order.equipamento_modelo}
+                            </Link>
+                          </td>
+                          <td>
+                            <Link
+                              className="dashboard-order-cell-link"
+                              href={orderHref}
+                              aria-label={orderLabel}
+                            >
+                              <Badge status={order.status} />
+                            </Link>
+                          </td>
+                          <td>
+                            <PriorityBadge priority={order.prioridade} />
+                          </td>
+                          <td>
+                            <Link
+                              className="dashboard-order-cell-link"
+                              href={orderHref}
+                              aria-label={orderLabel}
+                            >
+                              {orderOverdue(order) && (
+                                <b className="dashboard-late-label">
+                                  Atrasada ·{" "}
+                                </b>
+                              )}
+                              {order.prazo_previsto
+                                ? `Prazo: ${formatShortDate(order.prazo_previsto)}`
+                                : ""}
+                              {new Date(order.criado_em).toLocaleString(
+                                "pt-BR",
+                                {
+                                  dateStyle: "short",
+                                  timeStyle: "short",
+                                  timeZone: "America/Sao_Paulo",
+                                },
+                              )}
+                            </Link>
+                          </td>
+                          <td className="dashboard-order-action">
+                            <Link href={orderHref} aria-label={orderLabel}>
+                              <span>Abrir</span>
+                              <b aria-hidden="true">→</b>
+                            </Link>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            ) : (
+              <Empty title="Nenhuma ordem cadastrada no período." />
+            )}
+          </DashboardContent>
         </section>
 
         <section className="dashboard-card">
@@ -717,21 +685,33 @@ export default function Overview() {
             />
             <Link href="/painel/agenda">Ver agenda</Link>
           </div>
-          <div className="dashboard-agenda-list">
-            {data?.todayAgenda.map((appointment) => (
-              <Link href="/painel/agenda" key={appointment.id}>
-                <strong>{time(appointment.inicio)}</strong>
-                <span />
-                <div>
-                  <b>{appointment.nome_cliente || "Cliente"}</b>
-                  <small>{appointment.descricao || "Atendimento"}</small>
-                </div>
-                <i>□</i>
-                <em>⋮</em>
-              </Link>
-            ))}
-            {!data?.todayAgenda.length && <Empty title="Nenhum atendimento hoje." />}
-          </div>
+          <DashboardContent {...contentProps}>
+            <div className="dashboard-agenda-list">
+              {data?.todayAgenda.map((appointment) => (
+                <Link
+                  href="/painel/agenda"
+                  key={appointment.id}
+                  className={`${appointment.prioridade === "urgente" ? "dashboard-urgent" : ""} ${appointmentOverdue(appointment) ? "dashboard-overdue" : ""}`}
+                >
+                  <strong>{time(appointment.inicio)}</strong>
+                  <span />
+                  <div>
+                    <b>{appointment.nome_cliente || "Cliente"}</b>
+                    <small>{appointment.descricao || "Atendimento"}</small>
+                    <PriorityBadge priority={appointment.prioridade} />
+                    {appointmentOverdue(appointment) && (
+                      <b className="dashboard-late-label">Atrasado</b>
+                    )}
+                  </div>
+                  <i>□</i>
+                  <em>⋮</em>
+                </Link>
+              ))}
+              {!data?.todayAgenda.length && (
+                <Empty title="Nenhum atendimento hoje." />
+              )}
+            </div>
+          </DashboardContent>
         </section>
 
         <section className="dashboard-card">
@@ -739,33 +719,41 @@ export default function Overview() {
             <PanelTitle title="Prioridades / Próximos prazos" icon="alert" />
             <Link href="/painel/mesa-reparo">Ver todos</Link>
           </div>
-          <div className="dashboard-priority-list">
-            {data?.priorities.map((order) => {
-              const deadline = Math.ceil(
-                (new Date(order.prazo_previsto).getTime() -
-                  new Date(today + "T00:00:00").getTime()) /
-                  86400000,
-              );
-              return (
-                <Link href={"/painel/ordens/" + order.id} key={order.id}>
-                  <strong>#{order.numero}</strong>
-                  <div><b>{order.equipamento_modelo}</b></div>
-                  <span className={"priority-chip " + order.prioridade}>
-                    {priorityLabel[order.prioridade]}
-                  </span>
-                  <em className={deadline <= 0 ? "deadline-hot" : ""}>
-                    {deadline <= 0
-                      ? "Hoje"
-                      : deadline === 1
-                        ? "1 dia"
-                        : `${deadline} dias`}
-                  </em>
-                  <i>⋮</i>
-                </Link>
-              );
-            })}
-            {!data?.priorities.length && <Empty title="Nenhuma prioridade pendente." />}
-          </div>
+          <DashboardContent {...contentProps}>
+            <div className="dashboard-priority-list">
+              {data?.priorities.map((order) => {
+                const deadline = Math.ceil(
+                  (new Date(order.prazo_previsto + "T12:00:00Z").getTime() -
+                    new Date(today + "T12:00:00Z").getTime()) /
+                    86400000,
+                );
+                return (
+                  <Link href={"/painel/ordens/" + order.id} key={order.id}>
+                    <strong>#{order.numero}</strong>
+                    <div>
+                      <b>{order.equipamento_modelo}</b>
+                    </div>
+                    <span className={"priority-chip " + order.prioridade}>
+                      {priorityLabels[order.prioridade]}
+                    </span>
+                    <em className={deadline <= 0 ? "deadline-hot" : ""}>
+                      {deadline < 0
+                        ? `${Math.abs(deadline)} dia(s) atrasada`
+                        : deadline === 0
+                          ? "Hoje"
+                          : deadline === 1
+                            ? "1 dia"
+                            : `${deadline} dias`}
+                    </em>
+                    <i>⋮</i>
+                  </Link>
+                );
+              })}
+              {!data?.priorities.length && (
+                <Empty title="Nenhuma prioridade pendente." />
+              )}
+            </div>
+          </DashboardContent>
         </section>
       </div>
 

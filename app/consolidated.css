@@ -302,3 +302,109 @@
 .consolidated-orders .repair-summary .ui-metric-value-row strong {
   color: var(--tone-ink, #1463ff);
 }
+
+/* Dashboard fixes: scope visual changes to the overview. */
+.dashboard-reference .dash-open-line {
+  stroke: #7c3aed;
+  stroke-width: 2.5;
+}
+.dashboard-reference .dash-active-line {
+  stroke-dasharray: 5 3;
+}
+.dashboard-reference .dash-final-line {
+  stroke-dasharray: 2 3;
+}
+.dashboard-reference .dash-point.opened {
+  fill: #2563eb;
+}
+.dashboard-reference .dash-point.active {
+  fill: #f59e0b;
+}
+.dashboard-reference .dash-point.finalized {
+  fill: #16a34a;
+}
+.dashboard-reference .dashboard-chart-legend i.open-line {
+  width: 20px;
+  height: 3px;
+  background: #7c3aed;
+  border-radius: 0;
+}
+.dashboard-reference .kpi-trend-v2.blue .kpi-trend-v2-line {
+  stroke: #7c3aed;
+}
+.dashboard-reference .dashboard-chart-legend {
+  flex-wrap: wrap;
+}
+.dashboard-priority-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 7px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.dashboard-priority-badge svg {
+  width: 14px;
+  height: 14px;
+}
+.dashboard-priority-badge.urgente {
+  color: #991b1b;
+  background: #fee2e2;
+}
+.dashboard-priority-badge.alta {
+  color: #9a3412;
+  background: #ffedd5;
+}
+.dashboard-priority-badge.normal {
+  color: #1e40af;
+  background: #dbeafe;
+}
+.dashboard-priority-badge.baixa {
+  color: #166534;
+  background: #dcfce7;
+}
+.dashboard-reference .dashboard-urgent {
+  background: #fff7ed;
+  box-shadow: inset 3px 0 #ea580c;
+}
+.dashboard-reference .dashboard-overdue {
+  background: #fff1f2;
+  box-shadow: inset 3px 0 #dc2626;
+}
+.dashboard-reference .dashboard-late-label {
+  display: inline-block;
+  color: #b91c1c;
+  font-size: 11px;
+  margin: 3px 5px;
+}
+.dashboard-reference .dashboard-agenda-list .dashboard-priority-badge {
+  margin-top: 5px;
+}
+.dashboard-block-state {
+  min-height: 120px;
+  padding: 20px;
+  display: grid;
+  place-content: center;
+  text-align: center;
+  color: #526078;
+}
+.dashboard-block-state button,
+.dashboard-refresh-error button {
+  margin-top: 8px;
+  color: #1463ff;
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  border-radius: 6px;
+  padding: 6px 10px;
+  cursor: pointer;
+}
+.dashboard-refresh-error {
+  font-size: 12px;
+  padding: 8px;
+  color: #9a3412;
+  background: #fff7ed;
+  border-radius: 6px;
+  margin-bottom: 8px;
+}
