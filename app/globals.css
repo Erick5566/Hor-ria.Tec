@@ -141,9 +141,43 @@ small {
   height: auto;
 }
 
-/* Cadastro/login: destaque maior para a marca sem alterar o restante do sistema */
+/* Cadastro/login: símbolo H maior, mantendo o nome Horária proporcional */
+.login-story .brand {
+  width: 340px;
+  max-width: 100%;
+  flex-direction: column;
+  align-items: flex-start;
+  filter: brightness(0) invert(1);
+}
+
 .login-story .brand-logo {
-  width: clamp(220px, 24vw, 320px);
+  display: none;
+}
+
+.login-story .brand::before,
+.login-story .brand::after {
+  content: "";
+  display: block;
+  background-image: url("/brand/horaria-logo.png");
+  background-repeat: no-repeat;
+}
+
+/* Recorta apenas o símbolo H e o exibe maior que o nome */
+.login-story .brand::before {
+  width: 250px;
+  height: 270px;
+  margin-left: 22px;
+  background-size: 480px auto;
+  background-position: center top;
+}
+
+/* Recorta apenas o wordmark Horária */
+.login-story .brand::after {
+  width: 340px;
+  height: 82px;
+  margin-top: -4px;
+  background-size: 340px auto;
+  background-position: center bottom;
 }
 .brand-dot {
   color: #4a5c6a;
@@ -988,8 +1022,21 @@ small {
   }
 }
 @media (max-width: 800px) {
-  .login-story .brand-logo {
+  .login-story .brand {
+    width: 300px;
+  }
+
+  .login-story .brand::before {
     width: 220px;
+    height: 238px;
+    margin-left: 18px;
+    background-size: 423px auto;
+  }
+
+  .login-story .brand::after {
+    width: 300px;
+    height: 73px;
+    background-size: 300px auto;
   }
 
   .sidebar {
@@ -1074,8 +1121,21 @@ small {
   }
 }
 @media (max-width: 600px) {
-  .login-story .brand-logo {
-    width: 180px;
+  .login-story .brand {
+    width: 250px;
+  }
+
+  .login-story .brand::before {
+    width: 190px;
+    height: 205px;
+    margin-left: 12px;
+    background-size: 365px auto;
+  }
+
+  .login-story .brand::after {
+    width: 250px;
+    height: 61px;
+    background-size: 250px auto;
   }
 
   .login-layout {
