@@ -166,20 +166,21 @@ test("cards superiores renderizados: movimento do período vira curva; zero most
   assert.equal((html.match(/class="kpi-trend-empty"/g) || []).length, 3);
 });
 
-test("região de evolução: quatro gráficos separados com cores e nomes próprios", () => {
+test("região de evolução: um gráfico com quatro linhas de cores e legenda próprias", () => {
   const data = fixture();
   data.trend = [
     { key: "2026-09-29", opened: 4, active: 2, finalized: 1, parts: 1 },
   ];
   const html = render(data);
-  assert.equal((html.match(/<figure/g) || []).length, 4);
+  assert.equal((html.match(/<figure/g) || []).length, 1);
   for (const label of [
     "Abertas",
     "Em andamento",
     "Concluídas",
     "Aguardando peças",
   ])
-    assert.match(html, new RegExp(`aria-label="Evolução diária: ${label}"`));
+    assert.match(html, new RegExp(`aria-label="${label}"`));
+  assert.equal((html.match(/class="dashboard-series-line"/g) || []).length, 4);
   for (const color of ["#7c3aed", "#2563eb", "#16a34a", "#d97706"])
     assert.ok(html.includes(color));
 });
