@@ -247,12 +247,49 @@ export default function OrderForm() {
       />
     </label>
   );
+  function validateCustomer() {
+    const nome = customer.nome.trim();
+    const whatsapp = customer.whatsapp.replace(/\D/g, "");
+    if (nome.length < 2 || nome.length > 120)
+      throw new Error("Informe o nome do cliente com pelo menos 2 caracteres.");
+    if (whatsapp.length < 10 || whatsapp.length > 15)
+      throw new Error("Informe um WhatsApp válido com DDD (10 a 15 dígitos).");
+    if (
+      customer.email.trim() &&
+      !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(customer.email.trim())
+    )
+      throw new Error("Informe um e-mail válido ou deixe o campo em branco.");
+  }
+
+  function validateDevice() {
+    if (device.id) return;
+    if (!device.categoria.trim())
+      throw new Error("Selecione a categoria do equipamento.");
+    if (
+      device.categoria === "Outro" &&
+      device.tipo_personalizado.trim().length < 2
+    )
+      throw new Error("Informe o tipo do equipamento.");
+    if (!device.modelo.trim())
+      throw new Error("Informe o modelo do equipamento.");
+  }
+
   async function submit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     if (step < 4) {
       if (step === 3) return;
-      setError("");
-      setStep(step + 1);
+      try {
+        if (step === 1) validateCustomer();
+        if (step === 2) validateDevice();
+        setError("");
+        setStep(step + 1);
+      } catch (validationError) {
+        setError(
+          validationError instanceof Error
+            ? validationError.message
+            : "Confira os campos informados.",
+        );
+      }
       return;
     }
     setBusy(true);
@@ -263,6 +300,8 @@ export default function OrderForm() {
     try {
       let orderId = createdId;
       if (!orderId) {
+        validateCustomer();
+        validateDevice();
         let orderDetails;
         try {
           orderDetails = prepareOrderDetails(details, state);
