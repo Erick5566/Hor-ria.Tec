@@ -260,8 +260,13 @@ export default function AdminDashboard({
           <button
             disabled={!appUrl}
             onClick={async () => {
-              await navigator.clipboard.writeText(appUrl);
-              setNotice("Link da Horária copiado.");
+              setError("");
+              try {
+                await navigator.clipboard.writeText(appUrl);
+                setNotice("Link da Horária copiado.");
+              } catch {
+                setError("Não foi possível copiar o link neste navegador.");
+              }
             }}
           >
             Copiar link
