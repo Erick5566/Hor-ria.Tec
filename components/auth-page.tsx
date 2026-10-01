@@ -131,6 +131,10 @@ export default function AuthPage({ mode }: { mode: "login" | "signup" }) {
           "acompanhar",
           "api",
           "admin",
+          "login",
+          "dashboard",
+          "suporte",
+          "horaria",
           "entrar",
           "cadastro",
           "privacidade",
@@ -140,6 +144,7 @@ export default function AuthPage({ mode }: { mode: "login" | "signup" }) {
           "manutencao",
           "conta-bloqueada",
           "seguranca",
+          "opengraph-image",
         ]);
         if (reserved.has(slug))
           throw new Error("Escolha outro endereço para a página pública.");
