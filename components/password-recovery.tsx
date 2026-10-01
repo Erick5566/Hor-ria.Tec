@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { Brand, MissingConfig } from "./brand";
+import Turnstile from "./turnstile";
 import { configured, supabase } from "@/lib/supabase";
 
 export function RequestPasswordReset() {
@@ -10,18 +11,27 @@ export function RequestPasswordReset() {
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState("");
   const [error, setError] = useState("");
+  const [captchaToken, setCaptchaToken] = useState("");
+  const [captchaResetKey, setCaptchaResetKey] = useState(0);
+  const turnstileSiteKey =
+    process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY ?? "";
 
   if (!configured) return <MissingConfig />;
 
   async function submit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    setBusy(true);
     setNotice("");
     setError("");
+    if (turnstileSiteKey && !captchaToken) {
+      setError("Conclua a verificação de segurança para continuar.");
+      return;
+    }
+    setBusy(true);
     try {
       const redirectTo = `${location.origin}/redefinir-senha`;
       const result = await supabase!.auth.resetPasswordForEmail(email.trim(), {
         redirectTo,
+        ...(turnstileSiteKey ? { captchaToken } : {}),
       });
       if (result.error) throw result.error;
       setNotice(
@@ -31,6 +41,10 @@ export function RequestPasswordReset() {
       setError("Não foi possível enviar o link agora. Tente novamente.");
     } finally {
       setBusy(false);
+      if (turnstileSiteKey) {
+        setCaptchaToken("");
+        setCaptchaResetKey((current) => current + 1);
+      }
     }
   }
 
@@ -53,7 +67,17 @@ export function RequestPasswordReset() {
               onChange={(event) => setEmail(event.target.value)}
             />
           </label>
-          <button className="primary" disabled={busy}>
+          {turnstileSiteKey && (
+            <Turnstile
+              key={captchaResetKey}
+              siteKey={turnstileSiteKey}
+              onToken={setCaptchaToken}
+            />
+          )}
+          <button
+            className="primary"
+            disabled={busy || (Boolean(turnstileSiteKey) && !captchaToken)}
+          >
             {busy ? "Enviando…" : "Enviar link seguro"}
           </button>
         </form>
