@@ -953,6 +953,7 @@ export default function Workspace({
                       ([
                         "/painel/financeiro",
                         "/painel/relatorios",
+                        "/painel/notas-fiscais",
                         "/painel/configuracoes",
                         "/painel/equipe",
                         "/painel/minha-pagina",
