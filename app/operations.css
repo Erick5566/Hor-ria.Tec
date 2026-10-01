@@ -14467,3 +14467,183 @@ svg {
     border-bottom: 0;
   }
 }
+\n
+.subscription-pro .subscription-payment-card,
+.subscription-pro .subscription-overdue-card {
+  max-width: 900px;
+}
+
+.subscription-payment-card {
+  display: grid;
+  gap: 22px;
+}
+
+.subscription-payment-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.subscription-payment-head h2 {
+  margin: 4px 0 6px;
+  color: #18345e;
+}
+
+.subscription-payment-head p {
+  max-width: 620px;
+  margin: 0;
+  color: #6f7e93;
+}
+
+.subscription-price {
+  min-width: 142px;
+  padding: 12px 14px;
+  text-align: right;
+  background: #f4f7fd;
+  border: 1px solid #dce5f2;
+  border-radius: 12px;
+}
+
+.subscription-price small,
+.subscription-pix-amount span,
+.subscription-pix-field > span {
+  display: block;
+  margin-bottom: 4px;
+  color: #7a8798;
+  font-size: .78rem;
+  font-weight: 700;
+}
+
+.subscription-price strong {
+  color: #263f77;
+  font-size: 1.35rem;
+}
+
+.subscription-pix-grid {
+  display: grid;
+  grid-template-columns: minmax(250px, 310px) minmax(0, 1fr);
+  gap: 24px;
+  align-items: start;
+}
+
+.subscription-qr-wrap {
+  display: grid;
+  gap: 10px;
+  justify-items: center;
+  text-align: center;
+}
+
+.subscription-qr-wrap > small {
+  max-width: 260px;
+  color: #758198;
+  line-height: 1.45;
+}
+
+.subscription-qr {
+  display: grid;
+  place-items: center;
+  width: min(100%, 292px);
+  aspect-ratio: 1;
+  padding: 10px;
+  background: #fff;
+  border: 1px solid #dce4ef;
+  border-radius: 18px;
+  box-shadow: 0 10px 28px rgb(32 55 92 / 8%);
+}
+
+.subscription-qr img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: 10px;
+}
+
+.subscription-pix-details {
+  display: grid;
+  gap: 14px;
+}
+
+.subscription-pix-amount,
+.subscription-pix-field {
+  padding: 15px;
+  background: #f8fafd;
+  border: 1px solid #e1e7f0;
+  border-radius: 12px;
+}
+
+.subscription-pix-amount strong {
+  color: #18345e;
+  font-size: 1.45rem;
+}
+
+.subscription-pix-field > div {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.subscription-pix-field code {
+  min-width: 0;
+  flex: 1;
+  overflow: hidden;
+  color: #2d3f5e;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: .8rem;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+}
+
+.subscription-pix-copy {
+  align-items: stretch !important;
+  flex-direction: column;
+}
+
+.subscription-pix-copy code {
+  max-height: 82px;
+  overflow: auto;
+  padding: 10px;
+  background: #fff;
+  border: 1px solid #e3e8f0;
+  border-radius: 9px;
+}
+
+.subscription-pix-copy .primary {
+  align-self: flex-start;
+}
+
+.subscription-manual-confirmation {
+  margin: 0;
+}
+
+.subscription-overdue-card .notice {
+  margin: 0;
+}
+
+@media (max-width: 760px) {
+  .subscription-payment-head {
+    flex-direction: column;
+  }
+
+  .subscription-price {
+    width: 100%;
+    text-align: left;
+  }
+
+  .subscription-pix-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .subscription-pix-field > div {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .subscription-pix-field button {
+    width: 100%;
+  }
+
+  .subscription-pix-copy .primary {
+    align-self: stretch;
+  }
+}
