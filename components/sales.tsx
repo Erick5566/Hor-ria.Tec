@@ -149,24 +149,27 @@ export default function Sales() {
                 setBusy(true);
                 setError("");
                 const form = new FormData(event.currentTarget);
-                const result = await supabase!.rpc("finalizar_venda", {
-                  p_empresa: empresa.id,
-                  p_cliente: form.get("cliente") || null,
-                  p_itens: cart.map(({ peca_id, quantidade, preco }) => ({
-                    peca_id,
-                    quantidade,
-                    preco,
-                  })),
-                  p_desconto: discount,
-                  p_forma: form.get("forma"),
-                  p_observacoes: form.get("observacoes") || null,
-                });
-                if (result.error) setError(message(result.error));
-                else {
+                try {
+                  const result = await supabase!.rpc("finalizar_venda", {
+                    p_empresa: empresa.id,
+                    p_cliente: form.get("cliente") || null,
+                    p_itens: cart.map(({ peca_id, quantidade, preco }) => ({
+                      peca_id,
+                      quantidade,
+                      preco,
+                    })),
+                    p_desconto: discount,
+                    p_forma: form.get("forma"),
+                    p_observacoes: form.get("observacoes") || null,
+                  });
+                  if (result.error) throw result.error;
                   setReceipt(result.data);
                   await Promise.all([products.reload(), sales.reload()]);
+                } catch (caught) {
+                  setError(message(caught as Error));
+                } finally {
+                  setBusy(false);
                 }
-                setBusy(false);
               }}
             >
               <div className="sale-layout">
