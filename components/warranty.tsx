@@ -56,22 +56,25 @@ export default function Warranty({ ordemId }: { ordemId: string }) {
             const form = new FormData(event.currentTarget);
             const start = String(form.get("inicio"));
             const end = days === -1 ? customEnd : shift(start, days);
-            const result = await supabase!.rpc("salvar_garantia", {
-              p_ordem: ordemId,
-              p_descricao: form.get("descricao"),
-              p_inicio: start,
-              p_fim: end,
-              p_observacoes: form.get("observacoes") || null,
-              p_ordem_origem: null,
-              p_servico: null,
-              p_peca_aplicada: null,
-            });
-            if (result.error) setError(message(result.error));
-            else {
+            try {
+              const result = await supabase!.rpc("salvar_garantia", {
+                p_ordem: ordemId,
+                p_descricao: form.get("descricao"),
+                p_inicio: start,
+                p_fim: end,
+                p_observacoes: form.get("observacoes") || null,
+                p_ordem_origem: null,
+                p_servico: null,
+                p_peca_aplicada: null,
+              });
+              if (result.error) throw result.error;
               setAdding(false);
               await load();
+            } catch (caught) {
+              setError(message(caught as Error));
+            } finally {
+              setBusy(false);
             }
-            setBusy(false);
           }}
         >
           <div className="form-grid">
