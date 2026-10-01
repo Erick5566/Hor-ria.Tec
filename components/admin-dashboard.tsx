@@ -95,16 +95,19 @@ export default function AdminDashboard({
     setBusy(true);
     setError("");
     setNotice("");
-    const result = await supabase!.rpc("admin_update_platform", {
-      p_changes: changes,
-      p_reason: reason,
-    });
-    setBusy(false);
-    if (result.error) setError(message(result.error));
-    else {
+    try {
+      const result = await supabase!.rpc("admin_update_platform", {
+        p_changes: changes,
+        p_reason: reason,
+      });
+      if (result.error) throw result.error;
       setNotice("Configuração atualizada e registrada na auditoria.");
       setOverview({ ...overview, ...changes });
       router.refresh();
+    } catch (caught) {
+      setError(message(caught as Error));
+    } finally {
+      setBusy(false);
     }
   }
   const browserOrigin =
