@@ -28,7 +28,10 @@ export async function GET(request: Request) {
   try {
     const response = await fetch(
       `https://servicodados.ibge.gov.br/api/v1/localidades/estados/${encodeURIComponent(uf)}/municipios?orderBy=nome`,
-      { next: { revalidate: 86400 } },
+      {
+        next: { revalidate: 86400 },
+        signal: AbortSignal.timeout(8000),
+      },
     );
 
     if (!response.ok)
