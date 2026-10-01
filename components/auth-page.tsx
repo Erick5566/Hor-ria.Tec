@@ -20,6 +20,49 @@ type RegistrationStatus = {
   globalMaintenance: boolean;
 };
 
+const SIGNUP_ATTEMPTS_KEY = "horaria_signup_attempts";
+const SIGNUP_ATTEMPTS_WINDOW_MS = 10 * 60 * 1000;
+const SIGNUP_ATTEMPTS_LIMIT = 5;
+
+function consumeSignupAttempt() {
+  if (typeof window === "undefined") return { allowed: true, minutes: 0 };
+
+  try {
+    const now = Date.now();
+    const stored = JSON.parse(
+      window.localStorage.getItem(SIGNUP_ATTEMPTS_KEY) ?? "[]",
+    ) as number[];
+    const attempts = stored.filter(
+      (timestamp) => now - timestamp < SIGNUP_ATTEMPTS_WINDOW_MS,
+    );
+
+    if (attempts.length >= SIGNUP_ATTEMPTS_LIMIT) {
+      const oldest = Math.min(...attempts);
+      const remaining = SIGNUP_ATTEMPTS_WINDOW_MS - (now - oldest);
+      return {
+        allowed: false,
+        minutes: Math.max(1, Math.ceil(remaining / 60_000)),
+      };
+    }
+
+    attempts.push(now);
+    window.localStorage.setItem(SIGNUP_ATTEMPTS_KEY, JSON.stringify(attempts));
+    return { allowed: true, minutes: 0 };
+  } catch {
+    return { allowed: true, minutes: 0 };
+  }
+}
+
+function clearSignupAttempts() {
+  if (typeof window === "undefined") return;
+
+  try {
+    window.localStorage.removeItem(SIGNUP_ATTEMPTS_KEY);
+  } catch {
+    // O armazenamento local pode estar bloqueado pelo navegador.
+  }
+}
+
 
 export default function AuthPage({ mode }: { mode: "login" | "signup" }) {
   const signup = mode === "signup";
