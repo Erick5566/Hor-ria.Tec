@@ -140,6 +140,10 @@ export default function AdminModule({
         <section className="panel">
           <PanelTitle title="Sua conta" icon="profile" />
           <p>{email}</p>
+          <p className="hint">
+            Funcionários convidados podem definir a senha aqui no primeiro
+            acesso.
+          </p>
           <ErrorBox error={error} />
           <p role="status">{notice}</p>
           <form
@@ -155,7 +159,10 @@ export default function AdminModule({
               try {
                 if (password !== confirmation)
                   throw new Error("As duas senhas precisam ser iguais.");
-                const r = await supabase!.auth.updateUser({ password });
+                const r = await supabase!.auth.updateUser({
+                  password,
+                  data: { team_invite: false },
+                });
                 if (r.error) throw r.error;
                 setNotice("Senha atualizada.");
                 form.reset();
