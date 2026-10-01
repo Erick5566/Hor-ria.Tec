@@ -1,5 +1,20 @@
 import { notFound, redirect } from "next/navigation";
 import AdminModule from "@/components/admin-module";
+import { getServerAccess } from "@/lib/server-auth";
+
+const managerOnlyModules = new Set([
+  "financeiro",
+  "relatorios",
+  "notas-fiscais",
+  "vendas",
+  "seminovos",
+  "vitrine",
+  "pos-venda",
+  "empresa",
+  "configuracoes",
+  "equipe",
+  "minha-pagina",
+]);
 
 const betaModules = [
   "servicos",
@@ -30,6 +45,13 @@ export default async function Page({
 }) {
   const { module } = await params;
   if (!betaModules.includes(module as (typeof betaModules)[number])) notFound();
+
+  if (managerOnlyModules.has(module)) {
+    const access = await getServerAccess();
+    const role = access?.context.company?.role || "";
+    if (!["OWNER", "ADMIN"].includes(role)) redirect("/painel");
+  }
+
   const query = await searchParams;
   if (module === "mesa-reparo")
     redirect(
