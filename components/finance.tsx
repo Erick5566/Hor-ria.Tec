@@ -248,15 +248,20 @@ export default function Finance({ ordemId }: { ordemId?: string }) {
   async function pay(item: Lancamento) {
     setBusy(true);
     setError("");
-    const result = await supabase!
-      .from("financeiro")
-      .update({ status: "pago", pago_em: today() })
-      .eq("id", item.id)
-      .select("id")
-      .single();
-    if (result.error) setError(message(result.error));
-    else await load(true);
-    setBusy(false);
+    try {
+      const result = await supabase!
+        .from("financeiro")
+        .update({ status: "pago", pago_em: today() })
+        .eq("id", item.id)
+        .select("id")
+        .single();
+      if (result.error) throw result.error;
+      await load(true);
+    } catch (caught) {
+      setError(message(caught as Error));
+    } finally {
+      setBusy(false);
+    }
   }
 
   const entries = data?.entries || [];
