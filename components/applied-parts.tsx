@@ -85,26 +85,29 @@ export default function AppliedParts({
             setError("");
             const form = event.currentTarget;
             const values = new FormData(form);
-            const result = await supabase!.rpc(
-              "registrar_peca_aplicada_valores",
-              {
-                p_ordem: orderId,
-                p_nome: values.get("nome"),
-                p_quantidade: Number(values.get("quantidade")),
-                p_peca: stockId || null,
-                p_custo_unitario: Number(values.get("custo")),
-                p_valor_venda_unitario: Number(values.get("venda")),
-                p_mao_obra: Number(values.get("mao_obra")),
-              },
-            );
+            try {
+              const result = await supabase!.rpc(
+                "registrar_peca_aplicada_valores",
+                {
+                  p_ordem: orderId,
+                  p_nome: values.get("nome"),
+                  p_quantidade: Number(values.get("quantidade")),
+                  p_peca: stockId || null,
+                  p_custo_unitario: Number(values.get("custo")),
+                  p_valor_venda_unitario: Number(values.get("venda")),
+                  p_mao_obra: Number(values.get("mao_obra")),
+                },
+              );
 
-            if (result.error) setError(message(result.error));
-            else {
+              if (result.error) throw result.error;
               form.reset();
               setStockId("");
               await load();
+            } catch (caught) {
+              setError(message(caught as Error));
+            } finally {
+              setBusy(false);
             }
-            setBusy(false);
           }}
         >
           <div className="form-grid">
