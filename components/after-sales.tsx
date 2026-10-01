@@ -19,15 +19,20 @@ export default function AfterSales() {
     .slice()
     .sort((a, b) => a.disponivel_em.localeCompare(b.disponivel_em));
   async function update(id: string, status: PosVenda["status"]) {
-    const result = await supabase!
-      .from("pos_venda")
-      .update({
-        status,
-        contatado_em: status === "contatado" ? new Date().toISOString() : null,
-      })
-      .eq("id", id);
-    if (result.error) setError(message(result.error));
-    else await followups.reload();
+    setError("");
+    try {
+      const result = await supabase!
+        .from("pos_venda")
+        .update({
+          status,
+          contatado_em: status === "contatado" ? new Date().toISOString() : null,
+        })
+        .eq("id", id);
+      if (result.error) throw result.error;
+      await followups.reload();
+    } catch (caught) {
+      setError(message(caught as Error));
+    }
   }
   return (
     <>
