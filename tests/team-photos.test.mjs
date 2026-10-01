@@ -14,6 +14,11 @@ test("fotos: membro ativo da equipe pode registrar foto sem ampliar acesso entre
         ('${owner}'),('${technician}'),('${outsider}')`,
     );
 
+    await db.query(
+      "update perfis set nome='Técnico Foto',email='tecnico-foto@horaria.test' where usuario_id=$1",
+      [technician],
+    );
+
     const asUser = (id) =>
       db.exec(
         `reset role;set request.jwt.claim.sub='${id}';set request.jwt.claims='{"aal":"aal1"}';set role authenticated`,
