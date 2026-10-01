@@ -1,12 +1,23 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Brand, MissingConfig } from "./brand";
 import Turnstile from "./turnstile";
 import { configured, supabase } from "@/lib/supabase";
 
 export function RequestPasswordReset() {
+  useEffect(() => {
+    const { data } =
+      supabase?.auth.onAuthStateChange((event) => {
+        if (event === "PASSWORD_RECOVERY") {
+          window.location.replace("/redefinir-senha");
+        }
+      }) || { data: null };
+
+    return () => data?.subscription.unsubscribe();
+  }, []);
+
   const [email, setEmail] = useState("");
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState("");
@@ -29,7 +40,7 @@ export function RequestPasswordReset() {
     }
     setBusy(true);
     try {
-      const redirectTo = `${location.origin}/redefinir-senha`;
+      const redirectTo = location.origin;
       const result = await supabase!.auth.resetPasswordForEmail(email.trim(), {
         redirectTo,
         ...(turnstileSiteKey ? { captchaToken } : {}),
