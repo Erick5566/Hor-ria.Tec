@@ -7,10 +7,13 @@ export default function SignOutButton() {
     <button
       className="admin-signout"
       onClick={async () => {
-        await supabase?.auth.signOut();
-        await syncServerSession(null);
-        router.replace("/entrar");
-        router.refresh();
+        try {
+          await supabase?.auth.signOut({ scope: "local" });
+        } finally {
+          await syncServerSession(null).catch(() => undefined);
+          router.replace("/entrar");
+          router.refresh();
+        }
       }}
     >
       Sair da conta
