@@ -3,7 +3,15 @@ import { useCallback, useEffect, useState } from "react";
 import { useWorkspace } from "./workspace";
 import { saveRow, categories, money } from "@/lib/assistencia";
 import { message, supabase } from "@/lib/supabase";
-import { ErrorBox, Empty, MetricCard, MetricGrid, Pagination, PanelTitle } from "./ui";
+import {
+  ErrorBox,
+  Empty,
+  MetricCard,
+  MetricGrid,
+  Pagination,
+  PanelTitle,
+  SemanticBadge,
+} from "./ui";
 import type { HorariaIconName } from "./horaria-icon";
 
 type CatalogItem = {
@@ -41,7 +49,11 @@ export default function CatalogManagement({
 }: {
   stock?: boolean;
 }) {
-  const { empresa } = useWorkspace();
+  const { empresa, access } = useWorkspace();
+  const role = access.company?.role || "";
+  const canEdit = stock
+    ? ["OWNER", "ADMIN", "TECHNICIAN"].includes(role)
+    : ["OWNER", "ADMIN"].includes(role);
   const [data, setData] = useState<CatalogData | null>(null);
   const [page, setPage] = useState(1);
   const [editing, setEditing] = useState<CatalogItem | "new" | null>(null);
@@ -190,13 +202,17 @@ export default function CatalogManagement({
               value={query}
               onChange={(event) => setQuery(event.target.value)}
             />
-            <button className="primary" onClick={() => setEditing("new")}>
-              + {stock ? "Nova peça" : "Novo serviço"}
-            </button>
+            {canEdit ? (
+              <button className="primary" onClick={() => setEditing("new")}>
+                + {stock ? "Nova peça" : "Novo serviço"}
+              </button>
+            ) : (
+              <SemanticBadge tone="neutral">Somente consulta</SemanticBadge>
+            )}
           </div>
         </div>
 
-        {editing && (
+        {editing && canEdit && (
           <form
             className="catalog-editor"
             key={typeof editing === "string" ? editing : editing.id}
@@ -431,7 +447,7 @@ export default function CatalogManagement({
                     )}
                     <th>Preço</th>
                     {!stock && <th>Status</th>}
-                    <th>Ação</th>
+                    {canEdit && <th>Ação</th>}
                   </tr>
                 </thead>
                 <tbody>
@@ -485,14 +501,16 @@ export default function CatalogManagement({
                           </span>
                         </td>
                       )}
-                      <td>
-                        <button
-                          className="catalog-edit"
-                          onClick={() => setEditing(item)}
-                        >
-                          Editar
-                        </button>
-                      </td>
+                      {canEdit && (
+                        <td>
+                          <button
+                            className="catalog-edit"
+                            onClick={() => setEditing(item)}
+                          >
+                            Editar
+                          </button>
+                        </td>
+                      )}
                     </tr>
                   ))}
                 </tbody>
