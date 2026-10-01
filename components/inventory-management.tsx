@@ -606,17 +606,20 @@ export default function InventoryManagement() {
                 const quantity =
                   Number(form.get("quantidade")) *
                   (movementType === "entrada" ? 1 : -1);
-                const result = await supabase!.rpc("movimentar_estoque", {
-                  p_peca: moving.id,
-                  p_quantidade: quantity,
-                  p_motivo: form.get("motivo"),
-                });
-                if (result.error) setError(message(result.error));
-                else {
+                try {
+                  const result = await supabase!.rpc("movimentar_estoque", {
+                    p_peca: moving.id,
+                    p_quantidade: quantity,
+                    p_motivo: form.get("motivo"),
+                  });
+                  if (result.error) throw result.error;
                   setMoving(null);
                   await load(true);
+                } catch (caught) {
+                  setError(message(caught as Error));
+                } finally {
+                  setBusy(false);
                 }
-                setBusy(false);
               }}
             >
               <div className="movement-toggle">
