@@ -336,14 +336,22 @@ export default function OrderDetail({
                 )}
 
                 {order.status === "finalizado" && (
-                  <a
-                    className="outline"
-                    href={`/acompanhar/${order.token_acompanhamento}`}
-                    target="_blank"
-                    rel="noreferrer"
-                  >
-                    Ver acompanhamento final ↗
-                  </a>
+                  <>
+                    <a
+                      className="outline"
+                      href={`/acompanhar/${order.token_acompanhamento}`}
+                      target="_blank"
+                      rel="noreferrer"
+                    >
+                      Ver acompanhamento final ↗
+                    </a>
+                    <Link
+                      className="primary"
+                      href={`/painel/notas-fiscais?ordem=${id}`}
+                    >
+                      Emitir NFS-e
+                    </Link>
+                  </>
                 )}
               </div>
             </section>
