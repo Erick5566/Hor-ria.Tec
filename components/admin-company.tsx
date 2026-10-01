@@ -64,32 +64,40 @@ export default function AdminCompany({ company }: { company: CompanyDetail }) {
     if (reason === null) return;
     setBusy(true);
     setError("");
-    const result = await supabase!.rpc("admin_update_company_state", {
-      p_empresa: company.id,
-      p_action: code,
-      p_reason: reason,
-    });
-    setBusy(false);
-    if (result.error) setError(message(result.error));
-    else {
+    setNotice("");
+    try {
+      const result = await supabase!.rpc("admin_update_company_state", {
+        p_empresa: company.id,
+        p_action: code,
+        p_reason: reason,
+      });
+      if (result.error) throw result.error;
       setNotice("Ação concluída e registrada na auditoria.");
       router.refresh();
+    } catch (caught) {
+      setError(message(caught as Error));
+    } finally {
+      setBusy(false);
     }
   }
   async function saveFeatures() {
     if (!window.confirm("Aplicar estes recursos para a empresa?")) return;
     setBusy(true);
     setError("");
-    const result = await supabase!.rpc("admin_update_company_features", {
-      p_empresa: company.id,
-      p_features: features,
-      p_reason: "Configuração de recursos",
-    });
-    setBusy(false);
-    if (result.error) setError(message(result.error));
-    else {
+    setNotice("");
+    try {
+      const result = await supabase!.rpc("admin_update_company_features", {
+        p_empresa: company.id,
+        p_features: features,
+        p_reason: "Configuração de recursos",
+      });
+      if (result.error) throw result.error;
       setNotice("Recursos atualizados.");
       router.refresh();
+    } catch (caught) {
+      setError(message(caught as Error));
+    } finally {
+      setBusy(false);
     }
   }
   return (
