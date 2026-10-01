@@ -1,13 +1,14 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import Link from "next/link";
 import { supabase, message } from "@/lib/supabase";
 import { useWorkspace } from "./workspace";
 import { ErrorBox, Empty, PanelTitle, SemanticBadge } from "./ui";
 
 type FiscalSettings = {
   empresa_id: string;
-  provider: "focusnfe";
+  provider: "emissor_nacional_web" | "focusnfe";
   ambiente: "homologacao" | "producao";
   modelo: "nfsen";
   ativo: boolean;
@@ -27,6 +28,7 @@ type FiscalDocument = {
   id: string;
   ordem_id: string;
   provider_ref: string;
+  provider: string;
   ambiente: "homologacao" | "producao";
   status: string;
   valor: number;
@@ -44,14 +46,22 @@ type OrderOption = {
   numero: number;
 };
 
-type ProviderStatus = {
-  homologacaoConfigured: boolean;
-  producaoConfigured: boolean;
+type FreeFiscalMode = {
+  mode: "emissor_nacional_web";
+  productionUrl: string;
+  restrictedUrl: string;
+};
+
+const fallbackPortal: FreeFiscalMode = {
+  mode: "emissor_nacional_web",
+  productionUrl: "https://www.nfse.gov.br/EmissorNacional/Login",
+  restrictedUrl:
+    "https://www.producaorestrita.nfse.gov.br/EmissorNacional/",
 };
 
 const emptySettings = (empresaId: string): FiscalSettings => ({
   empresa_id: empresaId,
-  provider: "focusnfe",
+  provider: "emissor_nacional_web",
   ambiente: "homologacao",
   modelo: "nfsen",
   ativo: false,
@@ -77,6 +87,8 @@ function currency(value: number) {
 function statusLabel(status: string) {
   const labels: Record<string, string> = {
     preparando: "Preparando",
+    pronto_para_emitir: "Pronta para emitir",
+    emitida_manual: "Emitida",
     processando_autorizacao: "Processando",
     autorizado: "Autorizada",
     erro_autorizacao: "Erro na emissão",
@@ -87,10 +99,12 @@ function statusLabel(status: string) {
 }
 
 function statusTone(status: string) {
-  if (status === "autorizado") return "success" as const;
+  if (["emitida_manual", "autorizado"].includes(status))
+    return "success" as const;
   if (["erro_autorizacao", "rejeitado", "cancelado"].includes(status))
     return "danger" as const;
-  if (status === "processando_autorizacao") return "warning" as const;
+  if (["pronto_para_emitir", "processando_autorizacao"].includes(status))
+    return "warning" as const;
   return "neutral" as const;
 }
 
@@ -107,10 +121,10 @@ export default function FiscalNotes({
   const [documents, setDocuments] = useState<FiscalDocument[]>([]);
   const [orders, setOrders] = useState<OrderOption[]>([]);
   const [selectedOrder, setSelectedOrder] = useState(initialOrderId);
-  const [provider, setProvider] = useState<ProviderStatus>({
-    homologacaoConfigured: false,
-    producaoConfigured: false,
-  });
+  const [portal, setPortal] = useState<FreeFiscalMode>(fallbackPortal);
+  const [registeringId, setRegisteringId] = useState("");
+  const [issuedNumber, setIssuedNumber] = useState("");
+  const [issuedKey, setIssuedKey] = useState("");
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
@@ -120,7 +134,7 @@ export default function FiscalNotes({
     if (!supabase || !empresa.id) return;
     setLoading(true);
     try {
-      const [settingsResult, documentsResult, ordersResult, providerResponse] =
+      const [settingsResult, documentsResult, ordersResult, portalResponse] =
         await Promise.all([
           supabase
             .from("fiscal_settings")
@@ -130,7 +144,7 @@ export default function FiscalNotes({
           supabase
             .from("fiscal_documents")
             .select(
-              "id,ordem_id,provider_ref,ambiente,status,valor,numero,chave,protocolo,pdf_url,xml_url,mensagem,criado_em",
+              "id,ordem_id,provider_ref,provider,ambiente,status,valor,numero,chave,protocolo,pdf_url,xml_url,mensagem,criado_em",
             )
             .eq("empresa_id", empresa.id)
             .order("criado_em", { ascending: false })
@@ -142,33 +156,37 @@ export default function FiscalNotes({
             .eq("status", "finalizado")
             .order("numero", { ascending: false })
             .limit(80),
-          fetch("/api/fiscal/nfsen", { cache: "no-store" }),
+          fetch("/api/fiscal/assistida", { cache: "no-store" }),
         ]);
 
       if (settingsResult.error) throw settingsResult.error;
       if (documentsResult.error) throw documentsResult.error;
       if (ordersResult.error) throw ordersResult.error;
 
-      setSettings(
-        settingsResult.data
-          ? (settingsResult.data as FiscalSettings)
-          : emptySettings(empresa.id),
-      );
+      const nextSettings = settingsResult.data
+        ? ({
+            ...(settingsResult.data as FiscalSettings),
+            provider: "emissor_nacional_web",
+          } as FiscalSettings)
+        : emptySettings(empresa.id);
+
+      setSettings(nextSettings);
       setDocuments((documentsResult.data || []) as FiscalDocument[]);
       setOrders((ordersResult.data || []) as OrderOption[]);
 
-      if (providerResponse.ok) {
-        setProvider((await providerResponse.json()) as ProviderStatus);
+      if (portalResponse.ok) {
+        setPortal((await portalResponse.json()) as FreeFiscalMode);
       }
 
-      if (
-        initialOrderId &&
-        (ordersResult.data || []).some((order) => order.id === initialOrderId)
-      ) {
-        setSelectedOrder(initialOrderId);
-      } else if (!selectedOrder && ordersResult.data?.[0]?.id) {
-        setSelectedOrder(ordersResult.data[0].id);
-      }
+      setSelectedOrder((current) => {
+        if (
+          initialOrderId &&
+          (ordersResult.data || []).some((order) => order.id === initialOrderId)
+        )
+          return initialOrderId;
+        if (current) return current;
+        return ordersResult.data?.[0]?.id || "";
+      });
 
       setError("");
     } catch (caught) {
@@ -176,27 +194,19 @@ export default function FiscalNotes({
     } finally {
       setLoading(false);
     }
-  }, [empresa.id, initialOrderId, selectedOrder]);
+  }, [empresa.id, initialOrderId]);
 
   useEffect(() => {
     void load();
   }, [load]);
 
-  const taxDataComplete = useMemo(
+  const basicDataComplete = useMemo(
     () =>
       (settings.cnpj || "").replace(/\D/g, "").length === 14 &&
-      /^\d{7}$/.test(settings.codigo_municipio || "") &&
-      Boolean(settings.codigo_tributacao_nacional_iss?.trim()) &&
-      Boolean(settings.codigo_opcao_simples_nacional?.trim()) &&
-      settings.tributacao_iss !== null &&
-      Number.isFinite(Number(settings.tributacao_iss)),
+      Boolean(settings.razao_social?.trim()) &&
+      /^\d{7}$/.test(settings.codigo_municipio || ""),
     [settings],
   );
-
-  const providerConfigured =
-    settings.ambiente === "producao"
-      ? provider.producaoConfigured
-      : provider.homologacaoConfigured;
 
   async function saveSettings(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -208,6 +218,7 @@ export default function FiscalNotes({
       const payload = {
         ...settings,
         empresa_id: empresa.id,
+        provider: "emissor_nacional_web",
         cnpj: settings.cnpj?.trim() || null,
         razao_social: settings.razao_social?.trim() || null,
         inscricao_municipal: settings.inscricao_municipal?.trim() || null,
@@ -226,13 +237,18 @@ export default function FiscalNotes({
         serie_dps: Number(settings.serie_dps) || 1,
         atualizado_em: new Date().toISOString(),
       };
+
       const result = await supabase
         .from("fiscal_settings")
         .upsert(payload, { onConflict: "empresa_id" })
         .select("*")
         .single();
+
       if (result.error) throw result.error;
-      setSettings(result.data as FiscalSettings);
+      setSettings({
+        ...(result.data as FiscalSettings),
+        provider: "emissor_nacional_web",
+      });
       setNotice("Configuração fiscal salva.");
       await load();
     } catch (caught) {
@@ -242,25 +258,35 @@ export default function FiscalNotes({
     }
   }
 
-  async function issue() {
+  async function prepareIssue() {
     if (!selectedOrder || !canManage) return;
     setBusy(true);
     setError("");
     setNotice("");
     try {
-      const response = await fetch("/api/fiscal/nfsen", {
+      const response = await fetch("/api/fiscal/assistida", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "issue", orderId: selectedOrder }),
+        body: JSON.stringify({ action: "prepare", orderId: selectedOrder }),
       });
       const data = (await response.json().catch(() => ({}))) as {
         error?: string;
+        productionUrl?: string;
+        restrictedUrl?: string;
       };
-      if (!response.ok) throw new Error(data.error || "Falha ao emitir a NFS-e.");
+      if (!response.ok)
+        throw new Error(data.error || "Falha ao preparar a emissão.");
+
+      if (data.productionUrl && data.restrictedUrl) {
+        setPortal({
+          mode: "emissor_nacional_web",
+          productionUrl: data.productionUrl,
+          restrictedUrl: data.restrictedUrl,
+        });
+      }
+
       setNotice(
-        settings.ambiente === "homologacao"
-          ? "NFS-e enviada para homologação. Atualize o status em alguns instantes."
-          : "NFS-e enviada para processamento.",
+        "Dados preparados. Agora revise o resumo e conclua gratuitamente no Emissor Nacional.",
       );
       await load();
     } catch (caught) {
@@ -270,20 +296,36 @@ export default function FiscalNotes({
     }
   }
 
-  async function refreshDocument(documentId: string) {
+  async function markIssued(documentId: string) {
+    if (!issuedNumber.trim()) {
+      setError("Informe o número da NFS-e emitida.");
+      return;
+    }
+
     setBusy(true);
     setError("");
+    setNotice("");
     try {
-      const response = await fetch("/api/fiscal/nfsen", {
+      const response = await fetch("/api/fiscal/assistida", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "refresh", documentId }),
+        body: JSON.stringify({
+          action: "mark-issued",
+          documentId,
+          numero: issuedNumber,
+          chave: issuedKey,
+        }),
       });
       const data = (await response.json().catch(() => ({}))) as {
         error?: string;
       };
       if (!response.ok)
-        throw new Error(data.error || "Falha ao consultar a NFS-e.");
+        throw new Error(data.error || "Falha ao registrar a NFS-e.");
+
+      setRegisteringId("");
+      setIssuedNumber("");
+      setIssuedKey("");
+      setNotice("NFS-e registrada no histórico da Horária.");
       await load();
     } catch (caught) {
       setError(message(caught as Error));
@@ -296,11 +338,18 @@ export default function FiscalNotes({
     return <Empty title="Carregando configuração fiscal…" />;
 
   const completedSteps = [
-    taxDataComplete,
+    basicDataComplete,
     settings.ativo,
-    providerConfigured,
-    documents.some((item) => item.status === "autorizado"),
+    documents.some((item) => item.status === "pronto_para_emitir"),
+    documents.some((item) =>
+      ["emitida_manual", "autorizado"].includes(item.status),
+    ),
   ].filter(Boolean).length;
+
+  const officialPortal =
+    settings.ambiente === "producao"
+      ? portal.productionUrl
+      : portal.restrictedUrl;
 
   return (
     <div style={{ display: "grid", gap: 20 }}>
@@ -313,9 +362,9 @@ export default function FiscalNotes({
 
       <section className="panel">
         <PanelTitle
-          title="Ativação fiscal"
+          title="Emissão gratuita de NFS-e"
           icon="receipt"
-          subtitle="A emissão começa em homologação. Produção só deve ser ativada depois da validação fiscal da assistência."
+          subtitle="O Horária prepara os dados da OS e você conclui a emissão no Emissor Nacional oficial, sem contratar uma API fiscal."
         />
         <div className="definition-grid">
           <div>
@@ -323,27 +372,29 @@ export default function FiscalNotes({
             <dd>{completedSteps}/4 etapas</dd>
           </div>
           <div>
+            <dt>Modo</dt>
+            <dd>Emissor Nacional Web</dd>
+          </div>
+          <div>
             <dt>Ambiente</dt>
             <dd>
-              {settings.ambiente === "producao" ? "Produção" : "Homologação"}
+              {settings.ambiente === "producao"
+                ? "Produção oficial"
+                : "Produção restrita · teste"}
             </dd>
           </div>
           <div>
-            <dt>Emissor</dt>
-            <dd>Focus NFe</dd>
-          </div>
-          <div>
-            <dt>Integração</dt>
-            <dd>{providerConfigured ? "Token conectado" : "Token pendente"}</dd>
+            <dt>Custo de API</dt>
+            <dd>R$ 0,00</dd>
           </div>
         </div>
       </section>
 
       <form className="panel" onSubmit={saveSettings}>
         <PanelTitle
-          title="Dados para NFS-e Nacional"
+          title="Dados fiscais da assistência"
           icon="business"
-          subtitle="Use os dados fiscais confirmados pela empresa ou pelo contador. O Horária não define enquadramento tributário automaticamente."
+          subtitle="Preencha com os dados confirmados pela empresa ou pelo contador. O Horária não define tributação automaticamente."
         />
 
         <div className="definition-grid">
@@ -359,8 +410,8 @@ export default function FiscalNotes({
                 }))
               }
             >
-              <option value="homologacao">Homologação · sem valor fiscal</option>
-              <option value="producao">Produção · nota com valor fiscal</option>
+              <option value="homologacao">Produção restrita · testes</option>
+              <option value="producao">Produção oficial · validade fiscal</option>
             </select>
           </label>
 
@@ -434,7 +485,7 @@ export default function FiscalNotes({
               value={settings.codigo_tributacao_nacional_iss || ""}
               disabled={!canManage || busy}
               maxLength={20}
-              placeholder="Ex.: código informado pelo contador"
+              placeholder="Conforme orientação fiscal"
               onChange={(event) =>
                 setSettings((current) => ({
                   ...current,
@@ -445,12 +496,12 @@ export default function FiscalNotes({
           </label>
 
           <label>
-            Código de opção do Simples Nacional
+            Opção do Simples Nacional
             <input
               value={settings.codigo_opcao_simples_nacional || ""}
               disabled={!canManage || busy}
               maxLength={10}
-              placeholder="Conforme enquadramento fiscal"
+              placeholder="Conforme enquadramento"
               onChange={(event) =>
                 setSettings((current) => ({
                   ...current,
@@ -484,7 +535,7 @@ export default function FiscalNotes({
               min="0"
               value={settings.tributacao_iss ?? ""}
               disabled={!canManage || busy}
-              placeholder="Código/valor exigido no seu enquadramento"
+              placeholder="Conforme enquadramento"
               onChange={(event) =>
                 setSettings((current) => ({
                   ...current,
@@ -492,23 +543,6 @@ export default function FiscalNotes({
                     event.target.value === ""
                       ? null
                       : Number(event.target.value),
-                }))
-              }
-            />
-          </label>
-
-          <label>
-            Série da DPS
-            <input
-              type="number"
-              min="1"
-              step="1"
-              value={settings.serie_dps}
-              disabled={!canManage || busy}
-              onChange={(event) =>
-                setSettings((current) => ({
-                  ...current,
-                  serie_dps: Math.max(1, Number(event.target.value) || 1),
                 }))
               }
             />
@@ -527,13 +561,8 @@ export default function FiscalNotes({
               }))
             }
           />
-          Ativar emissão fiscal para esta assistência
+          Ativar módulo de notas fiscais para esta assistência
         </label>
-
-        <p className="subtle">
-          Antes de usar produção, confirme CNPJ, município, código do serviço e
-          tributação com o contador da assistência.
-        </p>
 
         {canManage ? (
           <button className="primary" disabled={busy} type="submit">
@@ -548,9 +577,9 @@ export default function FiscalNotes({
 
       <section className="panel">
         <PanelTitle
-          title="Emitir por ordem de serviço"
+          title="Preparar nota pela OS"
           icon="orders"
-          subtitle="A emissão usa o valor do orçamento aprovado da OS finalizada."
+          subtitle="O Horária usa o valor do orçamento aprovado e organiza as informações antes de abrir o Emissor Nacional."
         />
 
         <div className="toolbar">
@@ -567,6 +596,7 @@ export default function FiscalNotes({
               </option>
             ))}
           </select>
+
           <button
             className="primary"
             type="button"
@@ -575,39 +605,47 @@ export default function FiscalNotes({
               busy ||
               !selectedOrder ||
               !settings.ativo ||
-              !taxDataComplete ||
-              !providerConfigured
+              !basicDataComplete
             }
-            onClick={() => void issue()}
+            onClick={() => void prepareIssue()}
           >
-            {busy ? "Processando…" : "Emitir NFS-e"}
+            {busy ? "Preparando…" : "Preparar emissão gratuita"}
           </button>
+
+          <a
+            className="outline"
+            href={officialPortal}
+            target="_blank"
+            rel="noreferrer"
+          >
+            Abrir Emissor Nacional ↗
+          </a>
         </div>
 
-        {!providerConfigured && (
+        {!settings.ativo && (
           <p className="notice">
-            Falta conectar o token da Focus NFe para o ambiente selecionado.
+            Salve os dados e ative o módulo fiscal antes de preparar uma nota.
           </p>
         )}
         {settings.ambiente === "homologacao" && (
           <p className="subtle">
-            Homologação é o ambiente de testes e não gera documento com validade
-            fiscal.
+            O ambiente selecionado é de testes. Para uma nota com validade
+            fiscal, altere para Produção oficial depois de validar o fluxo.
           </p>
         )}
       </section>
 
       <section className="panel">
         <PanelTitle
-          title="Notas emitidas"
+          title="Histórico fiscal"
           icon="receipt"
-          subtitle="Acompanhe o processamento e os arquivos retornados pelo emissor."
+          subtitle="Imprima, salve o resumo em PDF e registre o número da NFS-e depois da emissão oficial."
         />
 
         {!documents.length ? (
           <Empty
-            title="Nenhuma nota fiscal ainda"
-            text="Depois da primeira emissão, o histórico aparece aqui."
+            title="Nenhuma preparação fiscal ainda"
+            text="Finalize uma OS com orçamento aprovado e prepare a primeira emissão."
           />
         ) : (
           <div className="table-wrap">
@@ -618,7 +656,7 @@ export default function FiscalNotes({
                   <th>Status</th>
                   <th>Ambiente</th>
                   <th>Valor</th>
-                  <th>Número</th>
+                  <th>NFS-e</th>
                   <th>Ações</th>
                 </tr>
               </thead>
@@ -640,24 +678,49 @@ export default function FiscalNotes({
                     <td>
                       {document.ambiente === "producao"
                         ? "Produção"
-                        : "Homologação"}
+                        : "Teste"}
                     </td>
                     <td>{currency(Number(document.valor))}</td>
                     <td>{document.numero || "—"}</td>
                     <td>
                       <div className="inline-actions">
-                        {document.status === "processando_autorizacao" && (
-                          <button
-                            className="outline"
-                            type="button"
-                            disabled={busy}
-                            onClick={() =>
-                              void refreshDocument(document.id)
-                            }
-                          >
-                            Atualizar
-                          </button>
+                        <Link
+                          className="outline"
+                          href={`/painel/notas-fiscais/${document.id}/imprimir`}
+                          target="_blank"
+                        >
+                          Imprimir / PDF
+                        </Link>
+
+                        {document.status === "pronto_para_emitir" && (
+                          <>
+                            <a
+                              className="primary"
+                              href={
+                                document.ambiente === "producao"
+                                  ? portal.productionUrl
+                                  : portal.restrictedUrl
+                              }
+                              target="_blank"
+                              rel="noreferrer"
+                            >
+                              Emitir no portal ↗
+                            </a>
+                            <button
+                              className="outline"
+                              type="button"
+                              disabled={busy}
+                              onClick={() => {
+                                setRegisteringId(document.id);
+                                setIssuedNumber("");
+                                setIssuedKey("");
+                              }}
+                            >
+                              Já emiti
+                            </button>
+                          </>
                         )}
+
                         {document.pdf_url && (
                           <a
                             className="outline"
@@ -665,7 +728,7 @@ export default function FiscalNotes({
                             target="_blank"
                             rel="noreferrer"
                           >
-                            PDF ↗
+                            PDF oficial ↗
                           </a>
                         )}
                         {document.xml_url && (
@@ -679,6 +742,51 @@ export default function FiscalNotes({
                           </a>
                         )}
                       </div>
+
+                      {registeringId === document.id && (
+                        <div
+                          style={{
+                            display: "grid",
+                            gap: 8,
+                            marginTop: 10,
+                            minWidth: 240,
+                          }}
+                        >
+                          <input
+                            value={issuedNumber}
+                            placeholder="Número da NFS-e"
+                            onChange={(event) =>
+                              setIssuedNumber(event.target.value)
+                            }
+                          />
+                          <input
+                            value={issuedKey}
+                            placeholder="Chave de acesso (opcional)"
+                            onChange={(event) =>
+                              setIssuedKey(event.target.value)
+                            }
+                          />
+                          <div className="inline-actions">
+                            <button
+                              className="primary"
+                              type="button"
+                              disabled={busy}
+                              onClick={() => void markIssued(document.id)}
+                            >
+                              Salvar emissão
+                            </button>
+                            <button
+                              className="outline"
+                              type="button"
+                              disabled={busy}
+                              onClick={() => setRegisteringId("")}
+                            >
+                              Cancelar
+                            </button>
+                          </div>
+                        </div>
+                      )}
+
                       {document.mensagem && (
                         <small style={{ display: "block", marginTop: 6 }}>
                           {document.mensagem}
