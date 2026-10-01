@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Horária">
+  <defs>
+    <mask id="cut">
+      <rect width="64" height="64" fill="white"/>
+      <path d="M27 4 L39 4 L28 60 L16 60 Z" fill="black"/>
+    </mask>
+  </defs>
+  <g fill="#ffffff" mask="url(#cut)">
+    <rect x="12" y="9" width="11" height="46" rx="4"/>
+    <rect x="41" y="9" width="11" height="46" rx="4"/>
+    <rect x="18" y="27" width="31" height="10" rx="4"/>
+  </g>
+</svg>
