@@ -147,15 +147,22 @@ export default function AdminModule({
               e.preventDefault();
               setBusy(true);
               setError("");
-              const f = new FormData(e.currentTarget);
-              const r = await supabase!.auth.updateUser({
-                password: String(f.get("senha")),
-              });
-              setBusy(false);
-              if (r.error) setError(message(r.error));
-              else {
+              setNotice("");
+              const form = e.currentTarget;
+              const f = new FormData(form);
+              const password = String(f.get("senha") || "");
+              const confirmation = String(f.get("confirmar_senha") || "");
+              try {
+                if (password !== confirmation)
+                  throw new Error("As duas senhas precisam ser iguais.");
+                const r = await supabase!.auth.updateUser({ password });
+                if (r.error) throw r.error;
                 setNotice("Senha atualizada.");
-                (e.target as HTMLFormElement).reset();
+                form.reset();
+              } catch (caught) {
+                setError(message(caught as Error));
+              } finally {
+                setBusy(false);
               }
             }}
           >
@@ -163,6 +170,16 @@ export default function AdminModule({
               Nova senha
               <input
                 name="senha"
+                type="password"
+                minLength={5}
+                required
+                autoComplete="new-password"
+              />
+            </label>
+            <label>
+              Confirmar nova senha
+              <input
+                name="confirmar_senha"
                 type="password"
                 minLength={5}
                 required
