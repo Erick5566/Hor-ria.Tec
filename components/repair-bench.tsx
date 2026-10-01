@@ -434,15 +434,20 @@ export default function RepairBench({
   ) {
     setBusy(true);
     setError("");
-    const result = await supabase!.rpc("mover_ordem_reparo", {
-      p_ordem: order.id,
-      p_status: status,
-      p_mesa: mesaId || null,
-      p_prioridade: priority,
-    });
-    if (result.error) setError(message(result.error));
-    else await loadBench(true);
-    setBusy(false);
+    try {
+      const result = await supabase!.rpc("mover_ordem_reparo", {
+        p_ordem: order.id,
+        p_status: status,
+        p_mesa: mesaId || null,
+        p_prioridade: priority,
+      });
+      if (result.error) throw result.error;
+      await loadBench(true);
+    } catch (caught) {
+      setError(message(caught as Error));
+    } finally {
+      setBusy(false);
+    }
   }
 
   return (
@@ -759,22 +764,25 @@ export default function RepairBench({
               setBusy(true);
               setError("");
               const form = new FormData(event.currentTarget);
-              const result = await supabase!
-                .from("mesas_reparo")
-                .insert({
-                  empresa_id: empresa.id,
-                  nome: form.get("nome"),
-                  descricao: form.get("descricao") || null,
-                  ordem_exibicao: benches.data.length,
-                })
-                .select("id")
-                .single();
-              if (result.error) setError(message(result.error));
-              else {
+              try {
+                const result = await supabase!
+                  .from("mesas_reparo")
+                  .insert({
+                    empresa_id: empresa.id,
+                    nome: form.get("nome"),
+                    descricao: form.get("descricao") || null,
+                    ordem_exibicao: benches.data.length,
+                  })
+                  .select("id")
+                  .single();
+                if (result.error) throw result.error;
                 event.currentTarget.reset();
                 await benches.reload();
+              } catch (caught) {
+                setError(message(caught as Error));
+              } finally {
+                setBusy(false);
               }
-              setBusy(false);
             }}
           >
             <div className="form-grid">
@@ -807,11 +815,19 @@ export default function RepairBench({
                 key={item.id}
                 className={item.ativo ? "" : "inactive"}
                 onClick={async () => {
-                  await supabase!
-                    .from("mesas_reparo")
-                    .update({ ativo: !item.ativo })
-                    .eq("id", item.id);
-                  await benches.reload();
+                  setError("");
+                  try {
+                    const result = await supabase!
+                      .from("mesas_reparo")
+                      .update({ ativo: !item.ativo })
+                      .eq("id", item.id)
+                      .select("id")
+                      .single();
+                    if (result.error) throw result.error;
+                    await benches.reload();
+                  } catch (caught) {
+                    setError(message(caught as Error));
+                  }
                 }}
               >
                 {item.nome}
