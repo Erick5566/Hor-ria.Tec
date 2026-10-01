@@ -126,6 +126,11 @@ const reservedSlugs = [
   "cadastro",
   "manutencao",
   "conta-bloqueada",
+  "privacidade",
+  "recuperar-senha",
+  "redefinir-senha",
+  "solicitacao-enviada",
+  "seguranca",
 ];
 
 function slugify(value: string) {
@@ -311,6 +316,30 @@ export default function PublicPageSettings() {
         <p>Carregando configurações da página…</p>
       </section>
     );
+  async function copyPublicUrl() {
+    setError("");
+    try {
+      await navigator.clipboard.writeText(publicUrl);
+      setNotice("Link copiado.");
+    } catch {
+      setError("Não foi possível copiar. Use o endereço exibido na página.");
+    }
+  }
+
+  async function sharePublicUrl() {
+    setError("");
+    try {
+      if (navigator.share) {
+        await navigator.share({ title: identity.nome, url: publicUrl });
+        return;
+      }
+      await copyPublicUrl();
+    } catch (caught) {
+      if (caught instanceof DOMException && caught.name === "AbortError") return;
+      setError("Não foi possível compartilhar a página agora.");
+    }
+  }
+
   function set<K extends keyof Config>(key: K, value: Config[K]) {
     setConfig((current) => (current ? { ...current, [key]: value } : current));
   }
@@ -472,25 +501,10 @@ export default function PublicPageSettings() {
           </div>
         </div>
         <div className="inline-actions">
-          <button type="button" onClick={async () => {
-            try {
-              await navigator.clipboard.writeText(publicUrl);
-              setNotice("Link copiado.");
-            } catch {
-              setError("Não foi possível copiar. Use o endereço exibido na página.");
-            }
-          }}>Copiar link</button>
-          <button
-            type="button"
-            onClick={async () => {
-              if (navigator.share)
-                await navigator.share({ title: identity.nome, url: publicUrl });
-              else {
-                await navigator.clipboard.writeText(publicUrl);
-                setNotice("Link copiado.");
-              }
-            }}
-          >
+          <button type="button" onClick={() => void copyPublicUrl()}>
+            Copiar link
+          </button>
+          <button type="button" onClick={() => void sharePublicUrl()}>
             Compartilhar página
           </button>
           <a
@@ -615,13 +629,7 @@ export default function PublicPageSettings() {
             </label>
             <div className="copy-line">
               <code>{publicUrl}</code>
-              <button
-                type="button"
-                onClick={async () => {
-                  await navigator.clipboard.writeText(publicUrl);
-                  setNotice("Link copiado.");
-                }}
-              >
+              <button type="button" onClick={() => void copyPublicUrl()}>
                 Copiar link
               </button>
             </div>
