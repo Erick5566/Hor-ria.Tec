@@ -10,6 +10,7 @@ try {
     "/entrar",
     "/cadastro",
     "/recuperar-senha",
+    "/redefinir-senha",
     "/manutencao",
     "/conta-bloqueada",
     "/admin",
