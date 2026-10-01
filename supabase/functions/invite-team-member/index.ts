@@ -145,7 +145,7 @@ Deno.serve(async (request) => {
         invite.error?.message || "",
       );
 
-      if (retryLookup.error) {
+      if (!duplicateLike || retryLookup.error || !retryLookup.data) {
         return json(
           {
             ok: false,
@@ -156,23 +156,7 @@ Deno.serve(async (request) => {
         );
       }
 
-      if (duplicateLike && retryLookup.data) {
-        targetUserId = retryLookup.data as string;
-      } else {
-        if (retryLookup.data) {
-          await admin.auth.admin.deleteUser(retryLookup.data as string).catch(
-            () => undefined,
-          );
-        }
-        return json(
-          {
-            ok: false,
-            error:
-              "Não foi possível enviar o convite agora. Tente novamente em alguns instantes.",
-          },
-          400,
-        );
-      }
+      targetUserId = retryLookup.data as string;
     } else {
       targetUserId = invite.data.user.id;
       invited = true;
