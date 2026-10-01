@@ -15,12 +15,19 @@ export default function Showcase() {
     id: string,
     visible: boolean,
   ) {
-    const result = await supabase!
-      .from(table)
-      .update({ na_vitrine: visible })
-      .eq("id", id);
-    if (result.error) setError(message(result.error));
-    else await (table === "pecas" ? products.reload() : used.reload());
+    setError("");
+    try {
+      const result = await supabase!
+        .from(table)
+        .update({ na_vitrine: visible })
+        .eq("id", id)
+        .select("id")
+        .single();
+      if (result.error) throw result.error;
+      await (table === "pecas" ? products.reload() : used.reload());
+    } catch (caught) {
+      setError(message(caught as Error));
+    }
   }
   return (
     <>
