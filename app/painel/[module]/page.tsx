@@ -26,7 +26,7 @@ export default async function Page({
   searchParams,
 }: {
   params: Promise<{ module: string }>;
-  searchParams: Promise<{ visao?: string; q?: string }>;
+  searchParams: Promise<{ visao?: string; q?: string; ordem?: string }>;
 }) {
   const { module } = await params;
   if (!betaModules.includes(module as (typeof betaModules)[number])) notFound();
@@ -37,5 +37,11 @@ export default async function Page({
     );
   if (module === "relatorios") redirect("/painel/financeiro?visao=relatorios");
   if (module === "pagina-cliente") redirect("/painel/minha-pagina");
-  return <AdminModule module={module} view={query.visao} />;
+  return (
+    <AdminModule
+      module={module}
+      view={query.visao}
+      orderId={query.ordem}
+    />
+  );
 }
