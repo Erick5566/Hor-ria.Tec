@@ -60,6 +60,7 @@ export default function OrderForm() {
     [busy, setBusy] = useState(false),
     [draftReady, setDraftReady] = useState(false),
     [photoDraftReady, setPhotoDraftReady] = useState(false),
+    [draftStored, setDraftStored] = useState(true),
     [editingCustomer, setEditingCustomer] = useState(false),
     [photoGuide, setPhotoGuide] = useState<GuidedPhotoState>({
       currentIndex: 0,
@@ -145,23 +146,28 @@ export default function OrderForm() {
   useEffect(() => {
     if (!draftReady) return;
     const safeDevice = { ...device, senha: "" };
-    localStorage.setItem(
-      draftKey,
-      JSON.stringify({
-        step,
-        customer,
-        // Mantemos o ID explicitamente no rascunho para restaurar o vínculo
-        // com o cadastro e o estado travado mesmo após recarregar a página.
-        selectedCustomerId: customer.id,
-        device: safeDevice,
-        state,
-        details,
-        editingCustomer,
-        photoGuide,
-        createdId,
-        savedAt: new Date().toISOString(),
-      }),
-    );
+    try {
+      localStorage.setItem(
+        draftKey,
+        JSON.stringify({
+          step,
+          customer,
+          // Mantemos o ID explicitamente no rascunho para restaurar o vínculo
+          // com o cadastro e o estado travado mesmo após recarregar a página.
+          selectedCustomerId: customer.id,
+          device: safeDevice,
+          state,
+          details,
+          editingCustomer,
+          photoGuide,
+          createdId,
+          savedAt: new Date().toISOString(),
+        }),
+      );
+      setDraftStored(true);
+    } catch {
+      setDraftStored(false);
+    }
   }, [
     draftReady,
     createdId,
@@ -368,7 +374,9 @@ export default function OrderForm() {
       </div>
       <ErrorBox error={error || clients.error || equipment.error} />
       <p className="autosave-status" role="status">
-        ✓ Rascunho salvo automaticamente neste dispositivo
+        {draftStored
+          ? "✓ Rascunho salvo automaticamente neste dispositivo"
+          : "Rascunho local indisponível neste navegador. Mantenha esta página aberta até concluir."}
       </p>
       {createdId && (
         <p className="notice">
