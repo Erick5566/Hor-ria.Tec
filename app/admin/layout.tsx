@@ -52,7 +52,11 @@ export default async function AdminLayout({
         {access.context.company && (
           <div className="admin-quick-links">
             <Link href="/painel">Abrir meu painel</Link>
-            <Link href={`/${access.context.company.slug}`} target="_blank">
+            <Link
+              href={`/${access.context.company.slug}`}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
               Ver página pública ↗
             </Link>
           </div>
