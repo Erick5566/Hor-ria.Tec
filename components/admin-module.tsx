@@ -98,9 +98,11 @@ const subtitles: Record<string, string> = {
 export default function AdminModule({
   module,
   view = "",
+  orderId = "",
 }: {
   module: string;
   view?: string;
+  orderId?: string;
 }) {
   const { empresa, email } = useWorkspace(),
     [notice, setNotice] = useState(""),
@@ -111,7 +113,9 @@ export default function AdminModule({
       <Heading title={titles[module]} subtitle={subtitles[module]} />
       {module === "servicos" && <CatalogManagement />}
       {module === "financeiro" && <FinanceWorkspace view={view} />}
-      {module === "notas-fiscais" && <FiscalNotes />}
+      {module === "notas-fiscais" && (
+        <FiscalNotes initialOrderId={orderId} />
+      )}
       {module === "vendas" && <Sales />}
       {module === "seminovos" && <UsedDevices />}
       {module === "vitrine" && <Showcase />}
