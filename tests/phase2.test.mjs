@@ -41,7 +41,7 @@ test("fase 2: venda integra estoque e financeiro com isolamento", async () => {
     assert.equal(
       (await db.query(`select quantidade from pecas where id=$1`, [product]))
         .rows[0].quantidade,
-      3,
+      4,
     );
     assert.equal(
       (
@@ -133,7 +133,7 @@ test("fase 2: venda integra estoque e financeiro com isolamento", async () => {
     await assert.rejects(
       db.query(`select finalizar_venda($1,null,$2,0,'dinheiro',null)`, [
         company,
-        [{ peca_id: product, quantidade: 4, preco: 50 }],
+        [{ peca_id: product, quantidade: 5, preco: 50 }],
       ]),
     );
     assert.equal(
