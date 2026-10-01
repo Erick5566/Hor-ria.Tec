@@ -92,6 +92,17 @@ export default function TeamPermissions() {
   >({});
   const [loading, setLoading] = useState(true);
   const [busyUser, setBusyUser] = useState("");
+  const [adding, setAdding] = useState(false);
+  const [inviteBusy, setInviteBusy] = useState(false);
+  const [invite, setInvite] = useState<{
+    name: string;
+    email: string;
+    role: Exclude<TeamRole, "OWNER">;
+  }>({
+    name: "",
+    email: "",
+    role: "TECHNICIAN",
+  });
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
 
@@ -185,6 +196,61 @@ export default function TeamPermissions() {
     }
   }
 
+
+  async function inviteMember(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!supabase) return;
+
+    setInviteBusy(true);
+    setError("");
+    setNotice("");
+    try {
+      const result = await supabase.functions.invoke("invite-team-member", {
+        body: {
+          name: invite.name.trim(),
+          email: invite.email.trim().toLowerCase(),
+          role: invite.role,
+        },
+      });
+
+      if (result.error) {
+        let detail = "";
+        const context = (result.error as unknown as { context?: Response })
+          .context;
+        if (context) {
+          const payload = (await context
+            .clone()
+            .json()
+            .catch(() => ({}))) as { error?: string };
+          detail = payload.error || "";
+        }
+        throw new Error(detail || message(result.error));
+      }
+
+      const payload = result.data as {
+        ok?: boolean;
+        error?: string;
+        mode?: "invited" | "linked";
+      } | null;
+
+      if (!payload?.ok)
+        throw new Error(payload?.error || "Não foi possível adicionar o membro.");
+
+      setNotice(
+        payload.mode === "invited"
+          ? "Convite enviado por e-mail e funcionário vinculado à equipe."
+          : "Funcionário vinculado à equipe com a conta Horária existente.",
+      );
+      setAdding(false);
+      setInvite({ name: "", email: "", role: "TECHNICIAN" });
+      await load();
+    } catch (caught) {
+      setError(message(caught as Error));
+    } finally {
+      setInviteBusy(false);
+    }
+  }
+
   return (
     <div className="team-permissions-layout">
       <ErrorBox error={error} />
@@ -248,14 +314,134 @@ export default function TeamPermissions() {
           <div>
             <PanelTitle title="Membros da equipe" icon="clients" />
             <p>
-              Altere a função ou desative um acesso sem apagar o histórico do
-              funcionário.
+              Adicione funcionários, altere a função ou desative um acesso sem
+              apagar o histórico.
             </p>
           </div>
-          <SemanticBadge tone="primary">
-            {data?.actorRole === "OWNER" ? "Acesso de proprietário" : "Acesso de administrador"}
-          </SemanticBadge>
+          <div className="team-member-actions">
+            <SemanticBadge tone="primary">
+              {data?.actorRole === "OWNER"
+                ? "Acesso de proprietário"
+                : "Acesso de administrador"}
+            </SemanticBadge>
+            <button
+              type="button"
+              className="primary"
+              onClick={() => {
+                setAdding(true);
+                setError("");
+                setNotice("");
+              }}
+            >
+              + Adicionar membro
+            </button>
+          </div>
         </div>
+
+        {adding && (
+          <div className="modal-backdrop">
+            <section
+              className="panel modal"
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="team-invite-title"
+            >
+              <div className="panel-head">
+                <div>
+                  <h2 id="team-invite-title">Adicionar membro</h2>
+                  <p>
+                    Se o e-mail ainda não tiver conta na Horária, enviaremos um
+                    convite. Se já tiver conta, ela será vinculada a esta
+                    assistência.
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  className="close"
+                  aria-label="Fechar"
+                  disabled={inviteBusy}
+                  onClick={() => setAdding(false)}
+                >
+                  ×
+                </button>
+              </div>
+
+              <form onSubmit={inviteMember}>
+                <div className="form-grid">
+                  <label>
+                    Nome
+                    <input
+                      required
+                      minLength={2}
+                      maxLength={100}
+                      autoComplete="name"
+                      value={invite.name}
+                      onChange={(event) =>
+                        setInvite((current) => ({
+                          ...current,
+                          name: event.target.value,
+                        }))
+                      }
+                      placeholder="Ex.: João Silva"
+                    />
+                  </label>
+                  <label>
+                    E-mail
+                    <input
+                      required
+                      type="email"
+                      maxLength={200}
+                      autoComplete="email"
+                      value={invite.email}
+                      onChange={(event) =>
+                        setInvite((current) => ({
+                          ...current,
+                          email: event.target.value,
+                        }))
+                      }
+                      placeholder="funcionario@empresa.com"
+                    />
+                  </label>
+                  <label>
+                    Função
+                    <select
+                      value={invite.role}
+                      onChange={(event) =>
+                        setInvite((current) => ({
+                          ...current,
+                          role: event.target.value as Exclude<
+                            TeamRole,
+                            "OWNER"
+                          >,
+                        }))
+                      }
+                    >
+                      {data?.actorRole === "OWNER" && (
+                        <option value="ADMIN">Administrador</option>
+                      )}
+                      <option value="TECHNICIAN">Técnico</option>
+                      <option value="ATTENDANT">Atendente</option>
+                    </select>
+                  </label>
+                </div>
+
+                <div className="form-actions">
+                  <button
+                    type="button"
+                    className="outline"
+                    disabled={inviteBusy}
+                    onClick={() => setAdding(false)}
+                  >
+                    Cancelar
+                  </button>
+                  <button className="primary" disabled={inviteBusy}>
+                    {inviteBusy ? "Enviando convite…" : "Adicionar à equipe"}
+                  </button>
+                </div>
+              </form>
+            </section>
+          </div>
+        )}
 
         {loading ? (
           <div className="module-inline-loading" aria-live="polite">
@@ -373,9 +559,8 @@ export default function TeamPermissions() {
           <div className="team-empty-note">
             <strong>Ainda não há funcionários vinculados.</strong>
             <p>
-              Quando um técnico ou atendente for vinculado à assistência, ele
-              aparecerá aqui para você definir a função e ativar ou desativar o
-              acesso.
+              Clique em <b>Adicionar membro</b> para convidar um técnico,
+              atendente ou administrador para esta assistência.
             </p>
           </div>
         )}
