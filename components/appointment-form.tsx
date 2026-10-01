@@ -68,20 +68,25 @@ export default function AppointmentForm({ done }: { done: () => void }) {
         setBusy(true);
         setError("");
         const form = new FormData(event.currentTarget);
-        const result = await supabase!.from("agendamentos").insert({
-          empresa_id: empresa.id,
-          servico_id: form.get("servico"),
-          ordem_id: order || null,
-          finalidade: form.get("finalidade"),
-          nome_cliente: selectedOrder?.cliente_nome || form.get("nome"),
-          telefone: selectedOrder?.cliente_whatsapp || form.get("telefone"),
-          inicio: `${form.get("dia")}T${form.get("hora")}:00-03:00`,
-          descricao: form.get("descricao"),
-          endereco: form.get("endereco") || null,
-        });
-        setBusy(false);
-        if (result.error) setError(message(result.error));
-        else done();
+        try {
+          const result = await supabase!.from("agendamentos").insert({
+            empresa_id: empresa.id,
+            servico_id: form.get("servico"),
+            ordem_id: order || null,
+            finalidade: form.get("finalidade"),
+            nome_cliente: selectedOrder?.cliente_nome || form.get("nome"),
+            telefone: selectedOrder?.cliente_whatsapp || form.get("telefone"),
+            inicio: `${form.get("dia")}T${form.get("hora")}:00-03:00`,
+            descricao: form.get("descricao"),
+            endereco: form.get("endereco") || null,
+          });
+          if (result.error) throw result.error;
+          done();
+        } catch (caught) {
+          setError(message(caught as Error));
+        } finally {
+          setBusy(false);
+        }
       }}
     >
       <h2>Novo atendimento</h2>
