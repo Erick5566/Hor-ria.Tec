@@ -659,22 +659,24 @@ export default function Workspace({
     if (!empresa?.id || !userId || !supabase || readAlertIds.has(alertId))
       return;
     setReadAlertIds((current) => new Set([...current, alertId]));
-    const result = await supabase.from("notification_reads").upsert(
-      {
-        empresa_id: empresa.id,
-        usuario_id: userId,
-        notification_id: alertId,
-        read_at: new Date().toISOString(),
-      },
-      { onConflict: "empresa_id,usuario_id,notification_id" },
-    );
-    if (result.error) {
+    try {
+      const result = await supabase.from("notification_reads").upsert(
+        {
+          empresa_id: empresa.id,
+          usuario_id: userId,
+          notification_id: alertId,
+          read_at: new Date().toISOString(),
+        },
+        { onConflict: "empresa_id,usuario_id,notification_id" },
+      );
+      if (result.error) throw result.error;
+    } catch (caught) {
       setReadAlertIds((current) => {
         const next = new Set(current);
         next.delete(alertId);
         return next;
       });
-      setError(message(result.error));
+      setError(message(caught as Error));
     }
   }
 
@@ -684,18 +686,20 @@ export default function Workspace({
     if (!unread.length) return;
     const ids = unread.map((alert) => alert.id);
     setReadAlertIds((current) => new Set([...current, ...ids]));
-    const result = await supabase.from("notification_reads").upsert(
-      unread.map((alert) => ({
-        empresa_id: empresa.id,
-        usuario_id: userId,
-        notification_id: alert.id,
-        read_at: new Date().toISOString(),
-      })),
-      { onConflict: "empresa_id,usuario_id,notification_id" },
-    );
-    if (result.error) {
+    try {
+      const result = await supabase.from("notification_reads").upsert(
+        unread.map((alert) => ({
+          empresa_id: empresa.id,
+          usuario_id: userId,
+          notification_id: alert.id,
+          read_at: new Date().toISOString(),
+        })),
+        { onConflict: "empresa_id,usuario_id,notification_id" },
+      );
+      if (result.error) throw result.error;
+    } catch (caught) {
       await loadAlerts();
-      setError(message(result.error));
+      setError(message(caught as Error));
     }
   }
 
@@ -997,10 +1001,14 @@ export default function Workspace({
           </Link>
           <button
             onClick={async () => {
-              const r = await supabase!.auth.signOut();
-              if (r.error) setError(message(r.error));
-              else {
-                await syncServerSession(null);
+              setError("");
+              try {
+                const r = await supabase!.auth.signOut({ scope: "local" });
+                if (r.error) throw r.error;
+              } catch (caught) {
+                setError(message(caught as Error));
+              } finally {
+                await syncServerSession(null).catch(() => undefined);
                 router.replace("/");
               }
             }}
