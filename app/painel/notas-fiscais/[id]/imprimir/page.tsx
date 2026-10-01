@@ -84,6 +84,20 @@ export default async function FiscalPrintPage({
       .maybeSingle(),
   ]);
 
+  if (
+    settingsResult.error ||
+    customerResult.error ||
+    equipmentResult.error ||
+    quoteResult.error
+  ) {
+    throw (
+      settingsResult.error ||
+      customerResult.error ||
+      equipmentResult.error ||
+      quoteResult.error
+    );
+  }
+
   const customer = customerResult.data;
   const equipment = equipmentResult.data;
   const settings = settingsResult.data;
