@@ -33,7 +33,14 @@ export default function SessionBridge() {
       await syncServerSession(data.session);
       const access = await supabase!.rpc("access_context");
       const context = access.data as AccessContext | null;
-      router.replace(context?.isSuperAdmin ? "/admin" : "/painel");
+      const invited = data.session.user.user_metadata?.team_invite === true;
+      router.replace(
+        context?.isSuperAdmin
+          ? "/admin"
+          : invited
+            ? "/painel/perfil?primeiro-acesso=1"
+            : "/painel",
+      );
       router.refresh();
     });
 
