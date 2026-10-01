@@ -100,7 +100,8 @@ export default function SubscriptionPage() {
             </p>
           </div>
           <div className="subscription-price">
-            <small>Valor inicial</small>\n            <strong>R$ 44,99</strong>
+            <small>Valor inicial</small>
+            <strong>R$ 44,99</strong>
             <small>Depois, R$ 59,00/mês</small>
           </div>
         </div>
@@ -110,7 +111,7 @@ export default function SubscriptionPage() {
             <div className="subscription-qr">
               <img
                 src={qrCodeUrl}
-                alt="QR Code Pix para pagamento da mensalidade Horária"
+                alt="QR Code Pix para o pagamento inicial da Horária"
                 width={280}
                 height={280}
               />
@@ -123,7 +124,8 @@ export default function SubscriptionPage() {
 
           <div className="subscription-pix-details">
             <div className="subscription-pix-amount">
-              <span>Valor do pagamento inicial</span>\n              <strong>R$ 44,99</strong>
+              <span>Valor do pagamento inicial</span>
+              <strong>R$ 44,99</strong>
             </div>
 
             <div className="subscription-pix-field">
@@ -157,7 +159,7 @@ export default function SubscriptionPage() {
             <div className="notice subscription-manual-confirmation">
               <strong>Confirmação manual</strong>
               <p>
-                Depois do pagamento, a equipe da Horária confirma a mensalidade
+                Depois do pagamento, a equipe da Horária confirma o pagamento inicial
                 no sistema. Não é necessário pagar novamente enquanto a
                 confirmação estiver sendo analisada.
               </p>
