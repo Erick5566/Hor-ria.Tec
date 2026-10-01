@@ -57,6 +57,9 @@ export async function POST(request: Request) {
   if (!body)
     return NextResponse.json({ error: "Requisição inválida." }, { status: 400 });
 
+  if (body.action !== "prepare" && body.action !== "mark-issued")
+    return NextResponse.json({ error: "Ação fiscal inválida." }, { status: 400 });
+
   const { client } = auth.access;
   const companyId = auth.company.id;
 
@@ -80,6 +83,7 @@ export async function POST(request: Request) {
       .eq("id", body.documentId)
       .eq("empresa_id", companyId)
       .eq("provider", "emissor_nacional_web")
+      .eq("status", "pronto_para_emitir")
       .select("*")
       .maybeSingle();
 
@@ -115,6 +119,12 @@ export async function POST(request: Request) {
   if (!settingsResult.data)
     return NextResponse.json(
       { error: "Salve os dados fiscais antes de preparar a emissão." },
+      { status: 400 },
+    );
+
+  if (!settingsResult.data.ativo)
+    return NextResponse.json(
+      { error: "Ative o módulo fiscal antes de preparar uma nota." },
       { status: 400 },
     );
 
