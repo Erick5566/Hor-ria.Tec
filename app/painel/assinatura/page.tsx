@@ -6,7 +6,7 @@ import { useWorkspace } from "@/components/workspace";
 import { buildPixPayload } from "@/lib/pix";
 
 const PIX_KEY = "veniciuskiwify@gmail.com";
-const MONTHLY_AMOUNT = 59;
+const INITIAL_AMOUNT = 44.99;
 
 async function copyText(value: string) {
   if (navigator.clipboard?.writeText) {
@@ -33,10 +33,10 @@ export default function SubscriptionPage() {
     () =>
       buildPixPayload({
         key: PIX_KEY,
-        amount: MONTHLY_AMOUNT,
+        amount: INITIAL_AMOUNT,
         merchantName: "Horária",
         merchantCity: "Camaçari",
-        description: "Mensalidade Horária",
+        description: "Pagamento inicial Horária",
       }),
     [],
   );
@@ -93,15 +93,15 @@ export default function SubscriptionPage() {
         <div className="subscription-payment-head">
           <div>
             <span className="eyebrow">PAGAMENTO VIA PIX</span>
-            <h2>Mensalidade Horária</h2>
+            <h2>Pagamento inicial Horária</h2>
             <p>
               Escaneie o QR Code ou copie o código Pix para pagar sua
               assinatura.
             </p>
           </div>
           <div className="subscription-price">
-            <small>Mensalidade</small>
-            <strong>R$ 59,00</strong>
+            <small>Valor inicial</small>\n            <strong>R$ 44,99</strong>
+            <small>Depois, R$ 59,00/mês</small>
           </div>
         </div>
 
@@ -123,8 +123,7 @@ export default function SubscriptionPage() {
 
           <div className="subscription-pix-details">
             <div className="subscription-pix-amount">
-              <span>Valor do pagamento</span>
-              <strong>R$ 59,00</strong>
+              <span>Valor do pagamento inicial</span>\n              <strong>R$ 44,99</strong>
             </div>
 
             <div className="subscription-pix-field">
