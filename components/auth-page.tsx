@@ -323,7 +323,7 @@ export default function AuthPage({ mode }: { mode: "login" | "signup" }) {
                 <input
                   name="password"
                   type="password"
-                  minLength={signup ? 5 : 8}
+                  minLength={5}
                   autoComplete={signup ? "new-password" : "current-password"}
                   required
                 />
