@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 
 declare global {
   interface Window {
@@ -11,7 +11,7 @@ declare global {
           sitekey: string;
           callback: (token: string) => void;
           "expired-callback": () => void;
-          "error-callback": () => void;
+          "error-callback": (errorCode?: string) => void;
           theme: "auto";
         },
       ) => string;
@@ -59,6 +59,7 @@ export default function Turnstile({
   onToken: (token: string) => void;
 }) {
   const ref = useRef<HTMLDivElement>(null);
+  const [errorCode, setErrorCode] = useState("");
 
   useEffect(() => {
     let active = true;
@@ -69,13 +70,25 @@ export default function Turnstile({
         if (!active || !ref.current || !window.turnstile) return;
         widgetId = window.turnstile.render(ref.current, {
           sitekey: siteKey,
-          callback: (token) => onToken(token),
+          callback: (token) => {
+            setErrorCode("");
+            onToken(token);
+          },
           "expired-callback": () => onToken(""),
-          "error-callback": () => onToken(""),
+          "error-callback": (code) => {
+            const diagnosticCode = code || "desconhecido";
+            console.error("[Turnstile] Falha no desafio:", diagnosticCode);
+            setErrorCode(diagnosticCode);
+            onToken("");
+          },
           theme: "auto",
         });
       })
-      .catch(() => onToken(""));
+      .catch((error) => {
+        console.error("[Turnstile] Falha ao carregar script:", error);
+        setErrorCode("script-load");
+        onToken("");
+      });
 
     return () => {
       active = false;
@@ -86,6 +99,11 @@ export default function Turnstile({
   return (
     <div className="booking-turnstile" aria-label="Verificação de segurança">
       <div ref={ref} />
+      {errorCode && (
+        <p role="alert" style={{ margin: "8px 0 0", fontSize: "12px" }}>
+          Código do erro Cloudflare: <strong>{errorCode}</strong>
+        </p>
+      )}
     </div>
   );
 }
