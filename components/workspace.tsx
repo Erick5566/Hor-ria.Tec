@@ -955,6 +955,10 @@ export default function Workspace({
                       (href === "/painel/estoque" &&
                         access.company?.role === "ATTENDANT") ||
                       ([
+                        "/painel/vendas",
+                        "/painel/seminovos",
+                        "/painel/vitrine",
+                        "/painel/pos-venda",
                         "/painel/financeiro",
                         "/painel/relatorios",
                         "/painel/notas-fiscais",
