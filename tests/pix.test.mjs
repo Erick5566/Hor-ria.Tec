@@ -3,6 +3,9 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import ts from "typescript";
 import vm from "node:vm";
+import { createRequire } from "node:module";
+
+const require = createRequire(import.meta.url);
 
 async function loadPixModule() {
   const source = await readFile(new URL("../lib/pix.ts", import.meta.url), "utf8");
