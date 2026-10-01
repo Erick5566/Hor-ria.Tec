@@ -109,12 +109,27 @@ export default function AdminModule({
     [error, setError] = useState(""),
     [busy, setBusy] = useState(false);
   const manager = ["OWNER", "ADMIN"].includes(access.company?.role || "");
+  const managerOnlyModules = new Set([
+    "financeiro",
+    "relatorios",
+    "notas-fiscais",
+    "vendas",
+    "seminovos",
+    "vitrine",
+    "pos-venda",
+    "minha-pagina",
+    "empresa",
+    "configuracoes",
+    "equipe",
+  ]);
 
-  if (module === "notas-fiscais" && !manager) {
+  if (managerOnlyModules.has(module) && !manager) {
     return (
       <section className="panel">
         <h2>Acesso restrito</h2>
-        <p>Esta área fiscal está disponível somente para proprietário ou administrador.</p>
+        <p>
+          Esta área está disponível somente para proprietário ou administrador.
+        </p>
       </section>
     );
   }
