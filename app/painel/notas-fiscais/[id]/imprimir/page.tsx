@@ -27,6 +27,7 @@ export default async function FiscalPrintPage({
   const access = await getServerAccess();
   const company = access?.context.company;
   if (!access || !company) notFound();
+  if (!["OWNER", "ADMIN"].includes(company.role)) notFound();
 
   const documentResult = await access.client
     .from("fiscal_documents")
