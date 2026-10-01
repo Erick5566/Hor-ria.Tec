@@ -178,6 +178,7 @@ Deno.serve(async (request) => {
     const raw = linked.error.message || "";
     const allowed = [
       "outra assistência",
+      "já faz parte da equipe",
       "Sem permissão",
       "Somente o proprietário",
       "proprietário já pertence",
