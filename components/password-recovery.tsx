@@ -11,6 +11,7 @@ export function RequestPasswordReset() {
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState("");
   const [error, setError] = useState("");
+  const [sent, setSent] = useState(false);
   const [captchaToken, setCaptchaToken] = useState("");
   const [captchaResetKey, setCaptchaResetKey] = useState(0);
   const turnstileSiteKey =
@@ -34,9 +35,8 @@ export function RequestPasswordReset() {
         ...(turnstileSiteKey ? { captchaToken } : {}),
       });
       if (result.error) throw result.error;
-      setNotice(
-        "Se existir uma conta com este e-mail, enviaremos um link para redefinir a senha.",
-      );
+      setNotice("");
+      setSent(true);
     } catch {
       setError("Não foi possível enviar o link agora. Tente novamente.");
     } finally {
@@ -52,38 +52,69 @@ export function RequestPasswordReset() {
     <main className="auth-simple-page">
       <section className="auth-simple-card">
         <Brand />
-        <span className="eyebrow">RECUPERAR ACESSO</span>
-        <h1>Esqueceu sua senha?</h1>
-        <p>Informe seu e-mail para receber o link de redefinição.</p>
-        <form onSubmit={submit}>
-          <label>
-            E-mail
-            <input
-              type="email"
-              autoComplete="email"
-              required
-              maxLength={200}
-              value={email}
-              onChange={(event) => setEmail(event.target.value)}
-            />
-          </label>
-          {turnstileSiteKey && (
-            <Turnstile
-              key={captchaResetKey}
-              siteKey={turnstileSiteKey}
-              onToken={setCaptchaToken}
-            />
-          )}
-          <button
-            className="primary"
-            disabled={busy || (Boolean(turnstileSiteKey) && !captchaToken)}
-          >
-            {busy ? "Enviando…" : "Enviar link seguro"}
-          </button>
-        </form>
-        {notice && <p className="notice success" role="status">{notice}</p>}
-        {error && <p className="notice error" role="alert">{error}</p>}
-        <Link href="/entrar">← Voltar para entrar</Link>
+        {sent ? (
+          <>
+            <span className="check">✓</span>
+            <span className="eyebrow">LINK SOLICITADO</span>
+            <h1>Confira seu e-mail.</h1>
+            <p>
+              Se existir uma conta com esse endereço, você receberá um link
+              seguro para criar uma nova senha.
+            </p>
+            <div style={{ display: "grid", gap: 10 }}>
+              <Link className="primary" href="/entrar">
+                Voltar para entrar
+              </Link>
+              <button
+                className="outline"
+                type="button"
+                onClick={() => {
+                  setSent(false);
+                  setError("");
+                  setNotice("");
+                }}
+              >
+                Tentar novamente
+              </button>
+            </div>
+          </>
+        ) : (
+          <>
+            <span className="eyebrow">RECUPERAR ACESSO</span>
+            <h1>Esqueceu sua senha?</h1>
+            <p>Informe seu e-mail para receber o link de redefinição.</p>
+            <form onSubmit={submit}>
+              <label>
+                E-mail
+                <input
+                  type="email"
+                  autoComplete="email"
+                  required
+                  maxLength={200}
+                  placeholder="voce@empresa.com"
+                  value={email}
+                  onChange={(event) => setEmail(event.target.value)}
+                />
+              </label>
+              {turnstileSiteKey && (
+                <Turnstile
+                  key={captchaResetKey}
+                  siteKey={turnstileSiteKey}
+                  onToken={setCaptchaToken}
+                />
+              )}
+              <button
+                className="primary"
+                disabled={busy || (Boolean(turnstileSiteKey) && !captchaToken)}
+              >
+                {busy ? "Enviando…" : "Enviar link seguro"}
+              </button>
+            </form>
+            {notice && <p className="notice success" role="status">{notice}</p>}
+            {error && <p className="notice error" role="alert">{error}</p>}
+            <Link href="/entrar">← Voltar para entrar</Link>
+          </>
+        )}
       </section>
     </main>
   );
