@@ -8,8 +8,9 @@ test("fase 2: venda integra estoque e financeiro com isolamento", async () => {
     const owner = "10000000-0000-0000-0000-000000000001";
     const outsider = "10000000-0000-0000-0000-000000000002";
     const technician = "10000000-0000-0000-0000-000000000003";
+    const attendant = "10000000-0000-0000-0000-000000000004";
     await db.exec(
-      `insert into auth.users values('${owner}'),('${outsider}'),('${technician}');set request.jwt.claim.sub='${owner}';set role authenticated`,
+      `insert into auth.users values('${owner}'),('${outsider}'),('${technician}'),('${attendant}');set request.jwt.claim.sub='${owner}';set role authenticated`,
     );
     const company = (
       await db.query(
@@ -78,6 +79,54 @@ test("fase 2: venda integra estoque e financeiro com isolamento", async () => {
     ).rows[0].result;
     assert.equal(Number(technicianRecords.metrics.relationship), 0);
     assert.equal(Number(technicianRecords.items[0].relationship_total), 0);
+    assert.equal((await db.query(`select * from vendas`)).rows.length, 0);
+    assert.ok(
+      (await db.query(`select catalog_page(true,1,30,null) result`)).rows[0]
+        .result,
+    );
+    await assert.rejects(
+      db.query(`update pecas set na_vitrine=true where id=$1`, [product]),
+      /Somente proprietários e administradores/,
+    );
+    await assert.rejects(
+      db.query(`select finalizar_venda($1,null,$2,0,'pix',null)`, [
+        company,
+        [{ peca_id: product, quantidade: 1, preco: 50 }],
+      ]),
+      /Somente proprietários e administradores/,
+    );
+    assert.equal(
+      (await db.query(`select movimentar_estoque($1,1,'Ajuste técnico') quantidade`, [product]))
+        .rows[0].quantidade,
+      4,
+    );
+
+    await db.exec(`reset role`);
+    await db.query(
+      `insert into empresa_membros(empresa_id,usuario_id,role) values($1,$2,'ATTENDANT')`,
+      [company, attendant],
+    );
+    await db.exec(
+      `set request.jwt.claim.sub='${attendant}';set role authenticated`,
+    );
+    assert.ok(
+      (await db.query(`select catalog_page(false,1,30,null) result`)).rows[0]
+        .result,
+    );
+    assert.equal(
+      (await db.query(`select catalog_page(true,1,30,null) result`)).rows[0]
+        .result,
+      null,
+    );
+    assert.equal((await db.query(`select * from pecas`)).rows.length, 0);
+    assert.equal((await db.query(`select * from vendas`)).rows.length, 0);
+    await assert.rejects(
+      db.query(`select finalizar_venda($1,null,$2,0,'pix',null)`, [
+        company,
+        [{ peca_id: product, quantidade: 1, preco: 50 }],
+      ]),
+      /Somente proprietários e administradores/,
+    );
     await db.exec(
       `reset role;set request.jwt.claim.sub='${owner}';set role authenticated`,
     );
