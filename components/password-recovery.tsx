@@ -141,21 +141,22 @@ export function ResetPassword() {
   const [recoveryReady, setRecoveryReady] = useState(false);
 
   useEffect(() => {
-    if (!supabase) {
+    const client = supabase;
+    if (!client) {
       setCheckingSession(false);
       return;
     }
 
     let active = true;
     const checkSession = async () => {
-      const { data } = await supabase.auth.getSession();
+      const { data } = await client.auth.getSession();
       if (!active) return;
       setRecoveryReady(Boolean(data.session));
       setCheckingSession(false);
     };
 
     void checkSession();
-    const { data } = supabase.auth.onAuthStateChange((event, session) => {
+    const { data } = client.auth.onAuthStateChange((event, session) => {
       if (!active) return;
       if (event === "PASSWORD_RECOVERY" && session) {
         setRecoveryReady(true);
