@@ -1,8 +1,9 @@
 "use client";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Brand, MissingConfig } from "./brand";
+import Turnstile from "./turnstile";
 import {
   configured,
   publicDb,
@@ -19,145 +20,6 @@ type RegistrationStatus = {
   globalMaintenance: boolean;
 };
 
-
-type TurnstileApi = {
-  render: (
-    container: HTMLElement,
-    options: {
-      sitekey: string;
-      theme?: "light" | "dark" | "auto";
-      callback: (token: string) => void;
-      "expired-callback": () => void;
-      "error-callback": () => void;
-    },
-  ) => string;
-  reset: (widgetId?: string) => void;
-  remove?: (widgetId: string) => void;
-};
-
-declare global {
-  interface Window {
-    turnstile?: TurnstileApi;
-  }
-}
-
-const SIGNUP_ATTEMPTS_KEY = "horaria_signup_attempts";
-const SIGNUP_ATTEMPTS_WINDOW_MS = 10 * 60 * 1000;
-const SIGNUP_ATTEMPTS_LIMIT = 5;
-
-function consumeSignupAttempt() {
-  if (typeof window === "undefined") return { allowed: true, minutes: 0 };
-
-  try {
-    const now = Date.now();
-    const stored = JSON.parse(
-      window.localStorage.getItem(SIGNUP_ATTEMPTS_KEY) ?? "[]",
-    ) as number[];
-    const attempts = stored.filter(
-      (timestamp) => now - timestamp < SIGNUP_ATTEMPTS_WINDOW_MS,
-    );
-
-    if (attempts.length >= SIGNUP_ATTEMPTS_LIMIT) {
-      const oldest = Math.min(...attempts);
-      const remaining = SIGNUP_ATTEMPTS_WINDOW_MS - (now - oldest);
-      return {
-        allowed: false,
-        minutes: Math.max(1, Math.ceil(remaining / 60_000)),
-      };
-    }
-
-    attempts.push(now);
-    window.localStorage.setItem(SIGNUP_ATTEMPTS_KEY, JSON.stringify(attempts));
-    return { allowed: true, minutes: 0 };
-  } catch {
-    return { allowed: true, minutes: 0 };
-  }
-}
-
-function clearSignupAttempts() {
-  try {
-    window.localStorage.removeItem(SIGNUP_ATTEMPTS_KEY);
-  } catch {
-    // O armazenamento local pode estar bloqueado pelo navegador.
-  }
-}
-
-function SignupCaptcha({
-  siteKey,
-  onTokenChange,
-  resetKey,
-}: {
-  siteKey: string;
-  onTokenChange: (token: string) => void;
-  resetKey: number;
-}) {
-  const containerRef = useRef<HTMLDivElement>(null);
-  const widgetIdRef = useRef<string | null>(null);
-  const onTokenChangeRef = useRef(onTokenChange);
-
-  useEffect(() => {
-    onTokenChangeRef.current = onTokenChange;
-  }, [onTokenChange]);
-
-  useEffect(() => {
-    if (!siteKey) return;
-
-    const renderWidget = () => {
-      if (!containerRef.current || !window.turnstile || widgetIdRef.current)
-        return;
-
-      widgetIdRef.current = window.turnstile.render(containerRef.current, {
-        sitekey: siteKey,
-        theme: "light",
-        callback: (token) => onTokenChangeRef.current(token),
-        "expired-callback": () => onTokenChangeRef.current(""),
-        "error-callback": () => onTokenChangeRef.current(""),
-      });
-    };
-
-    let script = document.getElementById(
-      "horaria-turnstile-script",
-    ) as HTMLScriptElement | null;
-
-    if (window.turnstile) {
-      renderWidget();
-    } else if (script) {
-      script.addEventListener("load", renderWidget, { once: true });
-    } else {
-      script = document.createElement("script");
-      script.id = "horaria-turnstile-script";
-      script.src =
-        "https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit";
-      script.async = true;
-      script.defer = true;
-      script.addEventListener("load", renderWidget, { once: true });
-      document.head.appendChild(script);
-    }
-
-    return () => {
-      script?.removeEventListener("load", renderWidget);
-      if (widgetIdRef.current && window.turnstile?.remove) {
-        window.turnstile.remove(widgetIdRef.current);
-        widgetIdRef.current = null;
-      }
-    };
-  }, [siteKey]);
-
-  useEffect(() => {
-    if (!resetKey || !widgetIdRef.current) return;
-    window.turnstile?.reset(widgetIdRef.current);
-    onTokenChangeRef.current("");
-  }, [resetKey]);
-
-  if (!siteKey) return null;
-
-  return (
-    <div className="captcha-wrap">
-      <div ref={containerRef} />
-      <small>Proteção contra cadastros automatizados.</small>
-    </div>
-  );
-}
 
 export default function AuthPage({ mode }: { mode: "login" | "signup" }) {
   const signup = mode === "signup";
@@ -428,11 +290,11 @@ export default function AuthPage({ mode }: { mode: "login" | "signup" }) {
                   <Link href="/recuperar-senha">Esqueci minha senha</Link>
                 </div>
               )}
-              {signup && (
-                <SignupCaptcha
+              {signup && turnstileSiteKey && (
+                <Turnstile
+                  key={captchaResetKey}
                   siteKey={turnstileSiteKey}
-                  onTokenChange={setCaptchaToken}
-                  resetKey={captchaResetKey}
+                  onToken={setCaptchaToken}
                 />
               )}
               <button
