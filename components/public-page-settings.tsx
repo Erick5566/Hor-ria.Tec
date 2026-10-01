@@ -131,6 +131,7 @@ const reservedSlugs = [
   "redefinir-senha",
   "solicitacao-enviada",
   "seguranca",
+  "opengraph-image",
 ];
 
 function slugify(value: string) {
