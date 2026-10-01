@@ -21,6 +21,7 @@ try {
     "/painel/ordens/nova",
     "/painel/financeiro",
     "/painel/notas-fiscais",
+    "/painel/equipe",
     "/painel/estoque",
     "/painel/empresa",
     "/acompanhar",
