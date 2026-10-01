@@ -46,6 +46,13 @@ export function RequestPasswordReset() {
         ...(turnstileSiteKey ? { captchaToken } : {}),
       });
       if (result.error) throw result.error;
+
+      const currentSession = await supabase!.auth.getSession();
+      if (currentSession.data.session) {
+        await supabase!.auth.signOut({ scope: "local" });
+      }
+      await syncServerSession(null).catch(() => undefined);
+
       setNotice("");
       setSent(true);
     } catch {
