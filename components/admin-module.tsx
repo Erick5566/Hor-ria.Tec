@@ -104,10 +104,21 @@ export default function AdminModule({
   view?: string;
   orderId?: string;
 }) {
-  const { empresa, email } = useWorkspace(),
+  const { empresa, email, access } = useWorkspace(),
     [notice, setNotice] = useState(""),
     [error, setError] = useState(""),
     [busy, setBusy] = useState(false);
+  const manager = ["OWNER", "ADMIN"].includes(access.company?.role || "");
+
+  if (module === "notas-fiscais" && !manager) {
+    return (
+      <section className="panel">
+        <h2>Acesso restrito</h2>
+        <p>Esta área fiscal está disponível somente para proprietário ou administrador.</p>
+      </section>
+    );
+  }
+
   return (
     <section className={`module module-${module}`}>
       <Heading title={titles[module]} subtitle={subtitles[module]} />
@@ -153,7 +164,7 @@ export default function AdminModule({
               <input
                 name="senha"
                 type="password"
-                minLength={8}
+                minLength={5}
                 required
                 autoComplete="new-password"
               />
