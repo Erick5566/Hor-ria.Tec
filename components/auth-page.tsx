@@ -73,9 +73,8 @@ export default function AuthPage({ mode }: { mode: "login" | "signup" }) {
     [registration, setRegistration] = useState<RegistrationStatus | null>(null),
     [captchaToken, setCaptchaToken] = useState(""),
     [captchaResetKey, setCaptchaResetKey] = useState(0);
-  const turnstileSiteKey = signup
-    ? (process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY ?? "")
-    : "";
+  const turnstileSiteKey =
+    process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY ?? "";
   useEffect(() => {
     publicDb
       ?.rpc("registration_status")
@@ -114,8 +113,8 @@ export default function AuthPage({ mode }: { mode: "login" | "signup" }) {
       return;
     }
 
-    if (signup && turnstileSiteKey && !captchaToken) {
-      setNotice("Conclua a verificação de segurança para criar a conta.");
+    if (turnstileSiteKey && !captchaToken) {
+      setNotice("Conclua a verificação de segurança para continuar.");
       return;
     }
 
@@ -166,7 +165,12 @@ export default function AuthPage({ mode }: { mode: "login" | "signup" }) {
               ...(turnstileSiteKey ? { captchaToken } : {}),
             },
           })
-        : await supabase!.auth.signInWithPassword(credentials);
+        : await supabase!.auth.signInWithPassword({
+            ...credentials,
+            ...(turnstileSiteKey
+              ? { options: { captchaToken } }
+              : {}),
+          });
       if (result.error) throw result.error;
       if (signup) clearSignupAttempts();
       if (result.data.session) await finishLogin(result.data.session);
@@ -204,7 +208,8 @@ export default function AuthPage({ mode }: { mode: "login" | "signup" }) {
       }
     } finally {
       setBusy(false);
-      if (signup && turnstileSiteKey) {
+      if (turnstileSiteKey) {
+        setCaptchaToken("");
         setCaptchaResetKey((current) => current + 1);
       }
     }
@@ -333,7 +338,7 @@ export default function AuthPage({ mode }: { mode: "login" | "signup" }) {
                   <Link href="/recuperar-senha">Esqueci minha senha</Link>
                 </div>
               )}
-              {signup && turnstileSiteKey && (
+              {turnstileSiteKey && (
                 <Turnstile
                   key={captchaResetKey}
                   siteKey={turnstileSiteKey}
@@ -343,7 +348,7 @@ export default function AuthPage({ mode }: { mode: "login" | "signup" }) {
               <button
                 className="primary"
                 disabled={
-                  busy || (signup && Boolean(turnstileSiteKey) && !captchaToken)
+                  busy || (Boolean(turnstileSiteKey) && !captchaToken)
                 }
               >
                 {busy ? "Aguarde…" : signup ? "Criar conta →" : "Entrar →"}
