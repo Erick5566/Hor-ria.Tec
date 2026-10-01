@@ -14,13 +14,17 @@ export default function SessionBridge() {
       new URLSearchParams(window.location.search).get("type") === "recovery";
 
     if (recoveryFromUrl) {
-      router.replace("/redefinir-senha");
+      window.location.replace(
+        `/redefinir-senha${window.location.search}${window.location.hash}`,
+      );
       return;
     }
 
     const { data: authListener } = supabase.auth.onAuthStateChange((event) => {
       if (event === "PASSWORD_RECOVERY") {
-        router.replace("/redefinir-senha");
+        window.location.replace(
+          `/redefinir-senha${window.location.search}${window.location.hash}`,
+        );
       }
     });
 
