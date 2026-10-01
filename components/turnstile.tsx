@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 
 declare global {
   interface Window {
@@ -59,12 +59,6 @@ export default function Turnstile({
   onToken: (token: string) => void;
 }) {
   const ref = useRef<HTMLDivElement>(null);
-  const [errorCode, setErrorCode] = useState("");
-  const [hostname, setHostname] = useState("");
-
-  useEffect(() => {
-    setHostname(window.location.hostname);
-  }, []);
 
   useEffect(() => {
     let active = true;
@@ -75,15 +69,13 @@ export default function Turnstile({
         if (!active || !ref.current || !window.turnstile) return;
         widgetId = window.turnstile.render(ref.current, {
           sitekey: siteKey,
-          callback: (token) => {
-            setErrorCode("");
-            onToken(token);
-          },
+          callback: (token) => onToken(token),
           "expired-callback": () => onToken(""),
           "error-callback": (code) => {
-            const diagnosticCode = code || "desconhecido";
-            console.error("[Turnstile] Falha no desafio:", diagnosticCode);
-            setErrorCode(diagnosticCode);
+            console.error(
+              "[Turnstile] Falha no desafio:",
+              code || "desconhecido",
+            );
             onToken("");
           },
           theme: "auto",
@@ -91,7 +83,6 @@ export default function Turnstile({
       })
       .catch((error) => {
         console.error("[Turnstile] Falha ao carregar script:", error);
-        setErrorCode("script-load");
         onToken("");
       });
 
@@ -104,12 +95,6 @@ export default function Turnstile({
   return (
     <div className="booking-turnstile" aria-label="Verificação de segurança">
       <div ref={ref} />
-      {errorCode && (
-        <p role="alert" style={{ margin: "8px 0 0", fontSize: "12px" }}>
-          Código do erro Cloudflare: <strong>{errorCode}</strong>
-          {hostname && <> · Host atual: <strong>{hostname}</strong></>}
-        </p>
-      )}
     </div>
   );
 }
