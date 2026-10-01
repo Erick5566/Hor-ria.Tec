@@ -28,15 +28,15 @@ test("pix: gera payload BR Code com chave, valor e CRC válido", async () => {
   const { buildPixPayload, pixCrc16 } = await loadPixModule();
   const payload = buildPixPayload({
     key: "veniciuskiwify@gmail.com",
-    amount: 59,
+    amount: 44.99,
     merchantName: "Horária",
     merchantCity: "Camaçari",
-    description: "Mensalidade Horária",
+    description: "Pagamento inicial Horária",
   });
 
   assert.match(payload, /^000201/);
   assert.ok(payload.includes("veniciuskiwify@gmail.com"));
-  assert.ok(payload.includes("540559.00"));
+  assert.ok(payload.includes("540544.99"));
   assert.ok(payload.includes("5802BR"));
   assert.ok(payload.includes("5907HORARIA"));
   assert.ok(payload.includes("6008CAMACARI"));
