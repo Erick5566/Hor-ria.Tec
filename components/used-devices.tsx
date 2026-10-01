@@ -380,19 +380,22 @@ export default function UsedDevices() {
                 setBusy(true);
                 setError("");
                 const f = new FormData(event.currentTarget);
-                const result = await supabase!.rpc("vender_seminovo", {
-                  p_seminovo: selling.id,
-                  p_comprador: f.get("comprador"),
-                  p_valor: Number(f.get("valor")),
-                  p_forma: f.get("forma"),
-                  p_garantia_dias: Number(f.get("garantia")),
-                });
-                if (result.error) setError(message(result.error));
-                else {
+                try {
+                  const result = await supabase!.rpc("vender_seminovo", {
+                    p_seminovo: selling.id,
+                    p_comprador: f.get("comprador"),
+                    p_valor: Number(f.get("valor")),
+                    p_forma: f.get("forma"),
+                    p_garantia_dias: Number(f.get("garantia")),
+                  });
+                  if (result.error) throw result.error;
                   setSelling(null);
                   await devices.reload();
+                } catch (caught) {
+                  setError(message(caught as Error));
+                } finally {
+                  setBusy(false);
                 }
-                setBusy(false);
               }}
             >
               <label>
