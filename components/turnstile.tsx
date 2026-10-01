@@ -60,6 +60,11 @@ export default function Turnstile({
 }) {
   const ref = useRef<HTMLDivElement>(null);
   const [errorCode, setErrorCode] = useState("");
+  const [hostname, setHostname] = useState("");
+
+  useEffect(() => {
+    setHostname(window.location.hostname);
+  }, []);
 
   useEffect(() => {
     let active = true;
@@ -102,6 +107,7 @@ export default function Turnstile({
       {errorCode && (
         <p role="alert" style={{ margin: "8px 0 0", fontSize: "12px" }}>
           Código do erro Cloudflare: <strong>{errorCode}</strong>
+          {hostname && <> · Host atual: <strong>{hostname}</strong></>}
         </p>
       )}
     </div>
