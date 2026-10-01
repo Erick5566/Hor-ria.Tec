@@ -88,6 +88,17 @@ function currency(value: number) {
   }).format(value || 0);
 }
 
+function formatCnpj(value: string) {
+  const digits = value.replace(/\D/g, "").slice(0, 14);
+  if (digits.length <= 2) return digits;
+  if (digits.length <= 5) return `${digits.slice(0, 2)}.${digits.slice(2)}`;
+  if (digits.length <= 8)
+    return `${digits.slice(0, 2)}.${digits.slice(2, 5)}.${digits.slice(5)}`;
+  if (digits.length <= 12)
+    return `${digits.slice(0, 2)}.${digits.slice(2, 5)}.${digits.slice(5, 8)}/${digits.slice(8)}`;
+  return `${digits.slice(0, 2)}.${digits.slice(2, 5)}.${digits.slice(5, 8)}/${digits.slice(8, 12)}-${digits.slice(12)}`;
+}
+
 function statusLabel(status: string) {
   const labels: Record<string, string> = {
     preparando: "Preparando",
@@ -124,6 +135,11 @@ export default function FiscalNotes({
   const [settings, setSettings] = useState<FiscalSettings>(() =>
     emptySettings(empresa.id),
   );
+  const [city, setCity] = useState(empresa.cidade || "");
+  const [uf, setUf] = useState((empresa.estado || "").toUpperCase());
+  const [municipalityStatus, setMunicipalityStatus] = useState<
+    "idle" | "loading" | "found"
+  >("idle");
   const [documents, setDocuments] = useState<FiscalDocument[]>([]);
   const [orders, setOrders] = useState<OrderOption[]>([]);
   const [selectedOrder, setSelectedOrder] = useState(initialOrderId);
@@ -170,15 +186,28 @@ export default function FiscalNotes({
       if (documentsResult.error) throw documentsResult.error;
       if (ordersResult.error) throw ordersResult.error;
 
-      const nextSettings = settingsResult.data
+      const savedSettings = settingsResult.data as FiscalSettings | null;
+      const companyDocument = (empresa.documento || "").replace(/\D/g, "");
+      const nextSettings = savedSettings
         ? ({
-            ...(settingsResult.data as FiscalSettings),
+            ...savedSettings,
             provider: "emissor_nacional_web",
+            cnpj:
+              savedSettings.cnpj ||
+              (companyDocument.length === 14 ? formatCnpj(companyDocument) : ""),
+            razao_social: savedSettings.razao_social || empresa.nome || "",
           } as FiscalSettings)
-        : emptySettings(empresa.id);
+        : ({
+            ...emptySettings(empresa.id),
+            cnpj:
+              companyDocument.length === 14 ? formatCnpj(companyDocument) : "",
+            razao_social: empresa.nome || "",
+          } as FiscalSettings);
       const nextDocuments = (documentsResult.data || []) as FiscalDocument[];
 
       setSettings(nextSettings);
+      setCity((current) => current || empresa.cidade || "");
+      setUf((current) => current || (empresa.estado || "").toUpperCase());
       setDocuments(nextDocuments);
       setOrders((ordersResult.data || []) as OrderOption[]);
 
@@ -217,19 +246,29 @@ export default function FiscalNotes({
     } finally {
       setLoading(false);
     }
-  }, [empresa.id, initialOrderId]);
+  }, [
+    empresa.id,
+    empresa.documento,
+    empresa.nome,
+    empresa.cidade,
+    empresa.estado,
+    initialOrderId,
+  ]);
 
   useEffect(() => {
     void load();
   }, [load]);
 
-  const basicDataComplete = useMemo(
-    () =>
+  const basicDataComplete = useMemo(() => {
+    const hasMunicipalityCode = /^\d{7}$/.test(settings.codigo_municipio || "");
+    const canResolveMunicipality =
+      city.trim().length >= 2 && /^[A-Z]{2}$/.test(uf.trim().toUpperCase());
+    return (
       (settings.cnpj || "").replace(/\D/g, "").length === 14 &&
       Boolean(settings.razao_social?.trim()) &&
-      /^\d{7}$/.test(settings.codigo_municipio || ""),
-    [settings],
-  );
+      (hasMunicipalityCode || canResolveMunicipality)
+    );
+  }, [settings, city, uf]);
 
   const firstDocumentPrepared = documents.some((item) =>
     [
@@ -240,30 +279,35 @@ export default function FiscalNotes({
     ].includes(item.status),
   );
 
+  const step1Done = settings.dados_confirmados && basicDataComplete;
+  const step2Done = step1Done && settings.configuracao_confirmada;
+  const step3Done = step2Done && settings.ativo;
+  const step4Done = step3Done && firstDocumentPrepared;
+
   const steps = [
     {
       id: 1,
       title: "Dados da empresa",
       description: "CNPJ e identificação básica",
-      done: settings.dados_confirmados && basicDataComplete,
+      done: step1Done,
     },
     {
       id: 2,
       title: "Configuração",
       description: "Escolha como a emissão será usada",
-      done: settings.configuracao_confirmada,
+      done: step2Done,
     },
     {
       id: 3,
       title: "Ativar",
       description: "Liberar notas fiscais na assistência",
-      done: settings.ativo,
+      done: step3Done,
     },
     {
       id: 4,
       title: "Primeira nota",
       description: "Preparar a primeira NFS-e",
-      done: firstDocumentPrepared,
+      done: step4Done,
     },
   ];
 
@@ -327,12 +371,55 @@ export default function FiscalNotes({
   }
 
   async function completeCompanyData() {
-    if (!basicDataComplete) {
-      setError("Preencha CNPJ, razão social e código IBGE do município.");
+    const cnpj = (settings.cnpj || "").replace(/\D/g, "");
+    if (cnpj.length !== 14) {
+      setError("Informe um CNPJ com 14 dígitos.");
       return;
     }
+    if (!settings.razao_social?.trim()) {
+      setError("Informe a razão social da empresa.");
+      return;
+    }
+
+    let codigoMunicipio = settings.codigo_municipio || "";
+    if (!/^\d{7}$/.test(codigoMunicipio)) {
+      if (city.trim().length < 2 || !/^[A-Z]{2}$/.test(uf.trim().toUpperCase())) {
+        setError("Informe a cidade e a UF para localizarmos o município automaticamente.");
+        return;
+      }
+
+      setMunicipalityStatus("loading");
+      try {
+        const response = await fetch(
+          `/api/fiscal/municipio?cidade=${encodeURIComponent(city.trim())}&uf=${encodeURIComponent(uf.trim().toUpperCase())}`,
+          { cache: "no-store" },
+        );
+        const data = (await response.json().catch(() => ({}))) as {
+          codigo?: string;
+          cidade?: string;
+          uf?: string;
+          error?: string;
+        };
+        if (!response.ok || !data.codigo)
+          throw new Error(data.error || "Não foi possível localizar o município.");
+
+        codigoMunicipio = data.codigo;
+        setCity(data.cidade || city);
+        setUf(data.uf || uf);
+        setMunicipalityStatus("found");
+      } catch (caught) {
+        setMunicipalityStatus("idle");
+        setError(message(caught as Error));
+        return;
+      }
+    }
+
     await saveSettings(
-      { dados_confirmados: true },
+      {
+        dados_confirmados: true,
+        codigo_municipio: codigoMunicipio,
+        cnpj: formatCnpj(cnpj),
+      },
       {
         nextStep: 2,
         notice: "Etapa 1 concluída. Dados da empresa salvos.",
@@ -468,13 +555,16 @@ export default function FiscalNotes({
             marginTop: 16,
           }}
         >
-          {steps.map((step) => {
+          {steps.map((step, index) => {
             const active = activeStep === step.id;
+            const unlocked =
+              step.id === 1 || step.done || Boolean(steps[index - 1]?.done);
             return (
               <button
                 key={step.id}
                 type="button"
-                onClick={() => setActiveStep(step.id)}
+                disabled={!unlocked}
+                onClick={() => unlocked && setActiveStep(step.id)}
                 style={{
                   textAlign: "left",
                   border: active
@@ -483,7 +573,8 @@ export default function FiscalNotes({
                   borderRadius: 14,
                   padding: 14,
                   background: step.done ? "var(--surface, #fff)" : "transparent",
-                  cursor: "pointer",
+                  cursor: unlocked ? "pointer" : "not-allowed",
+                  opacity: unlocked ? 1 : 0.55,
                 }}
               >
                 <span
@@ -563,7 +654,8 @@ export default function FiscalNotes({
                 onChange={(event) =>
                   setSettings((current) => ({
                     ...current,
-                    cnpj: event.target.value,
+                    cnpj: formatCnpj(event.target.value),
+                    dados_confirmados: false,
                   }))
                 }
               />
@@ -580,6 +672,7 @@ export default function FiscalNotes({
                   setSettings((current) => ({
                     ...current,
                     razao_social: event.target.value,
+                    dados_confirmados: false,
                   }))
                 }
               />
@@ -602,20 +695,48 @@ export default function FiscalNotes({
             </label>
 
             <label>
-              Código IBGE do município *
+              Cidade *
               <input
-                value={settings.codigo_municipio || ""}
+                value={city}
                 disabled={!canManage || busy}
-                inputMode="numeric"
-                maxLength={7}
-                placeholder="7 dígitos"
-                onChange={(event) =>
+                maxLength={100}
+                placeholder="Ex.: Camaçari"
+                onChange={(event) => {
+                  setCity(event.target.value);
+                  setMunicipalityStatus("idle");
                   setSettings((current) => ({
                     ...current,
-                    codigo_municipio: event.target.value.replace(/\D/g, ""),
-                  }))
-                }
+                    codigo_municipio: "",
+                    dados_confirmados: false,
+                  }));
+                }}
               />
+            </label>
+
+            <label>
+              UF *
+              <input
+                value={uf}
+                disabled={!canManage || busy}
+                maxLength={2}
+                placeholder="BA"
+                onChange={(event) => {
+                  setUf(event.target.value.toUpperCase().replace(/[^A-Z]/g, "").slice(0, 2));
+                  setMunicipalityStatus("idle");
+                  setSettings((current) => ({
+                    ...current,
+                    codigo_municipio: "",
+                    dados_confirmados: false,
+                  }));
+                }}
+              />
+              <small>
+                {municipalityStatus === "loading"
+                  ? "Buscando código do município…"
+                  : municipalityStatus === "found" || /^\d{7}$/.test(settings.codigo_municipio || "")
+                    ? "Município identificado automaticamente."
+                    : "O código IBGE será preenchido automaticamente ao continuar."}
+              </small>
             </label>
           </div>
 
@@ -623,7 +744,7 @@ export default function FiscalNotes({
             <button
               className="primary"
               type="button"
-              disabled={!canManage || busy || !basicDataComplete}
+              disabled={!canManage || busy}
               onClick={() => void completeCompanyData()}
             >
               {busy ? "Salvando…" : "Salvar e continuar"}
