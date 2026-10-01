@@ -23,7 +23,7 @@ export async function generateMetadata({
   return {
     title,
     description,
-    alternates: { canonical: `/agendar/${slug}` },
+    alternates: { canonical: `/${slug}` },
     openGraph: {
       title,
       description,
