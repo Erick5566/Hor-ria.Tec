@@ -23,6 +23,7 @@ export async function GET(
     const response = await fetch(`https://viacep.com.br/ws/${cep}/json/`, {
       headers: { Accept: "application/json" },
       cache: "no-store",
+      signal: AbortSignal.timeout(8000),
     });
 
     if (!response.ok) {
