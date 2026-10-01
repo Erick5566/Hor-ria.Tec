@@ -109,13 +109,11 @@ test("equipe: convite, vínculo, funções e reativação respeitam permissões"
       `select update_team_member_access($1,'ATTENDANT','ACTIVE')`,
       [tech],
     );
+    const updatedTeam = (
+      await db.query("select team_members_data() value")
+    ).rows[0].value;
     assert.equal(
-      (
-        await db.query(
-          `select role from empresa_membros where empresa_id=$1 and usuario_id=$2`,
-          [companyA, tech],
-        )
-      ).rows[0].role,
+      updatedTeam.items.find((item) => item.userId === tech)?.role,
       "ATTENDANT",
     );
 
