@@ -32,9 +32,21 @@ function loadScript() {
       'script[data-horaria-turnstile="true"]',
     );
     if (existing) {
-      existing.addEventListener("load", () => resolve(), { once: true });
-      existing.addEventListener("error", () => reject(), { once: true });
-      return;
+      if (existing.dataset.horariaTurnstileLoaded === "true") {
+        existing.remove();
+      } else {
+        existing.addEventListener("load", () => resolve(), { once: true });
+        existing.addEventListener(
+          "error",
+          () => {
+            existing.remove();
+            scriptPromise = null;
+            reject(new Error("Turnstile indisponível"));
+          },
+          { once: true },
+        );
+        return;
+      }
     }
 
     const script = document.createElement("script");
@@ -43,8 +55,15 @@ function loadScript() {
     script.async = true;
     script.defer = true;
     script.dataset.horariaTurnstile = "true";
-    script.onload = () => resolve();
-    script.onerror = () => reject(new Error("Turnstile indisponível"));
+    script.onload = () => {
+      script.dataset.horariaTurnstileLoaded = "true";
+      resolve();
+    };
+    script.onerror = () => {
+      script.remove();
+      scriptPromise = null;
+      reject(new Error("Turnstile indisponível"));
+    };
     document.head.appendChild(script);
   });
 
