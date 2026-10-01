@@ -34,6 +34,10 @@ export default function Setup({ done }: { done: () => void }) {
         "acompanhar",
         "api",
         "admin",
+        "login",
+        "dashboard",
+        "suporte",
+        "horaria",
         "entrar",
         "cadastro",
         "privacidade",
@@ -42,6 +46,8 @@ export default function Setup({ done }: { done: () => void }) {
         "solicitacao-enviada",
         "manutencao",
         "conta-bloqueada",
+        "seguranca",
+        "opengraph-image",
       ]);
       if (reserved.has(slug))
         throw new Error("Escolha outro endereço para a página pública.");
@@ -91,7 +97,7 @@ export default function Setup({ done }: { done: () => void }) {
                 pattern="[a-z0-9]+(-[a-z0-9]+)*"
                 placeholder="central-tech"
               />
-              <small>/agendar/seu-endereco</small>
+              <small>/seu-endereco</small>
             </label>
           </div>
           <label className="check-label">
