@@ -11,9 +11,9 @@ stable
 security definer
 set search_path = ''
 as $function$
-  select u.id
-  from auth.users u
-  where lower(coalesce(u.email, '')) = lower(trim(coalesce(p_email, '')))
+  select p.usuario_id
+  from public.perfis p
+  where lower(coalesce(p.email, '')) = lower(trim(coalesce(p_email, '')))
   limit 1
 $function$;
 
@@ -54,9 +54,9 @@ begin
 
   if not exists(
     select 1
-    from auth.users u
-    where u.id = p_target
-      and lower(coalesce(u.email, '')) = lower(trim(p_email))
+    from public.perfis p
+    where p.usuario_id = p_target
+      and lower(coalesce(p.email, '')) = lower(trim(p_email))
   ) then
     raise exception 'Usuário de convite inválido';
   end if;
