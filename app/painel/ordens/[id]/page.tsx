@@ -375,12 +375,18 @@ export default function OrderDetail({
                   disabled={busy}
                   onClick={async () => {
                     setBusy(true);
-                    const result = await supabase!.rpc("confirmar_entrada", {
-                      p_ordem: id,
-                    });
-                    if (result.error) setError(message(result.error));
-                    else await load(true);
-                    setBusy(false);
+                    setError("");
+                    try {
+                      const result = await supabase!.rpc("confirmar_entrada", {
+                        p_ordem: id,
+                      });
+                      if (result.error) throw result.error;
+                      await load(true);
+                    } catch (caught) {
+                      setError(message(caught as Error));
+                    } finally {
+                      setBusy(false);
+                    }
                   }}
                 >
                   Confirmar entrada
