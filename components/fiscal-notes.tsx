@@ -1,108 +1,696 @@
 "use client";
-import Link from "next/link";
-import { HorariaIcon } from "./horaria-icon";
 
-const steps = [
-  {
-    title: "Informar o regime tributário",
-    text: "Defina o enquadramento fiscal usado pela assistência.",
-    done: false,
-  },
-  {
-    title: "Escolher os tipos de nota",
-    text: "Selecione os documentos fiscais que fazem sentido para sua operação.",
-    done: false,
-  },
-  {
-    title: "Enviar o certificado digital",
-    text: "Conecte o certificado somente quando houver um provedor fiscal integrado.",
-    done: false,
-  },
-  {
-    title: "Conectar ao emissor fiscal",
-    text: "A emissão automática será liberada depois da integração com um emissor compatível.",
-    done: false,
-  },
-];
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { supabase, message } from "@/lib/supabase";
+import { useWorkspace } from "./workspace";
+import { ErrorBox, Empty, PanelTitle, SemanticBadge } from "./ui";
 
-export default function FiscalNotes() {
+type FiscalSettings = {
+  empresa_id: string;
+  provider: "focusnfe";
+  ambiente: "homologacao" | "producao";
+  modelo: "nfsen";
+  ativo: boolean;
+  cnpj: string | null;
+  razao_social: string | null;
+  inscricao_municipal: string | null;
+  codigo_municipio: string | null;
+  codigo_tributacao_nacional_iss: string | null;
+  codigo_opcao_simples_nacional: string | null;
+  regime_especial_tributacao: string | null;
+  tributacao_iss: number | null;
+  serie_dps: number;
+  proximo_numero_dps: number;
+};
+
+type FiscalDocument = {
+  id: string;
+  ordem_id: string;
+  provider_ref: string;
+  ambiente: "homologacao" | "producao";
+  status: string;
+  valor: number;
+  numero: string | null;
+  chave: string | null;
+  protocolo: string | null;
+  pdf_url: string | null;
+  xml_url: string | null;
+  mensagem: string | null;
+  criado_em: string;
+};
+
+type OrderOption = {
+  id: string;
+  numero: number;
+};
+
+type ProviderStatus = {
+  homologacaoConfigured: boolean;
+  producaoConfigured: boolean;
+};
+
+const emptySettings = (empresaId: string): FiscalSettings => ({
+  empresa_id: empresaId,
+  provider: "focusnfe",
+  ambiente: "homologacao",
+  modelo: "nfsen",
+  ativo: false,
+  cnpj: "",
+  razao_social: "",
+  inscricao_municipal: "",
+  codigo_municipio: "",
+  codigo_tributacao_nacional_iss: "",
+  codigo_opcao_simples_nacional: "",
+  regime_especial_tributacao: "",
+  tributacao_iss: null,
+  serie_dps: 1,
+  proximo_numero_dps: 1,
+});
+
+function currency(value: number) {
+  return new Intl.NumberFormat("pt-BR", {
+    style: "currency",
+    currency: "BRL",
+  }).format(value || 0);
+}
+
+function statusLabel(status: string) {
+  const labels: Record<string, string> = {
+    preparando: "Preparando",
+    processando_autorizacao: "Processando",
+    autorizado: "Autorizada",
+    erro_autorizacao: "Erro na emissão",
+    rejeitado: "Rejeitada",
+    cancelado: "Cancelada",
+  };
+  return labels[status] || status;
+}
+
+function statusTone(status: string) {
+  if (status === "autorizado") return "success" as const;
+  if (["erro_autorizacao", "rejeitado", "cancelado"].includes(status))
+    return "danger" as const;
+  if (status === "processando_autorizacao") return "warning" as const;
+  return "neutral" as const;
+}
+
+export default function FiscalNotes({
+  initialOrderId = "",
+}: {
+  initialOrderId?: string;
+}) {
+  const { empresa, access } = useWorkspace();
+  const canManage = ["OWNER", "ADMIN"].includes(access.company?.role || "");
+  const [settings, setSettings] = useState<FiscalSettings>(() =>
+    emptySettings(empresa.id),
+  );
+  const [documents, setDocuments] = useState<FiscalDocument[]>([]);
+  const [orders, setOrders] = useState<OrderOption[]>([]);
+  const [selectedOrder, setSelectedOrder] = useState(initialOrderId);
+  const [provider, setProvider] = useState<ProviderStatus>({
+    homologacaoConfigured: false,
+    producaoConfigured: false,
+  });
+  const [loading, setLoading] = useState(true);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
+  const [notice, setNotice] = useState("");
+
+  const load = useCallback(async () => {
+    if (!supabase || !empresa.id) return;
+    setLoading(true);
+    try {
+      const [settingsResult, documentsResult, ordersResult, providerResponse] =
+        await Promise.all([
+          supabase
+            .from("fiscal_settings")
+            .select("*")
+            .eq("empresa_id", empresa.id)
+            .maybeSingle(),
+          supabase
+            .from("fiscal_documents")
+            .select(
+              "id,ordem_id,provider_ref,ambiente,status,valor,numero,chave,protocolo,pdf_url,xml_url,mensagem,criado_em",
+            )
+            .eq("empresa_id", empresa.id)
+            .order("criado_em", { ascending: false })
+            .limit(30),
+          supabase
+            .from("ordens_servico")
+            .select("id,numero")
+            .eq("empresa_id", empresa.id)
+            .eq("status", "finalizado")
+            .order("numero", { ascending: false })
+            .limit(80),
+          fetch("/api/fiscal/nfsen", { cache: "no-store" }),
+        ]);
+
+      if (settingsResult.error) throw settingsResult.error;
+      if (documentsResult.error) throw documentsResult.error;
+      if (ordersResult.error) throw ordersResult.error;
+
+      setSettings(
+        settingsResult.data
+          ? (settingsResult.data as FiscalSettings)
+          : emptySettings(empresa.id),
+      );
+      setDocuments((documentsResult.data || []) as FiscalDocument[]);
+      setOrders((ordersResult.data || []) as OrderOption[]);
+
+      if (providerResponse.ok) {
+        setProvider((await providerResponse.json()) as ProviderStatus);
+      }
+
+      if (
+        initialOrderId &&
+        (ordersResult.data || []).some((order) => order.id === initialOrderId)
+      ) {
+        setSelectedOrder(initialOrderId);
+      } else if (!selectedOrder && ordersResult.data?.[0]?.id) {
+        setSelectedOrder(ordersResult.data[0].id);
+      }
+
+      setError("");
+    } catch (caught) {
+      setError(message(caught as Error));
+    } finally {
+      setLoading(false);
+    }
+  }, [empresa.id, initialOrderId, selectedOrder]);
+
+  useEffect(() => {
+    void load();
+  }, [load]);
+
+  const taxDataComplete = useMemo(
+    () =>
+      (settings.cnpj || "").replace(/\D/g, "").length === 14 &&
+      /^\d{7}$/.test(settings.codigo_municipio || "") &&
+      Boolean(settings.codigo_tributacao_nacional_iss?.trim()) &&
+      Boolean(settings.codigo_opcao_simples_nacional?.trim()) &&
+      settings.tributacao_iss !== null &&
+      Number.isFinite(Number(settings.tributacao_iss)),
+    [settings],
+  );
+
+  const providerConfigured =
+    settings.ambiente === "producao"
+      ? provider.producaoConfigured
+      : provider.homologacaoConfigured;
+
+  async function saveSettings(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!supabase || !canManage) return;
+    setBusy(true);
+    setError("");
+    setNotice("");
+    try {
+      const payload = {
+        ...settings,
+        empresa_id: empresa.id,
+        cnpj: settings.cnpj?.trim() || null,
+        razao_social: settings.razao_social?.trim() || null,
+        inscricao_municipal: settings.inscricao_municipal?.trim() || null,
+        codigo_municipio: settings.codigo_municipio?.trim() || null,
+        codigo_tributacao_nacional_iss:
+          settings.codigo_tributacao_nacional_iss?.trim() || null,
+        codigo_opcao_simples_nacional:
+          settings.codigo_opcao_simples_nacional?.trim() || null,
+        regime_especial_tributacao:
+          settings.regime_especial_tributacao?.trim() || null,
+        tributacao_iss:
+          settings.tributacao_iss === null ||
+          String(settings.tributacao_iss).trim() === ""
+            ? null
+            : Number(settings.tributacao_iss),
+        serie_dps: Number(settings.serie_dps) || 1,
+        atualizado_em: new Date().toISOString(),
+      };
+      const result = await supabase
+        .from("fiscal_settings")
+        .upsert(payload, { onConflict: "empresa_id" })
+        .select("*")
+        .single();
+      if (result.error) throw result.error;
+      setSettings(result.data as FiscalSettings);
+      setNotice("Configuração fiscal salva.");
+      await load();
+    } catch (caught) {
+      setError(message(caught as Error));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function issue() {
+    if (!selectedOrder || !canManage) return;
+    setBusy(true);
+    setError("");
+    setNotice("");
+    try {
+      const response = await fetch("/api/fiscal/nfsen", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "issue", orderId: selectedOrder }),
+      });
+      const data = (await response.json().catch(() => ({}))) as {
+        error?: string;
+      };
+      if (!response.ok) throw new Error(data.error || "Falha ao emitir a NFS-e.");
+      setNotice(
+        settings.ambiente === "homologacao"
+          ? "NFS-e enviada para homologação. Atualize o status em alguns instantes."
+          : "NFS-e enviada para processamento.",
+      );
+      await load();
+    } catch (caught) {
+      setError(message(caught as Error));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function refreshDocument(documentId: string) {
+    setBusy(true);
+    setError("");
+    try {
+      const response = await fetch("/api/fiscal/nfsen", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "refresh", documentId }),
+      });
+      const data = (await response.json().catch(() => ({}))) as {
+        error?: string;
+      };
+      if (!response.ok)
+        throw new Error(data.error || "Falha ao consultar a NFS-e.");
+      await load();
+    } catch (caught) {
+      setError(message(caught as Error));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  if (loading && !documents.length)
+    return <Empty title="Carregando configuração fiscal…" />;
+
+  const completedSteps = [
+    taxDataComplete,
+    settings.ativo,
+    providerConfigured,
+    documents.some((item) => item.status === "autorizado"),
+  ].filter(Boolean).length;
+
   return (
-    <div className="fiscal-video-page">
-      <header className="fiscal-video-header">
-        <div className="fiscal-video-icon">
-          <HorariaIcon name="receipt" />
-        </div>
-        <div>
-          <h2>Notas fiscais</h2>
-          <p>Faltam alguns passos para você começar a emitir pelo Horária.</p>
-        </div>
-      </header>
+    <div style={{ display: "grid", gap: 20 }}>
+      <ErrorBox error={error} />
+      {notice && (
+        <p className="notice" role="status">
+          {notice}
+        </p>
+      )}
 
-      <section className="fiscal-video-setup">
-        <div className="fiscal-video-copy">
-          <small>CONFIGURAÇÃO INICIAL</small>
-          <h3>Ativação em 4 passos</h3>
-          <p>
-            Faça a configuração uma vez. Depois, a emissão poderá entrar no fluxo
-            da ordem de serviço quando houver integração fiscal ativa.
+      <section className="panel">
+        <PanelTitle
+          title="Ativação fiscal"
+          icon="receipt"
+          subtitle="A emissão começa em homologação. Produção só deve ser ativada depois da validação fiscal da assistência."
+        />
+        <div className="definition-grid">
+          <div>
+            <dt>Configuração</dt>
+            <dd>{completedSteps}/4 etapas</dd>
+          </div>
+          <div>
+            <dt>Ambiente</dt>
+            <dd>
+              {settings.ambiente === "producao" ? "Produção" : "Homologação"}
+            </dd>
+          </div>
+          <div>
+            <dt>Emissor</dt>
+            <dd>Focus NFe</dd>
+          </div>
+          <div>
+            <dt>Integração</dt>
+            <dd>{providerConfigured ? "Token conectado" : "Token pendente"}</dd>
+          </div>
+        </div>
+      </section>
+
+      <form className="panel" onSubmit={saveSettings}>
+        <PanelTitle
+          title="Dados para NFS-e Nacional"
+          icon="business"
+          subtitle="Use os dados fiscais confirmados pela empresa ou pelo contador. O Horária não define enquadramento tributário automaticamente."
+        />
+
+        <div className="definition-grid">
+          <label>
+            Ambiente
+            <select
+              value={settings.ambiente}
+              disabled={!canManage || busy}
+              onChange={(event) =>
+                setSettings((current) => ({
+                  ...current,
+                  ambiente: event.target.value as "homologacao" | "producao",
+                }))
+              }
+            >
+              <option value="homologacao">Homologação · sem valor fiscal</option>
+              <option value="producao">Produção · nota com valor fiscal</option>
+            </select>
+          </label>
+
+          <label>
+            CNPJ
+            <input
+              value={settings.cnpj || ""}
+              disabled={!canManage || busy}
+              inputMode="numeric"
+              maxLength={18}
+              placeholder="00.000.000/0000-00"
+              onChange={(event) =>
+                setSettings((current) => ({
+                  ...current,
+                  cnpj: event.target.value,
+                }))
+              }
+            />
+          </label>
+
+          <label>
+            Razão social
+            <input
+              value={settings.razao_social || ""}
+              disabled={!canManage || busy}
+              maxLength={160}
+              onChange={(event) =>
+                setSettings((current) => ({
+                  ...current,
+                  razao_social: event.target.value,
+                }))
+              }
+            />
+          </label>
+
+          <label>
+            Inscrição municipal
+            <input
+              value={settings.inscricao_municipal || ""}
+              disabled={!canManage || busy}
+              maxLength={40}
+              onChange={(event) =>
+                setSettings((current) => ({
+                  ...current,
+                  inscricao_municipal: event.target.value,
+                }))
+              }
+            />
+          </label>
+
+          <label>
+            Código IBGE do município
+            <input
+              value={settings.codigo_municipio || ""}
+              disabled={!canManage || busy}
+              inputMode="numeric"
+              maxLength={7}
+              placeholder="7 dígitos"
+              onChange={(event) =>
+                setSettings((current) => ({
+                  ...current,
+                  codigo_municipio: event.target.value.replace(/\D/g, ""),
+                }))
+              }
+            />
+          </label>
+
+          <label>
+            Código nacional do serviço / ISS
+            <input
+              value={settings.codigo_tributacao_nacional_iss || ""}
+              disabled={!canManage || busy}
+              maxLength={20}
+              placeholder="Ex.: código informado pelo contador"
+              onChange={(event) =>
+                setSettings((current) => ({
+                  ...current,
+                  codigo_tributacao_nacional_iss: event.target.value,
+                }))
+              }
+            />
+          </label>
+
+          <label>
+            Código de opção do Simples Nacional
+            <input
+              value={settings.codigo_opcao_simples_nacional || ""}
+              disabled={!canManage || busy}
+              maxLength={10}
+              placeholder="Conforme enquadramento fiscal"
+              onChange={(event) =>
+                setSettings((current) => ({
+                  ...current,
+                  codigo_opcao_simples_nacional: event.target.value,
+                }))
+              }
+            />
+          </label>
+
+          <label>
+            Regime especial de tributação
+            <input
+              value={settings.regime_especial_tributacao || ""}
+              disabled={!canManage || busy}
+              maxLength={10}
+              placeholder="Opcional"
+              onChange={(event) =>
+                setSettings((current) => ({
+                  ...current,
+                  regime_especial_tributacao: event.target.value,
+                }))
+              }
+            />
+          </label>
+
+          <label>
+            Tributação do ISS
+            <input
+              type="number"
+              step="0.01"
+              min="0"
+              value={settings.tributacao_iss ?? ""}
+              disabled={!canManage || busy}
+              placeholder="Código/valor exigido no seu enquadramento"
+              onChange={(event) =>
+                setSettings((current) => ({
+                  ...current,
+                  tributacao_iss:
+                    event.target.value === ""
+                      ? null
+                      : Number(event.target.value),
+                }))
+              }
+            />
+          </label>
+
+          <label>
+            Série da DPS
+            <input
+              type="number"
+              min="1"
+              step="1"
+              value={settings.serie_dps}
+              disabled={!canManage || busy}
+              onChange={(event) =>
+                setSettings((current) => ({
+                  ...current,
+                  serie_dps: Math.max(1, Number(event.target.value) || 1),
+                }))
+              }
+            />
+          </label>
+        </div>
+
+        <label style={{ display: "flex", gap: 10, alignItems: "center" }}>
+          <input
+            type="checkbox"
+            checked={settings.ativo}
+            disabled={!canManage || busy}
+            onChange={(event) =>
+              setSettings((current) => ({
+                ...current,
+                ativo: event.target.checked,
+              }))
+            }
+          />
+          Ativar emissão fiscal para esta assistência
+        </label>
+
+        <p className="subtle">
+          Antes de usar produção, confirme CNPJ, município, código do serviço e
+          tributação com o contador da assistência.
+        </p>
+
+        {canManage ? (
+          <button className="primary" disabled={busy} type="submit">
+            {busy ? "Salvando…" : "Salvar configuração"}
+          </button>
+        ) : (
+          <p className="notice">
+            Somente proprietário ou administrador pode alterar dados fiscais.
           </p>
+        )}
+      </form>
 
-          <ol className="fiscal-video-steps">
-            {steps.map((step, index) => (
-              <li key={step.title}>
-                <span>{index + 1}</span>
-                <div>
-                  <strong>{step.title}</strong>
-                  <small>{step.text}</small>
-                </div>
-              </li>
+      <section className="panel">
+        <PanelTitle
+          title="Emitir por ordem de serviço"
+          icon="orders"
+          subtitle="A emissão usa o valor do orçamento aprovado da OS finalizada."
+        />
+
+        <div className="toolbar">
+          <select
+            value={selectedOrder}
+            disabled={!canManage || busy || !orders.length}
+            onChange={(event) => setSelectedOrder(event.target.value)}
+            aria-label="Selecionar ordem finalizada"
+          >
+            {!orders.length && <option value="">Nenhuma OS finalizada</option>}
+            {orders.map((order) => (
+              <option key={order.id} value={order.id}>
+                OS #{order.numero}
+              </option>
             ))}
-          </ol>
-
-          <button className="primary fiscal-video-continue" type="button">
-            Continuar configuração
+          </select>
+          <button
+            className="primary"
+            type="button"
+            disabled={
+              !canManage ||
+              busy ||
+              !selectedOrder ||
+              !settings.ativo ||
+              !taxDataComplete ||
+              !providerConfigured
+            }
+            onClick={() => void issue()}
+          >
+            {busy ? "Processando…" : "Emitir NFS-e"}
           </button>
         </div>
 
-        <aside className="fiscal-video-warning">
-          <strong>Integração fiscal pendente</strong>
-          <p>
-            A tela já está pronta para receber um emissor fiscal real. Até essa
-            conexão existir, o Horária não marca notas como emitidas
-            automaticamente.
+        {!providerConfigured && (
+          <p className="notice">
+            Falta conectar o token da Focus NFe para o ambiente selecionado.
           </p>
-          <Link href="/painel/configuracoes">Ver configurações →</Link>
-        </aside>
+        )}
+        {settings.ambiente === "homologacao" && (
+          <p className="subtle">
+            Homologação é o ambiente de testes e não gera documento com validade
+            fiscal.
+          </p>
+        )}
       </section>
 
-      <section className="fiscal-video-stats">
-        <article>
-          <span>EMITIDAS NO MÊS</span>
-          <strong>0</strong>
-          <small>Nenhuma nota emitida pelo sistema</small>
-        </article>
-        <article>
-          <span>PENDENTES</span>
-          <strong>0</strong>
-          <small>A integração fiscal ainda não está ativa</small>
-        </article>
-        <article>
-          <span>CONFIGURAÇÃO</span>
-          <strong>0/4</strong>
-          <small>Etapas concluídas</small>
-        </article>
-      </section>
+      <section className="panel">
+        <PanelTitle
+          title="Notas emitidas"
+          icon="receipt"
+          subtitle="Acompanhe o processamento e os arquivos retornados pelo emissor."
+        />
 
-      <section className="fiscal-video-bottom">
-        <div>
-          <h3>Notas emitidas</h3>
-          <p>Quando a emissão for integrada, os documentos aparecerão aqui.</p>
-        </div>
-        <div className="fiscal-video-empty">
-          <HorariaIcon name="receipt" />
-          <strong>Nenhuma nota fiscal ainda</strong>
-          <small>Finalize a configuração para começar.</small>
-        </div>
+        {!documents.length ? (
+          <Empty
+            title="Nenhuma nota fiscal ainda"
+            text="Depois da primeira emissão, o histórico aparece aqui."
+          />
+        ) : (
+          <div className="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Data</th>
+                  <th>Status</th>
+                  <th>Ambiente</th>
+                  <th>Valor</th>
+                  <th>Número</th>
+                  <th>Ações</th>
+                </tr>
+              </thead>
+              <tbody>
+                {documents.map((document) => (
+                  <tr key={document.id}>
+                    <td>
+                      {new Date(document.criado_em).toLocaleString("pt-BR", {
+                        timeZone: "America/Sao_Paulo",
+                        dateStyle: "short",
+                        timeStyle: "short",
+                      })}
+                    </td>
+                    <td>
+                      <SemanticBadge tone={statusTone(document.status)}>
+                        {statusLabel(document.status)}
+                      </SemanticBadge>
+                    </td>
+                    <td>
+                      {document.ambiente === "producao"
+                        ? "Produção"
+                        : "Homologação"}
+                    </td>
+                    <td>{currency(Number(document.valor))}</td>
+                    <td>{document.numero || "—"}</td>
+                    <td>
+                      <div className="inline-actions">
+                        {document.status === "processando_autorizacao" && (
+                          <button
+                            className="outline"
+                            type="button"
+                            disabled={busy}
+                            onClick={() =>
+                              void refreshDocument(document.id)
+                            }
+                          >
+                            Atualizar
+                          </button>
+                        )}
+                        {document.pdf_url && (
+                          <a
+                            className="outline"
+                            href={document.pdf_url}
+                            target="_blank"
+                            rel="noreferrer"
+                          >
+                            PDF ↗
+                          </a>
+                        )}
+                        {document.xml_url && (
+                          <a
+                            className="outline"
+                            href={document.xml_url}
+                            target="_blank"
+                            rel="noreferrer"
+                          >
+                            XML ↗
+                          </a>
+                        )}
+                      </div>
+                      {document.mensagem && (
+                        <small style={{ display: "block", marginTop: 6 }}>
+                          {document.mensagem}
+                        </small>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </section>
     </div>
   );
