@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { supabase, message } from "@/lib/supabase";
 import { useWorkspace } from "./workspace";
@@ -22,6 +22,8 @@ type FiscalSettings = {
   tributacao_iss: number | null;
   serie_dps: number;
   proximo_numero_dps: number;
+  dados_confirmados: boolean;
+  configuracao_confirmada: boolean;
 };
 
 type FiscalDocument = {
@@ -75,6 +77,8 @@ const emptySettings = (empresaId: string): FiscalSettings => ({
   tributacao_iss: null,
   serie_dps: 1,
   proximo_numero_dps: 1,
+  dados_confirmados: false,
+  configuracao_confirmada: false,
 });
 
 function currency(value: number) {
@@ -115,6 +119,8 @@ export default function FiscalNotes({
 }) {
   const { empresa, access } = useWorkspace();
   const canManage = ["OWNER", "ADMIN"].includes(access.company?.role || "");
+  const initializedStep = useRef(false);
+
   const [settings, setSettings] = useState<FiscalSettings>(() =>
     emptySettings(empresa.id),
   );
@@ -122,6 +128,7 @@ export default function FiscalNotes({
   const [orders, setOrders] = useState<OrderOption[]>([]);
   const [selectedOrder, setSelectedOrder] = useState(initialOrderId);
   const [portal, setPortal] = useState<FreeFiscalMode>(fallbackPortal);
+  const [activeStep, setActiveStep] = useState(1);
   const [registeringId, setRegisteringId] = useState("");
   const [issuedNumber, setIssuedNumber] = useState("");
   const [issuedKey, setIssuedKey] = useState("");
@@ -169,9 +176,10 @@ export default function FiscalNotes({
             provider: "emissor_nacional_web",
           } as FiscalSettings)
         : emptySettings(empresa.id);
+      const nextDocuments = (documentsResult.data || []) as FiscalDocument[];
 
       setSettings(nextSettings);
-      setDocuments((documentsResult.data || []) as FiscalDocument[]);
+      setDocuments(nextDocuments);
       setOrders((ordersResult.data || []) as OrderOption[]);
 
       if (portalResponse.ok) {
@@ -187,6 +195,21 @@ export default function FiscalNotes({
         if (current) return current;
         return ordersResult.data?.[0]?.id || "";
       });
+
+      if (!initializedStep.current) {
+        initializedStep.current = true;
+        const firstIncomplete =
+          !nextSettings.dados_confirmados
+            ? 1
+            : !nextSettings.configuracao_confirmada
+              ? 2
+              : !nextSettings.ativo
+                ? 3
+                : nextDocuments.length === 0
+                  ? 4
+                  : 4;
+        setActiveStep(firstIncomplete);
+      }
 
       setError("");
     } catch (caught) {
@@ -208,33 +231,75 @@ export default function FiscalNotes({
     [settings],
   );
 
-  async function saveSettings(event: React.FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    if (!supabase || !canManage) return;
+  const firstDocumentPrepared = documents.some((item) =>
+    [
+      "pronto_para_emitir",
+      "emitida_manual",
+      "processando_autorizacao",
+      "autorizado",
+    ].includes(item.status),
+  );
+
+  const steps = [
+    {
+      id: 1,
+      title: "Dados da empresa",
+      description: "CNPJ e identificação básica",
+      done: settings.dados_confirmados && basicDataComplete,
+    },
+    {
+      id: 2,
+      title: "Configuração",
+      description: "Escolha como a emissão será usada",
+      done: settings.configuracao_confirmada,
+    },
+    {
+      id: 3,
+      title: "Ativar",
+      description: "Liberar notas fiscais na assistência",
+      done: settings.ativo,
+    },
+    {
+      id: 4,
+      title: "Primeira nota",
+      description: "Preparar a primeira NFS-e",
+      done: firstDocumentPrepared,
+    },
+  ];
+
+  const completedSteps = steps.filter((step) => step.done).length;
+
+  async function saveSettings(
+    changes: Partial<FiscalSettings>,
+    options?: { nextStep?: number; notice?: string },
+  ) {
+    if (!supabase || !canManage) return false;
     setBusy(true);
     setError("");
     setNotice("");
+
     try {
+      const next = { ...settings, ...changes };
       const payload = {
-        ...settings,
+        ...next,
         empresa_id: empresa.id,
         provider: "emissor_nacional_web",
-        cnpj: settings.cnpj?.trim() || null,
-        razao_social: settings.razao_social?.trim() || null,
-        inscricao_municipal: settings.inscricao_municipal?.trim() || null,
-        codigo_municipio: settings.codigo_municipio?.trim() || null,
+        cnpj: next.cnpj?.trim() || null,
+        razao_social: next.razao_social?.trim() || null,
+        inscricao_municipal: next.inscricao_municipal?.trim() || null,
+        codigo_municipio: next.codigo_municipio?.trim() || null,
         codigo_tributacao_nacional_iss:
-          settings.codigo_tributacao_nacional_iss?.trim() || null,
+          next.codigo_tributacao_nacional_iss?.trim() || null,
         codigo_opcao_simples_nacional:
-          settings.codigo_opcao_simples_nacional?.trim() || null,
+          next.codigo_opcao_simples_nacional?.trim() || null,
         regime_especial_tributacao:
-          settings.regime_especial_tributacao?.trim() || null,
+          next.regime_especial_tributacao?.trim() || null,
         tributacao_iss:
-          settings.tributacao_iss === null ||
-          String(settings.tributacao_iss).trim() === ""
+          next.tributacao_iss === null ||
+          String(next.tributacao_iss).trim() === ""
             ? null
-            : Number(settings.tributacao_iss),
-        serie_dps: Number(settings.serie_dps) || 1,
+            : Number(next.tributacao_iss),
+        serie_dps: Number(next.serie_dps) || 1,
         atualizado_em: new Date().toISOString(),
       };
 
@@ -245,17 +310,54 @@ export default function FiscalNotes({
         .single();
 
       if (result.error) throw result.error;
+
       setSettings({
         ...(result.data as FiscalSettings),
         provider: "emissor_nacional_web",
       });
-      setNotice("Configuração fiscal salva.");
-      await load();
+      if (options?.nextStep) setActiveStep(options.nextStep);
+      setNotice(options?.notice || "Configuração fiscal salva.");
+      return true;
     } catch (caught) {
       setError(message(caught as Error));
+      return false;
     } finally {
       setBusy(false);
     }
+  }
+
+  async function completeCompanyData() {
+    if (!basicDataComplete) {
+      setError("Preencha CNPJ, razão social e código IBGE do município.");
+      return;
+    }
+    await saveSettings(
+      { dados_confirmados: true },
+      {
+        nextStep: 2,
+        notice: "Etapa 1 concluída. Dados da empresa salvos.",
+      },
+    );
+  }
+
+  async function completeConfiguration() {
+    await saveSettings(
+      { configuracao_confirmada: true },
+      {
+        nextStep: 3,
+        notice: "Etapa 2 concluída. Configuração salva.",
+      },
+    );
+  }
+
+  async function activateFiscal() {
+    await saveSettings(
+      { ativo: true },
+      {
+        nextStep: 4,
+        notice: "Etapa 3 concluída. Notas fiscais ativadas.",
+      },
+    );
   }
 
   async function prepareIssue() {
@@ -286,7 +388,7 @@ export default function FiscalNotes({
       }
 
       setNotice(
-        "Dados preparados. Agora revise o resumo e conclua gratuitamente no Emissor Nacional.",
+        "Etapa 4 concluída. A primeira nota foi preparada e já está no histórico.",
       );
       await load();
     } catch (caught) {
@@ -337,15 +439,6 @@ export default function FiscalNotes({
   if (loading && !documents.length)
     return <Empty title="Carregando configuração fiscal…" />;
 
-  const completedSteps = [
-    basicDataComplete,
-    settings.ativo,
-    documents.some((item) => item.status === "pronto_para_emitir"),
-    documents.some((item) =>
-      ["emitida_manual", "autorizado"].includes(item.status),
-    ),
-  ].filter(Boolean).length;
-
   const officialPortal =
     settings.ambiente === "producao"
       ? portal.productionUrl
@@ -362,290 +455,473 @@ export default function FiscalNotes({
 
       <section className="panel">
         <PanelTitle
-          title="Emissão gratuita de NFS-e"
+          title="Configuração guiada"
           icon="receipt"
-          subtitle="O Horária prepara os dados da OS e você conclui a emissão no Emissor Nacional oficial, sem contratar uma API fiscal."
+          subtitle="Faça uma vez. Cada etapa concluída fica marcada como tarefa feita."
         />
-        <div className="definition-grid">
-          <div>
-            <dt>Configuração</dt>
-            <dd>{completedSteps}/4 etapas</dd>
+
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fit, minmax(190px, 1fr))",
+            gap: 10,
+            marginTop: 16,
+          }}
+        >
+          {steps.map((step) => {
+            const active = activeStep === step.id;
+            return (
+              <button
+                key={step.id}
+                type="button"
+                onClick={() => setActiveStep(step.id)}
+                style={{
+                  textAlign: "left",
+                  border: active
+                    ? "2px solid var(--primary, #2563eb)"
+                    : "1px solid var(--border, #e4e7ec)",
+                  borderRadius: 14,
+                  padding: 14,
+                  background: step.done ? "var(--surface, #fff)" : "transparent",
+                  cursor: "pointer",
+                }}
+              >
+                <span
+                  style={{
+                    display: "inline-flex",
+                    width: 28,
+                    height: 28,
+                    alignItems: "center",
+                    justifyContent: "center",
+                    borderRadius: 999,
+                    border: "1px solid currentColor",
+                    marginBottom: 8,
+                    fontWeight: 800,
+                  }}
+                >
+                  {step.done ? "✓" : step.id}
+                </span>
+                <strong style={{ display: "block" }}>{step.title}</strong>
+                <small style={{ display: "block", marginTop: 4 }}>
+                  {step.done ? "Tarefa feita" : step.description}
+                </small>
+              </button>
+            );
+          })}
+        </div>
+
+        <div style={{ marginTop: 16 }}>
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              gap: 12,
+              marginBottom: 7,
+            }}
+          >
+            <strong>{completedSteps}/4 tarefas concluídas</strong>
+            <small>{Math.round((completedSteps / 4) * 100)}%</small>
           </div>
-          <div>
-            <dt>Modo</dt>
-            <dd>Emissor Nacional Web</dd>
-          </div>
-          <div>
-            <dt>Ambiente</dt>
-            <dd>
-              {settings.ambiente === "producao"
-                ? "Produção oficial"
-                : "Produção restrita · teste"}
-            </dd>
-          </div>
-          <div>
-            <dt>Custo de API</dt>
-            <dd>R$ 0,00</dd>
+          <div
+            aria-label="Progresso da configuração fiscal"
+            style={{
+              height: 8,
+              borderRadius: 999,
+              overflow: "hidden",
+              background: "var(--muted, #eaecf0)",
+            }}
+          >
+            <div
+              style={{
+                width: `${(completedSteps / 4) * 100}%`,
+                height: "100%",
+                background: "var(--primary, #2563eb)",
+                transition: "width .2s ease",
+              }}
+            />
           </div>
         </div>
       </section>
 
-      <form className="panel" onSubmit={saveSettings}>
-        <PanelTitle
-          title="Dados fiscais da assistência"
-          icon="business"
-          subtitle="Preencha com os dados confirmados pela empresa ou pelo contador. O Horária não define tributação automaticamente."
-        />
-
-        <div className="definition-grid">
-          <label>
-            Ambiente
-            <select
-              value={settings.ambiente}
-              disabled={!canManage || busy}
-              onChange={(event) =>
-                setSettings((current) => ({
-                  ...current,
-                  ambiente: event.target.value as "homologacao" | "producao",
-                }))
-              }
-            >
-              <option value="homologacao">Produção restrita · testes</option>
-              <option value="producao">Produção oficial · validade fiscal</option>
-            </select>
-          </label>
-
-          <label>
-            CNPJ
-            <input
-              value={settings.cnpj || ""}
-              disabled={!canManage || busy}
-              inputMode="numeric"
-              maxLength={18}
-              placeholder="00.000.000/0000-00"
-              onChange={(event) =>
-                setSettings((current) => ({
-                  ...current,
-                  cnpj: event.target.value,
-                }))
-              }
-            />
-          </label>
-
-          <label>
-            Razão social
-            <input
-              value={settings.razao_social || ""}
-              disabled={!canManage || busy}
-              maxLength={160}
-              onChange={(event) =>
-                setSettings((current) => ({
-                  ...current,
-                  razao_social: event.target.value,
-                }))
-              }
-            />
-          </label>
-
-          <label>
-            Inscrição municipal
-            <input
-              value={settings.inscricao_municipal || ""}
-              disabled={!canManage || busy}
-              maxLength={40}
-              onChange={(event) =>
-                setSettings((current) => ({
-                  ...current,
-                  inscricao_municipal: event.target.value,
-                }))
-              }
-            />
-          </label>
-
-          <label>
-            Código IBGE do município
-            <input
-              value={settings.codigo_municipio || ""}
-              disabled={!canManage || busy}
-              inputMode="numeric"
-              maxLength={7}
-              placeholder="7 dígitos"
-              onChange={(event) =>
-                setSettings((current) => ({
-                  ...current,
-                  codigo_municipio: event.target.value.replace(/\D/g, ""),
-                }))
-              }
-            />
-          </label>
-
-          <label>
-            Código nacional do serviço / ISS
-            <input
-              value={settings.codigo_tributacao_nacional_iss || ""}
-              disabled={!canManage || busy}
-              maxLength={20}
-              placeholder="Conforme orientação fiscal"
-              onChange={(event) =>
-                setSettings((current) => ({
-                  ...current,
-                  codigo_tributacao_nacional_iss: event.target.value,
-                }))
-              }
-            />
-          </label>
-
-          <label>
-            Opção do Simples Nacional
-            <input
-              value={settings.codigo_opcao_simples_nacional || ""}
-              disabled={!canManage || busy}
-              maxLength={10}
-              placeholder="Conforme enquadramento"
-              onChange={(event) =>
-                setSettings((current) => ({
-                  ...current,
-                  codigo_opcao_simples_nacional: event.target.value,
-                }))
-              }
-            />
-          </label>
-
-          <label>
-            Regime especial de tributação
-            <input
-              value={settings.regime_especial_tributacao || ""}
-              disabled={!canManage || busy}
-              maxLength={10}
-              placeholder="Opcional"
-              onChange={(event) =>
-                setSettings((current) => ({
-                  ...current,
-                  regime_especial_tributacao: event.target.value,
-                }))
-              }
-            />
-          </label>
-
-          <label>
-            Tributação do ISS
-            <input
-              type="number"
-              step="0.01"
-              min="0"
-              value={settings.tributacao_iss ?? ""}
-              disabled={!canManage || busy}
-              placeholder="Conforme enquadramento"
-              onChange={(event) =>
-                setSettings((current) => ({
-                  ...current,
-                  tributacao_iss:
-                    event.target.value === ""
-                      ? null
-                      : Number(event.target.value),
-                }))
-              }
-            />
-          </label>
-        </div>
-
-        <label style={{ display: "flex", gap: 10, alignItems: "center" }}>
-          <input
-            type="checkbox"
-            checked={settings.ativo}
-            disabled={!canManage || busy}
-            onChange={(event) =>
-              setSettings((current) => ({
-                ...current,
-                ativo: event.target.checked,
-              }))
-            }
+      {activeStep === 1 && (
+        <section className="panel">
+          <PanelTitle
+            title="1. Dados da empresa"
+            icon="business"
+            subtitle="Só pedimos o necessário para começar. Estes dados ficam salvos para as próximas notas."
           />
-          Ativar módulo de notas fiscais para esta assistência
-        </label>
 
-        {canManage ? (
-          <button className="primary" disabled={busy} type="submit">
-            {busy ? "Salvando…" : "Salvar configuração"}
-          </button>
-        ) : (
-          <p className="notice">
-            Somente proprietário ou administrador pode alterar dados fiscais.
-          </p>
-        )}
-      </form>
+          <div className="definition-grid">
+            <label>
+              CNPJ *
+              <input
+                value={settings.cnpj || ""}
+                disabled={!canManage || busy}
+                inputMode="numeric"
+                maxLength={18}
+                placeholder="00.000.000/0000-00"
+                onChange={(event) =>
+                  setSettings((current) => ({
+                    ...current,
+                    cnpj: event.target.value,
+                  }))
+                }
+              />
+            </label>
 
-      <section className="panel">
-        <PanelTitle
-          title="Preparar nota pela OS"
-          icon="orders"
-          subtitle="O Horária usa o valor do orçamento aprovado e organiza as informações antes de abrir o Emissor Nacional."
-        />
+            <label>
+              Razão social *
+              <input
+                value={settings.razao_social || ""}
+                disabled={!canManage || busy}
+                maxLength={160}
+                placeholder="Nome empresarial"
+                onChange={(event) =>
+                  setSettings((current) => ({
+                    ...current,
+                    razao_social: event.target.value,
+                  }))
+                }
+              />
+            </label>
 
-        <div className="toolbar">
-          <select
-            value={selectedOrder}
-            disabled={!canManage || busy || !orders.length}
-            onChange={(event) => setSelectedOrder(event.target.value)}
-            aria-label="Selecionar ordem finalizada"
-          >
-            {!orders.length && <option value="">Nenhuma OS finalizada</option>}
-            {orders.map((order) => (
-              <option key={order.id} value={order.id}>
-                OS #{order.numero}
-              </option>
-            ))}
-          </select>
+            <label>
+              Inscrição municipal
+              <input
+                value={settings.inscricao_municipal || ""}
+                disabled={!canManage || busy}
+                maxLength={40}
+                placeholder="Se possuir"
+                onChange={(event) =>
+                  setSettings((current) => ({
+                    ...current,
+                    inscricao_municipal: event.target.value,
+                  }))
+                }
+              />
+            </label>
 
-          <button
-            className="primary"
-            type="button"
-            disabled={
-              !canManage ||
-              busy ||
-              !selectedOrder ||
-              !settings.ativo ||
-              !basicDataComplete
-            }
-            onClick={() => void prepareIssue()}
-          >
-            {busy ? "Preparando…" : "Preparar emissão gratuita"}
-          </button>
+            <label>
+              Código IBGE do município *
+              <input
+                value={settings.codigo_municipio || ""}
+                disabled={!canManage || busy}
+                inputMode="numeric"
+                maxLength={7}
+                placeholder="7 dígitos"
+                onChange={(event) =>
+                  setSettings((current) => ({
+                    ...current,
+                    codigo_municipio: event.target.value.replace(/\D/g, ""),
+                  }))
+                }
+              />
+            </label>
+          </div>
 
-          <a
-            className="outline"
-            href={officialPortal}
-            target="_blank"
-            rel="noreferrer"
-          >
-            Abrir Emissor Nacional ↗
-          </a>
-        </div>
+          <div className="inline-actions" style={{ marginTop: 16 }}>
+            <button
+              className="primary"
+              type="button"
+              disabled={!canManage || busy || !basicDataComplete}
+              onClick={() => void completeCompanyData()}
+            >
+              {busy ? "Salvando…" : "Salvar e continuar"}
+            </button>
+          </div>
+        </section>
+      )}
 
-        {!settings.ativo && (
-          <p className="notice">
-            Salve os dados e ative o módulo fiscal antes de preparar uma nota.
-          </p>
-        )}
-        {settings.ambiente === "homologacao" && (
-          <p className="subtle">
-            O ambiente selecionado é de testes. Para uma nota com validade
-            fiscal, altere para Produção oficial depois de validar o fluxo.
-          </p>
-        )}
-      </section>
+      {activeStep === 2 && (
+        <section className="panel">
+          <PanelTitle
+            title="2. Como você vai emitir"
+            icon="settings"
+            subtitle="Comece em teste. Os campos fiscais avançados são opcionais e podem ser preenchidos depois."
+          />
+
+          <div className="definition-grid">
+            <label>
+              Ambiente
+              <select
+                value={settings.ambiente}
+                disabled={!canManage || busy}
+                onChange={(event) =>
+                  setSettings((current) => ({
+                    ...current,
+                    ambiente: event.target.value as
+                      | "homologacao"
+                      | "producao",
+                  }))
+                }
+              >
+                <option value="homologacao">
+                  Teste · sem validade fiscal
+                </option>
+                <option value="producao">
+                  Produção · nota com validade fiscal
+                </option>
+              </select>
+            </label>
+          </div>
+
+          <div className="notice" style={{ marginTop: 14 }}>
+            Recomendado: deixe em <strong>Teste</strong> até validar todo o fluxo.
+          </div>
+
+          <details style={{ marginTop: 16 }}>
+            <summary style={{ cursor: "pointer", fontWeight: 700 }}>
+              Configuração fiscal avançada
+            </summary>
+            <p className="subtle">
+              Preencha somente se seu contador já tiver informado esses dados.
+            </p>
+            <div className="definition-grid">
+              <label>
+                Código nacional do serviço / ISS
+                <input
+                  value={settings.codigo_tributacao_nacional_iss || ""}
+                  disabled={!canManage || busy}
+                  maxLength={20}
+                  placeholder="Opcional"
+                  onChange={(event) =>
+                    setSettings((current) => ({
+                      ...current,
+                      codigo_tributacao_nacional_iss: event.target.value,
+                    }))
+                  }
+                />
+              </label>
+
+              <label>
+                Opção do Simples Nacional
+                <input
+                  value={settings.codigo_opcao_simples_nacional || ""}
+                  disabled={!canManage || busy}
+                  maxLength={10}
+                  placeholder="Opcional"
+                  onChange={(event) =>
+                    setSettings((current) => ({
+                      ...current,
+                      codigo_opcao_simples_nacional: event.target.value,
+                    }))
+                  }
+                />
+              </label>
+
+              <label>
+                Regime especial de tributação
+                <input
+                  value={settings.regime_especial_tributacao || ""}
+                  disabled={!canManage || busy}
+                  maxLength={10}
+                  placeholder="Opcional"
+                  onChange={(event) =>
+                    setSettings((current) => ({
+                      ...current,
+                      regime_especial_tributacao: event.target.value,
+                    }))
+                  }
+                />
+              </label>
+
+              <label>
+                Tributação do ISS
+                <input
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  value={settings.tributacao_iss ?? ""}
+                  disabled={!canManage || busy}
+                  placeholder="Opcional"
+                  onChange={(event) =>
+                    setSettings((current) => ({
+                      ...current,
+                      tributacao_iss:
+                        event.target.value === ""
+                          ? null
+                          : Number(event.target.value),
+                    }))
+                  }
+                />
+              </label>
+            </div>
+          </details>
+
+          <div className="inline-actions" style={{ marginTop: 16 }}>
+            <button
+              className="outline"
+              type="button"
+              disabled={busy}
+              onClick={() => setActiveStep(1)}
+            >
+              Voltar
+            </button>
+            <button
+              className="primary"
+              type="button"
+              disabled={!canManage || busy}
+              onClick={() => void completeConfiguration()}
+            >
+              {busy ? "Salvando…" : "Confirmar e continuar"}
+            </button>
+          </div>
+        </section>
+      )}
+
+      {activeStep === 3 && (
+        <section className="panel">
+          <PanelTitle
+            title="3. Ativar notas fiscais"
+            icon="receipt"
+            subtitle="Depois de ativar, a Horária libera a preparação de NFS-e para as ordens finalizadas."
+          />
+
+          <div className="definition-grid">
+            <div>
+              <dt>Emissor</dt>
+              <dd>Emissor Nacional oficial</dd>
+            </div>
+            <div>
+              <dt>Custo da API</dt>
+              <dd>R$ 0,00</dd>
+            </div>
+            <div>
+              <dt>Ambiente inicial</dt>
+              <dd>
+                {settings.ambiente === "producao" ? "Produção" : "Teste"}
+              </dd>
+            </div>
+          </div>
+
+          {settings.ativo ? (
+            <p className="notice">✓ Notas fiscais já estão ativadas.</p>
+          ) : (
+            <p className="subtle">
+              Você poderá desativar ou editar os dados depois, se precisar.
+            </p>
+          )}
+
+          <div className="inline-actions" style={{ marginTop: 16 }}>
+            <button
+              className="outline"
+              type="button"
+              disabled={busy}
+              onClick={() => setActiveStep(2)}
+            >
+              Voltar
+            </button>
+            {settings.ativo ? (
+              <button
+                className="primary"
+                type="button"
+                onClick={() => setActiveStep(4)}
+              >
+                Continuar
+              </button>
+            ) : (
+              <button
+                className="primary"
+                type="button"
+                disabled={!canManage || busy}
+                onClick={() => void activateFiscal()}
+              >
+                {busy ? "Ativando…" : "Ativar e continuar"}
+              </button>
+            )}
+          </div>
+        </section>
+      )}
+
+      {activeStep === 4 && (
+        <section className="panel">
+          <PanelTitle
+            title="4. Preparar a primeira NFS-e"
+            icon="orders"
+            subtitle="Escolha uma OS finalizada. A Horária usa o orçamento aprovado e deixa tudo organizado para a emissão."
+          />
+
+          {!orders.length ? (
+            <Empty
+              title="Nenhuma OS pronta para emissão"
+              text="Finalize uma ordem com orçamento aprovado. Depois ela aparecerá aqui automaticamente."
+              href="/painel/ordens"
+              action="Ver ordens"
+            />
+          ) : (
+            <>
+              <div className="toolbar">
+                <select
+                  value={selectedOrder}
+                  disabled={!canManage || busy}
+                  onChange={(event) => setSelectedOrder(event.target.value)}
+                  aria-label="Selecionar ordem finalizada"
+                >
+                  {orders.map((order) => (
+                    <option key={order.id} value={order.id}>
+                      OS #{order.numero}
+                    </option>
+                  ))}
+                </select>
+
+                <button
+                  className="primary"
+                  type="button"
+                  disabled={
+                    !canManage ||
+                    busy ||
+                    !selectedOrder ||
+                    !settings.ativo ||
+                    !basicDataComplete
+                  }
+                  onClick={() => void prepareIssue()}
+                >
+                  {busy ? "Preparando…" : "Preparar emissão"}
+                </button>
+
+                <a
+                  className="outline"
+                  href={officialPortal}
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  Abrir Emissor Nacional ↗
+                </a>
+              </div>
+
+              {firstDocumentPrepared && (
+                <p className="notice">
+                  ✓ Primeira nota preparada. A configuração inicial está
+                  concluída.
+                </p>
+              )}
+            </>
+          )}
+
+          <div className="inline-actions" style={{ marginTop: 16 }}>
+            <button
+              className="outline"
+              type="button"
+              disabled={busy}
+              onClick={() => setActiveStep(3)}
+            >
+              Voltar
+            </button>
+          </div>
+        </section>
+      )}
 
       <section className="panel">
         <PanelTitle
           title="Histórico fiscal"
           icon="receipt"
-          subtitle="Imprima, salve o resumo em PDF e registre o número da NFS-e depois da emissão oficial."
+          subtitle="Depois da configuração, esta vira a área principal para acompanhar, imprimir e salvar suas notas."
         />
 
         {!documents.length ? (
           <Empty
-            title="Nenhuma preparação fiscal ainda"
-            text="Finalize uma OS com orçamento aprovado e prepare a primeira emissão."
+            title="Nenhuma nota preparada ainda"
+            text="Conclua o passo a passo acima para preparar a primeira."
           />
         ) : (
           <div className="table-wrap">
