@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Brand, MissingConfig } from "./brand";
 import Turnstile from "./turnstile";
-import { configured, supabase } from "@/lib/supabase";
+import { configured, supabase, syncServerSession } from "@/lib/supabase";
 
 export function RequestPasswordReset() {
   useEffect(() => {
@@ -137,6 +137,40 @@ export function ResetPassword() {
   const [busy, setBusy] = useState(false);
   const [done, setDone] = useState(false);
   const [error, setError] = useState("");
+  const [checkingSession, setCheckingSession] = useState(true);
+  const [recoveryReady, setRecoveryReady] = useState(false);
+
+  useEffect(() => {
+    if (!supabase) {
+      setCheckingSession(false);
+      return;
+    }
+
+    let active = true;
+    const checkSession = async () => {
+      const { data } = await supabase.auth.getSession();
+      if (!active) return;
+      setRecoveryReady(Boolean(data.session));
+      setCheckingSession(false);
+    };
+
+    void checkSession();
+    const { data } = supabase.auth.onAuthStateChange((event, session) => {
+      if (!active) return;
+      if (event === "PASSWORD_RECOVERY" && session) {
+        setRecoveryReady(true);
+        setCheckingSession(false);
+      }
+      if (event === "SIGNED_OUT") {
+        setRecoveryReady(false);
+      }
+    });
+
+    return () => {
+      active = false;
+      data.subscription.unsubscribe();
+    };
+  }, []);
 
   if (!configured) return <MissingConfig />;
 
@@ -159,6 +193,9 @@ export function ResetPassword() {
         throw new Error("Abra novamente o link recebido por e-mail.");
       const result = await supabase!.auth.updateUser({ password });
       if (result.error) throw result.error;
+      await supabase!.auth.signOut();
+      await syncServerSession(null).catch(() => undefined);
+      setRecoveryReady(false);
       setDone(true);
     } catch (cause) {
       setError(
@@ -175,7 +212,22 @@ export function ResetPassword() {
     <main className="auth-simple-page">
       <section className="auth-simple-card">
         <Brand />
-        {done ? (
+        {checkingSession ? (
+          <>
+            <span className="eyebrow">VALIDANDO LINK</span>
+            <h1>Validando recuperação…</h1>
+            <p>Aguarde um instante.</p>
+          </>
+        ) : !recoveryReady && !done ? (
+          <>
+            <span className="eyebrow">LINK INVÁLIDO</span>
+            <h1>Este link não está mais disponível.</h1>
+            <p>Solicite um novo link de recuperação para continuar.</p>
+            <Link className="primary" href="/recuperar-senha">
+              Solicitar novo link
+            </Link>
+          </>
+        ) : done ? (
           <>
             <span className="check">✓</span>
             <h1>Senha atualizada.</h1>
