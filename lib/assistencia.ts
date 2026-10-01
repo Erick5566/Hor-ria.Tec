@@ -314,16 +314,17 @@ type RowCacheEntry = {
 const ROW_CACHE_TTL_MS = 30_000;
 const rowCache = new Map<string, RowCacheEntry>();
 
-function rowCacheKey(table: string, empresaId: string) {
-  return `${empresaId}:${table}`;
+function rowCacheKey(table: string, empresaId: string, userId: string) {
+  return `${userId}:${empresaId}:${table}`;
 }
 
 async function cachedRows<T>(
   table: string,
   empresaId: string,
+  userId: string,
   force = false,
 ): Promise<T[]> {
-  const key = rowCacheKey(table, empresaId);
+  const key = rowCacheKey(table, empresaId, userId);
   const current = rowCache.get(key);
 
   if (
@@ -367,8 +368,8 @@ async function cachedRows<T>(
 }
 
 export function useRows<T>(table: string) {
-  const { empresa } = useWorkspace();
-  const key = rowCacheKey(table, empresa.id);
+  const { empresa, userId } = useWorkspace();
+  const key = rowCacheKey(table, empresa.id, userId);
   const initialCache = rowCache.get(key);
   const [data, setData] = useState<T[]>(
       () => (initialCache?.ready ? (initialCache.data as T[]) : []),
@@ -378,10 +379,10 @@ export function useRows<T>(table: string) {
 
   const load = useCallback(
     async (force = false) => {
-      const cached = rowCache.get(rowCacheKey(table, empresa.id));
+      const cached = rowCache.get(rowCacheKey(table, empresa.id, userId));
       if (!cached?.ready) setLoading(true);
       try {
-        setData(await cachedRows<T>(table, empresa.id, force));
+        setData(await cachedRows<T>(table, empresa.id, userId, force));
         setError("");
       } catch (e) {
         setError(message(e as Error));
@@ -389,7 +390,7 @@ export function useRows<T>(table: string) {
         setLoading(false);
       }
     },
-    [table, empresa.id],
+    [table, empresa.id, userId],
   );
 
   const reload = useCallback(async () => {
