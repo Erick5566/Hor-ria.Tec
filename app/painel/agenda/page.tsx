@@ -441,7 +441,7 @@ export default function Painel() {
             </div>
             <a
               className="outline"
-              href={`/agendar/${empresa.slug}`}
+              href={`/${empresa.slug}`}
               target="_blank"
               rel="noreferrer"
             >
