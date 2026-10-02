@@ -2091,3 +2091,96 @@ hr {
     padding-inline: 16px;
   }
 }
+
+/* Keep the entry screens within ordinary laptop and phone viewports. */
+.login-layout .login-story {
+  padding: 24px clamp(24px, 4vw, 56px);
+  gap: 20px;
+}
+.login-layout .login-story .brand {
+  width: 118px;
+}
+.login-layout .login-story .brand::before {
+  width: 66px;
+  height: 72px;
+  margin-left: 26px;
+  background-size: 134.7px 114.3px;
+  background-position: -34.2px -3.6px;
+}
+.login-layout .login-story .brand::after {
+  width: 118px;
+  height: 26px;
+  margin-top: 2px;
+  background-size: 123px 104.5px;
+  background-position: -2.5px -74.6px;
+}
+.login-layout .login-story h1 {
+  font-size: clamp(30px, 3vw, 42px);
+  line-height: 1.12;
+  margin: 12px 0;
+}
+.login-layout .login-story p {
+  margin: 10px 0;
+  font-size: 14px;
+  line-height: 1.5;
+}
+.login-layout .login-form {
+  padding: 24px;
+}
+.login-layout .form-wrap form {
+  gap: 12px;
+  margin-top: 16px;
+}
+.login-layout .form-wrap label {
+  gap: 6px;
+}
+.login-layout .form-wrap > .switch {
+  margin: 16px 0;
+}
+.login-layout .auth-help-row {
+  margin: 0;
+}
+.login-layout .privacy {
+  padding-top: 12px;
+}
+@media (max-width: 800px) {
+  .login-layout .login-story {
+    flex-direction: row;
+    align-items: center;
+    padding: 12px 20px;
+    gap: 16px;
+  }
+  .login-layout .login-story .brand {
+    width: 84px;
+  }
+  .login-layout .login-story .brand::before {
+    display: none;
+  }
+  .login-layout .login-story .brand::after {
+    width: 84px;
+    height: 19px;
+    margin: 0;
+    background-size: 87.6px 74.4px;
+    background-position: -1.8px -53.1px;
+  }
+  .login-layout .login-story > a:not(.brand) {
+    align-self: center;
+    font-size: 12px;
+  }
+  .login-layout .login-form {
+    padding: 20px;
+  }
+}
+@media (min-width: 801px) and (max-height: 720px) {
+  .login-layout .login-story {
+    padding-block: 20px;
+    gap: 16px;
+  }
+  .login-layout .login-story h1 {
+    font-size: 32px;
+  }
+  .login-layout .decor-card {
+    margin-top: 16px;
+    padding: 12px;
+  }
+}
