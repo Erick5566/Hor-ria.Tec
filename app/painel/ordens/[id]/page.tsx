@@ -189,20 +189,22 @@ export default function OrderDetail({
           <>
             <div className="toolbar">
               <Badge status={order.status} />
-              <select
-                aria-label="Alterar status da ordem"
-                disabled={busy}
-                value={order.status}
-                onChange={(event) =>
-                  void updateStatus(event.target.value as Status)
-                }
-              >
-                {Object.entries(statuses).map(([value, name]) => (
-                  <option key={value} value={value}>
-                    {name}
-                  </option>
-                ))}
-              </select>
+              {canUseTechnical && (
+                <select
+                  aria-label="Alterar status da ordem"
+                  disabled={busy}
+                  value={order.status}
+                  onChange={(event) =>
+                    void updateStatus(event.target.value as Status)
+                  }
+                >
+                  {Object.entries(statuses).map(([value, name]) => (
+                    <option key={value} value={value}>
+                      {name}
+                    </option>
+                  ))}
+                </select>
+              )}
             </div>
 
             <section
@@ -285,7 +287,7 @@ export default function OrderDetail({
                   </>
                 )}
 
-                {order.status === "orcamento_aprovado" && (
+                {canUseTechnical && order.status === "orcamento_aprovado" && (
                   <button
                     className="primary"
                     disabled={busy}
@@ -295,7 +297,7 @@ export default function OrderDetail({
                   </button>
                 )}
 
-                {order.status === "aguardando_peca" && (
+                {canUseTechnical && order.status === "aguardando_peca" && (
                   <button
                     className="primary"
                     disabled={busy}
@@ -305,7 +307,7 @@ export default function OrderDetail({
                   </button>
                 )}
 
-                {order.status === "em_reparo" && (
+                {canUseTechnical && order.status === "em_reparo" && (
                   <button
                     className="primary"
                     disabled={busy}
@@ -315,7 +317,7 @@ export default function OrderDetail({
                   </button>
                 )}
 
-                {order.status === "em_testes" && (
+                {canUseTechnical && order.status === "em_testes" && (
                   <button
                     className="primary"
                     disabled={busy}
@@ -325,7 +327,7 @@ export default function OrderDetail({
                   </button>
                 )}
 
-                {order.status === "pronto_retirada" && (
+                {canUseTechnical && order.status === "pronto_retirada" && (
                   <>
                     {readyWhatsapp && (
                       <a
@@ -437,6 +439,7 @@ export default function OrderDetail({
                 />
                 <OrderAdministration
                   order={order}
+                  canManageTechnical={canUseTechnical}
                   canViewDeviceSecret={canUseTechnical}
                   onChanged={() => void load(true)}
                 />
