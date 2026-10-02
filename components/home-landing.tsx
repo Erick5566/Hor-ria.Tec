@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import styles from "@/app/home.module.css";
 
@@ -27,12 +27,14 @@ function barcode(seed: number) {
   const bars: Array<{ x: number; width: number }> = [];
   let x = 0;
   let current = seed || 1234;
+
   while (x < 94) {
-    current = (current * 1103515245 + 12345) % 2147483647;
+    current = (Math.imul(current, 1103515245) + 12345) >>> 0;
     const width = 1 + (current % 3);
     bars.push({ x, width });
-    x += width + 2 + ((current >> 4) % 2);
+    x += width + 2 + ((current >>> 4) % 2);
   }
+
   return bars;
 }
 
@@ -70,9 +72,17 @@ export default function HomeLanding() {
   const [other, setOther] = useState("");
   const [error, setError] = useState("");
   const [stamped, setStamped] = useState(false);
+  const [creating, setCreating] = useState(false);
+  const redirectTimer = useRef<number | null>(null);
 
   useEffect(() => {
     setDate(new Intl.DateTimeFormat("pt-BR").format(new Date()));
+
+    return () => {
+      if (redirectTimer.current !== null) {
+        window.clearTimeout(redirectTimer.current);
+      }
+    };
   }, []);
 
   const number = useMemo(() => {
@@ -91,6 +101,8 @@ export default function HomeLanding() {
   }
 
   function createSpace() {
+    if (creating) return;
+
     const normalized = company.trim();
     if (!normalized) {
       setError("Dê um nome à sua assistência");
@@ -99,7 +111,10 @@ export default function HomeLanding() {
 
     setError("");
     setStamped(true);
-    window.setTimeout(() => {
+    setCreating(true);
+
+    redirectTimer.current = window.setTimeout(() => {
+      redirectTimer.current = null;
       router.push(`/cadastro?empresa=${encodeURIComponent(normalized)}`);
     }, 420);
   }
@@ -244,8 +259,10 @@ export default function HomeLanding() {
                   className={styles.createButton}
                   type="button"
                   onClick={createSpace}
+                  disabled={creating}
+                  aria-busy={creating}
                 >
-                  Criar espaço
+                  {creating ? "Abrindo…" : "Criar espaço"}
                 </button>
               </div>
             </section>
