@@ -1127,7 +1127,28 @@ begin
     raise exception 'Acesso à ordem não autorizado';
   end if;
 
-  if v_role in ('OWNER','ADMIN','TECHNICIAN') then
+  if v_role in ('OWNER','ADMIN') then
+    return new;
+  end if;
+
+  if v_role = 'TECHNICIAN' then
+    if new.status is distinct from old.status
+       and (
+         new.status in (
+           'aguardando_orcamento',
+           'orcamento_enviado',
+           'aguardando_aprovacao',
+           'orcamento_aprovado'
+         )
+         or old.status in (
+           'aguardando_orcamento',
+           'orcamento_enviado',
+           'aguardando_aprovacao'
+         )
+       ) then
+      raise exception 'Somente gestores e o fluxo de aprovação podem controlar as etapas de orçamento';
+    end if;
+
     return new;
   end if;
 
