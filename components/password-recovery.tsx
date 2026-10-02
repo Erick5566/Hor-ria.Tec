@@ -40,7 +40,7 @@ export function RequestPasswordReset() {
     }
     setBusy(true);
     try {
-      const redirectTo = location.origin;
+      const redirectTo = new URL("/redefinir-senha", window.location.origin).toString();
       const result = await supabase!.auth.resetPasswordForEmail(email.trim(), {
         redirectTo,
         ...(turnstileSiteKey ? { captchaToken } : {}),
@@ -185,8 +185,8 @@ export function ResetPassword() {
   async function submit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setError("");
-    if (password.length < 5) {
-      setError("Use uma senha com pelo menos 5 caracteres.");
+    if (password.length < 6) {
+      setError("Use uma senha com pelo menos 6 caracteres.");
       return;
     }
     if (password !== confirmPassword) {
@@ -248,14 +248,14 @@ export function ResetPassword() {
           <>
             <span className="eyebrow">NOVA SENHA</span>
             <h1>Crie uma nova senha.</h1>
-            <p>Use pelo menos 5 caracteres e prefira uma senha única.</p>
+            <p>Use pelo menos 6 caracteres e prefira uma senha única.</p>
             <form onSubmit={submit}>
               <label>
                 Nova senha
                 <input
                   type="password"
                   autoComplete="new-password"
-                  minLength={5}
+                  minLength={6}
                   required
                   value={password}
                   onChange={(event) => setPassword(event.target.value)}
@@ -266,7 +266,7 @@ export function ResetPassword() {
                 <input
                   type="password"
                   autoComplete="new-password"
-                  minLength={5}
+                  minLength={6}
                   required
                   value={confirmPassword}
                   onChange={(event) => setConfirmPassword(event.target.value)}
