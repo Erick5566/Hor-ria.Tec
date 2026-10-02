@@ -118,6 +118,13 @@ export default function AuthPage({ mode }: { mode: "login" | "signup" }) {
       return;
     }
 
+    if (signup && form.get("legal") !== "on") {
+      setNotice(
+        "Para criar a conta, confirme que leu os Termos de Uso e a Política de Privacidade.",
+      );
+      return;
+    }
+
     try {
       const credentials = {
         email: String(form.get("email")),
@@ -138,6 +145,7 @@ export default function AuthPage({ mode }: { mode: "login" | "signup" }) {
           "entrar",
           "cadastro",
           "privacidade",
+          "termos",
           "recuperar-senha",
           "redefinir-senha",
           "solicitacao-enviada",
@@ -166,6 +174,8 @@ export default function AuthPage({ mode }: { mode: "login" | "signup" }) {
                 responsible_name: String(form.get("responsavel")),
                 company_name: String(form.get("empresa")),
                 company_slug: String(form.get("slug")),
+                terms_accepted_at: new Date().toISOString(),
+                privacy_accepted_at: new Date().toISOString(),
               },
               ...(turnstileSiteKey ? { captchaToken } : {}),
             },
@@ -343,6 +353,15 @@ export default function AuthPage({ mode }: { mode: "login" | "signup" }) {
                   <Link href="/recuperar-senha">Esqueci minha senha</Link>
                 </div>
               )}
+              {signup && (
+                <label className="check-label auth-legal-consent">
+                  <input name="legal" type="checkbox" required />
+                  <span>
+                    Li e aceito os <Link href="/termos">Termos de Uso</Link> e a{" "}
+                    <Link href="/privacidade">Política de Privacidade</Link>.
+                  </span>
+                </label>
+              )}
               {turnstileSiteKey && (
                 <Turnstile
                   key={captchaResetKey}
@@ -374,6 +393,8 @@ export default function AuthPage({ mode }: { mode: "login" | "signup" }) {
           <div className="privacy">
             ◈ &nbsp; Seus dados ficam isolados por empresa.{" "}
             <Link href="/privacidade">Política de privacidade</Link>
+            {" · "}
+            <Link href="/termos">Termos de uso</Link>
           </div>
         </div>
       </section>
