@@ -56,6 +56,20 @@ test("automação: token seguro, peças livres e notificações idempotentes", a
     assert.equal(
       (await db.query("select status from orcamentos where id=$1", [qid]))
         .rows[0].status,
+      "rascunho",
+    );
+    assert.equal(
+      (
+        await db.query(
+          `select count(*) n from notificacoes where evento='orcamento_enviado'`,
+        )
+      ).rows[0].n,
+      0,
+    );
+    await db.query("select enviar_orcamento($1)", [qid]);
+    assert.equal(
+      (await db.query("select status from orcamentos where id=$1", [qid]))
+        .rows[0].status,
       "enviado",
     );
     assert.equal(
