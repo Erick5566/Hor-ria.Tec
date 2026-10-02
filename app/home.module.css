@@ -833,7 +833,7 @@
 }
 :is(.homeViewport, .authViewport) .topbar {
   min-height: 0;
-  padding: calc(1 * var(--u)) 2vw;
+  padding: calc(2 * var(--u)) 2vw;
   gap: 1vw;
   font-size: calc(1.8 * var(--u));
 }
@@ -846,12 +846,16 @@
 }
 :is(.homeViewport, .authViewport) .hero {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  grid-template-columns: minmax(0, auto) minmax(0, auto);
+  justify-content: center;
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
   align-items: center;
   height: 100%;
   min-height: 0;
-  gap: 3vw;
-  padding: 0 2vw calc(1 * var(--u));
+  column-gap: clamp(32px, 6vw, 96px);
+  padding: 0 5vw calc(2 * var(--u));
 }
 :is(.homeViewport, .authViewport) .brandSide, :is(.homeViewport, .authViewport) .tagStage {
   min-width: 0;
@@ -860,12 +864,15 @@
 }
 :is(.homeViewport, .authViewport) .brandSide {
   height: auto;
+  container-type: inline-size;
+  width: min(36vw, 520px);
+  max-width: 100%;
   gap: calc(1.5 * var(--u));
   justify-content: center;
 }
 :is(.homeViewport, .authViewport) .brandSide :global(.horaria-hero-brand) { transform: none; gap: calc(1.5 * var(--u)); }
 :is(.homeViewport, .authViewport) .brandSide :global(.horaria-hero-mark) {
-  height: calc(28 * var(--u));
+  height: calc(36 * var(--u));
   max-height: 100%;
   width: auto;
   max-width: 100%;
@@ -873,31 +880,32 @@
 }
 :is(.homeViewport, .authViewport) .brandSide :global(.horaria-hero-wordmark) {
   margin: 0;
-  font-size: calc(7 * var(--u));
+  font-size: calc(8.5 * var(--u));
 }
 :is(.homeViewport, .authViewport) .eyebrow {
   margin: 0;
   max-width: 100%;
-  font-size: calc(1.8 * var(--u));
+  font-size: min(calc(2 * var(--u)), 3.7cqi);
   letter-spacing: .035em;
   white-space: nowrap;
 }
 :is(.homeViewport, .authViewport) .brandSide h1 {
   margin: 0;
   max-width: 100%;
-  font-size: calc(4 * var(--u));
+  font-size: min(calc(5 * var(--u)), 7.5cqi);
   line-height: 1.1;
 }
 :is(.homeViewport, .authViewport) .orbit {
-  left: 0;
-  top: 50%;
+  left: calc(16.5 * var(--u));
+  top: calc(18 * var(--u));
+  transform: translate(-50%, -50%);
   width: calc(45 * var(--u));
   height: calc(45 * var(--u));
   max-width: 100%;
   max-height: 100%;
 }
 :is(.homeViewport, .authViewport) .tagStage {
-  width: min(42vw, 480px);
+  width: min(46vw, 560px);
   max-width: 100%;
   justify-self: center;
   padding-top: calc(3 * var(--u));
@@ -908,14 +916,14 @@
   height: calc(5 * var(--u));
 }
 :is(.homeViewport, .authViewport) .tagCard, :is(.homeViewport, .authViewport) .authTagCard {
-  height: auto;
+  height: calc(75 * var(--u));
   min-height: 0;
-  max-height: 88vh;
+  max-height: 82vh;
   width: 100%;
-  padding: calc(2 * var(--u)) 2vw;
-  gap: calc(1.4 * var(--u));
-  align-content: start;
-  transform: rotate(1deg);
+  padding: calc(3 * var(--u)) 2.5vw;
+  gap: calc(2 * var(--u));
+  align-content: space-between;
+  transform: rotate(1.5deg);
 }
 :is(.homeViewport, .authViewport) .hole {
   top: calc(.65 * var(--u));
@@ -923,18 +931,18 @@
   height: calc(1.4 * var(--u));
 }
 :is(.homeViewport, .authViewport) .tagHeader { margin: calc(1.4 * var(--u)) 0 0; gap: 1vw; }
-:is(.homeViewport, .authViewport) .tagHeader strong { font-size: calc(2.4 * var(--u)); line-height: 1.1; }
+:is(.homeViewport, .authViewport) .tagHeader strong { font-size: calc(3 * var(--u)); line-height: 1.1; }
 :is(.homeViewport, .authViewport) .tagHeader span, :is(.homeViewport, .authViewport) .fieldLabel, :is(.homeViewport, .authViewport) .authLabel,
 :is(.homeViewport, .authViewport) .deviceFieldset legend, :is(.homeViewport, .authViewport) .metaRow span {
-  font-size: calc(1.5 * var(--u));
+  font-size: calc(1.7 * var(--u));
   line-height: 1.1;
   letter-spacing: .06em;
 }
 :is(.homeViewport, .authViewport) .lineInput, :is(.homeViewport, .authViewport) .authInput {
-  height: calc(5 * var(--u));
+  height: calc(6 * var(--u));
   min-height: 0;
   padding: calc(.5 * var(--u)) 0;
-  font-size: calc(2 * var(--u));
+  font-size: calc(2.4 * var(--u));
 }
 :is(.homeViewport, .authViewport) .error, :is(.homeViewport, .authViewport) .authError {
   min-height: 0;
@@ -945,26 +953,26 @@
 :is(.homeViewport, .authViewport) .error:empty { display: none; }
 :is(.homeViewport, .authViewport) .metaRow { gap: 4vw; margin: 0; }
 :is(.homeViewport, .authViewport) .metaRow > div { gap: calc(.4 * var(--u)); }
-:is(.homeViewport, .authViewport) .metaRow strong { font-size: calc(2 * var(--u)); }
+:is(.homeViewport, .authViewport) .metaRow strong { font-size: calc(2.4 * var(--u)); }
 :is(.homeViewport, .authViewport) .deviceFieldset { margin: 0; min-width: 0; }
 :is(.homeViewport, .authViewport) .chips { margin-top: calc(.8 * var(--u)); gap: calc(.8 * var(--u)); flex-wrap: wrap; }
 :is(.homeViewport, .authViewport) .chip span {
   min-height: 0;
-  padding: calc(.8 * var(--u)) calc(1.4 * var(--u));
-  font-size: calc(1.8 * var(--u));
+  padding: calc(1 * var(--u)) calc(1.8 * var(--u));
+  font-size: calc(2 * var(--u));
   line-height: 1.1;
 }
-:is(.homeViewport, .authViewport) .cutLine { margin: 0 -2vw; gap: 1vw; }
+:is(.homeViewport, .authViewport) .cutLine { margin: 0 -2.5vw; gap: 1vw; }
 :is(.homeViewport, .authViewport) .cutLine span { width: calc(1.5 * var(--u)); height: calc(1.5 * var(--u)); margin-left: 1vw; }
 :is(.homeViewport, .authViewport) .tagFooter { gap: 1vw; padding: 0; }
-:is(.homeViewport, .authViewport) .barcode, :is(.homeViewport, .authViewport) .authBarcode { height: calc(5 * var(--u)); width: calc(13 * var(--u)); max-width: 100%; }
+:is(.homeViewport, .authViewport) .barcode, :is(.homeViewport, .authViewport) .authBarcode { height: calc(6 * var(--u)); width: calc(13 * var(--u)); max-width: 100%; }
 :is(.homeViewport, .authViewport) .barcodeWrap small { margin-top: calc(.4 * var(--u)); font-size: calc(1.3 * var(--u)); }
 :is(.homeViewport, .authViewport) .createButton, :is(.homeViewport, .authViewport) .authSubmit {
   min-width: 0;
   min-height: 0;
-  height: calc(5.5 * var(--u));
+  height: calc(6.5 * var(--u));
   padding: 0 2vw;
-  font-size: calc(2 * var(--u));
+  font-size: calc(2.3 * var(--u));
   white-space: nowrap;
 }
 :is(.homeViewport, .authViewport) .authForm, :is(.homeViewport, .authViewport) .authFieldsGrid { gap: calc(1.4 * var(--u)); }
@@ -977,15 +985,15 @@
 :is(.homeViewport, .authViewport) .authCaptcha { min-height: 0; overflow: visible; }
 
 @media (max-width: 768px) {
-  :is(.homeViewport, .authViewport) .hero { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr); gap: calc(1 * var(--u)); }
-  :is(.homeViewport, .authViewport) .brandSide { align-items: center; gap: calc(.5 * var(--u)); }
+  :is(.homeViewport, .authViewport) .hero { padding: 0 2vw calc(1 * var(--u)); grid-template-columns: minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr); gap: calc(1 * var(--u)); }
+  :is(.homeViewport, .authViewport) .brandSide { width: 100%; align-items: center; gap: calc(.5 * var(--u)); }
   :is(.homeViewport, .authViewport) .brandSide :global(.horaria-hero-brand) { flex-direction: row; align-items: center; gap: 2vw; }
   :is(.homeViewport, .authViewport) .brandSide :global(.horaria-hero-mark) { height: calc(12 * var(--u)); }
   :is(.homeViewport, .authViewport) .brandSide :global(.horaria-hero-wordmark) { font-size: calc(4 * var(--u)); }
   :is(.homeViewport, .authViewport) .eyebrow, :is(.homeViewport, .authViewport) .brandSide h1 { display: none; }
-  :is(.homeViewport, .authViewport) .orbit { left: 50%; width: calc(14 * var(--u)); height: calc(14 * var(--u)); transform: translate(-50%, -50%); }
+  :is(.homeViewport, .authViewport) .orbit { left: 50%; top: 50%; width: calc(14 * var(--u)); height: calc(14 * var(--u)); transform: translate(-50%, -50%); }
   :is(.homeViewport, .authViewport) .tagStage { width: 100%; max-width: 480px; padding-top: calc(2 * var(--u)); }
-  :is(.homeViewport, .authViewport) .tagCard, :is(.homeViewport, .authViewport) .authTagCard { max-height: 76vh; gap: calc(1 * var(--u)); }
+  :is(.homeViewport, .authViewport) .tagCard, :is(.homeViewport, .authViewport) .authTagCard { height: auto; padding: calc(2 * var(--u)) 2.5vw; max-height: 76vh; gap: calc(1 * var(--u)); }
   :is(.homeViewport, .authViewport) .authFieldsGrid { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
   :is(.homeViewport, .authViewport) .authFieldFull, :is(.homeViewport, .authViewport) .authField:last-child { grid-column: 1 / -1; }
   :is(.homeViewport, .authViewport) .authSubmit { width: auto; }
@@ -993,4 +1001,10 @@
 }
 @media (max-height: 600px) {
   .homeViewport, .authViewport { --u: .8vh; }
+}
+
+:is(.homeViewport, .authViewport) .companyField {
+  display: grid;
+  gap: calc(.5 * var(--u));
+  min-width: 0;
 }

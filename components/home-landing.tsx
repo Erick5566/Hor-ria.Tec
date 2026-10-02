@@ -121,22 +121,24 @@ export default function HomeLanding() {
                 <span>ORDEM DE SERVIÇO</span>
               </div>
 
-              <label className={styles.fieldLabel} htmlFor="home-company">
-                ASSISTÊNCIA
-              </label>
-              <input
-                id="home-company"
-                className={styles.lineInput}
-                value={company}
-                onChange={(event) => {
-                  setCompany(event.target.value);
-                  setError("");
-                }}
-                placeholder="Nome da sua assistência"
-                autoComplete="organization"
-                maxLength={100}
-              />
-              <p className={styles.error} role="alert">{error}</p>
+              <div className={styles.companyField}>
+                <label className={styles.fieldLabel} htmlFor="home-company">
+                  ASSISTÊNCIA
+                </label>
+                <input
+                  id="home-company"
+                  className={styles.lineInput}
+                  value={company}
+                  onChange={(event) => {
+                    setCompany(event.target.value);
+                    setError("");
+                  }}
+                  placeholder="Nome da sua assistência"
+                  autoComplete="organization"
+                  maxLength={100}
+                />
+                <p className={styles.error} role="alert">{error}</p>
+              </div>
 
               <div className={styles.metaRow}>
                 <div>
