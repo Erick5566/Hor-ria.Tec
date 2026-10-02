@@ -1,0 +1,581 @@
+.page {
+  min-height: 100dvh;
+  padding: 16px;
+  color: #ffffff;
+  background: #f1f3f8;
+}
+
+.shell {
+  width: min(100%, 1280px);
+  min-height: calc(100dvh - 32px);
+  margin: 0 auto;
+  overflow: hidden;
+  background: #1236a8;
+  border: 1px solid rgb(20 27 61 / 20%);
+  border-radius: 14px;
+  box-shadow: 0 24px 70px rgb(18 54 168 / 18%);
+}
+
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+  min-height: 66px;
+  padding: 16px 28px 8px;
+  color: #eaf0ff;
+  font-size: 13px;
+}
+
+.loginButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 36px;
+  padding: 0 19px;
+  color: #ffffff;
+  border: 1.5px solid #ffffff;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  transition:
+    background-color 160ms ease,
+    color 160ms ease,
+    transform 160ms ease;
+}
+
+.loginButton:hover {
+  color: #1236a8;
+  background: #ffffff;
+  transform: translateY(-1px);
+}
+
+.hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(320px, 382px);
+  gap: clamp(28px, 5vw, 68px);
+  align-items: center;
+  min-height: calc(100dvh - 178px);
+  padding: 8px clamp(30px, 6vw, 78px) 34px;
+}
+
+.brandSide {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  min-width: 0;
+  min-height: 540px;
+}
+
+.orbit {
+  position: absolute;
+  left: clamp(-170px, -10vw, -90px);
+  top: 50%;
+  width: clamp(340px, 35vw, 480px);
+  aspect-ratio: 1;
+  border: 1px solid #6f94f0;
+  border-radius: 50%;
+  transform: translateY(-56%);
+  pointer-events: none;
+}
+
+.brandLockup {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  color: #ffffff;
+  transform: rotate(7deg);
+  transform-origin: 0 100%;
+}
+
+.brandMark {
+  display: block;
+  width: clamp(132px, 16vw, 205px);
+  height: auto;
+}
+
+.brandLockup > span {
+  margin-top: 8px;
+  font-family: "Manrope", "DM Sans", Arial, sans-serif;
+  font-size: clamp(42px, 5vw, 62px);
+  font-weight: 500;
+  line-height: 0.95;
+  letter-spacing: -0.055em;
+}
+
+.eyebrow {
+  position: relative;
+  margin: 46px 0 0;
+  color: #ffffff;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+}
+
+.brandSide h1 {
+  position: relative;
+  max-width: 580px;
+  margin: 11px 0 0;
+  color: #ffffff;
+  font-family: "Manrope", "DM Sans", Arial, sans-serif;
+  font-size: clamp(28px, 3.2vw, 48px);
+  font-weight: 600;
+  line-height: 1.06;
+  letter-spacing: -0.045em;
+}
+
+.supportingCopy {
+  position: relative;
+  max-width: 480px;
+  margin: 18px 0 0;
+  color: #cddafe;
+  font-size: 15px;
+  line-height: 1.6;
+}
+
+.tagStage {
+  position: relative;
+  align-self: center;
+  width: min(100%, 382px);
+  padding-top: 54px;
+}
+
+.string {
+  position: absolute;
+  left: 50%;
+  top: -4px;
+  width: 120px;
+  height: 74px;
+  transform: translateX(-50%);
+}
+
+.string path {
+  fill: none;
+  stroke: #ffffff;
+  stroke-width: 2;
+  stroke-linecap: round;
+}
+
+.tagCard {
+  position: relative;
+  display: grid;
+  padding: 48px 24px 0;
+  color: #141b3d;
+  background: #f4f1e8;
+  clip-path: polygon(11% 0, 89% 0, 100% 6%, 100% 100%, 0 100%, 0 6%);
+  filter: drop-shadow(0 26px 34px rgb(8 22 76 / 22%));
+  transform: rotate(2.5deg);
+  transform-origin: 50% 0;
+  transition: transform 220ms ease;
+}
+
+.tagCard:focus-within {
+  transform: rotate(0deg);
+}
+
+.hole {
+  position: absolute;
+  top: 19px;
+  left: 50%;
+  width: 17px;
+  height: 17px;
+  background: #1236a8;
+  border-radius: 50%;
+  transform: translateX(-50%);
+  box-shadow: inset 0 0 0 1px rgb(20 27 61 / 16%);
+}
+
+.tagHeader {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 17px;
+}
+
+.tagHeader strong {
+  color: #141b3d;
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: -0.035em;
+}
+
+.tagHeader span,
+.fieldLabel,
+.deviceFieldset legend,
+.metaRow span {
+  color: #5b6080;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+}
+
+.lineInput,
+.otherInput {
+  width: 100%;
+  min-height: 31px;
+  padding: 3px 0 5px;
+  color: #141b3d;
+  background: transparent;
+  border: 0;
+  border-bottom: 1.5px solid #141b3d;
+  border-radius: 0;
+  font-family: ui-monospace, "SFMono-Regular", Consolas, monospace;
+  font-size: 14px;
+  box-shadow: none;
+}
+
+.lineInput::placeholder,
+.otherInput::placeholder {
+  color: #777b92;
+  opacity: 1;
+}
+
+.lineInput:focus,
+.otherInput:focus {
+  border-color: #1a5cff;
+  box-shadow: 0 2px 0 rgb(26 92 255 / 12%);
+  outline: none;
+}
+
+.error {
+  min-height: 17px;
+  margin: 3px 0 0;
+  color: #b3261e;
+  font-size: 11px;
+  line-height: 1.4;
+}
+
+.metaRow {
+  display: flex;
+  gap: 22px;
+  margin-top: 6px;
+}
+
+.metaRow > div {
+  display: grid;
+  gap: 2px;
+}
+
+.metaRow strong {
+  color: #141b3d;
+  font-family: ui-monospace, "SFMono-Regular", Consolas, monospace;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.deviceFieldset {
+  padding: 0;
+  margin: 17px 0 0;
+  border: 0;
+}
+
+.deviceFieldset legend {
+  padding: 0;
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.chip {
+  position: relative;
+  cursor: pointer;
+}
+
+.chip input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  min-height: 0;
+  margin: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.chip span {
+  display: inline-flex;
+  align-items: center;
+  min-height: 27px;
+  padding: 3px 10px;
+  color: #141b3d;
+  background: transparent;
+  border: 1.5px solid #141b3d;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1.2;
+  transition:
+    background-color 120ms ease,
+    color 120ms ease,
+    transform 120ms ease;
+}
+
+.chip:hover span {
+  transform: translateY(-1px);
+}
+
+.chipActive span {
+  color: #f4f1e8;
+  background: #141b3d;
+}
+
+.chip input:focus-visible + span {
+  outline: 2px solid #1a5cff;
+  outline-offset: 2px;
+}
+
+.otherInput {
+  margin-top: 9px;
+  font-size: 12px;
+}
+
+.stamp {
+  position: absolute;
+  right: 24px;
+  top: 157px;
+  padding: 3px 9px;
+  color: #1a5cff;
+  border: 2px solid #1a5cff;
+  font-size: 14px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  opacity: 0;
+  transform: rotate(-12deg) scale(0.88);
+  transition:
+    opacity 200ms ease,
+    transform 200ms ease;
+  pointer-events: none;
+}
+
+.stampVisible {
+  opacity: 1;
+  transform: rotate(-12deg) scale(1);
+}
+
+.cutLine {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 20px -24px 0;
+  color: #5b6080;
+}
+
+.cutLine span {
+  margin-left: 13px;
+  font-size: 16px;
+  line-height: 1;
+}
+
+.cutLine i {
+  flex: 1;
+  border-top: 1.5px dashed #a8a496;
+}
+
+.tagFooter {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 13px 0 20px;
+}
+
+.barcodeWrap {
+  min-width: 0;
+}
+
+.barcode {
+  display: block;
+  width: 98px;
+  height: 30px;
+  fill: #141b3d;
+}
+
+.barcodeWrap small {
+  display: block;
+  margin-top: 4px;
+  color: #5b6080;
+  font-family: ui-monospace, "SFMono-Regular", Consolas, monospace;
+  font-size: 10px;
+}
+
+.createButton {
+  min-width: 142px;
+  min-height: 44px;
+  padding: 0 18px;
+  color: #ffffff;
+  background: #1a5cff;
+  border: 0;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 700;
+  box-shadow: 0 9px 18px rgb(26 92 255 / 20%);
+  transition:
+    background-color 150ms ease,
+    transform 150ms ease,
+    box-shadow 150ms ease;
+}
+
+.createButton:hover {
+  background: #124fe7;
+  box-shadow: 0 11px 22px rgb(26 92 255 / 26%);
+  transform: translateY(-1px);
+}
+
+.createButton:active {
+  transform: translateY(0);
+}
+
+.tagNote {
+  max-width: 330px;
+  margin: 17px auto 0;
+  color: #b9c9f6;
+  font-size: 11px;
+  line-height: 1.5;
+  text-align: center;
+}
+
+.footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 22px;
+  min-height: 66px;
+  padding: 14px 28px 20px;
+  color: #b9c9f6;
+  border-top: 1px solid rgb(255 255 255 / 10%);
+  font-size: 11px;
+}
+
+.footer nav {
+  display: flex;
+  gap: 17px;
+}
+
+.footer a {
+  color: #e4ebff;
+}
+
+.footer a:hover {
+  text-decoration: underline;
+}
+
+@media (max-width: 900px) {
+  .page {
+    padding: 0;
+    background: #1236a8;
+  }
+
+  .shell {
+    min-height: 100dvh;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+  }
+
+  .hero {
+    grid-template-columns: 1fr;
+    gap: 28px;
+    padding: 8px 24px 44px;
+  }
+
+  .brandSide {
+    min-height: 410px;
+  }
+
+  .orbit {
+    left: -180px;
+    width: 420px;
+  }
+
+  .tagStage {
+    width: min(100%, 390px);
+    justify-self: center;
+  }
+
+  .footer {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
+@media (max-width: 520px) {
+  .topbar {
+    min-height: 58px;
+    padding: 12px 16px 2px;
+  }
+
+  .hero {
+    padding: 10px 16px 34px;
+  }
+
+  .brandSide {
+    min-height: 355px;
+  }
+
+  .brandMark {
+    width: 122px;
+  }
+
+  .brandLockup > span {
+    font-size: 40px;
+  }
+
+  .eyebrow {
+    margin-top: 34px;
+    font-size: 10px;
+  }
+
+  .brandSide h1 {
+    font-size: 29px;
+  }
+
+  .supportingCopy {
+    font-size: 13px;
+  }
+
+  .tagStage {
+    padding-top: 48px;
+  }
+
+  .tagCard {
+    padding: 46px 18px 0;
+  }
+
+  .stamp {
+    right: 18px;
+  }
+
+  .cutLine {
+    margin-inline: -18px;
+  }
+
+  .tagFooter {
+    align-items: flex-end;
+  }
+
+  .createButton {
+    min-width: 128px;
+    padding-inline: 13px;
+  }
+
+  .footer {
+    padding-inline: 16px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tagCard,
+  .loginButton,
+  .chip span,
+  .stamp,
+  .createButton {
+    transition: none;
+  }
+}
