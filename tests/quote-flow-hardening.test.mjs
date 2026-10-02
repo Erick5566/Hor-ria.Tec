@@ -105,7 +105,7 @@ test("orçamento: rascunho é reaproveitado e versão pública só muda após en
     ).rows[0].token;
 
     await db.exec(
-      "reset role;set request.jwt.claims='{"role":"service_role"}';set role service_role",
+      `reset role;set request.jwt.claims='{"role":"service_role"}';set role service_role`,
     );
     const beforeSecondSend = (
       await db.query("select acompanhar_por_token($1) data", [token])
@@ -118,7 +118,7 @@ test("orçamento: rascunho é reaproveitado e versão pública só muda após en
     await db.query("select enviar_orcamento($1)", [secondDraft]);
 
     await db.exec(
-      "reset role;set request.jwt.claims='{"role":"service_role"}';set role service_role",
+      `reset role;set request.jwt.claims='{"role":"service_role"}';set role service_role`,
     );
     const afterSecondSend = (
       await db.query("select acompanhar_por_token($1) data", [token])
