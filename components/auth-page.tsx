@@ -229,7 +229,7 @@ export default function AuthPage({ mode }: { mode: "login" | "signup" }) {
     }
   }
   return (
-    <main className={`${styles.page} ${signup ? styles.signupViewport : styles.authViewport}`}>
+    <main className={`${styles.page} ${styles.authViewport}`}>
       <div className={styles.shell}>
         <header className={styles.topbar}>
           <span>{signup ? "Já tem conta?" : "Ainda não tem conta?"}</span>

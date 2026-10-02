@@ -818,8 +818,7 @@
 .authViewport {
   height: 100vh;
   height: 100dvh;
-  min-height: 100vh;
-  min-height: 100dvh;
+  min-height: 0;
   padding: clamp(.5rem, 1.1vw, 1rem);
   overflow: hidden;
 }
@@ -854,7 +853,7 @@
   flex: 1 1 auto;
   min-height: 0;
   display: grid;
-  grid-template-columns: minmax(0, .9fr) minmax(18.75rem, 1.1fr);
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   gap: clamp(1.25rem, 3vw, 2.75rem);
   align-items: center;
   padding: 0 clamp(1.5rem, 4vw, 3.25rem) clamp(.75rem, 2vh, 1.5rem);
@@ -870,55 +869,58 @@
 
 .homeViewport .brandSide :global(.horaria-hero-brand),
 .authViewport .brandSide :global(.horaria-hero-brand) {
-  max-height: 55vh;
+  max-height: none;
   transform: none;
 }
 
 .homeViewport .brandSide :global(.horaria-hero-mark),
 .authViewport .brandSide :global(.horaria-hero-mark) {
-  width: clamp(11.25rem, 28vw, 23.75rem);
+  width: auto;
+  height: 30vh;
   max-width: 100%;
-  max-height: 43vh;
+  max-height: 30vh;
   object-fit: contain;
 }
 
 .homeViewport .brandSide :global(.horaria-hero-wordmark),
 .authViewport .brandSide :global(.horaria-hero-wordmark) {
   margin: clamp(.2rem, .6vh, .45rem) 0 0 .2rem;
-  font-size: clamp(2rem, 5vw, 4rem);
+  font-size: clamp(1.8rem, 4vw, 3rem);
   line-height: .96;
 }
 
 .homeViewport .orbit,
 .authViewport .orbit {
-  left: clamp(-8rem, -9vw, -4rem);
+  left: 0;
   top: 50%;
-  width: clamp(18rem, 34vw, 28rem);
-  max-width: 64vh;
+  width: min(100%, 42vh);
+  max-width: 100%;
   transform: translateY(-50%);
 }
 
 .homeViewport .eyebrow,
 .authViewport .eyebrow {
-  max-width: 22rem;
+  max-width: 100%;
+  white-space: nowrap;
+  letter-spacing: .035em;
   margin-top: clamp(.75rem, 2vh, 1.35rem);
-  font-size: clamp(.65rem, 1vw, .85rem);
+  font-size: clamp(.75rem, 1vw, .85rem);
   line-height: 1.25;
 }
 
 .homeViewport .brandSide h1,
 .authViewport .brandSide h1 {
   max-width: 28rem;
-  margin-top: clamp(.45rem, 1vh, .8rem);
+  margin-top: clamp(.75rem, 1.6vh, 1rem);
   font-size: clamp(1.25rem, 2.4vw, 2rem);
   line-height: 1.14;
 }
 
 .homeViewport .tagStage,
 .authViewport .tagStage {
-  width: clamp(18.75rem, 42vw, 32.5rem);
+  width: clamp(18.75rem, 40vw, 30rem);
   max-width: 100%;
-  max-height: 88%;
+  max-height: none;
   padding-top: clamp(1rem, 2.6vh, 1.8rem);
   align-self: center;
   justify-self: center;
@@ -937,7 +939,7 @@
 .authViewport .authTagCard {
   width: 100%;
   min-height: 0;
-  max-height: 85vh;
+  max-height: 82dvh;
   padding:
     clamp(2.65rem, 5.5vh, 3.5rem)
     clamp(1rem, 2vw, 1.25rem)
@@ -1162,8 +1164,9 @@
 
   .homeViewport .brandSide :global(.horaria-hero-mark),
   .authViewport .brandSide :global(.horaria-hero-mark) {
-    width: clamp(9rem, 18vw, 13.5rem);
-    max-height: 35vh;
+    width: auto;
+    height: 24vh;
+    max-height: 24vh;
   }
 
   .homeViewport .brandSide :global(.horaria-hero-wordmark),
@@ -1288,7 +1291,7 @@
   .homeViewport .hero,
   .authViewport .hero {
     grid-template-columns: minmax(0, 1fr);
-    grid-template-rows: minmax(4.8rem, 16vh) minmax(0, 1fr);
+    grid-template-rows: auto minmax(0, 1fr);
     gap: .3rem;
     align-content: stretch;
     padding: .15rem .6rem .55rem;
@@ -1363,10 +1366,10 @@
   .homeViewport .tagStage,
   .authViewport .tagStage {
     width: min(100%, 27rem);
-    height: 100%;
+    height: auto;
     max-height: 100%;
     padding-top: .3rem;
-    align-self: stretch;
+    align-self: center;
   }
 
   .homeViewport .string,
@@ -1524,9 +1527,9 @@
 
   .authViewport .authCaptcha {
     min-height: 0;
-    max-height: 3.6rem;
-    overflow: hidden;
-    transform: scale(.82);
+    max-height: none;
+    overflow: visible;
+    transform: none;
     transform-origin: left top;
   }
 }
@@ -1541,7 +1544,7 @@
 
   .homeViewport .hero,
   .authViewport .hero {
-    grid-template-rows: minmax(4.2rem, 14vh) minmax(0, 1fr);
+    grid-template-rows: auto minmax(0, 1fr);
     padding-bottom: .35rem;
   }
 
@@ -1605,8 +1608,26 @@
   }
 }
 
-/* Cadastro mantém altura natural porque possui mais campos que o login. */
-.signupViewport {
-  min-height: 100dvh;
-}
+/* Compact branding frees space for every registration field on phones. */
+@media (max-width: 768px) {
+  .homeViewport .eyebrow,
+  .authViewport .eyebrow,
+  .homeViewport .brandSide h1,
+  .authViewport .brandSide h1 { display: none; }
 
+  .homeViewport .brandSide,
+  .authViewport .brandSide { padding-block: .5rem; }
+
+  .authViewport .authFieldsGrid {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: .5rem .75rem;
+  }
+  .authViewport .authFieldFull { grid-column: 1 / -1; }
+  .authViewport .authField:last-child { grid-column: 1 / -1; }
+  .authViewport .authHint { font-size: .625rem; margin-top: 0; }
+  .authViewport .authSubmit { width: auto; }
+  .homeViewport .lineInput,
+  .authViewport .authInput { font-size: 1rem; }
+  .homeViewport .createButton,
+  .authViewport .authSubmit { min-height: 2.5rem; }
+}
