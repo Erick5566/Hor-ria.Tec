@@ -1057,3 +1057,271 @@
   :is(.homeViewport, .authViewport) .createButton,
   :is(.homeViewport, .authViewport) .authSubmit { height: calc(7.2 * var(--u)); font-size: calc(2.7 * var(--u)); font-weight: 400; padding-inline: 2.6vw; }
 }
+
+/* === HORARIA LANDING: referência 1536x864 enviada em 02/10/2026 === */
+/*
+  Ajuste isolado da página inicial.
+  Mantém o conteúdo/funcionalidade existentes e replica a composição visual da referência:
+  fundo #151515, painel azul #2140B5, logo/orbita à esquerda e etiqueta de OS à direita.
+*/
+.homeViewport {
+  background: #151515;
+}
+
+.homeViewport .shell {
+  background: #2140b5;
+  border: 0;
+  box-shadow: none;
+}
+
+.homeViewport .orbit {
+  border-color: #6e83cf;
+}
+
+.homeViewport .tagCard {
+  color: #16183a;
+  background: #f1efe4;
+}
+
+.homeViewport .hole {
+  background: #2140b5;
+}
+
+.homeViewport .tagHeader strong,
+.homeViewport .lineInput,
+.homeViewport .metaRow strong,
+.homeViewport .chip span {
+  color: #16183a;
+}
+
+.homeViewport .lineInput {
+  border-bottom-color: #16183a;
+}
+
+.homeViewport .barcode {
+  fill: #16183a;
+}
+
+.homeViewport .createButton {
+  background: #2563ff;
+}
+
+.homeViewport .createButton:hover {
+  background: #2563ff;
+}
+
+@media (min-width: 769px) {
+  .homeViewport {
+    --u: min(1vh, .5625vw);
+    padding: 3.7037vh 2.0833vw;
+    font-family: Arial, Helvetica, sans-serif;
+  }
+
+  .homeViewport .shell {
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+    border-radius: 29px;
+  }
+
+  .homeViewport .topbar {
+    min-height: 0;
+    padding: calc(3.2 * var(--u)) 3.125vw calc(1 * var(--u));
+    gap: 1.4vw;
+    color: #fff;
+    font-size: calc(2.7 * var(--u));
+    line-height: 1;
+  }
+
+  .homeViewport .loginButton {
+    width: 9.6354vw;
+    min-width: 0;
+    height: calc(6.3 * var(--u));
+    min-height: 0;
+    padding: 0;
+    color: #fff;
+    border: 2px solid #fff;
+    border-radius: 17px;
+    font-size: calc(2.7 * var(--u));
+    font-weight: 400;
+  }
+
+  .homeViewport .loginButton:hover {
+    color: #fff;
+    background: transparent;
+    transform: none;
+  }
+
+  .homeViewport .hero {
+    grid-template-columns: minmax(0, 31.25vw) minmax(0, 39.0625vw);
+    column-gap: 9.375vw;
+    max-width: none;
+    padding: 0 7.8125vw calc(9 * var(--u));
+  }
+
+  .homeViewport .brandSide {
+    width: 100%;
+    gap: calc(2 * var(--u));
+  }
+
+  .homeViewport .brandSide :global(.horaria-hero-brand) {
+    width: 100%;
+    gap: calc(4.2 * var(--u));
+    transform: none;
+  }
+
+  .homeViewport .brandSide :global(.horaria-hero-mark) {
+    width: auto;
+    height: calc(29.6 * var(--u));
+    align-self: center;
+  }
+
+  .homeViewport .brandSide :global(.horaria-hero-wordmark) {
+    margin: 0;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: calc(8.1 * var(--u));
+    font-weight: 400;
+    line-height: .94;
+    letter-spacing: -.055em;
+  }
+
+  .homeViewport .eyebrow {
+    margin: 0;
+    max-width: 100%;
+    color: #fff;
+    font-size: min(calc(2.4 * var(--u)), 4.4cqi);
+    font-weight: 400;
+    line-height: 1.35;
+    letter-spacing: .04em;
+    white-space: nowrap;
+  }
+
+  .homeViewport .brandSide h1 {
+    margin: 0;
+    max-width: 100%;
+    color: #fff;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: min(calc(4.3 * var(--u)), 8cqi);
+    font-weight: 400;
+    line-height: 1.15;
+    letter-spacing: -.035em;
+  }
+
+  .homeViewport .orbit {
+    left: 50%;
+    top: 42%;
+    width: calc(53 * var(--u));
+    height: calc(53 * var(--u));
+    max-width: none;
+    max-height: none;
+    transform: translate(-50%, -50%);
+  }
+
+  .homeViewport .tagStage {
+    width: 100%;
+    padding: 0;
+    justify-self: center;
+  }
+
+  .homeViewport .string {
+    display: none;
+  }
+
+  .homeViewport .tagCard {
+    width: 100%;
+    height: auto;
+    min-height: calc(57 * var(--u));
+    max-height: 82vh;
+    padding: calc(5.5 * var(--u)) 2.5vw calc(3 * var(--u));
+    gap: calc(1.7 * var(--u));
+    align-content: space-between;
+    clip-path: none;
+    border-radius: 1.4vh;
+    filter: none;
+    transform: rotate(2deg);
+  }
+
+  .homeViewport .tagCard:focus-within {
+    transform: rotate(2deg);
+  }
+
+  .homeViewport .hole {
+    top: calc(1.7 * var(--u));
+    width: calc(1.85 * var(--u));
+    height: calc(1.85 * var(--u));
+  }
+
+  .homeViewport .tagHeader {
+    margin: 0 0 calc(1.3 * var(--u));
+  }
+
+  .homeViewport .tagHeader strong {
+    font-size: calc(3.5 * var(--u));
+    font-weight: 400;
+  }
+
+  .homeViewport .tagHeader span,
+  .homeViewport .fieldLabel,
+  .homeViewport .deviceFieldset legend,
+  .homeViewport .metaRow span {
+    font-size: calc(2.1 * var(--u));
+    font-weight: 400;
+    letter-spacing: .1em;
+  }
+
+  .homeViewport .lineInput {
+    height: calc(5 * var(--u));
+    min-height: 0;
+    padding: calc(.5 * var(--u)) 0;
+    font-size: calc(2.4 * var(--u));
+  }
+
+  .homeViewport .metaRow {
+    gap: 4vw;
+    margin: 0;
+  }
+
+  .homeViewport .chip span {
+    min-height: 0;
+    padding: calc(.8 * var(--u)) calc(2.1 * var(--u));
+    border-color: #16183a;
+    font-size: calc(2.3 * var(--u));
+    font-weight: 400;
+    line-height: 1.1;
+  }
+
+  .homeViewport .chipActive span {
+    color: #f1efe4;
+    background: #16183a;
+  }
+
+  .homeViewport .cutLine {
+    margin: 0;
+  }
+
+  .homeViewport .cutLine span {
+    display: none;
+  }
+
+  .homeViewport .barcode {
+    width: calc(9.5 * var(--u));
+    height: calc(5.6 * var(--u));
+  }
+
+  .homeViewport .barcodeWrap small {
+    margin-top: calc(.4 * var(--u));
+    font-size: calc(1.6 * var(--u));
+  }
+
+  .homeViewport .createButton {
+    height: calc(7.2 * var(--u));
+    min-width: 0;
+    min-height: 0;
+    padding: 0 2.6vw;
+    border-radius: 14px;
+    font-size: calc(2.7 * var(--u));
+    font-weight: 400;
+    white-space: nowrap;
+  }
+}
+/* === FIM HORARIA LANDING referência 1536x864 === */
