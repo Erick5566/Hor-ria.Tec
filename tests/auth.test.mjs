@@ -6,6 +6,7 @@ test("auth: recuperação aponta para a rota correta e configuração local não
   const recovery = await readFile("components/password-recovery.tsx", "utf8");
   const authPage = await readFile("components/auth-page.tsx", "utf8");
   const config = await readFile("supabase/config.toml", "utf8");
+  const terms = await readFile("app/termos/page.tsx", "utf8");
 
   assert.match(
     recovery,
@@ -20,4 +21,10 @@ test("auth: recuperação aponta para a rota correta e configuração local não
     config,
     /additional_redirect_urls = \["http:\/\/localhost:3000\/redefinir-senha"\]/,
   );
+
+  assert.match(authPage, /name="legal" type="checkbox" required/);
+  assert.match(authPage, /terms_accepted_at/);
+  assert.match(authPage, /privacy_accepted_at/);
+  assert.match(authPage, /"termos"/);
+  assert.match(terms, /Termos de uso da Horária/);
 });
