@@ -1061,4 +1061,70 @@ end
 $function$;
 
 
+create or replace function private.enforce_order_role_changes()
+returns trigger
+language plpgsql
+security definer
+set search_path = ''
+as $function$
+declare
+  v_role text;
+begin
+  if auth.uid() is null then
+    return new;
+  end if;
+
+  select m.role
+    into v_role
+  from public.empresa_membros m
+  where m.empresa_id = old.empresa_id
+    and m.usuario_id = auth.uid()
+    and m.status = 'ACTIVE'
+  limit 1;
+
+  if v_role is null then
+    raise exception 'Acesso à ordem não autorizado';
+  end if;
+
+  if v_role in ('OWNER','ADMIN','TECHNICIAN') then
+    return new;
+  end if;
+
+  if v_role = 'ATTENDANT' then
+    if (
+      new.tecnico,
+      new.mesa_id,
+      new.prioridade,
+      new.iniciado_em,
+      new.prazo_previsto
+    ) is distinct from (
+      old.tecnico,
+      old.mesa_id,
+      old.prioridade,
+      old.iniciado_em,
+      old.prazo_previsto
+    ) then
+      raise exception 'Somente a equipe técnica pode alterar a organização do reparo';
+    end if;
+
+    if new.status is distinct from old.status
+       and not (
+         old.status = 'novo'
+         and new.status = 'recebido'
+         and new.entrada_confirmada
+       ) then
+      raise exception 'Somente a equipe técnica pode alterar esta etapa da ordem';
+    end if;
+  end if;
+
+  return new;
+end
+$function$;
+
+drop trigger if exists enforce_order_role_changes on public.ordens_servico;
+create trigger enforce_order_role_changes
+before update on public.ordens_servico
+for each row execute function private.enforce_order_role_changes();
+
+
 commit;
