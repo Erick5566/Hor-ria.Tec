@@ -95,6 +95,7 @@ export default function OrderDetail({
   const visibleTabs = tabs.filter(
     (item) =>
       (item !== "Diagnóstico" || canUseTechnical) &&
+      (item !== "Orçamento" || canViewFinance) &&
       (item !== "Financeiro" || canViewFinance),
   );
   const [data, setData] = useState<OrderDetailData | null>(null);
