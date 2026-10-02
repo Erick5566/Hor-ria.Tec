@@ -813,76 +813,800 @@
   }
 }
 
-/* Entry screens: size content to the viewport instead of a 900px hero. */
-.page { padding: 12px; }
-.shell { min-height: calc(100dvh - 24px); display: flex; flex-direction: column; }
-.topbar { min-height: 64px; padding: 12px 32px 8px; font-size: 13px; }
-.loginButton { min-width: 104px; min-height: 44px; padding: 0 20px; border-radius: 10px; font-size: 14px; }
-.hero { flex: 1; min-height: 0; grid-template-columns: minmax(0, .9fr) minmax(0, 1.1fr); gap: 36px; padding: 8px 40px 32px; }
-.brandSide { min-height: 0; }
-.brandSide :global(.horaria-hero-mark) { width: clamp(120px, 16vw, 210px); }
-.brandSide :global(.horaria-hero-wordmark) { font-size: clamp(36px, 4vw, 54px); margin-top: 8px; }
-.eyebrow { margin-top: 24px; font-size: 11px; max-width: 280px; }
-.brandSide h1 { margin-top: 12px; font-size: clamp(22px, 2.3vw, 30px); }
-.orbit { width: 400px; left: -100px; }
-.tagStage { width: min(100%, 520px); padding-top: 28px; min-width: 0; }
-.string { width: 72px; height: 48px; top: -9px; }
-.tagCard, .authTagCard { min-height: 0; padding: 48px 26px 22px; transform: none; align-content: start; }
-.tagCard:focus-within, .authTagCard:focus-within { transform: none; }
-.hole { top: 15px; width: 18px; height: 18px; }
-.tagHeader { margin-bottom: 16px; gap: 12px; }
-.tagHeader strong { font-size: 21px; }
-.tagHeader span { font-size: 10px; }
-.fieldLabel, .authLabel, .deviceFieldset legend { font-size: 11px; }
-.lineInput, .authInput { min-height: 44px; font-size: 16px; }
-.metaRow { margin-top: 10px; gap: 32px; }
-.metaRow span { font-size: 10px; }
-.metaRow strong { font-size: 15px; }
-.deviceFieldset { margin-top: 16px; min-width: 0; }
-.chips { gap: 8px; margin-top: 8px; }
-.chip span { min-height: 44px; font-size: 12px; padding: 4px 12px; }
-.cutLine { margin: 18px -26px 0; }
-.tagFooter { gap: 16px; padding-top: 16px; }
-.barcode, .authBarcode { width: 96px; height: 32px; }
-.barcodeWrap small { margin-top: 4px; font-size: 11px; }
-.createButton, .authSubmit { min-width: 0; min-height: 46px; padding: 0 20px; font-size: 15px; border-radius: 10px; }
-.authForm, .authFieldsGrid { gap: 12px; }
-.authCutLine { margin-top: 4px; }
-.authBottom { margin-top: 14px; gap: 8px; }
-.authHomeLink { margin-top: 18px; min-height: 44px; align-items: center; }
-.authActionsRow { margin-top: 0; }
-.authHelpLink, .authSwitchLink { min-height: 32px; display: inline-flex; align-items: center; }
-@media (max-width: 900px) {
-  .page { padding: 0; }
-  .shell { min-height: 100dvh; }
-  .topbar { min-height: 56px; padding: 8px 20px 4px; }
-  .hero { grid-template-columns: minmax(0, 1fr); align-content: center; gap: 14px; padding: 8px 20px 20px; }
-  .brandSide { width: min(100%, 520px); justify-self: center; }
-  .brandSide :global(.horaria-hero-brand) { flex-direction: row; align-items: center; gap: 10px; transform: none; }
-  .brandSide :global(.horaria-hero-mark) { width: 32px; }
-  .brandSide :global(.horaria-hero-wordmark) { margin: 0; font-size: 30px; }
-  .brandSide h1 { margin-top: 8px; font-size: 18px; }
-  .brandSide h1 br { display: none; }
-  .eyebrow, .orbit, .string { display: none; }
-  .tagStage { padding-top: 0; justify-self: center; }
-  .authHomeLink { margin-top: 4px; min-height: 32px; }
-  .authActionsRow, .authBottom { flex-direction: row; align-items: center; }
-  .authSubmit { width: auto; }
+/* Entry screens: fit the full visual inside one viewport. */
+.homeViewport,
+.authViewport {
+  height: 100vh;
+  height: 100dvh;
+  min-height: 100vh;
+  min-height: 100dvh;
+  padding: clamp(.5rem, 1.1vw, 1rem);
+  overflow: hidden;
 }
-@media (max-width: 620px) {
-  .hero { padding-inline: 12px; }
-  .tagCard, .authTagCard { padding: 38px 16px 16px; }
-  .tagHeader { margin-bottom: 10px; }
-  .cutLine { margin-inline: -16px; }
-  .tagFooter { gap: 12px; padding-top: 12px; }
-  .createButton { flex: 1; }
-  .authFieldsGrid { grid-template-columns: minmax(0, 1fr); }
-  .authTagCard .barcodeWrap { display: none; }
-  .authSubmit { width: 100%; }
-  .authCaptcha { overflow-x: auto; }
+
+.homeViewport .shell,
+.authViewport .shell {
+  height: calc(100dvh - clamp(1rem, 2.2vw, 2rem));
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
 }
-@media (min-width: 901px) and (max-height: 680px) {
-  .brandSide :global(.horaria-hero-mark) { width: 130px; }
-  .brandSide :global(.horaria-hero-wordmark) { font-size: 40px; }
-  .hero { padding-bottom: 20px; }
+
+.homeViewport .topbar,
+.authViewport .topbar {
+  flex: 0 0 auto;
+  min-height: clamp(3rem, 7vh, 3.75rem);
+  padding: clamp(.5rem, 1.4vh, .8rem) clamp(1.25rem, 3vw, 2.6rem);
+  font-size: clamp(.75rem, 1vw, .9rem);
 }
+
+.homeViewport .loginButton,
+.authViewport .loginButton {
+  min-width: clamp(6.25rem, 9vw, 7.5rem);
+  min-height: clamp(2.4rem, 5.5vh, 2.8rem);
+  padding-inline: clamp(1rem, 2vw, 1.4rem);
+  border-radius: .7rem;
+  font-size: clamp(.8rem, 1vw, .92rem);
+}
+
+.homeViewport .hero,
+.authViewport .hero {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: minmax(0, .9fr) minmax(18.75rem, 1.1fr);
+  gap: clamp(1.25rem, 3vw, 2.75rem);
+  align-items: center;
+  padding: 0 clamp(1.5rem, 4vw, 3.25rem) clamp(.75rem, 2vh, 1.5rem);
+}
+
+.homeViewport .brandSide,
+.authViewport .brandSide {
+  min-height: 0;
+  height: 100%;
+  justify-content: center;
+  overflow: visible;
+}
+
+.homeViewport .brandSide :global(.horaria-hero-brand),
+.authViewport .brandSide :global(.horaria-hero-brand) {
+  max-height: 55vh;
+  transform: none;
+}
+
+.homeViewport .brandSide :global(.horaria-hero-mark),
+.authViewport .brandSide :global(.horaria-hero-mark) {
+  width: clamp(11.25rem, 28vw, 23.75rem);
+  max-width: 100%;
+  max-height: 43vh;
+  object-fit: contain;
+}
+
+.homeViewport .brandSide :global(.horaria-hero-wordmark),
+.authViewport .brandSide :global(.horaria-hero-wordmark) {
+  margin: clamp(.2rem, .6vh, .45rem) 0 0 .2rem;
+  font-size: clamp(2rem, 5vw, 4rem);
+  line-height: .96;
+}
+
+.homeViewport .orbit,
+.authViewport .orbit {
+  left: clamp(-8rem, -9vw, -4rem);
+  top: 50%;
+  width: clamp(18rem, 34vw, 28rem);
+  max-width: 64vh;
+  transform: translateY(-50%);
+}
+
+.homeViewport .eyebrow,
+.authViewport .eyebrow {
+  max-width: 22rem;
+  margin-top: clamp(.75rem, 2vh, 1.35rem);
+  font-size: clamp(.65rem, 1vw, .85rem);
+  line-height: 1.25;
+}
+
+.homeViewport .brandSide h1,
+.authViewport .brandSide h1 {
+  max-width: 28rem;
+  margin-top: clamp(.45rem, 1vh, .8rem);
+  font-size: clamp(1.25rem, 2.4vw, 2rem);
+  line-height: 1.14;
+}
+
+.homeViewport .tagStage,
+.authViewport .tagStage {
+  width: clamp(18.75rem, 42vw, 32.5rem);
+  max-width: 100%;
+  max-height: 88%;
+  padding-top: clamp(1rem, 2.6vh, 1.8rem);
+  align-self: center;
+  justify-self: center;
+}
+
+.homeViewport .string,
+.authViewport .string {
+  top: -.4rem;
+  width: clamp(3.5rem, 6vw, 4.8rem);
+  height: clamp(2.2rem, 5vh, 3.2rem);
+}
+
+.homeViewport .tagCard,
+.homeViewport .authTagCard,
+.authViewport .tagCard,
+.authViewport .authTagCard {
+  width: 100%;
+  min-height: 0;
+  max-height: 85vh;
+  padding:
+    clamp(2.65rem, 5.5vh, 3.5rem)
+    clamp(1rem, 2vw, 1.25rem)
+    clamp(.9rem, 2vh, 1.25rem);
+  align-content: start;
+  transform: rotate(1deg);
+}
+
+.homeViewport .tagCard:focus-within,
+.homeViewport .authTagCard:focus-within,
+.authViewport .tagCard:focus-within,
+.authViewport .authTagCard:focus-within {
+  transform: rotate(.5deg);
+}
+
+.homeViewport .hole,
+.authViewport .hole {
+  top: clamp(.8rem, 2vh, 1rem);
+  width: clamp(.85rem, 1.6vw, 1.05rem);
+  height: clamp(.85rem, 1.6vw, 1.05rem);
+}
+
+.homeViewport .tagHeader,
+.authViewport .tagHeader {
+  gap: .75rem;
+  margin-bottom: clamp(.6rem, 1.5vh, .8rem);
+}
+
+.homeViewport .tagHeader strong,
+.authViewport .tagHeader strong {
+  font-size: clamp(1rem, 1.5vw, 1.1rem);
+  line-height: 1;
+}
+
+.homeViewport .tagHeader span,
+.authViewport .tagHeader span {
+  font-size: clamp(.58rem, .75vw, .65rem);
+  letter-spacing: .12em;
+}
+
+.homeViewport .fieldLabel,
+.homeViewport .deviceFieldset legend,
+.homeViewport .authLabel,
+.authViewport .fieldLabel,
+.authViewport .deviceFieldset legend,
+.authViewport .authLabel {
+  font-size: clamp(.58rem, .75vw, .65rem);
+  line-height: 1.1;
+}
+
+.homeViewport .lineInput,
+.homeViewport .authInput,
+.authViewport .lineInput,
+.authViewport .authInput {
+  min-height: 2.25rem;
+  height: 2.25rem;
+  padding: .25rem .1rem .35rem;
+  font-size: clamp(.78rem, 1vw, .85rem);
+}
+
+.homeViewport .error,
+.homeViewport .authError,
+.authViewport .error,
+.authViewport .authError {
+  min-height: .9rem;
+  margin-top: .15rem;
+  font-size: .65rem;
+  line-height: 1.15;
+}
+
+.homeViewport .metaRow,
+.authViewport .metaRow {
+  gap: clamp(1.25rem, 4vw, 2.4rem);
+  margin-top: clamp(.5rem, 1.2vh, .7rem);
+}
+
+.homeViewport .metaRow > div,
+.authViewport .metaRow > div {
+  gap: .12rem;
+}
+
+.homeViewport .metaRow span,
+.authViewport .metaRow span {
+  font-size: clamp(.55rem, .7vw, .62rem);
+}
+
+.homeViewport .metaRow strong,
+.authViewport .metaRow strong {
+  font-size: clamp(.72rem, .95vw, .85rem);
+}
+
+.homeViewport .deviceFieldset,
+.authViewport .deviceFieldset {
+  margin-top: clamp(.55rem, 1.3vh, .75rem);
+}
+
+.homeViewport .chips,
+.authViewport .chips {
+  gap: .375rem;
+  margin-top: .4rem;
+}
+
+.homeViewport .chip span,
+.authViewport .chip span {
+  min-height: 2rem;
+  padding: .375rem .75rem;
+  border-width: 1.5px;
+  font-size: .8rem;
+  line-height: 1;
+}
+
+.homeViewport .cutLine,
+.authViewport .cutLine {
+  gap: .6rem;
+  margin: clamp(.6rem, 1.4vh, .8rem) clamp(-1.25rem, -2vw, -1rem) 0;
+}
+
+.homeViewport .cutLine span,
+.authViewport .cutLine span {
+  width: .8rem;
+  height: .8rem;
+  margin-left: .75rem;
+}
+
+.homeViewport .tagFooter,
+.authViewport .tagFooter {
+  gap: clamp(.7rem, 2vw, 1.1rem);
+  padding-top: clamp(.55rem, 1.2vh, .75rem);
+}
+
+.homeViewport .barcode,
+.homeViewport .authBarcode,
+.authViewport .barcode,
+.authViewport .authBarcode {
+  width: clamp(5rem, 9vw, 6.5rem);
+  height: clamp(1.65rem, 3.5vh, 2rem);
+}
+
+.homeViewport .barcodeWrap small,
+.authViewport .barcodeWrap small {
+  margin-top: .2rem;
+  font-size: .62rem;
+}
+
+.homeViewport .createButton,
+.homeViewport .authSubmit,
+.authViewport .createButton,
+.authViewport .authSubmit {
+  min-width: 0;
+  min-height: 2.6rem;
+  padding: 0 clamp(.9rem, 2vw, 1.25rem);
+  border-radius: .65rem;
+  font-size: clamp(.78rem, 1vw, .9rem);
+}
+
+.homeViewport .createButton {
+  min-width: clamp(9rem, 18vw, 12rem);
+}
+
+.authViewport .authForm,
+.authViewport .authFieldsGrid {
+  gap: clamp(.5rem, 1.2vh, .7rem);
+}
+
+.authViewport .authActionsRow {
+  margin-top: 0;
+}
+
+.authViewport .authHelpLink,
+.authViewport .authSwitchLink,
+.authViewport .authLegal a {
+  font-size: .68rem;
+}
+
+.authViewport .authCutLine {
+  margin-top: .2rem;
+}
+
+.authViewport .authBottom {
+  gap: .6rem;
+  margin-top: clamp(.45rem, 1vh, .65rem);
+  font-size: .68rem;
+}
+
+.authViewport .authHomeLink {
+  min-height: 2rem;
+  margin-top: clamp(.45rem, 1vh, .7rem);
+  align-items: center;
+  font-size: .7rem;
+}
+
+.authViewport .authNotice {
+  margin-top: .4rem;
+  padding: .45rem .55rem;
+  font-size: .68rem;
+  line-height: 1.3;
+}
+
+/* Laptops baixos: reduz proporcionalmente sem criar rolagem. */
+@media (min-width: 769px) and (max-height: 700px) {
+  .homeViewport,
+  .authViewport {
+    padding: .4rem;
+  }
+
+  .homeViewport .shell,
+  .authViewport .shell {
+    height: calc(100dvh - .8rem);
+  }
+
+  .homeViewport .topbar,
+  .authViewport .topbar {
+    min-height: 2.6rem;
+    padding-block: .35rem;
+  }
+
+  .homeViewport .hero,
+  .authViewport .hero {
+    gap: 1.2rem;
+    padding-bottom: .55rem;
+  }
+
+  .homeViewport .brandSide :global(.horaria-hero-mark),
+  .authViewport .brandSide :global(.horaria-hero-mark) {
+    width: clamp(9rem, 18vw, 13.5rem);
+    max-height: 35vh;
+  }
+
+  .homeViewport .brandSide :global(.horaria-hero-wordmark),
+  .authViewport .brandSide :global(.horaria-hero-wordmark) {
+    font-size: clamp(2rem, 3.5vw, 2.7rem);
+  }
+
+  .homeViewport .orbit,
+  .authViewport .orbit {
+    width: min(28vw, 22rem);
+  }
+
+  .homeViewport .eyebrow,
+  .authViewport .eyebrow {
+    margin-top: .55rem;
+    font-size: .62rem;
+  }
+
+  .homeViewport .brandSide h1,
+  .authViewport .brandSide h1 {
+    margin-top: .35rem;
+    font-size: clamp(1.05rem, 1.7vw, 1.35rem);
+  }
+
+  .homeViewport .tagStage,
+  .authViewport .tagStage {
+    width: clamp(18rem, 39vw, 29rem);
+    padding-top: .8rem;
+  }
+
+  .homeViewport .tagCard,
+  .homeViewport .authTagCard,
+  .authViewport .tagCard,
+  .authViewport .authTagCard {
+    padding: 2rem .9rem .75rem;
+    transform: rotate(.7deg);
+  }
+
+  .homeViewport .hole,
+  .authViewport .hole {
+    top: .62rem;
+    width: .7rem;
+    height: .7rem;
+  }
+
+  .homeViewport .tagHeader,
+  .authViewport .tagHeader {
+    margin-bottom: .45rem;
+  }
+
+  .homeViewport .lineInput,
+  .homeViewport .authInput,
+  .authViewport .lineInput,
+  .authViewport .authInput {
+    min-height: 2rem;
+    height: 2rem;
+  }
+
+  .homeViewport .deviceFieldset,
+  .authViewport .deviceFieldset {
+    margin-top: .45rem;
+  }
+
+  .homeViewport .chip span,
+  .authViewport .chip span {
+    min-height: 1.8rem;
+    padding: .3rem .65rem;
+    font-size: .72rem;
+  }
+
+  .homeViewport .cutLine,
+  .authViewport .cutLine {
+    margin-top: .45rem;
+  }
+
+  .homeViewport .tagFooter,
+  .authViewport .tagFooter {
+    padding-top: .45rem;
+  }
+
+  .homeViewport .createButton,
+  .homeViewport .authSubmit,
+  .authViewport .createButton,
+  .authViewport .authSubmit {
+    min-height: 2.25rem;
+  }
+}
+
+/* Mobile: logo pequeno no topo e etiqueta inteira abaixo, ainda sem scroll. */
+@media (max-width: 768px) {
+  .homeViewport,
+  .authViewport {
+    padding: 0;
+    background: #203fb4;
+  }
+
+  .homeViewport .shell,
+  .authViewport .shell {
+    height: 100dvh;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+  }
+
+  .homeViewport .topbar,
+  .authViewport .topbar {
+    min-height: 2.7rem;
+    padding: .35rem .75rem .2rem;
+    gap: .5rem;
+    font-size: .68rem;
+  }
+
+  .homeViewport .loginButton,
+  .authViewport .loginButton {
+    min-width: 5.6rem;
+    min-height: 2.2rem;
+    padding-inline: .8rem;
+    border-radius: .6rem;
+    font-size: .75rem;
+  }
+
+  .homeViewport .hero,
+  .authViewport .hero {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: minmax(4.8rem, 16vh) minmax(0, 1fr);
+    gap: .3rem;
+    align-content: stretch;
+    padding: .15rem .6rem .55rem;
+  }
+
+  .homeViewport .brandSide,
+  .authViewport .brandSide {
+    width: min(100%, 32rem);
+    height: auto;
+    min-height: 0;
+    justify-self: center;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+  }
+
+  .homeViewport .brandSide :global(.horaria-hero-brand),
+  .authViewport .brandSide :global(.horaria-hero-brand) {
+    max-height: 18vh;
+    flex-direction: row;
+    align-items: center;
+    gap: .45rem;
+  }
+
+  .homeViewport .brandSide :global(.horaria-hero-mark),
+  .authViewport .brandSide :global(.horaria-hero-mark) {
+    width: auto;
+    height: min(8vh, 3.1rem);
+    max-height: 8vh;
+  }
+
+  .homeViewport .brandSide :global(.horaria-hero-wordmark),
+  .authViewport .brandSide :global(.horaria-hero-wordmark) {
+    margin: 0;
+    font-size: clamp(1.6rem, 9vw, 2.15rem);
+  }
+
+  .homeViewport .orbit,
+  .authViewport .orbit {
+    left: 50%;
+    top: 50%;
+    width: min(42vw, 8.5rem);
+    transform: translate(-50%, -50%);
+  }
+
+  .homeViewport .eyebrow,
+  .authViewport .eyebrow {
+    margin-top: .25rem;
+    font-size: .52rem;
+    letter-spacing: .08em;
+  }
+
+  .homeViewport .brandSide h1,
+  .authViewport .brandSide h1 {
+    max-width: 21rem;
+    margin-top: .15rem;
+    font-size: clamp(.72rem, 3.2vw, .9rem);
+    line-height: 1.05;
+  }
+
+  .homeViewport .brandSide h1 br,
+  .authViewport .brandSide h1 br {
+    display: none;
+  }
+
+  .authViewport .authHomeLink {
+    min-height: 0;
+    margin-top: .15rem;
+    font-size: .58rem;
+  }
+
+  .homeViewport .tagStage,
+  .authViewport .tagStage {
+    width: min(100%, 27rem);
+    height: 100%;
+    max-height: 100%;
+    padding-top: .3rem;
+    align-self: stretch;
+  }
+
+  .homeViewport .string,
+  .authViewport .string {
+    top: -.45rem;
+    width: 2.8rem;
+    height: 1.8rem;
+  }
+
+  .homeViewport .tagCard,
+  .homeViewport .authTagCard,
+  .authViewport .tagCard,
+  .authViewport .authTagCard {
+    max-height: 100%;
+    padding: 1.8rem .75rem .65rem;
+    transform: rotate(.5deg);
+  }
+
+  .homeViewport .hole,
+  .authViewport .hole {
+    top: .5rem;
+    width: .65rem;
+    height: .65rem;
+  }
+
+  .homeViewport .tagHeader,
+  .authViewport .tagHeader {
+    margin-bottom: .4rem;
+  }
+
+  .homeViewport .tagHeader strong,
+  .authViewport .tagHeader strong {
+    font-size: .92rem;
+  }
+
+  .homeViewport .tagHeader span,
+  .authViewport .tagHeader span,
+  .homeViewport .fieldLabel,
+  .homeViewport .deviceFieldset legend,
+  .homeViewport .authLabel,
+  .authViewport .fieldLabel,
+  .authViewport .deviceFieldset legend,
+  .authViewport .authLabel {
+    font-size: .54rem;
+  }
+
+  .homeViewport .lineInput,
+  .homeViewport .authInput,
+  .authViewport .lineInput,
+  .authViewport .authInput {
+    min-height: 2rem;
+    height: 2rem;
+    font-size: .78rem;
+  }
+
+  .homeViewport .error,
+  .authViewport .error {
+    min-height: .65rem;
+    font-size: .56rem;
+  }
+
+  .homeViewport .metaRow,
+  .authViewport .metaRow {
+    margin-top: .35rem;
+    gap: 1.1rem;
+  }
+
+  .homeViewport .metaRow span,
+  .authViewport .metaRow span {
+    font-size: .5rem;
+  }
+
+  .homeViewport .metaRow strong,
+  .authViewport .metaRow strong {
+    font-size: .68rem;
+  }
+
+  .homeViewport .deviceFieldset,
+  .authViewport .deviceFieldset {
+    margin-top: .4rem;
+  }
+
+  .homeViewport .chips,
+  .authViewport .chips {
+    gap: .35rem;
+    margin-top: .3rem;
+  }
+
+  .homeViewport .chip span,
+  .authViewport .chip span {
+    min-height: 1.75rem;
+    padding: .3rem .65rem;
+    font-size: .7rem;
+  }
+
+  .homeViewport .cutLine,
+  .authViewport .cutLine {
+    margin: .4rem -.75rem 0;
+  }
+
+  .homeViewport .tagFooter,
+  .authViewport .tagFooter {
+    gap: .5rem;
+    padding-top: .4rem;
+  }
+
+  .homeViewport .barcode,
+  .homeViewport .authBarcode,
+  .authViewport .barcode,
+  .authViewport .authBarcode {
+    width: 4.4rem;
+    height: 1.45rem;
+  }
+
+  .homeViewport .barcodeWrap small,
+  .authViewport .barcodeWrap small {
+    font-size: .52rem;
+  }
+
+  .homeViewport .createButton,
+  .homeViewport .authSubmit,
+  .authViewport .createButton,
+  .authViewport .authSubmit {
+    min-height: 2.2rem;
+    padding-inline: .75rem;
+    font-size: .72rem;
+  }
+
+  .homeViewport .createButton {
+    flex: 1;
+  }
+
+  .authViewport .authFieldsGrid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: .4rem;
+  }
+
+  .authViewport .authFieldFull {
+    grid-column: auto;
+  }
+
+  .authViewport .authForm {
+    gap: .4rem;
+  }
+
+  .authViewport .authActionsRow,
+  .authViewport .authBottom {
+    flex-direction: row;
+    align-items: center;
+  }
+
+  .authViewport .authBottom {
+    margin-top: .35rem;
+  }
+
+  .authViewport .authCaptcha {
+    min-height: 0;
+    max-height: 3.6rem;
+    overflow: hidden;
+    transform: scale(.82);
+    transform-origin: left top;
+  }
+}
+
+/* Garantia explícita para 360x640 e aparelhos compactos. */
+@media (max-width: 400px) and (max-height: 680px) {
+  .homeViewport .topbar,
+  .authViewport .topbar {
+    min-height: 2.45rem;
+    padding-top: .25rem;
+  }
+
+  .homeViewport .hero,
+  .authViewport .hero {
+    grid-template-rows: minmax(4.2rem, 14vh) minmax(0, 1fr);
+    padding-bottom: .35rem;
+  }
+
+  .homeViewport .brandSide :global(.horaria-hero-mark),
+  .authViewport .brandSide :global(.horaria-hero-mark) {
+    height: min(6.8vh, 2.65rem);
+  }
+
+  .homeViewport .brandSide :global(.horaria-hero-wordmark),
+  .authViewport .brandSide :global(.horaria-hero-wordmark) {
+    font-size: clamp(1.4rem, 8vw, 1.8rem);
+  }
+
+  .homeViewport .eyebrow,
+  .authViewport .eyebrow {
+    font-size: .48rem;
+  }
+
+  .homeViewport .brandSide h1,
+  .authViewport .brandSide h1 {
+    font-size: .68rem;
+  }
+
+  .homeViewport .tagCard,
+  .homeViewport .authTagCard,
+  .authViewport .tagCard,
+  .authViewport .authTagCard {
+    padding: 1.55rem .65rem .5rem;
+  }
+
+  .homeViewport .lineInput,
+  .homeViewport .authInput,
+  .authViewport .lineInput,
+  .authViewport .authInput {
+    min-height: 1.85rem;
+    height: 1.85rem;
+  }
+
+  .homeViewport .chip span,
+  .authViewport .chip span {
+    min-height: 1.55rem;
+    padding: .25rem .55rem;
+    font-size: .66rem;
+  }
+
+  .homeViewport .cutLine,
+  .authViewport .cutLine {
+    margin-top: .3rem;
+  }
+
+  .homeViewport .tagFooter,
+  .authViewport .tagFooter {
+    padding-top: .3rem;
+  }
+
+  .homeViewport .createButton,
+  .homeViewport .authSubmit,
+  .authViewport .createButton,
+  .authViewport .authSubmit {
+    min-height: 2rem;
+  }
+}
+
+/* Cadastro mantém altura natural porque possui mais campos que o login. */
+.signupViewport {
+  min-height: 100dvh;
+}
+
