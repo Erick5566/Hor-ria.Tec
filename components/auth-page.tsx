@@ -299,6 +299,7 @@ export default function AuthPage({ mode }: { mode: "login" | "signup" }) {
                       required
                       minLength={2}
                       maxLength={100}
+                      defaultValue={search.get("empresa") ?? ""}
                       placeholder="Ex.: João Cell Assistência"
                     />
                   </label>
