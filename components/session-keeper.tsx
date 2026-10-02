@@ -1,11 +1,12 @@
 "use client";
 
 import { useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { supabase, syncServerSession } from "@/lib/supabase";
 
 export default function SessionKeeper() {
   const router = useRouter();
+  const path = usePathname();
 
   useEffect(() => {
     const client = supabase;
@@ -43,7 +44,12 @@ export default function SessionKeeper() {
 
           if (event === "SIGNED_OUT") {
             await syncServerSession(null).catch(() => undefined);
-            if (active) {
+            const protectedRoute =
+              path.startsWith("/painel") ||
+              path.startsWith("/admin") ||
+              path.startsWith("/seguranca");
+
+            if (active && protectedRoute) {
               router.replace("/entrar");
               router.refresh();
             }
@@ -58,7 +64,7 @@ export default function SessionKeeper() {
       active = false;
       data.subscription.unsubscribe();
     };
-  }, [router]);
+  }, [path, router]);
 
   return null;
 }
