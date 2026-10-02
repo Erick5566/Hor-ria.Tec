@@ -10,6 +10,7 @@ import {
   stamp,
 } from "@/lib/assistencia";
 import { Heading, Badge, ErrorBox, Empty } from "@/components/ui";
+import { useWorkspace } from "@/components/workspace";
 
 function TabLoading() {
   return (
@@ -87,6 +88,15 @@ export default function OrderDetail({
   params: Promise<{ id: string }>;
 }) {
   const { id } = use(params);
+  const { access } = useWorkspace();
+  const role = access.company?.role || "";
+  const canUseTechnical = ["OWNER", "ADMIN", "TECHNICIAN"].includes(role);
+  const canViewFinance = ["OWNER", "ADMIN"].includes(role);
+  const visibleTabs = tabs.filter(
+    (item) =>
+      (item !== "Diagnóstico" || canUseTechnical) &&
+      (item !== "Financeiro" || canViewFinance),
+  );
   const [data, setData] = useState<OrderDetailData | null>(null);
   const [tab, setTab] = useState<Tab>("Resumo");
   const [error, setError] = useState("");
@@ -357,7 +367,7 @@ export default function OrderDetail({
             </section>
 
             <div className="tabs">
-              {tabs.map((item) => (
+              {visibleTabs.map((item) => (
                 <button
                   key={item}
                   className={tab === item ? "active" : ""}
@@ -394,7 +404,7 @@ export default function OrderDetail({
               </div>
             )}
 
-            {tab === "Financeiro" && <Finance ordemId={id} />}
+            {canViewFinance && tab === "Financeiro" && <Finance ordemId={id} />}
             {tab === "Garantia" && <Warranty ordemId={id} />}
             {tab === "Histórico" && <History ordemId={id} />}
             {tab === "Orçamento" && (
@@ -405,7 +415,7 @@ export default function OrderDetail({
                 onChanged={() => void load(true)}
               />
             )}
-            {tab === "Diagnóstico" && (
+            {canUseTechnical && tab === "Diagnóstico" && (
               <Diagnosis ordemId={id} empresaId={order.empresa_id} />
             )}
             {tab === "Fotos" && (
