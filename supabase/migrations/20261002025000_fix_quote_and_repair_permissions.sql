@@ -294,6 +294,10 @@ begin
   for update;
 
   if coalesce(auth.jwt()->>'role', '') = 'service_role' then
+    if not private.public_company_available(q.empresa_id) then
+      raise exception 'Atendimento indisponível';
+    end if;
+
     select exists(
       select 1
       from public.clientes c
@@ -373,6 +377,10 @@ begin
   from public.ordens_servico
   where id=q.ordem_id and empresa_id=q.empresa_id
   for update;
+
+  if not private.public_company_available(q.empresa_id) then
+    raise exception 'Atendimento indisponível';
+  end if;
 
   if o.token_acompanhamento is distinct from p_token then
     raise exception 'Orçamento não encontrado';
