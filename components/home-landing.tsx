@@ -87,7 +87,7 @@ export default function HomeLanding() {
   }
 
   return (
-    <main className={`${styles.page} ${styles.homeViewport}`}>
+    <main data-entry-viewport className={`${styles.page} ${styles.homeViewport}`}>
       <div className={styles.shell}>
         <header className={styles.topbar}>
           <span>Já tem conta?</span>
@@ -121,22 +121,24 @@ export default function HomeLanding() {
                 <span>ORDEM DE SERVIÇO</span>
               </div>
 
-              <label className={styles.fieldLabel} htmlFor="home-company">
-                ASSISTÊNCIA
-              </label>
-              <input
-                id="home-company"
-                className={styles.lineInput}
-                value={company}
-                onChange={(event) => {
-                  setCompany(event.target.value);
-                  setError("");
-                }}
-                placeholder="Nome da sua assistência"
-                autoComplete="organization"
-                maxLength={100}
-              />
-              <p className={styles.error} role="alert">{error}</p>
+              <div className={styles.companyField}>
+                <label className={styles.fieldLabel} htmlFor="home-company">
+                  ASSISTÊNCIA
+                </label>
+                <input
+                  id="home-company"
+                  className={styles.lineInput}
+                  value={company}
+                  onChange={(event) => {
+                    setCompany(event.target.value);
+                    setError("");
+                  }}
+                  placeholder="Nome da sua assistência"
+                  autoComplete="organization"
+                  maxLength={100}
+                />
+                <p className={styles.error} role="alert">{error}</p>
+              </div>
 
               <div className={styles.metaRow}>
                 <div>
@@ -178,7 +180,7 @@ export default function HomeLanding() {
 
               <div className={styles.tagFooter}>
                 <div className={styles.barcodeWrap}>
-                  <svg className={styles.barcode} viewBox="0 0 96 30" aria-hidden="true">
+                  <svg className={styles.barcode} viewBox="0 0 96 30" preserveAspectRatio="none" aria-hidden="true">
                     {bars.map((bar, index) => (
                       <rect
                         key={`${bar.x}-${index}`}
