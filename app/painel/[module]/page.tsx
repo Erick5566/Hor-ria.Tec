@@ -46,10 +46,29 @@ export default async function Page({
   const { module } = await params;
   if (!betaModules.includes(module as (typeof betaModules)[number])) notFound();
 
-  if (managerOnlyModules.has(module)) {
+  if (
+    managerOnlyModules.has(module) ||
+    module === "estoque"
+  ) {
     const access = await getServerAccess();
-    const role = access?.context.company?.role || "";
-    if (!["OWNER", "ADMIN"].includes(role)) redirect("/painel");
+    const company = access?.context.company;
+    const role = company?.role || "";
+
+    if (!company) redirect("/painel");
+    if (managerOnlyModules.has(module) && !["OWNER", "ADMIN"].includes(role))
+      redirect("/painel");
+
+    if (
+      module === "estoque" &&
+      (!company.featureFlags.stockEnabled || role === "ATTENDANT")
+    )
+      redirect("/painel");
+
+    if (
+      ["financeiro", "relatorios"].includes(module) &&
+      !company.featureFlags.financialEnabled
+    )
+      redirect("/painel");
   }
 
   const query = await searchParams;
