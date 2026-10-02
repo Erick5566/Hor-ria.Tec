@@ -3766,3 +3766,143 @@
   }
 }
 /* === FIM AUTH VISUAL IGUAL À PRIMEIRA PÁGINA === */
+
+/* === SIGNUP LEGIBILITY + CAPTCHA FIX === */
+@media (min-width: 769px) {
+  .signupViewport .tagStage {
+    flex-basis: calc(660 * var(--s));
+    width: calc(660 * var(--s));
+    height: calc(652 * var(--s));
+  }
+
+  .signupViewport .authTagCard {
+    width: calc(628 * var(--s));
+    height: calc(628 * var(--s));
+    max-height: none;
+    padding: calc(42 * var(--s)) calc(34 * var(--s)) calc(26 * var(--s));
+    gap: calc(8 * var(--s));
+  }
+
+  .signupViewport .tagHeader strong {
+    font-size: calc(31 * var(--s));
+  }
+
+  .signupViewport .tagHeader span,
+  .signupViewport .authLabel {
+    color: #6f76a3;
+    font-size: calc(16 * var(--s));
+    letter-spacing: .12em;
+  }
+
+  .signupViewport .authFieldsGrid {
+    gap: calc(10 * var(--s)) calc(18 * var(--s));
+  }
+
+  .signupViewport .authInput {
+    height: calc(42 * var(--s));
+    min-height: 0;
+    padding: calc(4 * var(--s)) 0 calc(8 * var(--s));
+    color: #161821;
+    border-bottom: calc(2 * var(--s)) solid #161821;
+    font-size: calc(18 * var(--s));
+  }
+
+  .signupViewport .authInput::placeholder {
+    color: #8a8ca5;
+    opacity: 1;
+  }
+
+  .signupViewport .authHint {
+    margin-top: calc(2 * var(--s));
+    color: #5f647f;
+    font-size: calc(10.5 * var(--s));
+    line-height: 1.28;
+  }
+
+  .signupViewport .authLegal {
+    gap: calc(7 * var(--s));
+    color: #4e546d;
+    font-size: calc(10.5 * var(--s));
+    line-height: 1.3;
+  }
+
+  .signupViewport .authLegal input {
+    width: calc(14 * var(--s));
+    min-height: calc(14 * var(--s));
+    margin-top: calc(1 * var(--s));
+  }
+
+  .signupViewport .authCaptcha {
+    display: flex;
+    align-items: flex-start;
+    justify-content: flex-start;
+    width: 100%;
+    min-height: calc(78 * var(--s));
+    max-height: none;
+    overflow: visible;
+    transform: none;
+    transform-origin: left top;
+  }
+
+  .signupViewport .authCaptcha > div,
+  .signupViewport .authCaptcha iframe {
+    max-width: 100%;
+    overflow: visible;
+  }
+
+  .signupViewport .authBottom {
+    margin-top: calc(6 * var(--s));
+    font-size: calc(11 * var(--s));
+  }
+
+  .signupViewport .authSubmit {
+    width: calc(215 * var(--s));
+    height: calc(58 * var(--s));
+    font-size: calc(21 * var(--s));
+  }
+}
+
+@media (max-width: 768px) {
+  .signupViewport .authTagCard {
+    padding: 1.8rem .8rem .75rem;
+  }
+
+  .signupViewport .authInput {
+    min-height: 1.9rem;
+    height: 1.9rem;
+    font-size: .76rem;
+  }
+
+  .signupViewport .authLabel,
+  .signupViewport .tagHeader span {
+    font-size: .56rem;
+  }
+
+  .signupViewport .authHint {
+    font-size: .54rem;
+    line-height: 1.15;
+  }
+
+  .signupViewport .authLegal {
+    font-size: .56rem;
+    line-height: 1.18;
+  }
+
+  .signupViewport .authCaptcha {
+    display: flex;
+    align-items: flex-start;
+    justify-content: flex-start;
+    min-height: 76px;
+    max-height: none;
+    overflow: visible;
+    transform: scale(.88);
+    transform-origin: left top;
+  }
+
+  .signupViewport .authCaptcha > div,
+  .signupViewport .authCaptcha iframe {
+    max-width: 100%;
+    overflow: visible;
+  }
+}
+/* === FIM SIGNUP LEGIBILITY + CAPTCHA FIX === */
