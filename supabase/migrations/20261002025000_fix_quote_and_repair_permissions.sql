@@ -458,7 +458,6 @@ begin
         e.marca as equipamento_marca,
         e.modelo as equipamento_modelo,
         q.status as orcamento_status,
-        q.total as orcamento_total,
         q.criado_em as orcamento_criado_em,
         q.respondido_em as orcamento_respondido_em,
         h.criado_em as ultimo_contato_cliente_em
@@ -470,7 +469,6 @@ begin
       left join lateral (
         select
           oq.status,
-          oq.total,
           oq.criado_em,
           oq.respondido_em
         from public.orcamentos oq
