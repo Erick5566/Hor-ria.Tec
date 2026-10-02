@@ -13,11 +13,13 @@ test("home: preserva o design da etiqueta e os fluxos reais", async () => {
   assert.match(page, /getServerAccess/);
   assert.match(page, /HomeLanding/);
   assert.match(landing, /Todo aparelho que entra/);
-  assert.match(landing, /APARELHOS QUE VOCÊ CONSERTA/);
+  assert.match(landing, /O QUE VOCÊ CONSERTA?/);
   assert.match(landing, /href="\/entrar"/);
   assert.match(landing, /\/cadastro\?empresa=/);
   assert.match(css, /#1236a8/);
   assert.match(css, /#f4f1e8/);
   assert.match(css, /clip-path/);
+  assert.match(auth, /styles\.authTagCard/);
+  assert.match(auth, /HorariaHeroBrand/);
   assert.match(auth, /defaultValue=\{search\.get\("empresa"\) \?\? ""\}/);
 });
