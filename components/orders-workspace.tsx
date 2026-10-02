@@ -18,7 +18,10 @@ export default function OrdersWorkspace({
   query?: string;
 }) {
   const { access } = useWorkspace();
-  const manager = ["OWNER", "ADMIN"].includes(access.company?.role || "");
+  const role = access.company?.role || "";
+  const manager = ["OWNER", "ADMIN"].includes(role);
+  const technicalOperations = ["OWNER", "ADMIN", "TECHNICIAN"].includes(role);
+  const effectiveView = technicalOperations ? view : "lista";
   const search = query ? `&q=${encodeURIComponent(query)}` : "";
   return (
     <section className="module consolidated-orders">
@@ -35,17 +38,21 @@ export default function OrdersWorkspace({
             label: "Lista",
             href: `/painel/ordens?visao=lista${search}`,
             icon: "orders",
-            active: view === "lista",
+            active: effectiveView === "lista",
           },
-          {
-            label: "Bancada",
-            href: `/painel/ordens?visao=bancada${search}`,
-            icon: "central",
-            active: view === "bancada",
-          },
+          ...(technicalOperations
+            ? [
+                {
+                  label: "Bancada",
+                  href: `/painel/ordens?visao=bancada${search}`,
+                  icon: "central" as const,
+                  active: effectiveView === "bancada",
+                },
+              ]
+            : []),
         ]}
       />
-      {view === "lista" ? (
+      {effectiveView === "lista" ? (
         <OrdersList />
       ) : (
         <RepairBench key={query} compact initialQuery={query} />
