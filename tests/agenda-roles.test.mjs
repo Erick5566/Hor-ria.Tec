@@ -14,6 +14,15 @@ test("agenda: administrador pode bloquear horário e atendente não", async () =
         ('${owner}'),('${admin}'),('${attendant}')`,
     );
 
+    await db.query(
+      `update perfis set nome='Administrador',email='admin-agenda@horaria.test' where usuario_id=$1`,
+      [admin],
+    );
+    await db.query(
+      `update perfis set nome='Atendente',email='atendente-agenda@horaria.test' where usuario_id=$1`,
+      [attendant],
+    );
+
     const asUser = (id) =>
       db.exec(
         `reset role;set request.jwt.claim.sub='${id}';set request.jwt.claims='{"aal":"aal1"}';set role authenticated`,
