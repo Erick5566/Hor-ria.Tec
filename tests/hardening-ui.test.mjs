@@ -1,0 +1,37 @@
+import { test } from "node:test";
+import assert from "node:assert/strict";
+import { readFile } from "node:fs/promises";
+
+test("UI: contratos de autenticação, financeiro e papéis permanecem alinhados", async () => {
+  const [
+    authPage,
+    recovery,
+    adminModule,
+    finance,
+    orderDetail,
+    agenda,
+    modulePage,
+  ] = await Promise.all([
+    readFile("components/auth-page.tsx", "utf8"),
+    readFile("components/password-recovery.tsx", "utf8"),
+    readFile("components/admin-module.tsx", "utf8"),
+    readFile("components/dashboard-finance.tsx", "utf8"),
+    readFile("app/painel/ordens/[id]/page.tsx", "utf8"),
+    readFile("app/painel/agenda/page.tsx", "utf8"),
+    readFile("app/painel/[module]/page.tsx", "utf8"),
+  ]);
+
+  for (const source of [authPage, recovery, adminModule]) {
+    assert.doesNotMatch(source, /minLength=\{5\}/);
+  }
+
+  for (const days of [7, 15, 30, 60, 90]) {
+    assert.match(finance, new RegExp(`<option value=\\{${days}\\}>`));
+  }
+  assert.doesNotMatch(finance, /<option value=\{14\}>/);
+
+  assert.match(orderDetail, /canUseTechnical/);
+  assert.match(orderDetail, /canViewFinance/);
+  assert.match(agenda, /manager && blocking/);
+  assert.match(modulePage, /stockOperationalModules/);
+});
