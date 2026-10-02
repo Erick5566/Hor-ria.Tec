@@ -281,6 +281,7 @@ as $function$
 declare
   q public.orcamentos;
   o public.ordens_servico;
+  v_public_credentials_valid boolean := false;
 begin
   select * into strict q
   from public.orcamentos
@@ -292,15 +293,19 @@ begin
   where id=q.ordem_id and empresa_id=q.empresa_id
   for update;
 
+  if coalesce(auth.jwt()->>'role', '') = 'service_role' then
+    select exists(
+      select 1
+      from public.clientes c
+      where c.id=o.cliente_id
+        and c.empresa_id=o.empresa_id
+        and c.whatsapp=regexp_replace(coalesce(p_telefone,''),'\D','','g')
+        and o.codigo_publico=upper(coalesce(p_codigo,''))
+    ) into v_public_credentials_valid;
+  end if;
+
   if not private.can_manage_company(q.empresa_id)
-     and not exists(
-       select 1
-       from public.clientes c
-       where c.id=o.cliente_id
-         and c.empresa_id=o.empresa_id
-         and c.whatsapp=regexp_replace(coalesce(p_telefone,''),'\D','','g')
-         and o.codigo_publico=upper(coalesce(p_codigo,''))
-     ) then
+     and not v_public_credentials_valid then
     raise exception 'Orçamento não encontrado';
   end if;
 
