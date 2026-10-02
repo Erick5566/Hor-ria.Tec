@@ -2899,3 +2899,34 @@
   }
 }
 /* === FIM HORARIA LANDING FINAL === */
+
+/* === AUTH CARD ANGLE 30DEG === */
+/* Login e cadastro: cartão de informações inclinado em 30 graus. */
+.authViewport .authTagCard {
+  transform: rotate(30deg);
+  transform-origin: 50% 50%;
+}
+
+.authViewport .authTagCard:focus-within {
+  transform: rotate(30deg);
+}
+
+@media (min-width: 769px) {
+  .authViewport .tagStage {
+    transform: scale(.82);
+    transform-origin: 50% 50%;
+  }
+}
+
+@media (max-width: 768px) {
+  .authViewport .tagStage {
+    transform: scale(.72);
+    transform-origin: 50% 50%;
+  }
+
+  .authViewport .authTagCard,
+  .authViewport .authTagCard:focus-within {
+    transform: rotate(30deg);
+  }
+}
+/* === FIM AUTH CARD ANGLE 30DEG === */
