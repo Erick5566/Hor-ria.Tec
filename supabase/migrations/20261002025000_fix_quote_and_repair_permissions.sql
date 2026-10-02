@@ -537,6 +537,7 @@ declare
   m public.mesas_reparo;
   prioridade_final text;
   autor_nome text;
+  v_role text;
 begin
   select * into strict o
   from public.ordens_servico
@@ -548,6 +549,32 @@ begin
     array['OWNER','ADMIN','TECHNICIAN']
   ) or not private.company_operational(o.empresa_id) then
     raise exception 'Ordem não autorizada';
+  end if;
+
+  select m.role
+    into v_role
+  from public.empresa_membros m
+  where m.empresa_id=o.empresa_id
+    and m.usuario_id=auth.uid()
+    and m.status='ACTIVE'
+  limit 1;
+
+  if v_role='TECHNICIAN'
+     and p_status is distinct from o.status
+     and (
+       p_status in (
+         'aguardando_orcamento',
+         'orcamento_enviado',
+         'aguardando_aprovacao',
+         'orcamento_aprovado'
+       )
+       or o.status in (
+         'aguardando_orcamento',
+         'orcamento_enviado',
+         'aguardando_aprovacao'
+       )
+     ) then
+    raise exception 'Somente gestores podem controlar as etapas de orçamento e aprovação';
   end if;
 
   if p_status not in (
