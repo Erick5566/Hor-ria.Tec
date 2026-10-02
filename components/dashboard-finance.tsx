@@ -134,7 +134,7 @@ export default function DashboardFinance({ onNewLaunch }: { onNewLaunch?: () => 
   const [orderDetails, setOrderDetails] = useState<Record<string, OrderDetail>>(
     {},
   );
-  const [period, setPeriod] = useState(14);
+  const [period, setPeriod] = useState(30);
   const [category, setCategory] = useState<FinanceCategory>("all");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -429,8 +429,10 @@ export default function DashboardFinance({ onNewLaunch }: { onNewLaunch?: () => 
               aria-label="Período financeiro"
             >
               <option value={7}>Últimos 7 dias</option>
-              <option value={14}>Últimos 14 dias</option>
+              <option value={15}>Últimos 15 dias</option>
               <option value={30}>Últimos 30 dias</option>
+              <option value={60}>Últimos 60 dias</option>
+              <option value={90}>Últimos 90 dias</option>
             </select>
           </label>
 

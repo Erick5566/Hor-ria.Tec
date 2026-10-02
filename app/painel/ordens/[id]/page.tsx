@@ -10,6 +10,7 @@ import {
   stamp,
 } from "@/lib/assistencia";
 import { Heading, Badge, ErrorBox, Empty } from "@/components/ui";
+import { useWorkspace } from "@/components/workspace";
 
 function TabLoading() {
   return (
@@ -87,6 +88,28 @@ export default function OrderDetail({
   params: Promise<{ id: string }>;
 }) {
   const { id } = use(params);
+  const { access } = useWorkspace();
+  const role = access.company?.role || "";
+  const canUseTechnical = ["OWNER", "ADMIN", "TECHNICIAN"].includes(role);
+  const canViewFinance = ["OWNER", "ADMIN"].includes(role);
+  const managerControlledStatuses = new Set<Status>([
+    "aguardando_orcamento",
+    "orcamento_enviado",
+    "aguardando_aprovacao",
+    "orcamento_aprovado",
+  ]);
+  const quoteWaitingStatuses = new Set<Status>([
+    "aguardando_orcamento",
+    "orcamento_enviado",
+    "aguardando_aprovacao",
+  ]);
+  const visibleTabs = tabs.filter(
+    (item) =>
+      (item !== "Diagnóstico" || canUseTechnical) &&
+      (item !== "Orçamento" || canViewFinance) &&
+      (item !== "Financeiro" || canViewFinance) &&
+      (item !== "Garantia" || canUseTechnical),
+  );
   const [data, setData] = useState<OrderDetailData | null>(null);
   const [tab, setTab] = useState<Tab>("Resumo");
   const [error, setError] = useState("");
@@ -177,20 +200,32 @@ export default function OrderDetail({
           <>
             <div className="toolbar">
               <Badge status={order.status} />
-              <select
-                aria-label="Alterar status da ordem"
-                disabled={busy}
-                value={order.status}
-                onChange={(event) =>
-                  void updateStatus(event.target.value as Status)
-                }
-              >
-                {Object.entries(statuses).map(([value, name]) => (
-                  <option key={value} value={value}>
-                    {name}
-                  </option>
-                ))}
-              </select>
+              {canUseTechnical && (
+                <select
+                  aria-label="Alterar status da ordem"
+                  disabled={
+                    busy ||
+                    (!canViewFinance && quoteWaitingStatuses.has(order.status))
+                  }
+                  value={order.status}
+                  onChange={(event) =>
+                    void updateStatus(event.target.value as Status)
+                  }
+                >
+                  {Object.entries(statuses)
+                    .filter(
+                      ([value]) =>
+                        canViewFinance ||
+                        value === order.status ||
+                        !managerControlledStatuses.has(value as Status),
+                    )
+                    .map(([value, name]) => (
+                      <option key={value} value={value}>
+                        {name}
+                      </option>
+                    ))}
+                </select>
+              )}
             </div>
 
             <section
@@ -230,7 +265,7 @@ export default function OrderDetail({
                 className="inline-actions order-next-action-buttons"
                 style={{ justifyContent: "flex-start", width: "100%" }}
               >
-                {["novo", "recebido"].includes(order.status) && (
+                {canUseTechnical && ["novo", "recebido"].includes(order.status) && (
                   <button
                     className="primary"
                     style={{ width: "100%" }}
@@ -241,7 +276,7 @@ export default function OrderDetail({
                   </button>
                 )}
 
-                {order.status === "em_diagnostico" && (
+                {canViewFinance && order.status === "em_diagnostico" && (
                   <button
                     className="primary"
                     disabled={busy}
@@ -251,13 +286,13 @@ export default function OrderDetail({
                   </button>
                 )}
 
-                {order.status === "aguardando_orcamento" && (
+                {canViewFinance && order.status === "aguardando_orcamento" && (
                   <button className="primary" onClick={() => setTab("Orçamento")}>
                     Abrir orçamento
                   </button>
                 )}
 
-                {["orcamento_enviado", "aguardando_aprovacao"].includes(order.status) && (
+                {canViewFinance && ["orcamento_enviado", "aguardando_aprovacao"].includes(order.status) && (
                   <>
                     <button className="outline" onClick={() => setTab("Orçamento")}>
                       Ver orçamento
@@ -273,7 +308,7 @@ export default function OrderDetail({
                   </>
                 )}
 
-                {order.status === "orcamento_aprovado" && (
+                {canUseTechnical && order.status === "orcamento_aprovado" && (
                   <button
                     className="primary"
                     disabled={busy}
@@ -283,7 +318,7 @@ export default function OrderDetail({
                   </button>
                 )}
 
-                {order.status === "aguardando_peca" && (
+                {canUseTechnical && order.status === "aguardando_peca" && (
                   <button
                     className="primary"
                     disabled={busy}
@@ -293,7 +328,7 @@ export default function OrderDetail({
                   </button>
                 )}
 
-                {order.status === "em_reparo" && (
+                {canUseTechnical && order.status === "em_reparo" && (
                   <button
                     className="primary"
                     disabled={busy}
@@ -303,7 +338,7 @@ export default function OrderDetail({
                   </button>
                 )}
 
-                {order.status === "em_testes" && (
+                {canUseTechnical && order.status === "em_testes" && (
                   <button
                     className="primary"
                     disabled={busy}
@@ -313,7 +348,7 @@ export default function OrderDetail({
                   </button>
                 )}
 
-                {order.status === "pronto_retirada" && (
+                {canUseTechnical && order.status === "pronto_retirada" && (
                   <>
                     {readyWhatsapp && (
                       <a
@@ -345,19 +380,21 @@ export default function OrderDetail({
                     >
                       Ver acompanhamento final ↗
                     </a>
-                    <Link
-                      className="primary"
-                      href={`/painel/notas-fiscais?ordem=${id}`}
-                    >
-                      Emitir NFS-e
-                    </Link>
+                    {canViewFinance && (
+                      <Link
+                        className="primary"
+                        href={`/painel/notas-fiscais?ordem=${id}`}
+                      >
+                        Emitir NFS-e
+                      </Link>
+                    )}
                   </>
                 )}
               </div>
             </section>
 
             <div className="tabs">
-              {tabs.map((item) => (
+              {visibleTabs.map((item) => (
                 <button
                   key={item}
                   className={tab === item ? "active" : ""}
@@ -394,10 +431,12 @@ export default function OrderDetail({
               </div>
             )}
 
-            {tab === "Financeiro" && <Finance ordemId={id} />}
-            {tab === "Garantia" && <Warranty ordemId={id} />}
+            {canViewFinance && tab === "Financeiro" && <Finance ordemId={id} />}
+            {canUseTechnical && tab === "Garantia" && (
+              <Warranty ordemId={id} />
+            )}
             {tab === "Histórico" && <History ordemId={id} />}
-            {tab === "Orçamento" && (
+            {canViewFinance && tab === "Orçamento" && (
               <Quote
                 ordemId={id}
                 trackingToken={order.token_acompanhamento}
@@ -405,7 +444,7 @@ export default function OrderDetail({
                 onChanged={() => void load(true)}
               />
             )}
-            {tab === "Diagnóstico" && (
+            {canUseTechnical && tab === "Diagnóstico" && (
               <Diagnosis ordemId={id} empresaId={order.empresa_id} />
             )}
             {tab === "Fotos" && (
@@ -421,6 +460,8 @@ export default function OrderDetail({
                 />
                 <OrderAdministration
                   order={order}
+                  canManageTechnical={canUseTechnical}
+                  canViewDeviceSecret={canUseTechnical}
                   onChanged={() => void load(true)}
                 />
                 <section className="panel order-summary-panel">

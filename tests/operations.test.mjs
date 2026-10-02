@@ -71,6 +71,11 @@ test("operação: estoque atômico, fotos obrigatórias e aprovação antes do r
         [oid],
       )
     ).rows[0].id;
+    assert.equal(
+      (await db.query("select status from orcamentos where id=$1", [qid])).rows[0].status,
+      "rascunho",
+    );
+    await db.query("select enviar_orcamento($1)", [qid]);
     await assert.rejects(
       db.query(`update ordens_servico set status='em_reparo' where id=$1`, [
         oid,

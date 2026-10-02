@@ -11,6 +11,9 @@ import {
   syncServerSession,
 } from "@/lib/supabase";
 import type { AccessContext } from "@/lib/access";
+import { turnstileSiteKey } from "@/lib/turnstile-config";
+import styles from "@/app/home.module.css";
+import HorariaHeroBrand from "@/components/horaria-hero-brand";
 
 type RegistrationStatus = {
   enabled: boolean;
@@ -73,8 +76,6 @@ export default function AuthPage({ mode }: { mode: "login" | "signup" }) {
     [registration, setRegistration] = useState<RegistrationStatus | null>(null),
     [captchaToken, setCaptchaToken] = useState(""),
     [captchaResetKey, setCaptchaResetKey] = useState(0);
-  const turnstileSiteKey =
-    process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY ?? "";
   useEffect(() => {
     publicDb
       ?.rpc("registration_status")
@@ -118,6 +119,13 @@ export default function AuthPage({ mode }: { mode: "login" | "signup" }) {
       return;
     }
 
+    if (signup && form.get("legal") !== "on") {
+      setNotice(
+        "Para criar a conta, confirme que leu os Termos de Uso e a Política de Privacidade.",
+      );
+      return;
+    }
+
     try {
       const credentials = {
         email: String(form.get("email")),
@@ -138,6 +146,7 @@ export default function AuthPage({ mode }: { mode: "login" | "signup" }) {
           "entrar",
           "cadastro",
           "privacidade",
+          "termos",
           "recuperar-senha",
           "redefinir-senha",
           "solicitacao-enviada",
@@ -166,6 +175,8 @@ export default function AuthPage({ mode }: { mode: "login" | "signup" }) {
                 responsible_name: String(form.get("responsavel")),
                 company_name: String(form.get("empresa")),
                 company_slug: String(form.get("slug")),
+                terms_accepted_at: new Date().toISOString(),
+                privacy_accepted_at: new Date().toISOString(),
               },
               ...(turnstileSiteKey ? { captchaToken } : {}),
             },
@@ -201,7 +212,9 @@ export default function AuthPage({ mode }: { mode: "login" | "signup" }) {
         );
       } else if (/captcha/i.test(message)) {
         setNotice(
-          "Não foi possível validar a verificação de segurança. Tente novamente.",
+          turnstileSiteKey
+            ? "Não foi possível validar a verificação de segurança. Tente novamente."
+            : "A verificação de segurança está ativa, mas não foi configurada neste ambiente. Atualize a configuração da aplicação e tente novamente.",
         );
       } else if (
         message.includes("vagas") ||
@@ -220,163 +233,238 @@ export default function AuthPage({ mode }: { mode: "login" | "signup" }) {
     }
   }
   return (
-    <main className="login-layout">
-      <section className="login-story">
-        <Brand />
-        <div>
-          <span className="eyebrow">SUA EMPRESA, SEU ESPAÇO</span>
-          <h1>
-            {signup ? (
-              <>
-                Comece com
-                <br />
-                <em>7 dias iniciais.</em>
-              </>
-            ) : (
-              <>
-                Bom ter você
-                <br />
-                <em>por aqui.</em>
-              </>
-            )}
-          </h1>
-          <p>
-            Gestão de ordens, clientes, equipamentos e cada etapa do reparo.
-          </p>
-        </div>
-        <Link href="/">← Voltar para o início</Link>
-      </section>
-      <section className="login-form">
-        <div className="form-wrap">
-          <span className="eyebrow">{signup ? "CRIAR CONTA" : "ENTRAR"}</span>
-          <h2>
-            {signup ? "Cadastre sua assistência." : "Acesse sua assistência."}
-          </h2>
-          {registration?.globalMaintenance && (
-            <p className="notice">
-              Estamos realizando uma atualização. O acesso administrativo
-              continua disponível.
-            </p>
-          )}
-          {closed ? (
-            <>
-              <p className="notice">
-                As novas vagas para esta fase da Horária estão temporariamente
-                encerradas.
-              </p>
-              <Link className="outline" href="/entrar">
-                Já tenho conta
-              </Link>
-            </>
-          ) : (
-            <form onSubmit={submit}>
-              {signup && (
-                <>
-                  <label>
-                    Seu nome
-                    <input
-                      name="responsavel"
-                      required
-                      minLength={2}
-                      maxLength={120}
-                    />
-                  </label>
-                  <label>
-                    Nome da assistência
-                    <input
-                      name="empresa"
-                      required
-                      minLength={2}
-                      maxLength={100}
-                      placeholder="Ex.: João Cell Assistência"
-                    />
-                  </label>
-                  <label>
-                    Endereço público
-                    <input
-                      name="slug"
-                      required
-                      pattern="[a-z0-9]+(-[a-z0-9]+)*"
-                      placeholder="joao-cell"
-                    />
-                    <small>Use letras minúsculas, números e hífens.</small>
-                  </label>
-                  <div className="anti-bot-field" aria-hidden="true">
-                    <label>
-                      Site
+    <main className={styles.page}>
+      <div className={styles.shell}>
+        <header className={styles.topbar}>
+          <span>{signup ? "Já tem conta?" : "Ainda não tem conta?"}</span>
+          <Link
+            className={styles.loginButton}
+            href={signup ? "/entrar" : "/cadastro"}
+          >
+            {signup ? "Entrar" : "Criar conta"}
+          </Link>
+        </header>
+
+        <section className={styles.hero} aria-labelledby="auth-title">
+          <div className={styles.brandSide}>
+            <div className={styles.orbit} aria-hidden="true" />
+            <HorariaHeroBrand />
+            <p className={styles.eyebrow}>ASSISTÊNCIA TÉCNICA EM UM SÓ LUGAR</p>
+            <h1 id="auth-title">
+              Todo aparelho que entra
+              <br />
+              ganha uma etiqueta.
+            </h1>
+            <Link className={styles.authHomeLink} href="/">
+              ← Voltar para o início
+            </Link>
+          </div>
+
+          <div className={styles.tagStage}>
+            <svg className={styles.string} viewBox="0 0 120 74" aria-hidden="true">
+              <path d="M60 72 C60 44, 100 38, 84 2" />
+            </svg>
+
+            <section
+              className={styles.authTagCard}
+              aria-label={signup ? "Criar conta Horária" : "Entrar na Horária"}
+            >
+              <span className={styles.hole} aria-hidden="true" />
+
+              <div className={styles.tagHeader}>
+                <strong>Horária</strong>
+                <span>{signup ? "NOVO ESPAÇO" : "ACESSO"}</span>
+              </div>
+
+              {registration?.globalMaintenance && (
+                <p className={styles.authNotice}>
+                  Estamos realizando uma atualização. O acesso administrativo
+                  continua disponível.
+                </p>
+              )}
+
+              {closed ? (
+                <div className={styles.authClosed}>
+                  <p>
+                    As novas vagas para esta fase da Horária estão temporariamente
+                    encerradas.
+                  </p>
+                  <Link className={styles.authTopLink} href="/entrar">
+                    Já tenho conta
+                  </Link>
+                </div>
+              ) : (
+                <form className={styles.authForm} onSubmit={submit}>
+                  <div className={styles.authFieldsGrid}>
+                    {signup && (
+                      <>
+                        <label className={styles.authField}>
+                          <span className={styles.authLabel}>SEU NOME</span>
+                          <input
+                            className={styles.authInput}
+                            name="responsavel"
+                            required
+                            minLength={2}
+                            maxLength={120}
+                            autoComplete="name"
+                          />
+                        </label>
+
+                        <label className={styles.authField}>
+                          <span className={styles.authLabel}>ASSISTÊNCIA</span>
+                          <input
+                            className={styles.authInput}
+                            name="empresa"
+                            required
+                            minLength={2}
+                            maxLength={100}
+                            defaultValue={search.get("empresa") ?? ""}
+                            placeholder="Nome da assistência"
+                            autoComplete="organization"
+                          />
+                        </label>
+
+                        <label className={styles.authField}>
+                          <span className={styles.authLabel}>ENDEREÇO PÚBLICO</span>
+                          <input
+                            className={styles.authInput}
+                            name="slug"
+                            required
+                            pattern="[a-z0-9]+(-[a-z0-9]+)*"
+                            placeholder="minha-assistencia"
+                            autoComplete="off"
+                          />
+                          <small className={styles.authHint}>
+                            Letras minúsculas, números e hífens.
+                          </small>
+                        </label>
+
+                        <div className="anti-bot-field" aria-hidden="true">
+                          <label>
+                            Site
+                            <input
+                              name="website"
+                              type="text"
+                              tabIndex={-1}
+                              autoComplete="off"
+                            />
+                          </label>
+                        </div>
+                      </>
+                    )}
+
+                    <label
+                      className={`${styles.authField} ${signup ? "" : styles.authFieldFull}`}
+                    >
+                      <span className={styles.authLabel}>E-MAIL</span>
                       <input
-                        name="website"
-                        type="text"
-                        tabIndex={-1}
-                        autoComplete="off"
+                        className={styles.authInput}
+                        name="email"
+                        type="email"
+                        autoComplete="email"
+                        required
+                        placeholder="voce@suaassistencia.com"
                       />
                     </label>
+
+                    <label
+                      className={`${styles.authField} ${signup ? "" : styles.authFieldFull}`}
+                    >
+                      <span className={styles.authLabel}>SENHA</span>
+                      <input
+                        className={styles.authInput}
+                        name="password"
+                        type="password"
+                        minLength={6}
+                        autoComplete={signup ? "new-password" : "current-password"}
+                        required
+                        placeholder={signup ? "Mínimo de 6 caracteres" : "Sua senha"}
+                      />
+                      {signup && (
+                        <small className={styles.authHint}>
+                          Use pelo menos 6 caracteres e prefira uma senha única.
+                        </small>
+                      )}
+                    </label>
                   </div>
-                </>
+
+                  {!signup && (
+                    <div className={styles.authActionsRow}>
+                      <span />
+                      <Link className={styles.authHelpLink} href="/recuperar-senha">
+                        Esqueci minha senha
+                      </Link>
+                    </div>
+                  )}
+
+                  {signup && (
+                    <label className={styles.authLegal}>
+                      <input name="legal" type="checkbox" required />
+                      <span>
+                        Li e aceito os <Link href="/termos">Termos de Uso</Link> e a{" "}
+                        <Link href="/privacidade">Política de Privacidade</Link>.
+                      </span>
+                    </label>
+                  )}
+
+                  {turnstileSiteKey && (
+                    <div className={styles.authCaptcha}>
+                      <Turnstile
+                        key={captchaResetKey}
+                        siteKey={turnstileSiteKey}
+                        onToken={setCaptchaToken}
+                      />
+                    </div>
+                  )}
+
+                  <div
+                    className={`${styles.cutLine} ${styles.authCutLine}`}
+                    aria-hidden="true"
+                  >
+                    <span />
+                    <i />
+                  </div>
+
+                  <div className={styles.tagFooter}>
+                    <div className={styles.barcodeWrap}>
+                      <div className={styles.authBarcode} aria-hidden="true" />
+                      <small>{signup ? "NOVO-ESPAÇO" : "ACESSO-HORARIA"}</small>
+                    </div>
+                    <button
+                      className={styles.authSubmit}
+                      disabled={busy || (Boolean(turnstileSiteKey) && !captchaToken)}
+                    >
+                      {busy
+                        ? "Aguarde…"
+                        : signup
+                          ? "Criar conta"
+                          : "Entrar"}
+                    </button>
+                  </div>
+                </form>
               )}
-              <label>
-                E-mail
-                <input
-                  name="email"
-                  type="email"
-                  autoComplete="email"
-                  required
-                />
-              </label>
-              <label>
-                Senha
-                <input
-                  name="password"
-                  type="password"
-                  minLength={5}
-                  autoComplete={signup ? "new-password" : "current-password"}
-                  required
-                />
-                {signup && (
-                  <small>
-                    Use pelo menos 5 caracteres e prefira uma senha única.
-                  </small>
-                )}
-              </label>
-              {!signup && (
-                <div className="auth-help-row">
-                  <Link href="/recuperar-senha">Esqueci minha senha</Link>
-                </div>
+
+              {notice && (
+                <p className={styles.authNotice} role="status">
+                  {notice}
+                </p>
               )}
-              {turnstileSiteKey && (
-                <Turnstile
-                  key={captchaResetKey}
-                  siteKey={turnstileSiteKey}
-                  onToken={setCaptchaToken}
-                />
-              )}
-              <button
-                className="primary"
-                disabled={
-                  busy || (Boolean(turnstileSiteKey) && !captchaToken)
-                }
-              >
-                {busy ? "Aguarde…" : signup ? "Criar conta →" : "Entrar →"}
-              </button>
-            </form>
-          )}
-          {notice && (
-            <p className="notice" role="status">
-              {notice}
-            </p>
-          )}
-          <p className="switch">
-            {signup ? "Já tem uma conta?" : "Ainda não usa a Horária?"}{" "}
-            <Link href={signup ? "/entrar" : "/cadastro"}>
-              {signup ? "Entrar" : "Criar conta"}
-            </Link>
-          </p>
-          <div className="privacy">
-            ◈ &nbsp; Seus dados ficam isolados por empresa.{" "}
-            <Link href="/privacidade">Política de privacidade</Link>
+
+              <div className={styles.authBottom}>
+                <span>
+                  {signup ? "Já tem uma conta?" : "Ainda não usa a Horária?"}
+                </span>
+                <Link
+                  className={styles.authSwitchLink}
+                  href={signup ? "/entrar" : "/cadastro"}
+                >
+                  {signup ? "Entrar" : "Criar conta"}
+                </Link>
+              </div>
+            </section>
           </div>
-        </div>
-      </section>
+        </section>
+      </div>
     </main>
   );
 }

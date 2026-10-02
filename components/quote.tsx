@@ -51,6 +51,12 @@ export default function Quote({
     [busy, setBusy] = useState(false);
 
   const latest = quotes[0];
+  const whatsappDigits = telefone.replace(/\D/g, "");
+  const whatsappDestination = whatsappDigits
+    ? whatsappDigits.length <= 11
+      ? `55${whatsappDigits}`
+      : whatsappDigits
+    : "";
   const servicesSubtotal = subtotal(services);
   const partsSubtotal = subtotal(parts);
   const gross = servicesSubtotal + partsSubtotal + labor;
@@ -555,11 +561,12 @@ export default function Quote({
                   O cliente recebeu o valor total e pode abrir o link para ver
                   serviços, peças, mão de obra, desconto e responder.
                 </p>
+                {whatsappDestination && (
                 <a
                   className="outline"
                   target="_blank"
                   rel="noreferrer"
-                  href={`https://wa.me/${telefone.length <= 11 ? "55" : ""}${telefone}?text=${encodeURIComponent(
+                  href={`https://wa.me/${whatsappDestination}?text=${encodeURIComponent(
                     `Seu orçamento da OS está disponível. Total: ${money(
                       Number(latest.total),
                     )}. Veja os detalhes e responda: ${
@@ -569,6 +576,7 @@ export default function Quote({
                 >
                   Reenviar orçamento pelo WhatsApp ↗
                 </a>
+                )}
               </div>
 
               <details className="quote-manual-response">

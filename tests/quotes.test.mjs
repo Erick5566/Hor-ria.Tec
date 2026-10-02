@@ -31,6 +31,12 @@ test("orçamento: cálculo, isolamento, aprovação pública e versões imutáve
     assert.equal(
       (await db.query("select status from orcamentos where id=$1", [qid]))
         .rows[0].status,
+      "rascunho",
+    );
+    await db.query("select enviar_orcamento($1)", [qid]);
+    assert.equal(
+      (await db.query("select status from orcamentos where id=$1", [qid]))
+        .rows[0].status,
       "enviado",
     );
     assert.equal(

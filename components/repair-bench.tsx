@@ -110,7 +110,6 @@ type BenchOrder = {
   equipamento_marca: string | null;
   equipamento_modelo: string | null;
   orcamento_status: string | null;
-  orcamento_total: number | null;
   orcamento_criado_em: string | null;
   orcamento_respondido_em: string | null;
   ultimo_contato_cliente_em: string | null;
@@ -265,7 +264,25 @@ export default function RepairBench({
   compact?: boolean;
   initialQuery?: string;
 }) {
-  const { empresa } = useWorkspace();
+  const { empresa, access } = useWorkspace();
+  const manager = ["OWNER", "ADMIN"].includes(access.company?.role || "");
+  const managerControlledTargets = new Set<Status>([
+    "aguardando_orcamento",
+    "orcamento_enviado",
+    "aguardando_aprovacao",
+    "orcamento_aprovado",
+  ]);
+  const quoteWaitingStatuses = new Set<Status>([
+    "aguardando_orcamento",
+    "orcamento_enviado",
+    "aguardando_aprovacao",
+  ]);
+  const canMoveTo = (order: BenchOrder, target: Status) =>
+    manager ||
+    (target === order.status
+      ? true
+      : !managerControlledTargets.has(target) &&
+        !quoteWaitingStatuses.has(order.status));
   const benches = useRows<MesaReparo>("mesas_reparo");
   const [benchData, setBenchData] = useState<BenchData>({
     items: [],
@@ -504,12 +521,14 @@ export default function RepairBench({
           ))}
         </select>
 
-        <button
-          className="repair-config-button"
-          onClick={() => setConfiguring(!configuring)}
-        >
-          {configuring ? "Fechar mesas" : "Configurar mesas"}
-        </button>
+        {manager && (
+          <button
+            className="repair-config-button"
+            onClick={() => setConfiguring(!configuring)}
+          >
+            {configuring ? "Fechar mesas" : "Configurar mesas"}
+          </button>
+        )}
 
         {!compact && (
           <Link className="primary repair-new-order" href="/painel/ordens/nova">
@@ -749,7 +768,7 @@ export default function RepairBench({
         </section>
       </details>
 
-      {configuring && (
+      {manager && configuring && (
         <section className="panel bench-settings repair-settings">
           <div>
             <PanelTitle
@@ -863,7 +882,8 @@ export default function RepairBench({
                   (item) =>
                     item.id === event.dataTransfer.getData("text/order-id"),
                 );
-                if (order) void move(order, column.target);
+                if (order && canMoveTo(order, column.target))
+                  void move(order, column.target);
               }}
             >
               <header>
@@ -885,7 +905,7 @@ export default function RepairBench({
                     <article
                       className={`repair-card repair-card-pro priority-${order.prioridade}`}
                       key={order.id}
-                      draggable
+                      draggable={manager || !quoteWaitingStatuses.has(order.status)}
                       onDragStart={(event) =>
                         event.dataTransfer.setData("text/order-id", order.id)
                       }
@@ -950,7 +970,10 @@ export default function RepairBench({
                         <select
                           aria-label={`Etapa da OS ${order.numero}`}
                           value={column.title}
-                          disabled={busy}
+                          disabled={
+                            busy ||
+                            (!manager && quoteWaitingStatuses.has(order.status))
+                          }
                           onChange={(event) => {
                             const next = columns.find(
                               (item) => item.title === event.target.value,
@@ -959,7 +982,15 @@ export default function RepairBench({
                           }}
                         >
                           {columns.map((item) => (
-                            <option key={item.title}>{item.title}</option>
+                            <option
+                              key={item.title}
+                              disabled={
+                                !manager &&
+                                managerControlledTargets.has(item.target)
+                              }
+                            >
+                              {item.title}
+                            </option>
                           ))}
                         </select>
                         <select
