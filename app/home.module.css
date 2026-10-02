@@ -1918,3 +1918,721 @@
   }
 }
 /* === FIM HORARIA LANDING referência 1536x864 === */
+
+/* === HORARIA LANDING FINAL: referência visual 1536x864 === */
+.homeViewport {
+  height: 100dvh;
+  min-height: 0;
+  max-height: 100dvh;
+  overflow: hidden;
+  background: #151515;
+}
+
+.homeViewport .shell {
+  position: relative;
+  overflow: hidden;
+  background: #2140b5;
+}
+
+.homeViewport .decorations {
+  pointer-events: none;
+}
+
+@media (min-width: 769px) {
+  .homeViewport {
+    --s: min(0.0651041667vw, 0.1157407407vh);
+    display: grid;
+    place-items: center;
+    width: 100vw;
+    padding: calc(32 * var(--s));
+    box-sizing: border-box;
+    font-family: Arial, Helvetica, sans-serif;
+  }
+
+  .homeViewport .shell {
+    display: block;
+    width: calc(1472 * var(--s));
+    height: calc(800 * var(--s));
+    min-height: 0;
+    max-width: none;
+    margin: 0;
+    border: 0;
+    border-radius: calc(29 * var(--s));
+    box-shadow: none;
+  }
+
+  .homeViewport .topbar {
+    position: absolute;
+    z-index: 20;
+    top: calc(28 * var(--s));
+    right: calc(48 * var(--s));
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: calc(20 * var(--s));
+    width: auto;
+    min-height: 0;
+    padding: 0;
+    color: #fff;
+    font-size: calc(22 * var(--s));
+    line-height: 1;
+  }
+
+  .homeViewport .loginButton {
+    width: calc(148 * var(--s));
+    min-width: 0;
+    height: calc(54 * var(--s));
+    min-height: 0;
+    padding: 0;
+    color: #fff;
+    background: transparent;
+    border: calc(2 * var(--s)) solid #fff;
+    border-radius: calc(16 * var(--s));
+    font-size: calc(22 * var(--s));
+    font-weight: 400;
+  }
+
+  .homeViewport .loginButton:hover {
+    color: #fff;
+    background: transparent;
+    transform: none;
+  }
+
+  .homeViewport .hero {
+    position: absolute;
+    z-index: 3;
+    inset: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: calc(93 * var(--s));
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+    max-width: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  .homeViewport .brandSide {
+    position: relative;
+    flex: 0 0 calc(480 * var(--s));
+    width: calc(480 * var(--s));
+    height: calc(580 * var(--s));
+    min-width: 0;
+    min-height: 0;
+    max-width: none;
+    max-height: none;
+    display: block;
+    text-align: left;
+  }
+
+  .homeViewport .brandSide :global(.horaria-hero-brand) {
+    position: absolute;
+    z-index: 2;
+    inset: 0;
+    display: block;
+    width: 100%;
+    height: 100%;
+    color: #fff;
+    transform: none;
+  }
+
+  .homeViewport .brandSide :global(.horaria-hero-mark-wrap) {
+    position: absolute;
+    z-index: 2;
+    left: calc(144 * var(--s));
+    top: calc(32 * var(--s));
+    display: block;
+    width: calc(238 * var(--s));
+    height: calc(260 * var(--s));
+    line-height: 0;
+  }
+
+  .homeViewport .brandSide :global(.horaria-hero-mark) {
+    display: block;
+    width: auto;
+    height: calc(260 * var(--s));
+    max-width: none;
+    max-height: none;
+  }
+
+  .homeViewport .brandSide :global(.horaria-hero-wordmark) {
+    position: absolute;
+    z-index: 2;
+    left: calc(4 * var(--s));
+    top: calc(344 * var(--s));
+    margin: 0;
+    color: #fff;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: calc(68 * var(--s));
+    font-weight: 400;
+    line-height: .94;
+    letter-spacing: -.055em;
+    white-space: nowrap;
+  }
+
+  .homeViewport .orbit {
+    position: absolute;
+    z-index: 0;
+    left: calc(-48 * var(--s));
+    top: calc(-4 * var(--s));
+    width: calc(324 * var(--s));
+    height: calc(324 * var(--s));
+    max-width: none;
+    max-height: none;
+    border: calc(2 * var(--s)) solid #7489d2;
+    border-radius: 50%;
+    transform: none;
+    pointer-events: none;
+  }
+
+  .homeViewport .eyebrow {
+    position: absolute;
+    z-index: 2;
+    left: calc(4 * var(--s));
+    top: calc(423 * var(--s));
+    width: auto;
+    max-width: none;
+    margin: 0;
+    color: #fff;
+    font-size: calc(22 * var(--s));
+    font-weight: 400;
+    line-height: 1;
+    letter-spacing: .08em;
+    white-space: nowrap;
+  }
+
+  .homeViewport .brandSide h1 {
+    position: absolute;
+    z-index: 2;
+    left: calc(4 * var(--s));
+    top: calc(468 * var(--s));
+    width: calc(475 * var(--s));
+    max-width: none;
+    margin: 0;
+    color: #fff;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: calc(39 * var(--s));
+    font-weight: 400;
+    line-height: 1.18;
+    letter-spacing: -.035em;
+    text-align: left;
+  }
+
+  .homeViewport .tagStage {
+    position: relative;
+    flex: 0 0 calc(617 * var(--s));
+    width: calc(617 * var(--s));
+    height: calc(511 * var(--s));
+    min-width: 0;
+    min-height: 0;
+    max-width: none;
+    max-height: none;
+    margin: 0;
+    padding: 0;
+    transform: translateX(calc(5 * var(--s)));
+  }
+
+  .homeViewport .tagStage::before {
+    content: "";
+    position: absolute;
+    z-index: 0;
+    left: calc(290 * var(--s));
+    top: calc(-18 * var(--s));
+    width: calc(255 * var(--s));
+    height: calc(170 * var(--s));
+    border-radius: calc(10 * var(--s));
+    background: rgb(255 255 255 / 16%);
+    filter: blur(calc(8 * var(--s)));
+    transform: rotate(-5deg);
+  }
+
+  .homeViewport .string {
+    position: absolute;
+    z-index: 8;
+    left: calc(314 * var(--s));
+    top: calc(-145 * var(--s));
+    display: block;
+    width: calc(60 * var(--s));
+    height: calc(180 * var(--s));
+    overflow: visible;
+    transform: none;
+  }
+
+  .homeViewport .string path {
+    fill: none;
+    stroke: #fff;
+    stroke-width: 3.2;
+    stroke-linecap: round;
+  }
+
+  .homeViewport .tagCard {
+    position: absolute;
+    z-index: 3;
+    left: 50%;
+    top: 50%;
+    display: grid;
+    width: calc(600 * var(--s));
+    height: calc(490 * var(--s));
+    min-height: 0;
+    max-height: none;
+    padding: calc(42 * var(--s)) calc(34 * var(--s)) calc(28 * var(--s));
+    gap: calc(8 * var(--s));
+    align-content: space-between;
+    color: #161821;
+    background: #f1efe4;
+    border-radius: calc(10 * var(--s));
+    clip-path: none;
+    filter: none;
+    transform: translate(-50%, -50%) rotate(2deg);
+    transform-origin: 50% 50%;
+  }
+
+  .homeViewport .tagCard:focus-within {
+    transform: translate(-50%, -50%) rotate(2deg);
+  }
+
+  .homeViewport .hole {
+    position: absolute;
+    top: calc(14 * var(--s));
+    left: 50%;
+    width: calc(15 * var(--s));
+    height: calc(15 * var(--s));
+    background: #2140b5;
+    border-radius: 50%;
+    transform: translateX(-50%);
+  }
+
+  .homeViewport .tagHeader {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: calc(20 * var(--s));
+    margin: 0 0 calc(6 * var(--s));
+  }
+
+  .homeViewport .tagHeader strong {
+    color: #161821;
+    font-size: calc(31 * var(--s));
+    font-weight: 400;
+    font-style: italic;
+    line-height: 1;
+    letter-spacing: -.04em;
+  }
+
+  .homeViewport .tagHeader span,
+  .homeViewport .fieldLabel,
+  .homeViewport .deviceFieldset legend,
+  .homeViewport .metaRow span {
+    color: #747aa7;
+    font-size: calc(17 * var(--s));
+    font-weight: 400;
+    line-height: 1;
+    letter-spacing: .12em;
+  }
+
+  .homeViewport .lineInput {
+    width: 100%;
+    height: calc(38 * var(--s));
+    min-height: 0;
+    padding: calc(3 * var(--s)) 0 calc(7 * var(--s));
+    color: #161821;
+    background: transparent;
+    border: 0;
+    border-bottom: calc(2 * var(--s)) solid #161821;
+    border-radius: 0;
+    font-family: ui-monospace, "SFMono-Regular", Consolas, monospace;
+    font-size: calc(19 * var(--s));
+    box-shadow: none;
+  }
+
+  .homeViewport .lineInput::placeholder {
+    color: #8a8ca5;
+    opacity: 1;
+  }
+
+  .homeViewport .error {
+    min-height: 0;
+    margin: 0;
+    font-size: calc(10 * var(--s));
+    line-height: 1;
+  }
+
+  .homeViewport .error:empty {
+    display: none;
+  }
+
+  .homeViewport .metaRow {
+    display: flex;
+    gap: calc(58 * var(--s));
+    margin: calc(5 * var(--s)) 0 0;
+  }
+
+  .homeViewport .metaRow > div {
+    display: grid;
+    gap: calc(4 * var(--s));
+  }
+
+  .homeViewport .metaRow strong {
+    color: #161821;
+    font-family: ui-monospace, "SFMono-Regular", Consolas, monospace;
+    font-size: calc(18 * var(--s));
+    font-weight: 500;
+    line-height: 1;
+  }
+
+  .homeViewport .deviceFieldset {
+    min-width: 0;
+    margin: calc(9 * var(--s)) 0 0;
+    padding: 0;
+    border: 0;
+  }
+
+  .homeViewport .deviceFieldset legend {
+    padding: 0;
+  }
+
+  .homeViewport .chips {
+    display: flex;
+    flex-wrap: nowrap;
+    gap: calc(10 * var(--s));
+    margin-top: calc(10 * var(--s));
+  }
+
+  .homeViewport .chip span {
+    min-height: 0;
+    padding: calc(7 * var(--s)) calc(15 * var(--s));
+    color: #161821;
+    background: transparent;
+    border: calc(2 * var(--s)) solid #161821;
+    border-radius: 999px;
+    font-size: calc(17 * var(--s));
+    font-weight: 400;
+    line-height: 1;
+  }
+
+  .homeViewport .chipActive span {
+    color: #f1efe4;
+    background: #161821;
+  }
+
+  .homeViewport .cutLine {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    margin: calc(8 * var(--s)) 0 0;
+  }
+
+  .homeViewport .cutLine span {
+    display: none;
+  }
+
+  .homeViewport .cutLine i {
+    flex: 1;
+    border-top: calc(2 * var(--s)) dashed #aaa89e;
+  }
+
+  .homeViewport .tagFooter {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: calc(20 * var(--s));
+    padding: calc(6 * var(--s)) 0 0;
+  }
+
+  .homeViewport .barcode {
+    display: block;
+    width: calc(80 * var(--s));
+    height: calc(48 * var(--s));
+    fill: #161821;
+  }
+
+  .homeViewport .barcodeWrap small {
+    display: block;
+    margin-top: calc(3 * var(--s));
+    color: #737aa5;
+    font-family: ui-monospace, "SFMono-Regular", Consolas, monospace;
+    font-size: calc(13 * var(--s));
+    line-height: 1;
+  }
+
+  .homeViewport .createButton {
+    width: calc(224 * var(--s));
+    min-width: 0;
+    height: calc(62 * var(--s));
+    min-height: 0;
+    padding: 0;
+    color: #fff;
+    background: #2563ff;
+    border: 0;
+    border-radius: calc(14 * var(--s));
+    font-size: calc(24 * var(--s));
+    font-weight: 400;
+    line-height: 1;
+    white-space: nowrap;
+  }
+
+  .homeViewport .createButton:hover {
+    background: #2563ff;
+    transform: none;
+  }
+
+  .homeViewport .decorations {
+    position: absolute;
+    z-index: 1;
+    inset: 0;
+    display: block;
+  }
+
+  .homeViewport .decorSquareOne,
+  .homeViewport .decorSquareTwo,
+  .homeViewport .decorSquareThree,
+  .homeViewport .decorSquareFour,
+  .homeViewport .decorSquareFive,
+  .homeViewport .decorSquareSix {
+    position: absolute;
+    display: block;
+    border: calc(2 * var(--s)) solid rgb(255 255 255 / 13%);
+  }
+
+  .homeViewport .decorSquareOne {
+    left: calc(52 * var(--s));
+    top: calc(151 * var(--s));
+    width: calc(55 * var(--s));
+    height: calc(68 * var(--s));
+    transform: rotate(-15deg);
+  }
+
+  .homeViewport .decorSquareTwo {
+    left: calc(660 * var(--s));
+    top: calc(42 * var(--s));
+    width: calc(43 * var(--s));
+    height: calc(53 * var(--s));
+    transform: rotate(10deg);
+  }
+
+  .homeViewport .decorSquareThree {
+    right: calc(93 * var(--s));
+    top: calc(158 * var(--s));
+    width: calc(48 * var(--s));
+    height: calc(61 * var(--s));
+    transform: rotate(14deg);
+  }
+
+  .homeViewport .decorSquareFour {
+    left: calc(67 * var(--s));
+    bottom: calc(82 * var(--s));
+    width: calc(70 * var(--s));
+    height: calc(88 * var(--s));
+    transform: rotate(14deg);
+  }
+
+  .homeViewport .decorSquareFive {
+    left: calc(749 * var(--s));
+    bottom: calc(31 * var(--s));
+    width: calc(46 * var(--s));
+    height: calc(58 * var(--s));
+    transform: rotate(-15deg);
+  }
+
+  .homeViewport .decorSquareSix {
+    right: calc(86 * var(--s));
+    bottom: calc(63 * var(--s));
+    width: calc(52 * var(--s));
+    height: calc(69 * var(--s));
+    transform: rotate(-12deg);
+  }
+
+  .homeViewport .decorDotOne,
+  .homeViewport .decorDotTwo,
+  .homeViewport .decorDotThree,
+  .homeViewport .decorDotFour {
+    position: absolute;
+    display: block;
+    border-radius: 50%;
+    background: rgb(142 164 234 / 55%);
+  }
+
+  .homeViewport .decorDotOne {
+    left: calc(600 * var(--s));
+    top: calc(120 * var(--s));
+    width: calc(24 * var(--s));
+    height: calc(24 * var(--s));
+  }
+
+  .homeViewport .decorDotTwo {
+    left: calc(28 * var(--s));
+    top: calc(400 * var(--s));
+    width: calc(16 * var(--s));
+    height: calc(16 * var(--s));
+  }
+
+  .homeViewport .decorDotThree {
+    right: calc(32 * var(--s));
+    top: calc(460 * var(--s));
+    width: calc(20 * var(--s));
+    height: calc(20 * var(--s));
+  }
+
+  .homeViewport .decorDotFour {
+    left: calc(300 * var(--s));
+    bottom: calc(16 * var(--s));
+    width: calc(28 * var(--s));
+    height: calc(28 * var(--s));
+  }
+
+  .homeViewport .decorDash {
+    position: absolute;
+    left: calc(600 * var(--s));
+    top: calc(392 * var(--s));
+    width: calc(64 * var(--s));
+    border-top: calc(2 * var(--s)) dashed rgb(255 255 255 / 28%);
+  }
+
+  .homeViewport .entryStamp {
+    position: absolute;
+    z-index: 10;
+    right: calc(74 * var(--s));
+    bottom: calc(75 * var(--s));
+    display: grid;
+    place-items: center;
+    width: calc(146 * var(--s));
+    height: calc(146 * var(--s));
+    color: rgb(255 255 255 / 62%);
+    border: calc(4 * var(--s)) solid rgb(255 255 255 / 48%);
+    border-radius: 50%;
+    font-size: calc(21 * var(--s));
+    font-weight: 500;
+    letter-spacing: .04em;
+    transform: rotate(14deg);
+  }
+
+  .homeViewport .entryStamp::before {
+    content: "";
+    position: absolute;
+    inset: calc(8 * var(--s));
+    border: calc(2 * var(--s)) solid rgb(255 255 255 / 42%);
+    border-radius: 50%;
+  }
+
+  .homeViewport .entryStamp::after {
+    content: "";
+    position: absolute;
+    left: calc(10 * var(--s));
+    right: calc(10 * var(--s));
+    top: 50%;
+    height: calc(32 * var(--s));
+    border-top: calc(2 * var(--s)) solid rgb(255 255 255 / 40%);
+    border-bottom: calc(2 * var(--s)) solid rgb(255 255 255 / 40%);
+    transform: translateY(-50%);
+  }
+}
+
+@media (max-width: 768px) {
+  .homeViewport {
+    width: 100vw;
+    padding: 0;
+    background: #2140b5;
+  }
+
+  .homeViewport .shell {
+    display: grid;
+    grid-template-rows: auto minmax(0, 1fr);
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+  }
+
+  .homeViewport .topbar {
+    position: relative;
+    z-index: 10;
+  }
+
+  .homeViewport .hero {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto minmax(0, 1fr);
+    justify-items: center;
+    align-items: center;
+    gap: 1vh;
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+    margin: 0;
+    padding: 0 4vw 1vh;
+  }
+
+  .homeViewport .brandSide {
+    width: 100%;
+    min-height: 0;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+  }
+
+  .homeViewport .brandSide :global(.horaria-hero-brand) {
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    gap: 2vw;
+  }
+
+  .homeViewport .brandSide :global(.horaria-hero-mark-wrap) {
+    display: inline-flex;
+    line-height: 0;
+  }
+
+  .homeViewport .brandSide :global(.horaria-hero-mark) {
+    width: auto;
+    height: min(10vh, 70px);
+  }
+
+  .homeViewport .brandSide :global(.horaria-hero-wordmark) {
+    margin: 0;
+    font-size: min(7vw, 36px);
+  }
+
+  .homeViewport .orbit {
+    left: 50%;
+    top: 50%;
+    width: min(14vh, 96px);
+    height: min(14vh, 96px);
+    transform: translate(-82%, -50%);
+    z-index: 0;
+  }
+
+  .homeViewport .eyebrow,
+  .homeViewport .brandSide h1 {
+    display: none;
+  }
+
+  .homeViewport .tagStage {
+    width: min(94vw, 500px);
+    height: min(72vh, 590px);
+    max-height: 100%;
+    padding: 0;
+    align-self: center;
+  }
+
+  .homeViewport .tagCard {
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+    max-height: 100%;
+    transform: rotate(.8deg);
+  }
+
+  .homeViewport .tagCard:focus-within {
+    transform: rotate(.8deg);
+  }
+
+  .homeViewport .string,
+  .homeViewport .decorations {
+    display: none;
+  }
+}
+/* === FIM HORARIA LANDING FINAL === */
