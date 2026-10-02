@@ -2454,3 +2454,11 @@ hr {
     font-size: 9px;
   }
 }
+
+/* Lock only entry routes; dashboard pages retain their normal scrolling. */
+html:has([data-entry-viewport]),
+body:has([data-entry-viewport]) {
+  height: 100%;
+  margin: 0;
+  overflow: hidden;
+}
