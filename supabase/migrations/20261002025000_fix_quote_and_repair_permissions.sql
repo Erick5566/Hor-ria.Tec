@@ -867,4 +867,198 @@ using (
   and private.feature_enabled(empresa_id, 'stockEnabled')
 );
 
+create or replace function public.orders_list_page(
+  p_page integer default 1,
+  p_page_size integer default 30,
+  p_search text default null,
+  p_status text default null,
+  p_technician text default null,
+  p_priority text default null,
+  p_period integer default null,
+  p_sort text default 'recent'
+)
+returns jsonb
+language plpgsql
+stable
+security definer
+set search_path = ''
+as $function$
+declare
+  v_empresa uuid;
+  v_can_manage boolean := false;
+  v_sort text;
+  v_page integer := greatest(coalesce(p_page, 1), 1);
+  v_size integer := least(greatest(coalesce(p_page_size, 30), 10), 100);
+  v_offset integer;
+begin
+  select m.empresa_id
+    into v_empresa
+  from public.empresa_membros m
+  where m.usuario_id = auth.uid()
+    and m.status = 'ACTIVE'
+    and private.company_operational(m.empresa_id)
+  order by case m.role
+    when 'OWNER' then 1
+    when 'ADMIN' then 2
+    when 'TECHNICIAN' then 3
+    else 4
+  end
+  limit 1;
+
+  if v_empresa is null then
+    return null;
+  end if;
+
+  v_can_manage := private.can_manage_company(v_empresa);
+  v_sort := case
+    when p_sort = 'value' and not v_can_manage then 'recent'
+    when p_sort in ('recent','oldest','value') then p_sort
+    else 'recent'
+  end;
+  v_offset := (v_page - 1) * v_size;
+
+  return (
+    with filtered as materialized (
+      select
+        o.id,
+        o.numero,
+        o.problema,
+        o.criado_em,
+        o.tecnico,
+        o.prioridade,
+        o.status,
+        o.entrada_confirmada,
+        c.nome as cliente_nome,
+        e.marca as equipamento_marca,
+        e.modelo as equipamento_modelo,
+        case when v_can_manage then q.total else null end as quote_total
+      from public.ordens_servico o
+      left join public.clientes c
+        on c.id = o.cliente_id and c.empresa_id = v_empresa
+      left join public.equipamentos e
+        on e.id = o.equipamento_id and e.empresa_id = v_empresa
+      left join lateral (
+        select oc.total
+        from public.orcamentos oc
+        where v_can_manage
+          and oc.empresa_id = v_empresa
+          and oc.ordem_id = o.id
+          and oc.status <> 'rascunho'
+        order by oc.versao desc
+        limit 1
+      ) q on true
+      where o.empresa_id = v_empresa
+        and (coalesce(trim(p_status), '') = '' or o.status = p_status)
+        and (coalesce(trim(p_technician), '') = '' or o.tecnico = p_technician)
+        and (coalesce(trim(p_priority), '') = '' or o.prioridade = p_priority)
+        and (
+          p_period is null or p_period <= 0 or
+          o.criado_em >= now() - make_interval(days => p_period)
+        )
+        and (
+          coalesce(trim(p_search), '') = '' or
+          concat_ws(
+            ' ',
+            o.numero::text,
+            c.nome,
+            e.marca,
+            e.modelo,
+            o.problema
+          ) ilike '%' || trim(p_search) || '%'
+        )
+    ),
+    paged as (
+      select *
+      from filtered
+      order by
+        case when v_sort = 'oldest' then criado_em end asc nulls last,
+        case when v_sort = 'value' then quote_total end desc nulls last,
+        case when v_sort = 'recent' then criado_em end desc nulls last,
+        id
+      limit v_size
+      offset v_offset
+    ),
+    all_orders as materialized (
+      select
+        o.id,
+        o.status,
+        o.prioridade,
+        case when v_can_manage then q.total else null end as quote_total
+      from public.ordens_servico o
+      left join lateral (
+        select oc.total
+        from public.orcamentos oc
+        where v_can_manage
+          and oc.empresa_id = v_empresa
+          and oc.ordem_id = o.id
+          and oc.status <> 'rascunho'
+        order by oc.versao desc
+        limit 1
+      ) q on true
+      where o.empresa_id = v_empresa
+    )
+    select jsonb_build_object(
+      'page', v_page,
+      'pageSize', v_size,
+      'total', (select count(*)::int from filtered),
+      'items', coalesce(
+        (
+          select jsonb_agg(
+            to_jsonb(p)
+            order by
+              case when v_sort = 'oldest' then p.criado_em end asc nulls last,
+              case when v_sort = 'value' then p.quote_total end desc nulls last,
+              case when v_sort = 'recent' then p.criado_em end desc nulls last,
+              p.id
+          )
+          from paged p
+        ),
+        '[]'::jsonb
+      ),
+      'technicians', coalesce((
+        select jsonb_agg(t.tecnico order by t.tecnico)
+        from (
+          select distinct trim(o.tecnico) as tecnico
+          from public.ordens_servico o
+          where o.empresa_id = v_empresa
+            and nullif(trim(o.tecnico), '') is not null
+        ) t
+      ), '[]'::jsonb),
+      'metrics', jsonb_build_object(
+        'open', (
+          select count(*)::int
+          from all_orders
+          where status not in ('finalizado', 'cancelado')
+        ),
+        'diagnostic', (
+          select count(*)::int
+          from all_orders
+          where status in ('novo', 'recebido', 'em_diagnostico')
+        ),
+        'urgent', (
+          select count(*)::int
+          from all_orders
+          where status not in ('finalizado', 'cancelado')
+            and prioridade = 'urgente'
+        ),
+        'ready', (
+          select count(*)::int
+          from all_orders
+          where status = 'pronto_retirada'
+        ),
+        'forecast', case
+          when v_can_manage then coalesce((
+            select sum(coalesce(quote_total, 0))
+            from all_orders
+            where status not in ('finalizado', 'cancelado')
+          ), 0)
+          else 0
+        end
+      )
+    )
+  );
+end
+$function$;
+
+
 commit;
