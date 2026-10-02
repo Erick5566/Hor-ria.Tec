@@ -107,6 +107,15 @@ export default function HomeLanding() {
           <span className={styles.decorDotTwo} />
           <span className={styles.decorDotThree} />
           <span className={styles.decorDotFour} />
+
+          <span className={styles.decorPhoneOne} />
+          <span className={styles.decorPhoneTwo} />
+          <span className={styles.decorPhoneThree} />
+          <span className={styles.decorTabletOne} />
+          <span className={styles.decorTabletTwo} />
+          <span className={styles.decorLaptopOne} />
+          <span className={styles.decorLaptopTwo} />
+
           <span className={styles.decorDash} />
           <span className={styles.entryStamp}>ENTRADA</span>
         </div>
