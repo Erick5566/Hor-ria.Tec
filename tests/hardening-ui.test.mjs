@@ -34,6 +34,8 @@ test("UI: contratos de autenticação, financeiro e papéis permanecem alinhados
   assert.match(orderDetail, /canViewFinance/);
   assert.match(orderDetail, /canViewFinance && tab === "Orçamento"/);
   assert.match(orderDetail, /canViewDeviceSecret=\{canUseTechnical\}/);
+  assert.match(orderDetail, /canViewFinance && \(/);
+  assert.match(orderDetail, /Emitir NFS-e/);
   assert.match(agenda, /manager && blocking/);
   assert.match(modulePage, /stockOperationalModules/);
 });
