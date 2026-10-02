@@ -96,7 +96,8 @@ export default function OrderDetail({
     (item) =>
       (item !== "Diagnóstico" || canUseTechnical) &&
       (item !== "Orçamento" || canViewFinance) &&
-      (item !== "Financeiro" || canViewFinance),
+      (item !== "Financeiro" || canViewFinance) &&
+      (item !== "Garantia" || canUseTechnical),
   );
   const [data, setData] = useState<OrderDetailData | null>(null);
   const [tab, setTab] = useState<Tab>("Resumo");
@@ -408,7 +409,9 @@ export default function OrderDetail({
             )}
 
             {canViewFinance && tab === "Financeiro" && <Finance ordemId={id} />}
-            {tab === "Garantia" && <Warranty ordemId={id} />}
+            {canUseTechnical && tab === "Garantia" && (
+              <Warranty ordemId={id} />
+            )}
             {tab === "Histórico" && <History ordemId={id} />}
             {canViewFinance && tab === "Orçamento" && (
               <Quote
