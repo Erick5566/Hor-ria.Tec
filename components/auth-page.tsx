@@ -245,6 +245,28 @@ export default function AuthPage({ mode }: { mode: "login" | "signup" }) {
           </Link>
         </header>
 
+        <div className={styles.decorations} aria-hidden="true">
+          <span className={styles.decorSquareOne} />
+          <span className={styles.decorSquareTwo} />
+          <span className={styles.decorSquareThree} />
+          <span className={styles.decorSquareFour} />
+          <span className={styles.decorSquareFive} />
+          <span className={styles.decorSquareSix} />
+          <span className={styles.decorDotOne} />
+          <span className={styles.decorDotTwo} />
+          <span className={styles.decorDotThree} />
+          <span className={styles.decorDotFour} />
+          <span className={styles.decorPhoneOne} />
+          <span className={styles.decorPhoneTwo} />
+          <span className={styles.decorPhoneThree} />
+          <span className={styles.decorTabletOne} />
+          <span className={styles.decorTabletTwo} />
+          <span className={styles.decorLaptopOne} />
+          <span className={styles.decorLaptopTwo} />
+          <span className={styles.decorDash} />
+          <span className={styles.entryStamp}>ENTRADA</span>
+        </div>
+
         <section className={styles.hero} aria-labelledby="auth-title">
           <div className={styles.brandSide}>
             <div className={styles.orbit} aria-hidden="true" />
@@ -261,8 +283,8 @@ export default function AuthPage({ mode }: { mode: "login" | "signup" }) {
           </div>
 
           <div className={styles.tagStage}>
-            <svg className={styles.string} viewBox="0 0 120 74" aria-hidden="true">
-              <path d="M60 72 C60 44, 100 38, 84 2" />
+            <svg className={styles.string} viewBox="0 0 60 180" aria-hidden="true">
+              <path d="M45 0 C45 28 60 42 55 65 C50 90 15 105 5 140 C1 153 0 166 0 180" />
             </svg>
 
             <section
