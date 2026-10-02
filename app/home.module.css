@@ -1,0 +1,1612 @@
+.page {
+  min-height: 100dvh;
+  padding: clamp(14px, 2.3vw, 32px);
+  color: #fff;
+  background: #171717;
+}
+
+.shell {
+  width: min(100%, 1280px);
+  min-height: calc(100dvh - clamp(28px, 4.6vw, 64px));
+  margin: 0 auto;
+  overflow: hidden;
+  background: #203fb4;
+  border: 1px solid #4f6cd0;
+  border-radius: 28px;
+  box-shadow: 0 28px 80px rgb(0 0 0 / 28%);
+}
+
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 14px;
+  min-height: 92px;
+  padding: 24px 54px 10px;
+  color: #f0f3ff;
+  font-size: 16px;
+}
+
+.loginButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 158px;
+  min-height: 66px;
+  padding: 0 28px;
+  color: #fff;
+  background: transparent;
+  border: 2px solid #fff;
+  border-radius: 17px;
+  font-size: 18px;
+  font-weight: 700;
+  transition: background .15s ease, color .15s ease, transform .15s ease;
+}
+
+.loginButton:hover {
+  color: #203fb4;
+  background: #fff;
+  transform: translateY(-1px);
+}
+
+.hero {
+  display: grid;
+  grid-template-columns: minmax(370px, .78fr) minmax(560px, 1.22fr);
+  gap: clamp(28px, 4vw, 58px);
+  align-items: center;
+  min-height: 900px;
+  padding: 0 clamp(34px, 4.5vw, 64px) 56px;
+}
+
+.brandSide {
+  position: relative;
+  display: flex;
+  min-width: 0;
+  min-height: 760px;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+}
+
+.orbit {
+  position: absolute;
+  left: -155px;
+  top: 49%;
+  width: 600px;
+  aspect-ratio: 1;
+  border: 1.5px solid #7190ef;
+  border-radius: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+}
+
+:global(.horaria-hero-brand) {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  color: #fff;
+  transform: rotate(5deg);
+  transform-origin: 0 100%;
+}
+
+:global(.horaria-hero-mark) {
+  display: block;
+  width: clamp(270px, 28vw, 390px);
+  height: auto;
+}
+
+:global(.horaria-hero-wordmark) {
+  margin: 12px 0 0 4px;
+  font-family: "Manrope", "DM Sans", Arial, sans-serif;
+  font-size: clamp(64px, 7vw, 92px);
+  font-weight: 600;
+  line-height: .94;
+  letter-spacing: -.065em;
+}
+
+.eyebrow {
+  position: relative;
+  z-index: 1;
+  max-width: 360px;
+  margin: 54px 0 0;
+  color: #fff;
+  font-size: 18px;
+  font-weight: 500;
+  line-height: 1.35;
+  letter-spacing: .11em;
+}
+
+.brandSide h1 {
+  position: relative;
+  z-index: 1;
+  max-width: 460px;
+  margin: 22px 0 0;
+  color: #fff;
+  font-family: "Manrope", "DM Sans", Arial, sans-serif;
+  font-size: clamp(29px, 3.2vw, 44px);
+  font-weight: 800;
+  line-height: 1.25;
+  letter-spacing: -.035em;
+}
+
+.tagStage {
+  position: relative;
+  width: min(100%, 680px);
+  justify-self: end;
+  padding-top: 70px;
+}
+
+.string {
+  position: absolute;
+  left: 56%;
+  top: -2px;
+  width: 150px;
+  height: 102px;
+  transform: translateX(-50%);
+}
+
+.string path {
+  fill: none;
+  stroke: #fff;
+  stroke-width: 2.2;
+  stroke-linecap: round;
+}
+
+.tagCard,
+.authTagCard {
+  position: relative;
+  display: grid;
+  color: #171c3d;
+  background: #f3f0e6;
+  clip-path: polygon(12% 0, 89% 0, 100% 6.8%, 100% 100%, 0 100%, 0 5.6%);
+  filter: drop-shadow(0 26px 34px rgb(6 18 70 / 22%));
+  transform: rotate(3deg);
+  transform-origin: 50% 0;
+  transition: transform .2s ease;
+}
+
+.tagCard {
+  min-height: 700px;
+  padding: 86px 38px 34px;
+}
+
+.authTagCard {
+  min-height: 650px;
+  padding: 82px 42px 34px;
+}
+
+.tagCard:focus-within,
+.authTagCard:focus-within {
+  transform: rotate(1deg);
+}
+
+.hole {
+  position: absolute;
+  top: 27px;
+  left: 50%;
+  width: 31px;
+  height: 31px;
+  background: #203fb4;
+  border-radius: 50%;
+  transform: translateX(-50%);
+}
+
+.tagHeader {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 20px;
+  margin-bottom: 24px;
+}
+
+.tagHeader strong {
+  color: #171c3d;
+  font-size: 25px;
+  font-weight: 700;
+  font-style: italic;
+  letter-spacing: -.04em;
+}
+
+.tagHeader span {
+  color: #656b91;
+  font-size: 16px;
+  font-weight: 500;
+  letter-spacing: .14em;
+}
+
+.fieldLabel,
+.deviceFieldset legend,
+.authLabel {
+  color: #656b91;
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: .10em;
+}
+
+.lineInput,
+.authInput {
+  width: 100%;
+  min-height: 48px;
+  padding: 6px 2px 8px;
+  color: #171c3d;
+  background: transparent;
+  border: 0;
+  border-bottom: 2px solid #171c3d;
+  border-radius: 0;
+  font-family: ui-monospace, "SFMono-Regular", Consolas, monospace;
+  font-size: 21px;
+  box-shadow: none;
+}
+
+.lineInput::placeholder,
+.authInput::placeholder {
+  color: #7b7d82;
+  opacity: 1;
+}
+
+.lineInput:focus,
+.authInput:focus {
+  border-bottom-color: #1a5cff;
+  box-shadow: 0 2px 0 rgb(26 92 255 / 10%);
+  outline: 0;
+}
+
+.error,
+.authError {
+  min-height: 18px;
+  margin: 5px 0 0;
+  color: #af3029;
+  font-size: 12px;
+  line-height: 1.35;
+}
+
+.metaRow {
+  display: flex;
+  gap: 52px;
+  margin-top: 17px;
+}
+
+.metaRow > div {
+  display: grid;
+  gap: 3px;
+}
+
+.metaRow span {
+  color: #656b91;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: .12em;
+}
+
+.metaRow strong {
+  color: #171c3d;
+  font-family: ui-monospace, "SFMono-Regular", Consolas, monospace;
+  font-size: 19px;
+  font-weight: 500;
+}
+
+.deviceFieldset {
+  padding: 0;
+  margin: 24px 0 0;
+  border: 0;
+}
+
+.deviceFieldset legend {
+  padding: 0;
+  font-size: 17px;
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.chip {
+  position: relative;
+  cursor: pointer;
+}
+
+.chip input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  min-height: 0;
+  margin: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.chip span {
+  display: inline-flex;
+  align-items: center;
+  min-height: 42px;
+  padding: 4px 18px;
+  color: #171c3d;
+  background: transparent;
+  border: 2px solid #171c3d;
+  border-radius: 999px;
+  font-size: 17px;
+  font-weight: 500;
+  transition: background .12s ease, color .12s ease, transform .12s ease;
+}
+
+.chip:hover span {
+  transform: translateY(-1px);
+}
+
+.chipActive span {
+  color: #f3f0e6;
+  background: #171c3d;
+}
+
+.chip input:focus-visible + span {
+  outline: 3px solid #1a5cff;
+  outline-offset: 3px;
+}
+
+.cutLine {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin: 36px -38px 0;
+  color: #a9a79f;
+}
+
+.cutLine span {
+  width: 17px;
+  height: 17px;
+  margin-left: 18px;
+  border: 1px solid #b5b2a7;
+  background: #f3f0e6;
+}
+
+.cutLine i {
+  flex: 1;
+  border-top: 2px dashed #aaa79b;
+}
+
+.tagFooter {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 24px 0 0;
+}
+
+.barcodeWrap {
+  min-width: 0;
+}
+
+.barcode {
+  display: block;
+  width: 150px;
+  height: 48px;
+  fill: #171c3d;
+}
+
+.barcodeWrap small {
+  display: block;
+  margin-top: 8px;
+  color: #656b91;
+  font-family: ui-monospace, "SFMono-Regular", Consolas, monospace;
+  font-size: 15px;
+}
+
+.authBarcode {
+  width: 150px;
+  height: 48px;
+  background:
+    repeating-linear-gradient(
+      90deg,
+      #171c3d 0 3px,
+      transparent 3px 6px,
+      #171c3d 6px 8px,
+      transparent 8px 12px,
+      #171c3d 12px 17px,
+      transparent 17px 20px
+    );
+}
+
+.createButton,
+.authSubmit {
+  min-height: 72px;
+  padding: 0 34px;
+  color: #fff;
+  background: #2460f5;
+  border: 0;
+  border-radius: 14px;
+  font-size: 20px;
+  font-weight: 800;
+  box-shadow: none;
+  transition: background .15s ease, transform .15s ease;
+}
+
+.createButton {
+  min-width: 270px;
+}
+
+.createButton:hover,
+.authSubmit:hover {
+  background: #174fdd;
+  transform: translateY(-1px);
+}
+
+.createButton:disabled,
+.authSubmit:disabled {
+  opacity: .62;
+  cursor: wait;
+}
+
+.authTopLink {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 54px;
+  padding: 0 22px;
+  color: #fff;
+  border: 2px solid #fff;
+  border-radius: 14px;
+  font-weight: 700;
+}
+
+.authForm {
+  display: grid;
+  gap: 17px;
+  margin: 0;
+}
+
+.authFieldsGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 17px 24px;
+}
+
+.authField {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+
+.authFieldFull {
+  grid-column: 1 / -1;
+}
+
+.authInput {
+  min-height: 44px;
+  font-size: 17px;
+}
+
+.authHint {
+  margin-top: 4px;
+  color: #676c87;
+  font-size: 11px;
+  line-height: 1.4;
+}
+
+.authActionsRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  margin-top: 4px;
+}
+
+.authHelpLink,
+.authSwitchLink,
+.authLegal a {
+  color: #1a5cff;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.authLegal {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  gap: 9px;
+  color: #555b76;
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 1.45;
+}
+
+.authLegal input {
+  width: 16px;
+  min-height: 16px;
+  margin-top: 1px;
+  accent-color: #1a5cff;
+}
+
+.authCaptcha {
+  min-height: 66px;
+  overflow: hidden;
+}
+
+.authCaptcha > div {
+  max-width: 100%;
+  transform-origin: left top;
+}
+
+.authNotice {
+  margin: 12px 0 0;
+  padding: 10px 12px;
+  color: #822d29;
+  background: #f9e9e5;
+  border: 1px solid #e8c3bc;
+  border-radius: 8px;
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.authBottom {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  margin-top: 18px;
+  color: #656b91;
+  font-size: 12px;
+}
+
+.authCutLine {
+  margin-inline: -42px;
+}
+
+.authSubmit {
+  min-width: 190px;
+}
+
+.authClosed {
+  display: grid;
+  gap: 18px;
+  color: #4d536f;
+}
+
+.authClosed p {
+  margin: 0;
+  color: inherit;
+  line-height: 1.55;
+}
+
+.authHomeLink {
+  position: relative;
+  z-index: 2;
+  display: inline-flex;
+  margin-top: 36px;
+  color: #dce5ff;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+@media (max-width: 1100px) {
+  .hero {
+    grid-template-columns: minmax(300px, .72fr) minmax(500px, 1.28fr);
+    padding-inline: 34px;
+  }
+
+  :global(.horaria-hero-mark) {
+    width: 290px;
+  }
+
+  :global(.horaria-hero-wordmark) {
+    font-size: 68px;
+  }
+
+  .tagCard {
+    min-height: 650px;
+    padding-inline: 30px;
+  }
+
+  .createButton {
+    min-width: 220px;
+  }
+}
+
+@media (max-width: 900px) {
+  .page {
+    padding: 0;
+    background: #203fb4;
+  }
+
+  .shell {
+    min-height: 100dvh;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+  }
+
+  .topbar {
+    min-height: 72px;
+    padding: 16px 22px 4px;
+  }
+
+  .loginButton {
+    min-width: 112px;
+    min-height: 46px;
+    border-radius: 12px;
+    font-size: 15px;
+  }
+
+  .hero {
+    grid-template-columns: 1fr;
+    gap: 20px;
+    min-height: auto;
+    padding: 10px 24px 48px;
+  }
+
+  .brandSide {
+    min-height: 570px;
+  }
+
+  .orbit {
+    left: -190px;
+    width: 540px;
+  }
+
+  :global(.horaria-hero-mark) {
+    width: 300px;
+  }
+
+  :global(.horaria-hero-wordmark) {
+    font-size: 72px;
+  }
+
+  .tagStage {
+    width: min(100%, 680px);
+    justify-self: center;
+  }
+
+  .authTagCard,
+  .tagCard {
+    transform: rotate(1deg);
+  }
+}
+
+@media (max-width: 620px) {
+  .topbar {
+    gap: 9px;
+    font-size: 12px;
+  }
+
+  .hero {
+    padding: 10px 14px 34px;
+  }
+
+  .brandSide {
+    min-height: 430px;
+  }
+
+  .orbit {
+    left: -175px;
+    width: 430px;
+  }
+
+  :global(.horaria-hero-mark) {
+    width: 210px;
+  }
+
+  :global(.horaria-hero-wordmark) {
+    margin-top: 7px;
+    font-size: 52px;
+  }
+
+  .eyebrow {
+    max-width: 270px;
+    margin-top: 36px;
+    font-size: 12px;
+  }
+
+  .brandSide h1 {
+    margin-top: 15px;
+    font-size: 29px;
+  }
+
+  .tagStage {
+    padding-top: 55px;
+  }
+
+  .tagCard,
+  .authTagCard {
+    padding: 68px 20px 24px;
+    clip-path: polygon(11% 0, 89% 0, 100% 4.5%, 100% 100%, 0 100%, 0 4.5%);
+  }
+
+  .tagCard {
+    min-height: 590px;
+  }
+
+  .authTagCard {
+    min-height: 0;
+  }
+
+  .tagHeader strong {
+    font-size: 20px;
+  }
+
+  .tagHeader span {
+    font-size: 12px;
+  }
+
+  .lineInput {
+    font-size: 17px;
+  }
+
+  .metaRow {
+    gap: 30px;
+  }
+
+  .deviceFieldset legend {
+    font-size: 13px;
+  }
+
+  .chip span {
+    min-height: 35px;
+    padding-inline: 13px;
+    font-size: 13px;
+  }
+
+  .cutLine {
+    margin-inline: -20px;
+  }
+
+  .authCutLine {
+    margin-inline: -20px;
+  }
+
+  .tagFooter {
+    gap: 12px;
+  }
+
+  .barcode {
+    width: 105px;
+    height: 38px;
+  }
+
+  .createButton {
+    min-width: 0;
+    flex: 1;
+    min-height: 58px;
+    padding-inline: 14px;
+    font-size: 16px;
+  }
+
+  .authFieldsGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .authFieldFull {
+    grid-column: auto;
+  }
+
+  .authInput {
+    font-size: 16px;
+  }
+
+  .authActionsRow,
+  .authBottom {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .authSubmit {
+    width: 100%;
+    min-height: 58px;
+  }
+
+  .authCaptcha {
+    overflow-x: auto;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tagCard,
+  .authTagCard,
+  .loginButton,
+  .chip span,
+  .createButton,
+  .authSubmit {
+    transition: none;
+  }
+}
+
+/* Entry screens: fit the full visual inside one viewport. */
+.homeViewport,
+.authViewport {
+  height: 100vh;
+  height: 100dvh;
+  min-height: 100vh;
+  min-height: 100dvh;
+  padding: clamp(.5rem, 1.1vw, 1rem);
+  overflow: hidden;
+}
+
+.homeViewport .shell,
+.authViewport .shell {
+  height: calc(100dvh - clamp(1rem, 2.2vw, 2rem));
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.homeViewport .topbar,
+.authViewport .topbar {
+  flex: 0 0 auto;
+  min-height: clamp(3rem, 7vh, 3.75rem);
+  padding: clamp(.5rem, 1.4vh, .8rem) clamp(1.25rem, 3vw, 2.6rem);
+  font-size: clamp(.75rem, 1vw, .9rem);
+}
+
+.homeViewport .loginButton,
+.authViewport .loginButton {
+  min-width: clamp(6.25rem, 9vw, 7.5rem);
+  min-height: clamp(2.4rem, 5.5vh, 2.8rem);
+  padding-inline: clamp(1rem, 2vw, 1.4rem);
+  border-radius: .7rem;
+  font-size: clamp(.8rem, 1vw, .92rem);
+}
+
+.homeViewport .hero,
+.authViewport .hero {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: minmax(0, .9fr) minmax(18.75rem, 1.1fr);
+  gap: clamp(1.25rem, 3vw, 2.75rem);
+  align-items: center;
+  padding: 0 clamp(1.5rem, 4vw, 3.25rem) clamp(.75rem, 2vh, 1.5rem);
+}
+
+.homeViewport .brandSide,
+.authViewport .brandSide {
+  min-height: 0;
+  height: 100%;
+  justify-content: center;
+  overflow: visible;
+}
+
+.homeViewport .brandSide :global(.horaria-hero-brand),
+.authViewport .brandSide :global(.horaria-hero-brand) {
+  max-height: 55vh;
+  transform: none;
+}
+
+.homeViewport .brandSide :global(.horaria-hero-mark),
+.authViewport .brandSide :global(.horaria-hero-mark) {
+  width: clamp(11.25rem, 28vw, 23.75rem);
+  max-width: 100%;
+  max-height: 43vh;
+  object-fit: contain;
+}
+
+.homeViewport .brandSide :global(.horaria-hero-wordmark),
+.authViewport .brandSide :global(.horaria-hero-wordmark) {
+  margin: clamp(.2rem, .6vh, .45rem) 0 0 .2rem;
+  font-size: clamp(2rem, 5vw, 4rem);
+  line-height: .96;
+}
+
+.homeViewport .orbit,
+.authViewport .orbit {
+  left: clamp(-8rem, -9vw, -4rem);
+  top: 50%;
+  width: clamp(18rem, 34vw, 28rem);
+  max-width: 64vh;
+  transform: translateY(-50%);
+}
+
+.homeViewport .eyebrow,
+.authViewport .eyebrow {
+  max-width: 22rem;
+  margin-top: clamp(.75rem, 2vh, 1.35rem);
+  font-size: clamp(.65rem, 1vw, .85rem);
+  line-height: 1.25;
+}
+
+.homeViewport .brandSide h1,
+.authViewport .brandSide h1 {
+  max-width: 28rem;
+  margin-top: clamp(.45rem, 1vh, .8rem);
+  font-size: clamp(1.25rem, 2.4vw, 2rem);
+  line-height: 1.14;
+}
+
+.homeViewport .tagStage,
+.authViewport .tagStage {
+  width: clamp(18.75rem, 42vw, 32.5rem);
+  max-width: 100%;
+  max-height: 88%;
+  padding-top: clamp(1rem, 2.6vh, 1.8rem);
+  align-self: center;
+  justify-self: center;
+}
+
+.homeViewport .string,
+.authViewport .string {
+  top: -.4rem;
+  width: clamp(3.5rem, 6vw, 4.8rem);
+  height: clamp(2.2rem, 5vh, 3.2rem);
+}
+
+.homeViewport .tagCard,
+.homeViewport .authTagCard,
+.authViewport .tagCard,
+.authViewport .authTagCard {
+  width: 100%;
+  min-height: 0;
+  max-height: 85vh;
+  padding:
+    clamp(2.65rem, 5.5vh, 3.5rem)
+    clamp(1rem, 2vw, 1.25rem)
+    clamp(.9rem, 2vh, 1.25rem);
+  align-content: start;
+  transform: rotate(1deg);
+}
+
+.homeViewport .tagCard:focus-within,
+.homeViewport .authTagCard:focus-within,
+.authViewport .tagCard:focus-within,
+.authViewport .authTagCard:focus-within {
+  transform: rotate(.5deg);
+}
+
+.homeViewport .hole,
+.authViewport .hole {
+  top: clamp(.8rem, 2vh, 1rem);
+  width: clamp(.85rem, 1.6vw, 1.05rem);
+  height: clamp(.85rem, 1.6vw, 1.05rem);
+}
+
+.homeViewport .tagHeader,
+.authViewport .tagHeader {
+  gap: .75rem;
+  margin-bottom: clamp(.6rem, 1.5vh, .8rem);
+}
+
+.homeViewport .tagHeader strong,
+.authViewport .tagHeader strong {
+  font-size: clamp(1rem, 1.5vw, 1.1rem);
+  line-height: 1;
+}
+
+.homeViewport .tagHeader span,
+.authViewport .tagHeader span {
+  font-size: clamp(.58rem, .75vw, .65rem);
+  letter-spacing: .12em;
+}
+
+.homeViewport .fieldLabel,
+.homeViewport .deviceFieldset legend,
+.homeViewport .authLabel,
+.authViewport .fieldLabel,
+.authViewport .deviceFieldset legend,
+.authViewport .authLabel {
+  font-size: clamp(.58rem, .75vw, .65rem);
+  line-height: 1.1;
+}
+
+.homeViewport .lineInput,
+.homeViewport .authInput,
+.authViewport .lineInput,
+.authViewport .authInput {
+  min-height: 2.25rem;
+  height: 2.25rem;
+  padding: .25rem .1rem .35rem;
+  font-size: clamp(.78rem, 1vw, .85rem);
+}
+
+.homeViewport .error,
+.homeViewport .authError,
+.authViewport .error,
+.authViewport .authError {
+  min-height: .9rem;
+  margin-top: .15rem;
+  font-size: .65rem;
+  line-height: 1.15;
+}
+
+.homeViewport .metaRow,
+.authViewport .metaRow {
+  gap: clamp(1.25rem, 4vw, 2.4rem);
+  margin-top: clamp(.5rem, 1.2vh, .7rem);
+}
+
+.homeViewport .metaRow > div,
+.authViewport .metaRow > div {
+  gap: .12rem;
+}
+
+.homeViewport .metaRow span,
+.authViewport .metaRow span {
+  font-size: clamp(.55rem, .7vw, .62rem);
+}
+
+.homeViewport .metaRow strong,
+.authViewport .metaRow strong {
+  font-size: clamp(.72rem, .95vw, .85rem);
+}
+
+.homeViewport .deviceFieldset,
+.authViewport .deviceFieldset {
+  margin-top: clamp(.55rem, 1.3vh, .75rem);
+}
+
+.homeViewport .chips,
+.authViewport .chips {
+  gap: .375rem;
+  margin-top: .4rem;
+}
+
+.homeViewport .chip span,
+.authViewport .chip span {
+  min-height: 2rem;
+  padding: .375rem .75rem;
+  border-width: 1.5px;
+  font-size: .8rem;
+  line-height: 1;
+}
+
+.homeViewport .cutLine,
+.authViewport .cutLine {
+  gap: .6rem;
+  margin: clamp(.6rem, 1.4vh, .8rem) clamp(-1.25rem, -2vw, -1rem) 0;
+}
+
+.homeViewport .cutLine span,
+.authViewport .cutLine span {
+  width: .8rem;
+  height: .8rem;
+  margin-left: .75rem;
+}
+
+.homeViewport .tagFooter,
+.authViewport .tagFooter {
+  gap: clamp(.7rem, 2vw, 1.1rem);
+  padding-top: clamp(.55rem, 1.2vh, .75rem);
+}
+
+.homeViewport .barcode,
+.homeViewport .authBarcode,
+.authViewport .barcode,
+.authViewport .authBarcode {
+  width: clamp(5rem, 9vw, 6.5rem);
+  height: clamp(1.65rem, 3.5vh, 2rem);
+}
+
+.homeViewport .barcodeWrap small,
+.authViewport .barcodeWrap small {
+  margin-top: .2rem;
+  font-size: .62rem;
+}
+
+.homeViewport .createButton,
+.homeViewport .authSubmit,
+.authViewport .createButton,
+.authViewport .authSubmit {
+  min-width: 0;
+  min-height: 2.6rem;
+  padding: 0 clamp(.9rem, 2vw, 1.25rem);
+  border-radius: .65rem;
+  font-size: clamp(.78rem, 1vw, .9rem);
+}
+
+.homeViewport .createButton {
+  min-width: clamp(9rem, 18vw, 12rem);
+}
+
+.authViewport .authForm,
+.authViewport .authFieldsGrid {
+  gap: clamp(.5rem, 1.2vh, .7rem);
+}
+
+.authViewport .authActionsRow {
+  margin-top: 0;
+}
+
+.authViewport .authHelpLink,
+.authViewport .authSwitchLink,
+.authViewport .authLegal a {
+  font-size: .68rem;
+}
+
+.authViewport .authCutLine {
+  margin-top: .2rem;
+}
+
+.authViewport .authBottom {
+  gap: .6rem;
+  margin-top: clamp(.45rem, 1vh, .65rem);
+  font-size: .68rem;
+}
+
+.authViewport .authHomeLink {
+  min-height: 2rem;
+  margin-top: clamp(.45rem, 1vh, .7rem);
+  align-items: center;
+  font-size: .7rem;
+}
+
+.authViewport .authNotice {
+  margin-top: .4rem;
+  padding: .45rem .55rem;
+  font-size: .68rem;
+  line-height: 1.3;
+}
+
+/* Laptops baixos: reduz proporcionalmente sem criar rolagem. */
+@media (min-width: 769px) and (max-height: 700px) {
+  .homeViewport,
+  .authViewport {
+    padding: .4rem;
+  }
+
+  .homeViewport .shell,
+  .authViewport .shell {
+    height: calc(100dvh - .8rem);
+  }
+
+  .homeViewport .topbar,
+  .authViewport .topbar {
+    min-height: 2.6rem;
+    padding-block: .35rem;
+  }
+
+  .homeViewport .hero,
+  .authViewport .hero {
+    gap: 1.2rem;
+    padding-bottom: .55rem;
+  }
+
+  .homeViewport .brandSide :global(.horaria-hero-mark),
+  .authViewport .brandSide :global(.horaria-hero-mark) {
+    width: clamp(9rem, 18vw, 13.5rem);
+    max-height: 35vh;
+  }
+
+  .homeViewport .brandSide :global(.horaria-hero-wordmark),
+  .authViewport .brandSide :global(.horaria-hero-wordmark) {
+    font-size: clamp(2rem, 3.5vw, 2.7rem);
+  }
+
+  .homeViewport .orbit,
+  .authViewport .orbit {
+    width: min(28vw, 22rem);
+  }
+
+  .homeViewport .eyebrow,
+  .authViewport .eyebrow {
+    margin-top: .55rem;
+    font-size: .62rem;
+  }
+
+  .homeViewport .brandSide h1,
+  .authViewport .brandSide h1 {
+    margin-top: .35rem;
+    font-size: clamp(1.05rem, 1.7vw, 1.35rem);
+  }
+
+  .homeViewport .tagStage,
+  .authViewport .tagStage {
+    width: clamp(18rem, 39vw, 29rem);
+    padding-top: .8rem;
+  }
+
+  .homeViewport .tagCard,
+  .homeViewport .authTagCard,
+  .authViewport .tagCard,
+  .authViewport .authTagCard {
+    padding: 2rem .9rem .75rem;
+    transform: rotate(.7deg);
+  }
+
+  .homeViewport .hole,
+  .authViewport .hole {
+    top: .62rem;
+    width: .7rem;
+    height: .7rem;
+  }
+
+  .homeViewport .tagHeader,
+  .authViewport .tagHeader {
+    margin-bottom: .45rem;
+  }
+
+  .homeViewport .lineInput,
+  .homeViewport .authInput,
+  .authViewport .lineInput,
+  .authViewport .authInput {
+    min-height: 2rem;
+    height: 2rem;
+  }
+
+  .homeViewport .deviceFieldset,
+  .authViewport .deviceFieldset {
+    margin-top: .45rem;
+  }
+
+  .homeViewport .chip span,
+  .authViewport .chip span {
+    min-height: 1.8rem;
+    padding: .3rem .65rem;
+    font-size: .72rem;
+  }
+
+  .homeViewport .cutLine,
+  .authViewport .cutLine {
+    margin-top: .45rem;
+  }
+
+  .homeViewport .tagFooter,
+  .authViewport .tagFooter {
+    padding-top: .45rem;
+  }
+
+  .homeViewport .createButton,
+  .homeViewport .authSubmit,
+  .authViewport .createButton,
+  .authViewport .authSubmit {
+    min-height: 2.25rem;
+  }
+}
+
+/* Mobile: logo pequeno no topo e etiqueta inteira abaixo, ainda sem scroll. */
+@media (max-width: 768px) {
+  .homeViewport,
+  .authViewport {
+    padding: 0;
+    background: #203fb4;
+  }
+
+  .homeViewport .shell,
+  .authViewport .shell {
+    height: 100dvh;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+  }
+
+  .homeViewport .topbar,
+  .authViewport .topbar {
+    min-height: 2.7rem;
+    padding: .35rem .75rem .2rem;
+    gap: .5rem;
+    font-size: .68rem;
+  }
+
+  .homeViewport .loginButton,
+  .authViewport .loginButton {
+    min-width: 5.6rem;
+    min-height: 2.2rem;
+    padding-inline: .8rem;
+    border-radius: .6rem;
+    font-size: .75rem;
+  }
+
+  .homeViewport .hero,
+  .authViewport .hero {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: minmax(4.8rem, 16vh) minmax(0, 1fr);
+    gap: .3rem;
+    align-content: stretch;
+    padding: .15rem .6rem .55rem;
+  }
+
+  .homeViewport .brandSide,
+  .authViewport .brandSide {
+    width: min(100%, 32rem);
+    height: auto;
+    min-height: 0;
+    justify-self: center;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+  }
+
+  .homeViewport .brandSide :global(.horaria-hero-brand),
+  .authViewport .brandSide :global(.horaria-hero-brand) {
+    max-height: 18vh;
+    flex-direction: row;
+    align-items: center;
+    gap: .45rem;
+  }
+
+  .homeViewport .brandSide :global(.horaria-hero-mark),
+  .authViewport .brandSide :global(.horaria-hero-mark) {
+    width: auto;
+    height: min(8vh, 3.1rem);
+    max-height: 8vh;
+  }
+
+  .homeViewport .brandSide :global(.horaria-hero-wordmark),
+  .authViewport .brandSide :global(.horaria-hero-wordmark) {
+    margin: 0;
+    font-size: clamp(1.6rem, 9vw, 2.15rem);
+  }
+
+  .homeViewport .orbit,
+  .authViewport .orbit {
+    left: 50%;
+    top: 50%;
+    width: min(42vw, 8.5rem);
+    transform: translate(-50%, -50%);
+  }
+
+  .homeViewport .eyebrow,
+  .authViewport .eyebrow {
+    margin-top: .25rem;
+    font-size: .52rem;
+    letter-spacing: .08em;
+  }
+
+  .homeViewport .brandSide h1,
+  .authViewport .brandSide h1 {
+    max-width: 21rem;
+    margin-top: .15rem;
+    font-size: clamp(.72rem, 3.2vw, .9rem);
+    line-height: 1.05;
+  }
+
+  .homeViewport .brandSide h1 br,
+  .authViewport .brandSide h1 br {
+    display: none;
+  }
+
+  .authViewport .authHomeLink {
+    min-height: 0;
+    margin-top: .15rem;
+    font-size: .58rem;
+  }
+
+  .homeViewport .tagStage,
+  .authViewport .tagStage {
+    width: min(100%, 27rem);
+    height: 100%;
+    max-height: 100%;
+    padding-top: .3rem;
+    align-self: stretch;
+  }
+
+  .homeViewport .string,
+  .authViewport .string {
+    top: -.45rem;
+    width: 2.8rem;
+    height: 1.8rem;
+  }
+
+  .homeViewport .tagCard,
+  .homeViewport .authTagCard,
+  .authViewport .tagCard,
+  .authViewport .authTagCard {
+    max-height: 100%;
+    padding: 1.8rem .75rem .65rem;
+    transform: rotate(.5deg);
+  }
+
+  .homeViewport .hole,
+  .authViewport .hole {
+    top: .5rem;
+    width: .65rem;
+    height: .65rem;
+  }
+
+  .homeViewport .tagHeader,
+  .authViewport .tagHeader {
+    margin-bottom: .4rem;
+  }
+
+  .homeViewport .tagHeader strong,
+  .authViewport .tagHeader strong {
+    font-size: .92rem;
+  }
+
+  .homeViewport .tagHeader span,
+  .authViewport .tagHeader span,
+  .homeViewport .fieldLabel,
+  .homeViewport .deviceFieldset legend,
+  .homeViewport .authLabel,
+  .authViewport .fieldLabel,
+  .authViewport .deviceFieldset legend,
+  .authViewport .authLabel {
+    font-size: .54rem;
+  }
+
+  .homeViewport .lineInput,
+  .homeViewport .authInput,
+  .authViewport .lineInput,
+  .authViewport .authInput {
+    min-height: 2rem;
+    height: 2rem;
+    font-size: .78rem;
+  }
+
+  .homeViewport .error,
+  .authViewport .error {
+    min-height: .65rem;
+    font-size: .56rem;
+  }
+
+  .homeViewport .metaRow,
+  .authViewport .metaRow {
+    margin-top: .35rem;
+    gap: 1.1rem;
+  }
+
+  .homeViewport .metaRow span,
+  .authViewport .metaRow span {
+    font-size: .5rem;
+  }
+
+  .homeViewport .metaRow strong,
+  .authViewport .metaRow strong {
+    font-size: .68rem;
+  }
+
+  .homeViewport .deviceFieldset,
+  .authViewport .deviceFieldset {
+    margin-top: .4rem;
+  }
+
+  .homeViewport .chips,
+  .authViewport .chips {
+    gap: .35rem;
+    margin-top: .3rem;
+  }
+
+  .homeViewport .chip span,
+  .authViewport .chip span {
+    min-height: 1.75rem;
+    padding: .3rem .65rem;
+    font-size: .7rem;
+  }
+
+  .homeViewport .cutLine,
+  .authViewport .cutLine {
+    margin: .4rem -.75rem 0;
+  }
+
+  .homeViewport .tagFooter,
+  .authViewport .tagFooter {
+    gap: .5rem;
+    padding-top: .4rem;
+  }
+
+  .homeViewport .barcode,
+  .homeViewport .authBarcode,
+  .authViewport .barcode,
+  .authViewport .authBarcode {
+    width: 4.4rem;
+    height: 1.45rem;
+  }
+
+  .homeViewport .barcodeWrap small,
+  .authViewport .barcodeWrap small {
+    font-size: .52rem;
+  }
+
+  .homeViewport .createButton,
+  .homeViewport .authSubmit,
+  .authViewport .createButton,
+  .authViewport .authSubmit {
+    min-height: 2.2rem;
+    padding-inline: .75rem;
+    font-size: .72rem;
+  }
+
+  .homeViewport .createButton {
+    flex: 1;
+  }
+
+  .authViewport .authFieldsGrid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: .4rem;
+  }
+
+  .authViewport .authFieldFull {
+    grid-column: auto;
+  }
+
+  .authViewport .authForm {
+    gap: .4rem;
+  }
+
+  .authViewport .authActionsRow,
+  .authViewport .authBottom {
+    flex-direction: row;
+    align-items: center;
+  }
+
+  .authViewport .authBottom {
+    margin-top: .35rem;
+  }
+
+  .authViewport .authCaptcha {
+    min-height: 0;
+    max-height: 3.6rem;
+    overflow: hidden;
+    transform: scale(.82);
+    transform-origin: left top;
+  }
+}
+
+/* Garantia explícita para 360x640 e aparelhos compactos. */
+@media (max-width: 400px) and (max-height: 680px) {
+  .homeViewport .topbar,
+  .authViewport .topbar {
+    min-height: 2.45rem;
+    padding-top: .25rem;
+  }
+
+  .homeViewport .hero,
+  .authViewport .hero {
+    grid-template-rows: minmax(4.2rem, 14vh) minmax(0, 1fr);
+    padding-bottom: .35rem;
+  }
+
+  .homeViewport .brandSide :global(.horaria-hero-mark),
+  .authViewport .brandSide :global(.horaria-hero-mark) {
+    height: min(6.8vh, 2.65rem);
+  }
+
+  .homeViewport .brandSide :global(.horaria-hero-wordmark),
+  .authViewport .brandSide :global(.horaria-hero-wordmark) {
+    font-size: clamp(1.4rem, 8vw, 1.8rem);
+  }
+
+  .homeViewport .eyebrow,
+  .authViewport .eyebrow {
+    font-size: .48rem;
+  }
+
+  .homeViewport .brandSide h1,
+  .authViewport .brandSide h1 {
+    font-size: .68rem;
+  }
+
+  .homeViewport .tagCard,
+  .homeViewport .authTagCard,
+  .authViewport .tagCard,
+  .authViewport .authTagCard {
+    padding: 1.55rem .65rem .5rem;
+  }
+
+  .homeViewport .lineInput,
+  .homeViewport .authInput,
+  .authViewport .lineInput,
+  .authViewport .authInput {
+    min-height: 1.85rem;
+    height: 1.85rem;
+  }
+
+  .homeViewport .chip span,
+  .authViewport .chip span {
+    min-height: 1.55rem;
+    padding: .25rem .55rem;
+    font-size: .66rem;
+  }
+
+  .homeViewport .cutLine,
+  .authViewport .cutLine {
+    margin-top: .3rem;
+  }
+
+  .homeViewport .tagFooter,
+  .authViewport .tagFooter {
+    padding-top: .3rem;
+  }
+
+  .homeViewport .createButton,
+  .homeViewport .authSubmit,
+  .authViewport .createButton,
+  .authViewport .authSubmit {
+    min-height: 2rem;
+  }
+}
+
+/* Cadastro mantém altura natural porque possui mais campos que o login. */
+.signupViewport {
+  min-height: 100dvh;
+}
+
