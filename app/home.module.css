@@ -1940,24 +1940,29 @@
 
 @media (min-width: 769px) {
   .homeViewport {
-    --s: min(0.0651041667vw, 0.1157407407vh);
+    --frame-x: clamp(14px, 2.1vw, 32px);
+    --frame-y: clamp(14px, 3.7vh, 32px);
+    --sx: calc((100vw - (2 * var(--frame-x))) * 0.0006793478);
+    --sy: calc((100dvh - (2 * var(--frame-y))) * 0.00125);
+    --s: min(var(--sx), var(--sy));
     display: grid;
     place-items: center;
     width: 100vw;
-    padding: calc(32 * var(--s));
+    height: 100dvh;
+    padding: var(--frame-y) var(--frame-x);
     box-sizing: border-box;
     font-family: Arial, Helvetica, sans-serif;
   }
 
   .homeViewport .shell {
     display: block;
-    width: calc(1472 * var(--s));
-    height: calc(800 * var(--s));
+    width: calc(100vw - (2 * var(--frame-x)));
+    height: calc(100dvh - (2 * var(--frame-y)));
     min-height: 0;
     max-width: none;
     margin: 0;
     border: 0;
-    border-radius: calc(29 * var(--s));
+    border-radius: clamp(18px, calc(29 * var(--s)), 32px);
     box-shadow: none;
   }
 
@@ -2482,6 +2487,140 @@
     height: calc(28 * var(--s));
   }
 
+  .homeViewport .decorPhoneOne,
+  .homeViewport .decorPhoneTwo,
+  .homeViewport .decorPhoneThree,
+  .homeViewport .decorTabletOne,
+  .homeViewport .decorTabletTwo,
+  .homeViewport .decorLaptopOne,
+  .homeViewport .decorLaptopTwo {
+    position: absolute;
+    display: block;
+    box-sizing: border-box;
+    opacity: .72;
+  }
+
+  .homeViewport .decorPhoneOne,
+  .homeViewport .decorPhoneTwo,
+  .homeViewport .decorPhoneThree {
+    width: calc(34 * var(--s));
+    height: calc(62 * var(--s));
+    border: calc(2 * var(--s)) solid rgb(255 255 255 / 16%);
+    border-radius: calc(8 * var(--s));
+  }
+
+  .homeViewport .decorPhoneOne::before,
+  .homeViewport .decorPhoneTwo::before,
+  .homeViewport .decorPhoneThree::before {
+    content: "";
+    position: absolute;
+    top: calc(5 * var(--s));
+    left: 50%;
+    width: calc(10 * var(--s));
+    height: calc(2 * var(--s));
+    border-radius: 999px;
+    background: rgb(255 255 255 / 15%);
+    transform: translateX(-50%);
+  }
+
+  .homeViewport .decorPhoneOne::after,
+  .homeViewport .decorPhoneTwo::after,
+  .homeViewport .decorPhoneThree::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    bottom: calc(5 * var(--s));
+    width: calc(5 * var(--s));
+    height: calc(5 * var(--s));
+    border: calc(1.5 * var(--s)) solid rgb(255 255 255 / 14%);
+    border-radius: 50%;
+    transform: translateX(-50%);
+  }
+
+  .homeViewport .decorPhoneOne {
+    left: calc(64 * var(--s));
+    top: calc(152 * var(--s));
+    transform: rotate(-16deg);
+  }
+
+  .homeViewport .decorPhoneTwo {
+    right: calc(92 * var(--s));
+    top: calc(162 * var(--s));
+    transform: rotate(13deg);
+  }
+
+  .homeViewport .decorPhoneThree {
+    right: calc(132 * var(--s));
+    bottom: calc(55 * var(--s));
+    transform: rotate(-11deg);
+  }
+
+  .homeViewport .decorTabletOne,
+  .homeViewport .decorTabletTwo {
+    width: calc(50 * var(--s));
+    height: calc(70 * var(--s));
+    border: calc(2 * var(--s)) solid rgb(255 255 255 / 14%);
+    border-radius: calc(8 * var(--s));
+  }
+
+  .homeViewport .decorTabletOne::before,
+  .homeViewport .decorTabletTwo::before {
+    content: "";
+    position: absolute;
+    top: calc(5 * var(--s));
+    left: 50%;
+    width: calc(5 * var(--s));
+    height: calc(5 * var(--s));
+    border-radius: 50%;
+    background: rgb(255 255 255 / 14%);
+    transform: translateX(-50%);
+  }
+
+  .homeViewport .decorTabletOne {
+    left: calc(665 * var(--s));
+    top: calc(38 * var(--s));
+    transform: rotate(9deg);
+  }
+
+  .homeViewport .decorTabletTwo {
+    left: calc(742 * var(--s));
+    bottom: calc(20 * var(--s));
+    transform: rotate(-14deg);
+  }
+
+  .homeViewport .decorLaptopOne,
+  .homeViewport .decorLaptopTwo {
+    width: calc(76 * var(--s));
+    height: calc(48 * var(--s));
+    border: calc(2 * var(--s)) solid rgb(255 255 255 / 13%);
+    border-radius: calc(5 * var(--s));
+  }
+
+  .homeViewport .decorLaptopOne::before,
+  .homeViewport .decorLaptopTwo::before {
+    content: "";
+    position: absolute;
+    left: calc(-8 * var(--s));
+    right: calc(-8 * var(--s));
+    bottom: calc(-10 * var(--s));
+    height: calc(7 * var(--s));
+    border: calc(2 * var(--s)) solid rgb(255 255 255 / 12%);
+    border-top: 0;
+    border-radius: 0 0 calc(7 * var(--s)) calc(7 * var(--s));
+  }
+
+  .homeViewport .decorLaptopOne {
+    left: calc(560 * var(--s));
+    bottom: calc(86 * var(--s));
+    transform: rotate(-4deg);
+  }
+
+  .homeViewport .decorLaptopTwo {
+    right: calc(250 * var(--s));
+    top: calc(112 * var(--s));
+    transform: rotate(7deg);
+  }
+
   .homeViewport .decorDash {
     position: absolute;
     left: calc(600 * var(--s));
@@ -2532,7 +2671,10 @@
 @media (max-width: 768px) {
   .homeViewport {
     width: 100vw;
+    height: 100dvh;
+    min-height: 0;
     padding: 0;
+    overflow: hidden;
     background: #2140b5;
   }
 
@@ -2540,7 +2682,7 @@
     display: grid;
     grid-template-rows: auto minmax(0, 1fr);
     width: 100%;
-    height: 100%;
+    height: 100dvh;
     min-height: 0;
     border: 0;
     border-radius: 0;
@@ -2631,8 +2773,70 @@
   }
 
   .homeViewport .string,
-  .homeViewport .decorations {
+  .homeViewport .entryStamp,
+  .homeViewport .decorSquareOne,
+  .homeViewport .decorSquareTwo,
+  .homeViewport .decorSquareThree,
+  .homeViewport .decorSquareFour,
+  .homeViewport .decorSquareFive,
+  .homeViewport .decorSquareSix,
+  .homeViewport .decorDotOne,
+  .homeViewport .decorDotTwo,
+  .homeViewport .decorDotThree,
+  .homeViewport .decorDotFour,
+  .homeViewport .decorDash,
+  .homeViewport .decorLaptopTwo,
+  .homeViewport .decorTabletTwo,
+  .homeViewport .decorPhoneThree {
     display: none;
+  }
+
+  .homeViewport .decorations {
+    position: absolute;
+    inset: 0;
+    display: block;
+    pointer-events: none;
+    z-index: 1;
+  }
+
+  .homeViewport .decorPhoneOne {
+    left: 5vw;
+    top: 18vh;
+    width: 24px;
+    height: 44px;
+    border: 1px solid rgb(255 255 255 / 12%);
+    border-radius: 6px;
+    transform: rotate(-14deg);
+  }
+
+  .homeViewport .decorPhoneTwo {
+    right: 6vw;
+    top: 22vh;
+    width: 22px;
+    height: 40px;
+    border: 1px solid rgb(255 255 255 / 11%);
+    border-radius: 6px;
+    transform: rotate(12deg);
+  }
+
+  .homeViewport .decorTabletOne {
+    right: 8vw;
+    bottom: 8vh;
+    width: 34px;
+    height: 48px;
+    border: 1px solid rgb(255 255 255 / 10%);
+    border-radius: 7px;
+    transform: rotate(-10deg);
+  }
+
+  .homeViewport .decorLaptopOne {
+    left: 8vw;
+    bottom: 9vh;
+    width: 48px;
+    height: 30px;
+    border: 1px solid rgb(255 255 255 / 10%);
+    border-radius: 4px;
+    transform: rotate(5deg);
   }
 }
 /* === FIM HORARIA LANDING FINAL === */
