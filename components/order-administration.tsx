@@ -13,10 +13,12 @@ import {
 import { ErrorBox, PanelTitle } from "./ui";
 export default function OrderAdministration({
   order,
+  canManageTechnical,
   canViewDeviceSecret,
   onChanged,
 }: {
   order: Ordem;
+  canManageTechnical: boolean;
   canViewDeviceSecret: boolean;
   onChanged: () => void;
 }) {
@@ -30,10 +32,12 @@ export default function OrderAdministration({
     [order.id, order.previsao],
   );
   const deadlineNotice = deliveryState(delivery || null, order.status);
-  const benches = useRows<MesaReparo>("mesas_reparo");
+  const benches = useRows<MesaReparo>("mesas_reparo", canManageTechnical);
   return (
     <section className="panel order-administration-panel">
-      <PanelTitle title="Responsável e previsão" icon="team" />
+      {canManageTechnical && (
+        <PanelTitle title="Responsável e previsão" icon="team" />
+      )}
       <ErrorBox error={error} />
       <p role="status">{notice}</p>
       {delivery && (
@@ -42,6 +46,7 @@ export default function OrderAdministration({
           {deadlineNotice ? ` — ${deadlineNotice}` : ""}
         </p>
       )}
+      {canManageTechnical && (
       <form
         onSubmit={async (e) => {
           e.preventDefault();
@@ -146,6 +151,7 @@ export default function OrderAdministration({
           Salvar organização da OS
         </button>
       </form>
+      )}
       <div className="order-tracking-section">
         <div className="order-section-heading">
           <PanelTitle
