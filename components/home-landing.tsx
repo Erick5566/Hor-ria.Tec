@@ -4,15 +4,12 @@ import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import styles from "@/app/home.module.css";
+import HorariaHeroBrand from "@/components/horaria-hero-brand";
 
 const devices = [
-  ["celular", "Celulares"],
-  ["notebook", "Notebooks"],
-  ["tv", "TVs"],
-  ["geladeira", "Geladeiras"],
-  ["lavadora", "Máquinas de lavar"],
-  ["ar", "Ar-condicionado"],
-  ["outros", "Outros"],
+  ["celular", "Celular"],
+  ["informatica", "Informática"],
+  ["eletrodomesticos", "Eletrodomésticos"],
 ] as const;
 
 function hash(value: string) {
@@ -38,40 +35,12 @@ function barcode(seed: number) {
   return bars;
 }
 
-function HorariaMark() {
-  return (
-    <div className={styles.brandLockup} aria-label="Horária">
-      <svg
-        className={styles.brandMark}
-        viewBox="0 0 220 240"
-        role="img"
-        aria-label="Símbolo Horária"
-      >
-        <g fill="currentColor">
-          <path d="M8,0 H70 V102 L0,142 V8 Q0,0 8,0 Z" />
-          <path d="M0,170 L70,130 V232 Q70,240 62,240 H8 Q0,240 0,232 Z" />
-          <g transform="rotate(180 110 120)">
-            <path d="M8,0 H70 V102 L0,142 V8 Q0,0 8,0 Z" />
-            <path d="M0,170 L70,130 V232 Q70,240 62,240 H8 Q0,240 0,232 Z" />
-          </g>
-          <circle cx="86" cy="122" r="12" />
-          <circle cx="112" cy="122" r="12" />
-          <circle cx="138" cy="122" r="12" />
-        </g>
-      </svg>
-      <span>Horária</span>
-    </div>
-  );
-}
-
 export default function HomeLanding() {
   const router = useRouter();
   const [company, setCompany] = useState("");
   const [date, setDate] = useState("--/--/----");
   const [selected, setSelected] = useState<string[]>([]);
-  const [other, setOther] = useState("");
   const [error, setError] = useState("");
-  const [stamped, setStamped] = useState(false);
   const [creating, setCreating] = useState(false);
   const redirectTimer = useRef<number | null>(null);
 
@@ -110,13 +79,11 @@ export default function HomeLanding() {
     }
 
     setError("");
-    setStamped(true);
     setCreating(true);
-
     redirectTimer.current = window.setTimeout(() => {
       redirectTimer.current = null;
       router.push(`/cadastro?empresa=${encodeURIComponent(normalized)}`);
-    }, 420);
+    }, 280);
   }
 
   return (
@@ -132,25 +99,17 @@ export default function HomeLanding() {
         <section className={styles.hero} aria-labelledby="home-title">
           <div className={styles.brandSide}>
             <div className={styles.orbit} aria-hidden="true" />
-            <HorariaMark />
+            <HorariaHeroBrand />
             <p className={styles.eyebrow}>ASSISTÊNCIA TÉCNICA EM UM SÓ LUGAR</p>
             <h1 id="home-title">
               Todo aparelho que entra
               <br />
               ganha uma etiqueta.
             </h1>
-            <p className={styles.supportingCopy}>
-              Organize cada atendimento do recebimento à entrega, sem perder o
-              histórico do aparelho.
-            </p>
           </div>
 
           <div className={styles.tagStage}>
-            <svg
-              className={styles.string}
-              viewBox="0 0 120 74"
-              aria-hidden="true"
-            >
+            <svg className={styles.string} viewBox="0 0 120 74" aria-hidden="true">
               <path d="M60 72 C60 44, 100 38, 84 2" />
             </svg>
 
@@ -172,15 +131,12 @@ export default function HomeLanding() {
                 onChange={(event) => {
                   setCompany(event.target.value);
                   setError("");
-                  setStamped(false);
                 }}
                 placeholder="Nome da sua assistência"
                 autoComplete="organization"
                 maxLength={100}
               />
-              <p className={styles.error} role="alert">
-                {error}
-              </p>
+              <p className={styles.error} role="alert">{error}</p>
 
               <div className={styles.metaRow}>
                 <div>
@@ -194,7 +150,7 @@ export default function HomeLanding() {
               </div>
 
               <fieldset className={styles.deviceFieldset}>
-                <legend>APARELHOS QUE VOCÊ CONSERTA</legend>
+                <legend>O QUE VOCÊ CONSERTA?</legend>
                 <div className={styles.chips}>
                   {devices.map(([value, label]) => {
                     const active = selected.includes(value);
@@ -213,36 +169,16 @@ export default function HomeLanding() {
                     );
                   })}
                 </div>
-                {selected.includes("outros") && (
-                  <input
-                    className={styles.otherInput}
-                    value={other}
-                    onChange={(event) => setOther(event.target.value)}
-                    placeholder="Quais outros aparelhos?"
-                    autoComplete="off"
-                  />
-                )}
               </fieldset>
 
-              <span
-                className={`${styles.stamp} ${stamped ? styles.stampVisible : ""}`}
-                aria-hidden="true"
-              >
-                ABERTA
-              </span>
-
-              <div className={styles.cutLine}>
-                <span aria-hidden="true">✂</span>
+              <div className={styles.cutLine} aria-hidden="true">
+                <span />
                 <i />
               </div>
 
               <div className={styles.tagFooter}>
                 <div className={styles.barcodeWrap}>
-                  <svg
-                    className={styles.barcode}
-                    viewBox="0 0 96 30"
-                    aria-hidden="true"
-                  >
+                  <svg className={styles.barcode} viewBox="0 0 96 30" aria-hidden="true">
                     {bars.map((bar, index) => (
                       <rect
                         key={`${bar.x}-${index}`}
@@ -266,21 +202,8 @@ export default function HomeLanding() {
                 </button>
               </div>
             </section>
-
-            <p className={styles.tagNote}>
-              Você continua o cadastro na próxima etapa. Nenhum dado é salvo
-              antes da confirmação.
-            </p>
           </div>
         </section>
-
-        <footer className={styles.footer}>
-          <span>Ordens, clientes, equipamentos, agenda, estoque e financeiro.</span>
-          <nav aria-label="Links legais">
-            <Link href="/privacidade">Privacidade</Link>
-            <Link href="/termos">Termos</Link>
-          </nav>
-        </footer>
       </div>
     </main>
   );
