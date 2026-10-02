@@ -145,3 +145,109 @@ test("OS: atendente pode criar ordem e IDs de outro tenant são rejeitados", asy
     await db.close();
   }
 });
+
+test("OS: técnico não contorna orçamento por update direto", async () => {
+  const db = await database();
+  try {
+    const owner = "74000000-0000-0000-0000-000000000011";
+    const technician = "74000000-0000-0000-0000-000000000012";
+
+    await db.exec(
+      `insert into auth.users values ('${owner}'),('${technician}')`,
+    );
+    await db.query(
+      `update perfis
+       set nome='Técnico OS',email='tecnico-os@horaria.test'
+       where usuario_id=$1`,
+      [technician],
+    );
+
+    const asUser = (id) =>
+      db.exec(
+        `reset role;set request.jwt.claim.sub='${id}';set request.jwt.claims='{"aal":"aal1"}';set role authenticated`,
+      );
+
+    await asUser(owner);
+    const company = (
+      await db.query(
+        `select configurar_empresa(
+          'Assistência Técnica Status',
+          'tecnico-status-os',
+          '{}',
+          false,
+          '[{"nome":"Diagnóstico","duracao":30}]'
+        ) id`,
+      )
+    ).rows[0].id;
+
+    const order = (
+      await db.query("select criar_ordem($1,$2,$3,$4) id", [
+        company,
+        { nome: "Cliente Técnico", whatsapp: "11977777777" },
+        { categoria: "Celular", modelo: "Modelo Técnico" },
+        { problema: "Sem áudio" },
+      ])
+    ).rows[0].id;
+
+    await db.exec("reset role;set role service_role");
+    await db.query(
+      `select link_team_member(
+        $1,$2,'Técnico OS','tecnico-os@horaria.test','TECHNICIAN'
+      )`,
+      [owner, technician],
+    );
+
+    await asUser(technician);
+    await db.query(
+      "update ordens_servico set status='em_diagnostico' where id=$1",
+      [order],
+    );
+
+    await assert.rejects(
+      db.query(
+        "update ordens_servico set status='aguardando_aprovacao' where id=$1",
+        [order],
+      ),
+      /Somente gestores e o fluxo de aprovação/,
+    );
+
+    await asUser(owner);
+    const quote = (
+      await db.query(
+        "select salvar_orcamento($1,'[]','[]',100,0,current_date+7) id",
+        [order],
+      )
+    ).rows[0].id;
+    await db.query("select enviar_orcamento($1)", [quote]);
+
+    await asUser(technician);
+    await assert.rejects(
+      db.query(
+        "update ordens_servico set status='em_reparo' where id=$1",
+        [order],
+      ),
+      /Somente gestores e o fluxo de aprovação/,
+    );
+
+    await asUser(owner);
+    await db.query(
+      "select responder_orcamento($1,'aprovado',null,null,null)",
+      [quote],
+    );
+
+    await asUser(technician);
+    await db.query(
+      "update ordens_servico set status='em_reparo' where id=$1",
+      [order],
+    );
+
+    assert.equal(
+      (
+        await db.query("select status from ordens_servico where id=$1", [order])
+      ).rows[0].status,
+      "em_reparo",
+    );
+  } finally {
+    await db.close();
+  }
+});
