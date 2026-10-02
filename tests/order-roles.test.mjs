@@ -14,6 +14,11 @@ test("OS: atendente pode criar ordem e IDs de outro tenant são rejeitados", asy
         ('${ownerA}'),('${ownerB}'),('${attendant}')`,
     );
 
+    await db.query(
+      `update perfis set nome='Atendente',email='atendente-os@horaria.test' where usuario_id=$1`,
+      [attendant],
+    );
+
     const asUser = (id) =>
       db.exec(
         `reset role;set request.jwt.claim.sub='${id}';set request.jwt.claims='{"aal":"aal1"}';set role authenticated`,
