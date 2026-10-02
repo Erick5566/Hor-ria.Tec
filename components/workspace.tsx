@@ -897,7 +897,16 @@ export default function Workspace({
     access.company?.role !== "ATTENDANT"
       ? [{ label: "Estoque", href: "/painel/estoque", icon: "stock" as const }]
       : []),
-    { label: "Financeiro", href: "/painel/financeiro", icon: "finance", managerOnly: true },
+    ...(access.company?.featureFlags.financialEnabled
+      ? [
+          {
+            label: "Financeiro",
+            href: "/painel/financeiro",
+            icon: "finance" as const,
+            managerOnly: true,
+          },
+        ]
+      : []),
     { label: "Serviços", href: "/painel/servicos", icon: "services" },
     { label: "Minha assistência", href: "/painel/empresa", icon: "business", managerOnly: true },
     { label: "Minha página", href: "/painel/minha-pagina", icon: "publicPage", managerOnly: true },
