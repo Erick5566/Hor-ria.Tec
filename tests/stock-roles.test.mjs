@@ -14,6 +14,15 @@ test("estoque: técnico pode aplicar peça e atendente não acessa custos nem ba
         ('${owner}'),('${technician}'),('${attendant}')`,
     );
 
+    await db.query(
+      `update perfis set nome='Técnico',email='tecnico-estoque@horaria.test' where usuario_id=$1`,
+      [technician],
+    );
+    await db.query(
+      `update perfis set nome='Atendente',email='atendente-estoque@horaria.test' where usuario_id=$1`,
+      [attendant],
+    );
+
     const asUser = (id) =>
       db.exec(
         `reset role;set request.jwt.claim.sub='${id}';set request.jwt.claims='{"aal":"aal1"}';set role authenticated`,
