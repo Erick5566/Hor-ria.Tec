@@ -89,6 +89,11 @@ test("dados sensíveis: atendente não lê diagnóstico, garantia ou orçamento"
     assert.equal((await db.query("select * from diagnosticos")).rows.length, 0);
     assert.equal((await db.query("select * from garantias")).rows.length, 0);
     assert.equal((await db.query("select * from orcamentos")).rows.length, 0);
+    const attendantOrders = (
+      await db.query("select orders_list_page(1,30,null,null,null,null,null,'value') data")
+    ).rows[0].data;
+    assert.equal(attendantOrders.items[0].quote_total, null);
+    assert.equal(Number(attendantOrders.metrics.forecast), 0);
 
     await assert.rejects(
       db.query(
@@ -111,9 +116,19 @@ test("dados sensíveis: atendente não lê diagnóstico, garantia ou orçamento"
     assert.equal((await db.query("select * from diagnosticos")).rows.length, 1);
     assert.equal((await db.query("select * from garantias")).rows.length, 1);
     assert.equal((await db.query("select * from orcamentos")).rows.length, 0);
+    const technicianOrders = (
+      await db.query("select orders_list_page(1,30,null,null,null,null,null,'value') data")
+    ).rows[0].data;
+    assert.equal(technicianOrders.items[0].quote_total, null);
+    assert.equal(Number(technicianOrders.metrics.forecast), 0);
 
     await asUser(owner);
     assert.equal((await db.query("select * from orcamentos")).rows.length, 1);
+    const ownerOrders = (
+      await db.query("select orders_list_page(1,30,null,null,null,null,null,'value') data")
+    ).rows[0].data;
+    assert.equal(Number(ownerOrders.items[0].quote_total), 120);
+    assert.equal(Number(ownerOrders.metrics.forecast), 120);
   } finally {
     await db.close();
   }
