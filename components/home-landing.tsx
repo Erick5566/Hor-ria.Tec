@@ -87,7 +87,7 @@ export default function HomeLanding() {
   }
 
   return (
-    <main className={styles.page}>
+    <main className={`${styles.page} ${styles.homeViewport}`}>
       <div className={styles.shell}>
         <header className={styles.topbar}>
           <span>Já tem conta?</span>
