@@ -80,6 +80,19 @@ test("agenda: administrador pode bloquear horário e atendente não", async () =
       ),
       /Bloqueio não autorizado/,
     );
+
+    const attendantDelete = await db.query(
+      "delete from agendamentos where id=$1 returning id",
+      [block],
+    );
+    assert.equal(attendantDelete.rows.length, 0);
+
+    await asUser(admin);
+    const adminDelete = await db.query(
+      "delete from agendamentos where id=$1 returning id",
+      [block],
+    );
+    assert.equal(adminDelete.rows.length, 1);
   } finally {
     await db.close();
   }
