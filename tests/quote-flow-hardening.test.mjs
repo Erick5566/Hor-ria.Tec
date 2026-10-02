@@ -129,3 +129,84 @@ test("orçamento: rascunho é reaproveitado e versão pública só muda após en
     await db.close();
   }
 });
+
+test("orçamento público: empresa indisponível não aceita resposta por token ou código", async () => {
+  const db = await database();
+  try {
+    const owner = "77000000-0000-0000-0000-000000000002";
+    await db.exec(
+      `insert into auth.users values('${owner}');
+       set request.jwt.claim.sub='${owner}';
+       set role authenticated`,
+    );
+
+    const company = (
+      await db.query(
+        `select configurar_empresa(
+          'Fluxo Suspenso',
+          'fluxo-suspenso',
+          '{}',
+          false,
+          '[{"nome":"Diagnóstico","duracao":30}]'
+        ) id`,
+      )
+    ).rows[0].id;
+
+    const order = (
+      await db.query("select criar_ordem($1,$2,$3,$4) id", [
+        company,
+        { nome: "Cliente Suspenso", whatsapp: "11955555555" },
+        { categoria: "Celular", modelo: "Modelo suspenso" },
+        { problema: "Não carrega" },
+      ])
+    ).rows[0].id;
+
+    const quote = (
+      await db.query(
+        "select salvar_orcamento($1,'[]','[]',120,0,current_date+7) id",
+        [order],
+      )
+    ).rows[0].id;
+
+    await db.query("select enviar_orcamento($1)", [quote]);
+
+    const orderPublic = (
+      await db.query(
+        "select token_acompanhamento token,codigo_publico codigo from ordens_servico where id=$1",
+        [order],
+      )
+    ).rows[0];
+
+    await db.exec("reset role");
+    await db.query("update empresas set status='SUSPENDED' where id=$1", [company]);
+
+    await db.exec(
+      `set request.jwt.claims='{"role":"service_role"}';set role service_role`,
+    );
+
+    await assert.rejects(
+      db.query(
+        "select responder_orcamento_link($1,'aprovado',null,$2)",
+        [quote, orderPublic.token],
+      ),
+      /Atendimento indisponível/,
+    );
+
+    await assert.rejects(
+      db.query(
+        "select responder_orcamento($1,'aprovado',null,$2,$3)",
+        [quote, orderPublic.codigo, "11955555555"],
+      ),
+      /Atendimento indisponível/,
+    );
+
+    assert.equal(
+      (
+        await db.query("select status from orcamentos where id=$1", [quote])
+      ).rows[0].status,
+      "enviado",
+    );
+  } finally {
+    await db.close();
+  }
+});
