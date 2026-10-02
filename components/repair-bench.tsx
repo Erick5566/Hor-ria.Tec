@@ -265,7 +265,8 @@ export default function RepairBench({
   compact?: boolean;
   initialQuery?: string;
 }) {
-  const { empresa } = useWorkspace();
+  const { empresa, access } = useWorkspace();
+  const manager = ["OWNER", "ADMIN"].includes(access.company?.role || "");
   const benches = useRows<MesaReparo>("mesas_reparo");
   const [benchData, setBenchData] = useState<BenchData>({
     items: [],
@@ -504,12 +505,14 @@ export default function RepairBench({
           ))}
         </select>
 
-        <button
-          className="repair-config-button"
-          onClick={() => setConfiguring(!configuring)}
-        >
-          {configuring ? "Fechar mesas" : "Configurar mesas"}
-        </button>
+        {manager && (
+          <button
+            className="repair-config-button"
+            onClick={() => setConfiguring(!configuring)}
+          >
+            {configuring ? "Fechar mesas" : "Configurar mesas"}
+          </button>
+        )}
 
         {!compact && (
           <Link className="primary repair-new-order" href="/painel/ordens/nova">
@@ -749,7 +752,7 @@ export default function RepairBench({
         </section>
       </details>
 
-      {configuring && (
+      {manager && configuring && (
         <section className="panel bench-settings repair-settings">
           <div>
             <PanelTitle
