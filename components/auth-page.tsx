@@ -227,7 +227,7 @@ export default function AuthPage({ mode }: { mode: "login" | "signup" }) {
     }
   }
   return (
-    <main className="login-layout">
+    <main className={`login-layout ${signup ? "is-signup" : "is-login"}`}>
       <section className="login-story">
         <Brand />
         <div>
