@@ -241,7 +241,7 @@ export default function OrderDetail({
                 className="inline-actions order-next-action-buttons"
                 style={{ justifyContent: "flex-start", width: "100%" }}
               >
-                {["novo", "recebido"].includes(order.status) && (
+                {canUseTechnical && ["novo", "recebido"].includes(order.status) && (
                   <button
                     className="primary"
                     style={{ width: "100%" }}
@@ -252,7 +252,7 @@ export default function OrderDetail({
                   </button>
                 )}
 
-                {order.status === "em_diagnostico" && (
+                {canViewFinance && order.status === "em_diagnostico" && (
                   <button
                     className="primary"
                     disabled={busy}
@@ -262,13 +262,13 @@ export default function OrderDetail({
                   </button>
                 )}
 
-                {order.status === "aguardando_orcamento" && (
+                {canViewFinance && order.status === "aguardando_orcamento" && (
                   <button className="primary" onClick={() => setTab("Orçamento")}>
                     Abrir orçamento
                   </button>
                 )}
 
-                {["orcamento_enviado", "aguardando_aprovacao"].includes(order.status) && (
+                {canViewFinance && ["orcamento_enviado", "aguardando_aprovacao"].includes(order.status) && (
                   <>
                     <button className="outline" onClick={() => setTab("Orçamento")}>
                       Ver orçamento
@@ -408,7 +408,7 @@ export default function OrderDetail({
             {canViewFinance && tab === "Financeiro" && <Finance ordemId={id} />}
             {tab === "Garantia" && <Warranty ordemId={id} />}
             {tab === "Histórico" && <History ordemId={id} />}
-            {tab === "Orçamento" && (
+            {canViewFinance && tab === "Orçamento" && (
               <Quote
                 ordemId={id}
                 trackingToken={order.token_acompanhamento}
@@ -432,6 +432,7 @@ export default function OrderDetail({
                 />
                 <OrderAdministration
                   order={order}
+                  canViewDeviceSecret={canUseTechnical}
                   onChanged={() => void load(true)}
                 />
                 <section className="panel order-summary-panel">
