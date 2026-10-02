@@ -87,6 +87,32 @@ test("OS: atendente pode criar ordem e IDs de outro tenant são rejeitados", asy
 
     assert.ok(orderA);
 
+    await assert.rejects(
+      db.query(
+        "update ordens_servico set status='em_diagnostico' where id=$1",
+        [orderA],
+      ),
+      /Somente a equipe técnica/,
+    );
+    await assert.rejects(
+      db.query(
+        "update ordens_servico set prioridade='urgente' where id=$1",
+        [orderA],
+      ),
+      /Somente a equipe técnica/,
+    );
+
+    await db.query("select confirmar_entrada($1)", [orderA]);
+    assert.equal(
+      (
+        await db.query(
+          "select status,entrada_confirmada from ordens_servico where id=$1",
+          [orderA],
+        )
+      ).rows[0].status,
+      "recebido",
+    );
+
     const created = (
       await db.query(
         "select empresa_id,cliente_id,equipamento_id from ordens_servico where id=$1",
