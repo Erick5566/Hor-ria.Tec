@@ -11,6 +11,7 @@ import {
   syncServerSession,
 } from "@/lib/supabase";
 import type { AccessContext } from "@/lib/access";
+import { turnstileSiteKey } from "@/lib/turnstile-config";
 
 type RegistrationStatus = {
   enabled: boolean;
@@ -73,8 +74,6 @@ export default function AuthPage({ mode }: { mode: "login" | "signup" }) {
     [registration, setRegistration] = useState<RegistrationStatus | null>(null),
     [captchaToken, setCaptchaToken] = useState(""),
     [captchaResetKey, setCaptchaResetKey] = useState(0);
-  const turnstileSiteKey =
-    process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY ?? "";
   useEffect(() => {
     publicDb
       ?.rpc("registration_status")
