@@ -7,6 +7,15 @@ test("auth: recuperação aponta para a rota correta e configuração local não
   const authPage = await readFile("components/auth-page.tsx", "utf8");
   const config = await readFile("supabase/config.toml", "utf8");
   const terms = await readFile("app/termos/page.tsx", "utf8");
+  const setup = await readFile("components/setup.tsx", "utf8");
+  const publicPageSettings = await readFile(
+    "components/public-page-settings.tsx",
+    "utf8",
+  );
+  const slugMigration = await readFile(
+    "supabase/migrations/20261002033000_reserve_terms_slug.sql",
+    "utf8",
+  );
 
   assert.match(
     recovery,
@@ -26,5 +35,9 @@ test("auth: recuperação aponta para a rota correta e configuração local não
   assert.match(authPage, /terms_accepted_at/);
   assert.match(authPage, /privacy_accepted_at/);
   assert.match(authPage, /"termos"/);
+  assert.match(setup, /"termos"/);
+  assert.match(publicPageSettings, /"termos"/);
+  assert.match(slugMigration, /check \(slug <> 'termos'\)/);
+  assert.match(slugMigration, /'privacidade','termos'/);
   assert.match(terms, /Termos de uso da Horária/);
 });
