@@ -110,7 +110,6 @@ type BenchOrder = {
   equipamento_marca: string | null;
   equipamento_modelo: string | null;
   orcamento_status: string | null;
-  orcamento_total: number | null;
   orcamento_criado_em: string | null;
   orcamento_respondido_em: string | null;
   ultimo_contato_cliente_em: string | null;
