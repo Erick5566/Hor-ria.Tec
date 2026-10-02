@@ -30,14 +30,14 @@ test("UI: contratos de autenticação, financeiro e papéis permanecem alinhados
   const turnstileConfig = await readFile("lib/turnstile-config.ts", "utf8");
 
   assert.match(panelLayout, /reference-skin\.css/);
-  assert.match(adminLayout, /reference-skin\\.css/);
+  assert.match(adminLayout, /reference-skin\.css/);
   assert.match(turnstileConfig, /0x4AAAAAAFKqY_KmjjTsBeEo/);
 
   for (const source of [authPage, recovery, adminModule]) {
     assert.doesNotMatch(source, /minLength=\{5\}/);
   }
 
-  assert.match(authPage, /NEXT_PUBLIC_TURNSTILE_SITE_KEY/);
+  assert.match(authPage, /turnstileSiteKey/);
   assert.match(authPage, /verificação de segurança está ativa/);
 
   for (const days of [7, 15, 30, 60, 90]) {
