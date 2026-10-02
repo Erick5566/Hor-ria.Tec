@@ -396,6 +396,21 @@
   font-size: 15px;
 }
 
+.authBarcode {
+  width: 150px;
+  height: 48px;
+  background:
+    repeating-linear-gradient(
+      90deg,
+      #171c3d 0 3px,
+      transparent 3px 6px,
+      #171c3d 6px 8px,
+      transparent 8px 12px,
+      #171c3d 12px 17px,
+      transparent 17px 20px
+    );
+}
+
 .createButton,
 .authSubmit {
   min-height: 72px;
