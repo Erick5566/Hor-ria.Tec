@@ -12,6 +12,7 @@ test("UI: contratos de autenticação, financeiro e papéis permanecem alinhados
     agenda,
     modulePage,
     ordersList,
+    repairBench,
   ] = await Promise.all([
     readFile("components/auth-page.tsx", "utf8"),
     readFile("components/password-recovery.tsx", "utf8"),
@@ -21,6 +22,7 @@ test("UI: contratos de autenticação, financeiro e papéis permanecem alinhados
     readFile("app/painel/agenda/page.tsx", "utf8"),
     readFile("app/painel/[module]/page.tsx", "utf8"),
     readFile("components/orders-list.tsx", "utf8"),
+    readFile("components/repair-bench.tsx", "utf8"),
   ]);
 
   for (const source of [authPage, recovery, adminModule]) {
@@ -44,4 +46,7 @@ test("UI: contratos de autenticação, financeiro e papéis permanecem alinhados
   assert.match(ordersList, /const canViewFinance/);
   assert.match(ordersList, /canViewFinance && <th>Valor<\/th>/);
   assert.match(ordersList, /canViewFinance && <option value="value">/);
+  assert.match(repairBench, /managerControlledTargets/);
+  assert.match(repairBench, /quoteWaitingStatuses/);
+  assert.match(repairBench, /canMoveTo/);
 });
