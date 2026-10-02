@@ -94,6 +94,32 @@ test("bancada: técnico opera reparo, atendente não acessa e só gestor configu
 
     await assert.rejects(
       db.query(
+        "select mover_ordem_reparo($1,'aguardando_aprovacao',$2,'alta')",
+        [order, bench],
+      ),
+      /Somente gestores podem controlar as etapas de orçamento e aprovação/,
+    );
+
+    await asUser(owner);
+    const quote = (
+      await db.query(
+        "select salvar_orcamento($1,'[]','[]',100,0,current_date+7) id",
+        [order],
+      )
+    ).rows[0].id;
+    await db.query("select enviar_orcamento($1)", [quote]);
+
+    await asUser(technician);
+    await assert.rejects(
+      db.query(
+        "select mover_ordem_reparo($1,'em_reparo',$2,'alta')",
+        [order, bench],
+      ),
+      /Somente gestores podem controlar as etapas de orçamento e aprovação/,
+    );
+
+    await assert.rejects(
+      db.query(
         `insert into mesas_reparo(empresa_id,nome,ordem_exibicao)
          values($1,'Indevida',1)`,
         [company],
