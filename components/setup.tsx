@@ -41,6 +41,7 @@ export default function Setup({ done }: { done: () => void }) {
         "entrar",
         "cadastro",
         "privacidade",
+        "termos",
         "recuperar-senha",
         "redefinir-senha",
         "solicitacao-enviada",
