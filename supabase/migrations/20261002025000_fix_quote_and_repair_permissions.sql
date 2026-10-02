@@ -551,12 +551,12 @@ begin
     raise exception 'Ordem não autorizada';
   end if;
 
-  select m.role
+  select member.role
     into v_role
-  from public.empresa_membros m
-  where m.empresa_id=o.empresa_id
-    and m.usuario_id=auth.uid()
-    and m.status='ACTIVE'
+  from public.empresa_membros member
+  where member.empresa_id=o.empresa_id
+    and member.usuario_id=auth.uid()
+    and member.status='ACTIVE'
   limit 1;
 
   if v_role='TECHNICIAN'
