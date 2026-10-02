@@ -98,7 +98,7 @@ function formatShortDate(value: string) {
 export default function Overview() {
   const { empresa, access, periodStart, periodEnd } = useWorkspace();
   const canViewFinance = ["OWNER", "ADMIN"].includes(
-    access.company?.role || "",
+    access?.company?.role || "",
   );
   const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
