@@ -8,13 +8,14 @@ export default function SessionKeeper() {
   const router = useRouter();
 
   useEffect(() => {
-    if (!supabase) return;
+    const client = supabase;
+    if (!client) return;
 
     let active = true;
 
     const syncCurrentSession = async () => {
       try {
-        const { data, error } = await supabase.auth.getSession();
+        const { data, error } = await client.auth.getSession();
         if (error) throw error;
         if (active && data.session) {
           await syncServerSession(data.session);
@@ -26,7 +27,7 @@ export default function SessionKeeper() {
 
     void syncCurrentSession();
 
-    const { data } = supabase.auth.onAuthStateChange((event, session) => {
+    const { data } = client.auth.onAuthStateChange((event, session) => {
       void (async () => {
         try {
           if (
