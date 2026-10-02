@@ -638,4 +638,111 @@ with check (
   and private.company_operational(empresa_id)
 );
 
+create or replace function public.salvar_garantia(
+  p_ordem uuid,
+  p_descricao text,
+  p_inicio date,
+  p_fim date,
+  p_observacoes text default null,
+  p_ordem_origem uuid default null,
+  p_servico uuid default null,
+  p_peca_aplicada uuid default null
+)
+returns uuid
+language plpgsql
+security definer
+set search_path = ''
+as $function$
+declare
+  o public.ordens_servico;
+  id_novo uuid;
+begin
+  select * into strict o
+  from public.ordens_servico
+  where id=p_ordem;
+
+  if not private.has_company_role(
+    o.empresa_id,
+    array['OWNER','ADMIN','TECHNICIAN']
+  ) or not private.company_operational(o.empresa_id) then
+    raise exception 'Ordem não autorizada';
+  end if;
+
+  if length(trim(coalesce(p_descricao,''))) not between 2 and 300
+     or p_inicio is null
+     or p_fim<p_inicio then
+    raise exception 'Garantia inválida';
+  end if;
+
+  if p_ordem_origem is not null
+     and not exists(
+       select 1 from public.ordens_servico
+       where id=p_ordem_origem and empresa_id=o.empresa_id
+     ) then
+    raise exception 'Ordem de origem inválida';
+  end if;
+
+  if p_servico is not null
+     and not exists(
+       select 1 from public.servicos
+       where id=p_servico and empresa_id=o.empresa_id
+     ) then
+    raise exception 'Serviço inválido';
+  end if;
+
+  if p_peca_aplicada is not null
+     and not exists(
+       select 1 from public.pecas_aplicadas
+       where id=p_peca_aplicada and empresa_id=o.empresa_id
+     ) then
+    raise exception 'Peça aplicada inválida';
+  end if;
+
+  insert into public.garantias(
+    empresa_id,
+    ordem_id,
+    ordem_origem_id,
+    servico_id,
+    peca_aplicada_id,
+    descricao,
+    inicio,
+    fim,
+    observacoes
+  )
+  values(
+    o.empresa_id,
+    o.id,
+    p_ordem_origem,
+    p_servico,
+    p_peca_aplicada,
+    trim(p_descricao),
+    p_inicio,
+    p_fim,
+    p_observacoes
+  )
+  returning id into id_novo;
+
+  insert into public.historico_os(
+    empresa_id,
+    ordem_id,
+    evento,
+    detalhes,
+    publico,
+    usuario_id,
+    autor
+  )
+  values(
+    o.empresa_id,
+    o.id,
+    'Garantia registrada',
+    trim(p_descricao)||' · até '||to_char(p_fim,'DD/MM/YYYY'),
+    true,
+    auth.uid(),
+    'Equipe técnica'
+  );
+
+  return id_novo;
+end
+$function$;
+
 commit;
