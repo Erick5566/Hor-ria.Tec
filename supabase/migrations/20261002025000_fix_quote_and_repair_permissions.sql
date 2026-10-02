@@ -745,4 +745,128 @@ begin
 end
 $function$;
 
+drop policy if exists tenant_member_select on public.diagnosticos;
+drop policy if exists diagnosticos_technical_select on public.diagnosticos;
+create policy diagnosticos_technical_select
+on public.diagnosticos
+for select
+to authenticated
+using (
+  private.has_company_role(
+    empresa_id,
+    array['OWNER','ADMIN','TECHNICIAN']
+  )
+  and private.company_operational(empresa_id)
+);
+
+drop policy if exists tenant_member_insert on public.diagnosticos;
+drop policy if exists diagnosticos_technical_insert on public.diagnosticos;
+create policy diagnosticos_technical_insert
+on public.diagnosticos
+for insert
+to authenticated
+with check (
+  private.has_company_role(
+    empresa_id,
+    array['OWNER','ADMIN','TECHNICIAN']
+  )
+  and private.company_operational(empresa_id)
+);
+
+drop policy if exists tenant_member_update on public.diagnosticos;
+drop policy if exists diagnosticos_technical_update on public.diagnosticos;
+create policy diagnosticos_technical_update
+on public.diagnosticos
+for update
+to authenticated
+using (
+  private.has_company_role(
+    empresa_id,
+    array['OWNER','ADMIN','TECHNICIAN']
+  )
+  and private.company_operational(empresa_id)
+)
+with check (
+  private.has_company_role(
+    empresa_id,
+    array['OWNER','ADMIN','TECHNICIAN']
+  )
+  and private.company_operational(empresa_id)
+);
+
+drop policy if exists tenant_member_select on public.garantias;
+drop policy if exists garantias_technical_select on public.garantias;
+create policy garantias_technical_select
+on public.garantias
+for select
+to authenticated
+using (
+  private.has_company_role(
+    empresa_id,
+    array['OWNER','ADMIN','TECHNICIAN']
+  )
+  and private.company_operational(empresa_id)
+);
+
+drop policy if exists tenant_member_insert on public.garantias;
+drop policy if exists garantias_technical_insert on public.garantias;
+create policy garantias_technical_insert
+on public.garantias
+for insert
+to authenticated
+with check (
+  private.has_company_role(
+    empresa_id,
+    array['OWNER','ADMIN','TECHNICIAN']
+  )
+  and private.company_operational(empresa_id)
+);
+
+drop policy if exists tenant_member_update on public.garantias;
+drop policy if exists garantias_technical_update on public.garantias;
+create policy garantias_technical_update
+on public.garantias
+for update
+to authenticated
+using (
+  private.has_company_role(
+    empresa_id,
+    array['OWNER','ADMIN','TECHNICIAN']
+  )
+  and private.company_operational(empresa_id)
+)
+with check (
+  private.has_company_role(
+    empresa_id,
+    array['OWNER','ADMIN','TECHNICIAN']
+  )
+  and private.company_operational(empresa_id)
+);
+
+drop policy if exists tenant_member_select on public.orcamentos;
+drop policy if exists orcamentos_manager_select on public.orcamentos;
+create policy orcamentos_manager_select
+on public.orcamentos
+for select
+to authenticated
+using (
+  private.can_manage_company(empresa_id)
+  and private.company_operational(empresa_id)
+);
+
+drop policy if exists tenant_member_select on public.pecas_aplicadas;
+drop policy if exists pecas_aplicadas_technical_select on public.pecas_aplicadas;
+create policy pecas_aplicadas_technical_select
+on public.pecas_aplicadas
+for select
+to authenticated
+using (
+  private.has_company_role(
+    empresa_id,
+    array['OWNER','ADMIN','TECHNICIAN']
+  )
+  and private.company_operational(empresa_id)
+  and private.feature_enabled(empresa_id, 'stockEnabled')
+);
+
 commit;
