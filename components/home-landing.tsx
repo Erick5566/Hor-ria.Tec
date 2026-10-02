@@ -180,7 +180,7 @@ export default function HomeLanding() {
 
               <div className={styles.tagFooter}>
                 <div className={styles.barcodeWrap}>
-                  <svg className={styles.barcode} viewBox="0 0 96 30" aria-hidden="true">
+                  <svg className={styles.barcode} viewBox="0 0 96 30" preserveAspectRatio="none" aria-hidden="true">
                     {bars.map((bar, index) => (
                       <rect
                         key={`${bar.x}-${index}`}
