@@ -1706,29 +1706,48 @@
 
   .homeViewport .hero {
     grid-template-columns: minmax(0, 31.25vw) minmax(0, 39.0625vw);
-    column-gap: 9.375vw;
+    column-gap: clamp(24px, 4vw, 64px);
     max-width: none;
     padding: 0 7.8125vw calc(9 * var(--u));
   }
 
   .homeViewport .brandSide {
+    position: relative;
     width: 100%;
     gap: calc(2 * var(--u));
+    align-items: flex-start;
+    text-align: left;
   }
 
   .homeViewport .brandSide :global(.horaria-hero-brand) {
+    position: relative;
+    z-index: 1;
     width: 100%;
     gap: calc(4.2 * var(--u));
+    align-items: flex-start;
     transform: none;
   }
 
+  .homeViewport .brandSide :global(.horaria-hero-mark-wrap) {
+    position: relative;
+    z-index: 1;
+    display: inline-flex;
+    width: fit-content;
+    line-height: 0;
+  }
+
   .homeViewport .brandSide :global(.horaria-hero-mark) {
+    position: relative;
+    z-index: 1;
     width: auto;
     height: calc(29.6 * var(--u));
-    align-self: center;
+    align-self: flex-start;
   }
 
   .homeViewport .brandSide :global(.horaria-hero-wordmark) {
+    position: relative;
+    z-index: 1;
+    align-self: flex-start;
     margin: 0;
     font-family: Arial, Helvetica, sans-serif;
     font-size: calc(8.1 * var(--u));
@@ -1738,6 +1757,9 @@
   }
 
   .homeViewport .eyebrow {
+    position: relative;
+    z-index: 1;
+    align-self: flex-start;
     margin: 0;
     max-width: 100%;
     color: #fff;
@@ -1745,10 +1767,14 @@
     font-weight: 400;
     line-height: 1.35;
     letter-spacing: .04em;
+    text-align: left;
     white-space: nowrap;
   }
 
   .homeViewport .brandSide h1 {
+    position: relative;
+    z-index: 1;
+    align-self: flex-start;
     margin: 0;
     max-width: 100%;
     color: #fff;
@@ -1757,16 +1783,19 @@
     font-weight: 400;
     line-height: 1.15;
     letter-spacing: -.035em;
+    text-align: left;
   }
 
   .homeViewport .orbit {
-    left: 50%;
-    top: 42%;
-    width: calc(53 * var(--u));
-    height: calc(53 * var(--u));
+    left: calc(13.56 * var(--u));
+    top: calc(14.8 * var(--u));
+    width: calc(35.52 * var(--u));
+    height: calc(35.52 * var(--u));
     max-width: none;
     max-height: none;
     transform: translate(-50%, -50%);
+    z-index: 0;
+    pointer-events: none;
   }
 
   .homeViewport .tagStage {
