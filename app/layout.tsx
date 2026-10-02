@@ -2,6 +2,7 @@ import "./globals.css";
 import "./workspace.css";
 import "./operations.css";
 import type { Metadata, Viewport } from "next";
+import SessionKeeper from "@/components/session-keeper";
 
 const base =
   process.env.NEXT_PUBLIC_SITE_URL ||
@@ -46,7 +47,10 @@ export const metadata: Metadata = {
 export default function Layout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="pt-BR">
-      <body>{children}</body>
+      <body>
+        <SessionKeeper />
+        {children}
+      </body>
     </html>
   );
 }

@@ -219,22 +219,41 @@ export default function Workspace({
   }, []);
   const refresh = useCallback(async () => {
     if (!supabase) return;
+    setError("");
     try {
       const { data, error } = await supabase.auth.getUser();
       if (error || !data.user) {
-        router.replace("/");
+        setEmpresa(null);
+        setUserId("");
+        setEmail("");
+        await syncServerSession(null).catch(() => undefined);
+        router.replace(`/entrar?next=${encodeURIComponent(path)}`);
+        router.refresh();
         return;
       }
+
       setUserId(data.user.id);
       setEmail(data.user.email || "");
+
       const accessResult = await supabase.rpc("access_context");
       if (accessResult.error) throw accessResult.error;
+      if (!accessResult.data) {
+        throw new Error("Não foi possível carregar as permissões da conta.");
+      }
+
       const nextAccess = accessResult.data as AccessContext;
       setAccess(nextAccess);
+
+      if (nextAccess.isSuperAdmin && !nextAccess.company) {
+        router.replace("/admin");
+        return;
+      }
+
       if (nextAccess.globalMaintenance || nextAccess.company?.maintenance) {
         router.replace(nextAccess.isSuperAdmin ? "/admin" : "/manutencao");
         return;
       }
+
       if (
         nextAccess.company &&
         ["SUSPENDED", "CANCELED", "PENDING_DELETION"].includes(
@@ -244,32 +263,51 @@ export default function Workspace({
         router.replace(`/conta-bloqueada?status=${nextAccess.company.status}`);
         return;
       }
+
+      if (!nextAccess.company?.id) {
+        setEmpresa(null);
+        return;
+      }
+
       const result = await supabase
         .from("empresas")
         .select("*")
-        .eq(
-          "id",
-          nextAccess.company?.id || "00000000-0000-0000-0000-000000000000",
-        )
+        .eq("id", nextAccess.company.id)
         .maybeSingle();
+
       if (result.error) throw result.error;
+      if (!result.data) {
+        throw new Error("Não foi possível carregar os dados da assistência.");
+      }
+
       setEmpresa(result.data);
+      setError("");
       void supabase.rpc("registrar_acesso");
     } catch (e) {
       setError(message(e as Error));
     } finally {
       setLoading(false);
     }
-  }, [router]);
+  }, [path, router]);
   useEffect(() => {
     const { data } = supabase?.auth.onAuthStateChange(
-      async (event, session) => {
-        if (["SIGNED_IN", "TOKEN_REFRESHED"].includes(event) && session)
-          await syncServerSession(session);
-        if (event === "SIGNED_OUT") {
-          await syncServerSession(null);
-          router.replace("/");
-        }
+      (event, session) => {
+        void (async () => {
+          try {
+            if (["SIGNED_IN", "TOKEN_REFRESHED"].includes(event) && session) {
+              await syncServerSession(session);
+              return;
+            }
+
+            if (event === "SIGNED_OUT") {
+              await syncServerSession(null).catch(() => undefined);
+              router.replace("/entrar");
+              router.refresh();
+            }
+          } catch (caught) {
+            setError(message(caught as Error));
+          }
+        })();
       },
     ) || { data: null };
 
@@ -387,7 +425,8 @@ export default function Workspace({
     ]);
 
     if (ordersResult.error) {
-      setError(message(ordersResult.error));
+      // Notificações são auxiliares; uma falha nelas não deve marcar o painel
+      // inteiro como quebrado.
       return;
     }
 
@@ -854,7 +893,8 @@ export default function Workspace({
     { label: "Recebimento", href: "/painel/ordens/nova", icon: "receive" },
     { label: "Clientes", href: "/painel/clientes", icon: "clients" },
     { label: "Equipamentos", href: "/painel/equipamentos", icon: "devices" },
-    ...(access.company?.role !== "ATTENDANT"
+    ...(access.company?.featureFlags.stockEnabled &&
+    access.company?.role !== "ATTENDANT"
       ? [{ label: "Estoque", href: "/painel/estoque", icon: "stock" as const }]
       : []),
     { label: "Financeiro", href: "/painel/financeiro", icon: "finance", managerOnly: true },
@@ -953,7 +993,10 @@ export default function Workspace({
                       (href === "/painel/agenda" &&
                         !access.company?.featureFlags.appointmentsEnabled) ||
                       (href === "/painel/estoque" &&
-                        access.company?.role === "ATTENDANT") ||
+                        (!access.company?.featureFlags.stockEnabled ||
+                          access.company?.role === "ATTENDANT")) ||
+                      (href === "/painel/financeiro" &&
+                        !access.company?.featureFlags.financialEnabled) ||
                       ([
                         "/painel/vendas",
                         "/painel/seminovos",

@@ -252,13 +252,16 @@ export default function Overview() {
       : allStatusData.filter((item) => item.key === statusFilter);
   const statusTotal = statusData.reduce((sum, item) => sum + item.count, 0);
   let cursor = 0;
-  const donut = `conic-gradient(${statusData
-    .map((item) => {
-      const start = cursor;
-      cursor += (item.count / statusTotal) * 100;
-      return `${item.color} ${start}% ${cursor}%`;
-    })
-    .join(",")})`;
+  const donut =
+    statusTotal > 0
+      ? `conic-gradient(${statusData
+          .map((item) => {
+            const start = cursor;
+            cursor += (item.count / statusTotal) * 100;
+            return `${item.color} ${start}% ${cursor}%`;
+          })
+          .join(",")})`
+      : "transparent";
 
   const today = saoPauloDay();
 
