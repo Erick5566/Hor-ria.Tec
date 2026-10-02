@@ -294,10 +294,6 @@ begin
   for update;
 
   if coalesce(auth.jwt()->>'role', '') = 'service_role' then
-    if not private.public_company_available(q.empresa_id) then
-      raise exception 'Atendimento indisponível';
-    end if;
-
     select exists(
       select 1
       from public.clientes c
@@ -311,6 +307,11 @@ begin
   if not private.can_manage_company(q.empresa_id)
      and not v_public_credentials_valid then
     raise exception 'Orçamento não encontrado';
+  end if;
+
+  if v_public_credentials_valid
+     and not private.public_company_available(q.empresa_id) then
+    raise exception 'Atendimento indisponível';
   end if;
 
   if p_decisao not in ('aprovado','recusado','alteracao_solicitada')
@@ -378,12 +379,12 @@ begin
   where id=q.ordem_id and empresa_id=q.empresa_id
   for update;
 
-  if not private.public_company_available(q.empresa_id) then
-    raise exception 'Atendimento indisponível';
-  end if;
-
   if o.token_acompanhamento is distinct from p_token then
     raise exception 'Orçamento não encontrado';
+  end if;
+
+  if not private.public_company_available(q.empresa_id) then
+    raise exception 'Atendimento indisponível';
   end if;
 
   if p_decisao not in ('aprovado','recusado','alteracao_solicitada')
