@@ -356,12 +356,14 @@ export default function OrderDetail({
                     >
                       Ver acompanhamento final ↗
                     </a>
-                    <Link
-                      className="primary"
-                      href={`/painel/notas-fiscais?ordem=${id}`}
-                    >
-                      Emitir NFS-e
-                    </Link>
+                    {canViewFinance && (
+                      <Link
+                        className="primary"
+                        href={`/painel/notas-fiscais?ordem=${id}`}
+                      >
+                        Emitir NFS-e
+                      </Link>
+                    )}
                   </>
                 )}
               </div>
