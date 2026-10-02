@@ -92,6 +92,17 @@ export default function OrderDetail({
   const role = access.company?.role || "";
   const canUseTechnical = ["OWNER", "ADMIN", "TECHNICIAN"].includes(role);
   const canViewFinance = ["OWNER", "ADMIN"].includes(role);
+  const managerControlledStatuses = new Set<Status>([
+    "aguardando_orcamento",
+    "orcamento_enviado",
+    "aguardando_aprovacao",
+    "orcamento_aprovado",
+  ]);
+  const quoteWaitingStatuses = new Set<Status>([
+    "aguardando_orcamento",
+    "orcamento_enviado",
+    "aguardando_aprovacao",
+  ]);
   const visibleTabs = tabs.filter(
     (item) =>
       (item !== "Diagnóstico" || canUseTechnical) &&
@@ -192,17 +203,27 @@ export default function OrderDetail({
               {canUseTechnical && (
                 <select
                   aria-label="Alterar status da ordem"
-                  disabled={busy}
+                  disabled={
+                    busy ||
+                    (!canViewFinance && quoteWaitingStatuses.has(order.status))
+                  }
                   value={order.status}
                   onChange={(event) =>
                     void updateStatus(event.target.value as Status)
                   }
                 >
-                  {Object.entries(statuses).map(([value, name]) => (
-                    <option key={value} value={value}>
-                      {name}
-                    </option>
-                  ))}
+                  {Object.entries(statuses)
+                    .filter(
+                      ([value]) =>
+                        canViewFinance ||
+                        value === order.status ||
+                        !managerControlledStatuses.has(value as Status),
+                    )
+                    .map(([value, name]) => (
+                      <option key={value} value={value}>
+                        {name}
+                      </option>
+                    ))}
                 </select>
               )}
             </div>
