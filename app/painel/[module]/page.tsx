@@ -46,10 +46,20 @@ export default async function Page({
   const { module } = await params;
   if (!betaModules.includes(module as (typeof betaModules)[number])) notFound();
 
-  if (managerOnlyModules.has(module)) {
+  const stockOperationalModules = new Set(["estoque"]);
+
+  if (managerOnlyModules.has(module) || stockOperationalModules.has(module)) {
     const access = await getServerAccess();
     const role = access?.context.company?.role || "";
-    if (!["OWNER", "ADMIN"].includes(role)) redirect("/painel");
+
+    if (managerOnlyModules.has(module) && !["OWNER", "ADMIN"].includes(role))
+      redirect("/painel");
+
+    if (
+      stockOperationalModules.has(module) &&
+      !["OWNER", "ADMIN", "TECHNICIAN"].includes(role)
+    )
+      redirect("/painel");
   }
 
   const query = await searchParams;
