@@ -2,7 +2,7 @@ name: CI
 
 on:
   push:
-    branches: [dev, main, chatgpt/mvp-hardening-20261001]
+    branches: [dev, main]
   pull_request:
     branches: [main]
 
