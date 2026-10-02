@@ -206,7 +206,9 @@ export default function AuthPage({ mode }: { mode: "login" | "signup" }) {
         );
       } else if (/captcha/i.test(message)) {
         setNotice(
-          "Não foi possível validar a verificação de segurança. Tente novamente.",
+          turnstileSiteKey
+            ? "Não foi possível validar a verificação de segurança. Tente novamente."
+            : "A verificação de segurança está ativa no Supabase, mas o Turnstile não está configurado neste ambiente.",
         );
       } else if (
         message.includes("vagas") ||
