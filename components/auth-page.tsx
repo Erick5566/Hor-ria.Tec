@@ -328,13 +328,13 @@ export default function AuthPage({ mode }: { mode: "login" | "signup" }) {
                 <input
                   name="password"
                   type="password"
-                  minLength={5}
+                  minLength={6}
                   autoComplete={signup ? "new-password" : "current-password"}
                   required
                 />
                 {signup && (
                   <small>
-                    Use pelo menos 5 caracteres e prefira uma senha única.
+                    Use pelo menos 6 caracteres e prefira uma senha única.
                   </small>
                 )}
               </label>
