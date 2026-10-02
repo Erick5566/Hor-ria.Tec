@@ -51,7 +51,8 @@ function periodBounds(date: string, view: "dia" | "semana" | "mes") {
 }
 
 export default function Painel() {
-  const { empresa } = useWorkspace();
+  const { empresa, access } = useWorkspace();
+  const manager = ["OWNER", "ADMIN"].includes(access.company?.role || "");
   const [bookings, setBookings] = useState<AgendaItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -225,9 +226,11 @@ export default function Painel() {
               <button className="primary" onClick={() => setAdding(!adding)}>
                 {adding ? "Fechar formulário" : "+ Novo atendimento"}
               </button>
-              <button className="outline" onClick={() => setBlocking(true)}>
-                ⊘ Bloquear horário
-              </button>
+              {manager && (
+                <button className="outline" onClick={() => setBlocking(true)}>
+                  ⊘ Bloquear horário
+                </button>
+              )}
             </div>
           </div>
 
@@ -450,7 +453,7 @@ export default function Painel() {
           </section>
         </section>
 
-        {blocking && (
+        {manager && blocking && (
           <div className="modal-backdrop">
             <section
               className="modal card"
