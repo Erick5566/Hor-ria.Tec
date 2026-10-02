@@ -87,4 +87,18 @@ begin
 end
 $function$;
 
+drop policy if exists agendamentos_member_delete on public.agendamentos;
+create policy agendamentos_member_delete
+on public.agendamentos
+for delete
+to authenticated
+using (
+  private.can_access_company(empresa_id)
+  and private.feature_enabled(empresa_id, 'appointmentsEnabled')
+  and (
+    not bloqueio
+    or private.can_manage_company(empresa_id)
+  )
+);
+
 commit;
