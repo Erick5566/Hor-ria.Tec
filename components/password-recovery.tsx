@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Brand, MissingConfig } from "./brand";
 import Turnstile from "./turnstile";
 import { configured, supabase, syncServerSession } from "@/lib/supabase";
+import { turnstileSiteKey } from "@/lib/turnstile-config";
 
 export function RequestPasswordReset() {
   useEffect(() => {
@@ -25,8 +26,6 @@ export function RequestPasswordReset() {
   const [sent, setSent] = useState(false);
   const [captchaToken, setCaptchaToken] = useState("");
   const [captchaResetKey, setCaptchaResetKey] = useState(0);
-  const turnstileSiteKey =
-    process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY ?? "";
 
   if (!configured) return <MissingConfig />;
 
