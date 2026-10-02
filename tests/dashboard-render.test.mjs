@@ -8,7 +8,10 @@ import ts from "typescript";
 import React from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 const require = createRequire(import.meta.url);
-function render(data, { loading = false, error = "" } = {}) {
+function render(
+  data,
+  { loading = false, error = "", role = "OWNER" } = {},
+) {
   const states = [data, loading, error, "todos"];
   let index = 0;
   const modules = new Map();
@@ -24,6 +27,7 @@ function render(data, { loading = false, error = "" } = {}) {
     "@/components/workspace": {
       useWorkspace: () => ({
         empresa: { id: "test", nome: "Teste" },
+        access: { company: { role } },
         periodStart: "2026-09-29",
         periodEnd: "2026-09-29",
       }),
@@ -206,4 +210,10 @@ test("serviços: somente agendamentos ou somente concluídos também exibem barr
     assert.match(html, /dashboard-service-bar/);
     assert.doesNotMatch(html, /Nenhum serviço ou agendamento/);
   }
+});
+
+
+test("painel renderizado: perfil operacional não recebe card de faturamento", () => {
+  const html = render(fixture(), { role: "ATTENDANT" });
+  assert.doesNotMatch(html, /Faturamento do período/);
 });
