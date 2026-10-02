@@ -29,6 +29,9 @@ test("UI: contratos de autenticação, financeiro e papéis permanecem alinhados
     assert.doesNotMatch(source, /minLength=\{5\}/);
   }
 
+  assert.match(authPage, /NEXT_PUBLIC_TURNSTILE_SITE_KEY/);
+  assert.match(authPage, /verificação de segurança está ativa/);
+
   for (const days of [7, 15, 30, 60, 90]) {
     assert.match(finance, new RegExp(`<option value=\\{${days}\\}>`));
   }
