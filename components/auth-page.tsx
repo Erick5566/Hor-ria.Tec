@@ -284,7 +284,7 @@ export default function AuthPage({ mode }: { mode: "login" | "signup" }) {
 
           <div className={styles.tagStage}>
             <svg className={styles.string} viewBox="0 0 60 140" aria-hidden="true">
-              <path d="M45 0 C45 24 58 39 53 58 C48 78 36 96 30 139" />
+              <path d="M45 0 C45 24 58 39 53 58 C48 78 43 96 40 138" />
             </svg>
 
             <section
