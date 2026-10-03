@@ -3955,7 +3955,7 @@
     height: calc(140 * var(--s));
     z-index: 8;
     /* microajuste visual: a ponta cai no centro exato do furo */
-    transform: translate(calc(-50% - 10px), -13px);
+    transform: translate(calc(-50% - 4px), -9px);
   }
 
   .signupViewport .string path {
