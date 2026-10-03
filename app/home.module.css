@@ -3945,3 +3945,27 @@
   }
 }
 /* === FIM SIGNUP LEGIBILITY + CAPTCHA FIX === */
+
+/* === STRING CENTER HOLE FIX === */
+@media (min-width: 769px) {
+  .signupViewport .string {
+    left: 50%;
+    top: calc(-105 * var(--s));
+    width: calc(60 * var(--s));
+    height: calc(140 * var(--s));
+    z-index: 8;
+    transform: translateX(-50%);
+  }
+
+  .signupViewport .string path {
+    fill: none;
+    stroke: #fff;
+    stroke-width: 3.2;
+    stroke-linecap: round;
+  }
+
+  .signupViewport .hole {
+    z-index: 6;
+  }
+}
+/* === FIM STRING CENTER HOLE FIX === */
