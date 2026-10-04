@@ -591,6 +591,14 @@ export default function DashboardFinance({ onNewLaunch }: { onNewLaunch?: () => 
             <span><i className="expense" /> Despesas</span>
           </div>
 
+          {!loading && currentPaid.length === 0 && (
+            <div className="dashboard-finance-empty-chart">
+              <HorariaIcon name="trend" />
+              <strong>Nenhuma movimentação neste período</strong>
+              <small>Os gráficos aparecem assim que houver entradas ou saídas pagas.</small>
+            </div>
+          )}
+
           <div className="dashboard-finance-line-chart">
             <svg
               viewBox="0 0 100 100"
@@ -663,6 +671,14 @@ export default function DashboardFinance({ onNewLaunch }: { onNewLaunch?: () => 
             <span><i className="revenue" /> Entradas</span>
             <span><i className="expense" /> Saídas</span>
           </div>
+
+          {!loading && currentPaid.length === 0 && (
+            <div className="dashboard-finance-empty-chart">
+              <HorariaIcon name="finance" />
+              <strong>Sem fluxo de caixa no período</strong>
+              <small>Registre um recebimento ou pagamento para visualizar a evolução.</small>
+            </div>
+          )}
 
           <div
             className="dashboard-finance-bars"
