@@ -2050,6 +2050,15 @@ hr {
 }
 
 
+/* Public tracking inputs avoid iOS focus zoom, including quote response notes. */
+@media (max-width: 768px) {
+  .public-portal input,
+  .public-portal textarea,
+  .public-portal select {
+    font-size: 16px;
+  }
+}
+
 /* Password recovery inputs match mobile auth readability and avoid iOS focus zoom. */
 @media (max-width: 600px) {
   .auth-simple-card input,
@@ -2058,3 +2067,4 @@ hr {
     font-size: 16px;
   }
 }
+

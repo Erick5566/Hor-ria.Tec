@@ -37,7 +37,10 @@ Deno.serve(async (request) => {
 
   let body: { name?: string; email?: string; role?: string };
   try {
-    body = await request.json();
+    const parsed = await request.json();
+    if (!parsed || typeof parsed !== "object" || Array.isArray(parsed))
+      return json({ ok: false, error: "Payload inválido." }, 400);
+    body = parsed;
   } catch {
     return json({ ok: false, error: "Dados do convite inválidos." }, 400);
   }
@@ -203,3 +206,4 @@ Deno.serve(async (request) => {
     member: linked.data,
   });
 });
+

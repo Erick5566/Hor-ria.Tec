@@ -95,7 +95,10 @@ Deno.serve(async (request) => {
   };
 
   try {
-    body = await request.json();
+    const parsed = await request.json();
+    if (!parsed || typeof parsed !== "object" || Array.isArray(parsed))
+      return json({ ok: false, error: "Payload inválido." }, 400);
+    body = parsed;
   } catch {
     return json({ ok: false, error: "Payload inválido." }, 400);
   }
@@ -175,3 +178,4 @@ Deno.serve(async (request) => {
 
   return json({ ok: true, receipt: result.data });
 });
+

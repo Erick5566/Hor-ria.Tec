@@ -47,7 +47,18 @@ test("auth: recuperação aponta para a rota correta e configuração local não
   assert.match(slugMigration, /'privacidade','termos'/);
   assert.match(terms, /Termos de uso da Horária/);
   assert.match(authStyles, /Mobile auth inputs stay readable/);
-  assert.match(authStyles, /\.authViewport \.authInput,[\s\S]*\.signupViewport \.authInput[\s\S]*font-size: 16px/);
-  assert.match(globalStyles, /Password recovery inputs match mobile auth readability/);
+  assert.match(
+    authStyles,
+    /\.authViewport \.authInput,[\s\S]*\.signupViewport \.authInput[\s\S]*font-size: 16px/,
+  );
+  assert.match(
+    globalStyles,
+    /Password recovery inputs match mobile auth readability/,
+  );
   assert.match(globalStyles, /\.auth-simple-card input,[\s\S]*font-size: 16px/);
+  assert.match(
+    globalStyles,
+    /@media \(max-width: 768px\)\s*\{\s*\.public-portal input,\s*\.public-portal textarea,\s*\.public-portal select\s*\{\s*font-size: 16px/,
+  );
 });
+

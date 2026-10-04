@@ -1,7 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync, existsSync } from "node:fs";
-import { resolve } from "node:path";
+import { resolve, isAbsolute } from "node:path";
 import { createRequire } from "node:module";
 import vm from "node:vm";
 import ts from "typescript";
@@ -48,7 +48,7 @@ function render(
     if (
       !name.startsWith("@/") &&
       !name.startsWith(".") &&
-      !name.startsWith("/")
+      !isAbsolute(name)
     )
       return require(name);
     const base = name.startsWith("@/")
@@ -217,3 +217,4 @@ test("painel renderizado: perfil operacional não recebe card de faturamento", (
   const html = render(fixture(), { role: "ATTENDANT" });
   assert.doesNotMatch(html, /Faturamento do período/);
 });
+
