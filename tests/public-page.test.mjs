@@ -1,6 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { database } from "./helpers.mjs";
+import { readFile } from "node:fs/promises";
 
 test("página pública: somente gestores editam e perfil não expõe dados internos", async () => {
   const db = await database();
@@ -56,4 +57,14 @@ test("página pública: somente gestores editam e perfil não expõe dados inter
   } finally {
     await db.close();
   }
+});
+
+
+test("página pública: campos de agendamento usam 16px no mobile", async () => {
+  const styles = await readFile("app/operations.css", "utf8");
+  assert.match(styles, /Public booking controls stay readable/);
+  assert.match(
+    styles,
+    /\.public-booking-modern input,[\s\S]*\.public-booking-modern select,[\s\S]*\.public-booking-modern textarea[\s\S]*font-size: 16px/,
+  );
 });
