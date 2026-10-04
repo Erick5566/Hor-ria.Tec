@@ -7,17 +7,19 @@ test("admin: confirmação manual do Pix é segura, idempotente e renova a assin
 
   try {
     const admin = "10000000-0000-4000-8000-000000000090";
+    const outsider = "10000000-0000-4000-8000-000000000094";
     const firstConfirmation = "20000000-0000-4000-8000-000000000091";
     const renewalConfirmation = "20000000-0000-4000-8000-000000000092";
 
     await db.exec(`
-      insert into auth.users values ('${admin}');
+      insert into auth.users values ('${admin}'), ('${outsider}');
+      insert into public.perfis(usuario_id,nome,email,platform_role)
+      values
+        ('${admin}','Admin','admin@example.invalid','SUPER_ADMIN'),
+        ('${outsider}','Usuário','user@example.invalid','USER');
       set request.jwt.claim.sub='${admin}';
       set request.jwt.claims='{"aal":"aal2"}';
       set role authenticated;
-      insert into public.perfis(usuario_id,nome,email,platform_role)
-      values('${admin}','Admin','admin@example.invalid','SUPER_ADMIN')
-      on conflict(usuario_id) do update set platform_role='SUPER_ADMIN';
     `);
 
     const company = (
@@ -120,9 +122,8 @@ test("admin: confirmação manual do Pix é segura, idempotente e renova a assin
     assert.equal(Number(audit), 2);
 
     await db.exec(`
-      update public.perfis
-      set platform_role='USER'
-      where usuario_id='${admin}';
+      set request.jwt.claim.sub='${outsider}';
+      set request.jwt.claims='{"aal":"aal2"}';
     `);
 
     await assert.rejects(
