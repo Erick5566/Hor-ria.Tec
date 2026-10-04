@@ -46,6 +46,17 @@ test("pix: gera payload BR Code com chave, valor e CRC válido", async () => {
   assert.equal(payload.slice(-4), pixCrc16(body));
 });
 
+test("pix: usa valor inicial apenas durante o trial", async () => {
+  const { getSubscriptionPixPayment } = await loadPixModule();
+
+  assert.equal(getSubscriptionPixPayment("TRIAL").amount, 44.99);
+  assert.equal(getSubscriptionPixPayment(null).amount, 44.99);
+  assert.equal(getSubscriptionPixPayment("ACTIVE").amount, 59);
+  assert.equal(getSubscriptionPixPayment("PAST_DUE").amount, 59);
+  assert.equal(getSubscriptionPixPayment("SUSPENDED").amount, 59);
+  assert.equal(getSubscriptionPixPayment("CANCELED").amount, 59);
+});
+
 test("pix: rejeita chave vazia e valores inválidos", async () => {
   const { buildPixPayload } = await loadPixModule();
 
