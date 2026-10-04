@@ -92,15 +92,20 @@ export default function AuthPage({ mode }: { mode: "login" | "signup" }) {
   ) {
     await syncServerSession(session);
     const access = await supabase!.rpc("access_context");
+    if (access.error) throw access.error;
     const context = access.data as AccessContext | null;
+    if (!context?.authenticated) {
+      throw new Error("Não foi possível validar o acesso desta conta.");
+    }
+
     const requested = search.get("next");
-    if (context?.isSuperAdmin) {
+    if (context.isSuperAdmin) {
       const destination = requested?.startsWith("/admin") ? requested : "/admin";
-      router.push(
+      router.replace(
         `/seguranca/mfa?next=${encodeURIComponent(destination)}`,
       );
     } else {
-      router.push(requested?.startsWith("/painel") ? requested : "/painel");
+      router.replace(requested?.startsWith("/painel") ? requested : "/painel");
     }
     router.refresh();
   }
