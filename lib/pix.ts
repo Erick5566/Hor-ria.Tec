@@ -31,6 +31,21 @@ export function pixCrc16(payload: string) {
   return crc.toString(16).toUpperCase().padStart(4, "0");
 }
 
+export function getSubscriptionPixPayment(
+  status?: "TRIAL" | "ACTIVE" | "PAST_DUE" | "SUSPENDED" | "CANCELED" | null,
+) {
+  const isInitialPayment = !status || status === "TRIAL";
+
+  return {
+    amount: isInitialPayment ? 44.99 : 59,
+    heading: isInitialPayment ? "Pagamento inicial Horária" : "Mensalidade Horária",
+    priceLabel: isInitialPayment ? "Valor inicial" : "Mensalidade",
+    description: isInitialPayment
+      ? "Pagamento inicial Horária"
+      : "Mensalidade Horária",
+  };
+}
+
 export function buildPixPayload({
   key,
   amount,
