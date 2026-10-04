@@ -105,6 +105,7 @@ const activityLabel: Record<string, string> = {
   ENABLE_MAINTENANCE: "Manutenção ativada",
   DISABLE_MAINTENANCE: "Manutenção desativada",
   UPDATE_COMPANY_FEATURES: "Recursos atualizados",
+  MANUAL_PAYMENT_APPROVED: "Pagamento Pix confirmado",
 };
 
 function money(value?: number | null, currency = "BRL") {
@@ -192,6 +193,7 @@ export default function AdminCompaniesDashboard({
   const [detailError, setDetailError] = useState("");
   const [note, setNote] = useState("");
   const [noteBusy, setNoteBusy] = useState(false);
+  const [paymentBusy, setPaymentBusy] = useState(false);
   const [actionBusy, setActionBusy] = useState("");
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
@@ -334,6 +336,57 @@ export default function AdminCompaniesDashboard({
       setDetailError(message(caught as Error));
     } finally {
       setNoteBusy(false);
+    }
+  }
+
+  async function confirmManualPayment() {
+    if (!detail?.subscription?.id || paymentBusy) return;
+
+    if (
+      !window.confirm(
+        "Confirmar que o pagamento via Pix desta empresa foi recebido?",
+      )
+    )
+      return;
+
+    setPaymentBusy(true);
+    setDetailError("");
+    setNotice("");
+
+    try {
+      const confirmationId = crypto.randomUUID();
+      const result = await supabase!.rpc("admin_confirm_manual_payment", {
+        p_empresa: detail.id,
+        p_confirmation_id: confirmationId,
+        p_note: "Confirmação manual pelo painel do Super Admin",
+      });
+      if (result.error) throw result.error;
+
+      const payment = result.data as {
+        amount?: number | null;
+        nextBillingDate?: string | null;
+      };
+
+      const refreshed = await supabase!.rpc("admin_company_detail", {
+        p_empresa: detail.id,
+      });
+      if (refreshed.error) throw refreshed.error;
+
+      setDetail(refreshed.data as AdminCompanyDetail);
+      setNotice(
+        "Pagamento Pix de " +
+          money(payment.amount) +
+          " confirmado. Próxima cobrança: " +
+          (payment.nextBillingDate
+            ? new Date(payment.nextBillingDate).toLocaleDateString("pt-BR")
+            : "a definir") +
+          ".",
+      );
+      router.refresh();
+    } catch (caught) {
+      setDetailError(message(caught as Error));
+    } finally {
+      setPaymentBusy(false);
     }
   }
 
@@ -713,6 +766,24 @@ export default function AdminCompaniesDashboard({
                   <p className="admin-detail-muted">
                     Nenhuma cobrança registrada para esta empresa.
                   </p>
+                )}
+
+                {detail.subscription?.id && (
+                  <div className="admin-note-actions">
+                    <small>
+                      Confirme somente depois de conferir o recebimento no banco.
+                    </small>
+                    <button
+                      type="button"
+                      className="primary"
+                      disabled={paymentBusy}
+                      onClick={() => void confirmManualPayment()}
+                    >
+                      {paymentBusy
+                        ? "Confirmando…"
+                        : "Confirmar pagamento Pix"}
+                    </button>
+                  </div>
                 )}
               </section>
 
