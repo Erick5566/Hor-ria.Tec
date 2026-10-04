@@ -40,3 +40,6 @@ jobs:
 
       - name: Production build
         run: pnpm build
+
+      - name: Runtime smoke
+        run: node tests/runtime-smoke.mjs
