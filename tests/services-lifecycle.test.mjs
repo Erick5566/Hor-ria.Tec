@@ -21,7 +21,7 @@ test("serviços: gestor cria, edita e exclui; técnico não altera catálogo", a
           'servicos-lifecycle',
           '{}',
           false,
-          '[]'
+          '[{"nome":"Reparo","duracao":30}]'
         ) id`,
       )
     ).rows[0].id;
