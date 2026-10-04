@@ -193,7 +193,7 @@ export default function AdminModule({
               <input
                 name="senha"
                 type="password"
-                minLength={6}
+                minLength={8}
                 required
                 autoComplete="new-password"
               />
@@ -203,7 +203,7 @@ export default function AdminModule({
               <input
                 name="confirmar_senha"
                 type="password"
-                minLength={6}
+                minLength={8}
                 required
                 autoComplete="new-password"
               />
