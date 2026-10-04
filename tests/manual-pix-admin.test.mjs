@@ -62,7 +62,11 @@ test("admin: confirmação manual do Pix é segura, idempotente e renova a assin
     ).rows[0];
 
     assert.equal(afterInitial.status, "ACTIVE");
-    assert.equal(
+    const firstRenewalDelay =
+      new Date(afterInitial.next_billing_date).getTime() - Date.now();
+    assert.ok(firstRenewalDelay >= 6.9 * 24 * 60 * 60 * 1000);
+    assert.ok(firstRenewalDelay <= 7.1 * 24 * 60 * 60 * 1000);
+    assert.notEqual(
       new Date(afterInitial.next_billing_date).getTime(),
       new Date(before).getTime(),
     );
