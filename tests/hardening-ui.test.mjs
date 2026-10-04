@@ -35,6 +35,8 @@ test("UI: contratos de autenticação, financeiro e papéis permanecem alinhados
 
   for (const source of [authPage, recovery, adminModule]) {
     assert.doesNotMatch(source, /minLength=\{5\}/);
+    assert.doesNotMatch(source, /minLength=\{6\}/);
+    assert.match(source, /minLength=\{8\}/);
   }
 
   assert.match(authPage, /turnstileSiteKey/);
