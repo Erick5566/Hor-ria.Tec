@@ -15736,3 +15736,41 @@ body {
     grid-template-columns: 1fr;
   }
 }
+
+
+/* Sidebar compacta: os grupos não podem criar espaços verticais. */
+.workspace .main-sidebar nav {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 0 !important;
+}
+
+.workspace .main-sidebar nav section {
+  display: contents !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+.workspace .main-sidebar nav h2 {
+  display: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+.workspace .main-sidebar nav a {
+  min-height: 38px !important;
+  margin: 0 !important;
+  padding: 5px 9px !important;
+  line-height: 1.2;
+}
+
+.workspace .main-sidebar nav a > .sidebar-nav-icon {
+  width: 27px;
+  height: 27px;
+  flex-basis: 27px;
+}
+
+.workspace .main-sidebar nav a .horaria-icon {
+  width: 16px;
+  height: 16px;
+}
