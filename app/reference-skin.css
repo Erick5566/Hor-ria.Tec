@@ -1058,3 +1058,168 @@ body {
     grid-template-columns: 1fr;
   }
 }
+
+
+/* ===== Prelaunch legibility pass 2026-10-04 ===== */
+@media (min-width: 801px) {
+  .main-sidebar nav h2 {
+    font-size: 9px;
+  }
+
+  .main-sidebar nav a {
+    min-height: 44px;
+    font-size: 12.5px;
+  }
+
+  .workspace-company strong {
+    font-size: 13px;
+  }
+
+  .workspace-company small {
+    font-size: 11px;
+  }
+
+  .workspace-global-search input {
+    font-size: 13px;
+  }
+
+  .workspace-breadcrumbs {
+    font-size: 11px;
+  }
+
+  .dashboard-reference .dashboard-hero {
+    grid-template-columns: minmax(0, 1fr) auto minmax(280px, 360px);
+    align-items: end;
+    gap: 14px;
+  }
+
+  .dashboard-new-order {
+    min-height: 46px;
+    padding-inline: 20px;
+    font-size: 13px;
+  }
+
+  .dashboard-callout {
+    min-width: 0;
+    min-height: 46px;
+    padding: 10px 14px;
+  }
+
+  .dashboard-callout > div {
+    min-width: 0;
+  }
+
+  .dashboard-callout strong {
+    display: block;
+    overflow: visible;
+    font-size: 12.5px;
+    line-height: 1.25;
+    text-overflow: clip;
+    white-space: normal;
+  }
+
+  .dashboard-callout small {
+    display: block;
+    margin-top: 2px;
+    overflow: visible;
+    font-size: 10.5px;
+    line-height: 1.25;
+    text-overflow: clip;
+    white-space: normal;
+  }
+
+  .dashboard-reference .dashboard-welcome {
+    font-size: .78rem;
+  }
+
+  .ui-metric-card {
+    min-height: 108px;
+    padding: 17px;
+  }
+
+  .ui-metric-icon {
+    width: 42px;
+    height: 42px;
+    flex-basis: 42px;
+  }
+
+  .ui-metric-value-row > strong {
+    font-size: 1.52rem;
+  }
+
+  .ui-metric-content > b {
+    font-size: .78rem;
+  }
+
+  .ui-metric-content > small,
+  .ui-metric-footer {
+    font-size: .70rem;
+  }
+
+  .dashboard-card-head h2 {
+    font-size: 14px;
+  }
+
+  .dashboard-card-head p {
+    font-size: 11px;
+  }
+
+  .workspace thead th,
+  .admin-workspace thead th {
+    font-size: 10.5px;
+  }
+
+  .workspace tbody td,
+  .admin-workspace tbody td {
+    font-size: 12px;
+  }
+}
+
+@media (min-width: 801px) and (max-width: 1450px) {
+  .dashboard-reference .dashboard-hero {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .dashboard-reference .dashboard-callout {
+    grid-column: 1 / -1;
+  }
+}
+
+/* Financeiro: leitura mais confortável e distribuição menos comprimida. */
+.dashboard-finance-reference {
+  gap: 16px;
+}
+
+.dashboard-finance-metric-head > strong,
+.dashboard-finance-card-head > div > strong {
+  font-size: .86rem;
+}
+
+.dashboard-finance-card-head > span,
+.dashboard-finance-card-head > a,
+.dashboard-finance-legend,
+.dashboard-finance-summary-legend > div {
+  font-size: .72rem;
+}
+
+.dashboard-finance-variation > small {
+  font-size: .69rem;
+}
+
+.dashboard-finance-table-wrap th {
+  font-size: .66rem;
+}
+
+.dashboard-finance-table-wrap td {
+  font-size: .70rem;
+}
+
+.dashboard-finance-donut {
+  width: 104px;
+  height: 104px;
+}
+
+.dashboard-finance-donut > div {
+  width: 64px;
+  height: 64px;
+}
