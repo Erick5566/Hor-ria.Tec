@@ -67,17 +67,11 @@ test("admin: confirmação manual do Pix é segura, idempotente e renova a assin
       new Date(before).getTime(),
     );
 
-    assert.equal(
-      Number(
-        (
-          await db.query(
-            "select count(*) as total from public.pagamentos where empresa_id=$1 and status='APPROVED'",
-            [company],
-          )
-        ).rows[0].total,
-      ),
-      1,
-    );
+    const detailAfterInitial = (
+      await db.query("select admin_company_detail($1) as result", [company])
+    ).rows[0].result;
+    assert.equal(detailAfterInitial.payments.length, 1);
+    assert.equal(detailAfterInitial.payments[0].status, "APPROVED");
 
     const duplicate = (
       await db.query(
@@ -87,17 +81,10 @@ test("admin: confirmação manual do Pix é segura, idempotente e renova a assin
     ).rows[0].result;
 
     assert.equal(duplicate.duplicate, true);
-    assert.equal(
-      Number(
-        (
-          await db.query(
-            "select count(*) as total from public.pagamentos where empresa_id=$1",
-            [company],
-          )
-        ).rows[0].total,
-      ),
-      1,
-    );
+    const detailAfterDuplicate = (
+      await db.query("select admin_company_detail($1) as result", [company])
+    ).rows[0].result;
+    assert.equal(detailAfterDuplicate.payments.length, 1);
 
     const renewal = (
       await db.query(
@@ -114,14 +101,17 @@ test("admin: confirmação manual do Pix é segura, idempotente e renova a assin
         new Date(afterInitial.next_billing_date).getTime(),
     );
 
-    const audit = (
-      await db.query(
-        "select count(*) as total from public.admin_audit_logs where empresa_id=$1 and action='MANUAL_PAYMENT_APPROVED'",
-        [company],
-      )
-    ).rows[0].total;
+    const detailAfterRenewal = (
+      await db.query("select admin_company_detail($1) as result", [company])
+    ).rows[0].result;
 
-    assert.equal(Number(audit), 2);
+    assert.equal(detailAfterRenewal.payments.length, 2);
+    assert.equal(
+      detailAfterRenewal.activity.filter(
+        (item) => item.action === "MANUAL_PAYMENT_APPROVED",
+      ).length,
+      2,
+    );
 
     await db.exec(`
       set request.jwt.claim.sub='${outsider}';
