@@ -238,3 +238,37 @@ test("WhatsApp: template ausente retorna à fila, falha do provedor registra ten
   assert.equal(failed.updates.at(-1).status, "falhou");
   assert.equal(failed.updates.at(-1).tentativas, 1);
 });
+
+
+test("WhatsApp: despacho interno aceita somente token de fila válido", async () => {
+  const h = await whatsappHarness();
+  delete h.env.NOTIFICATION_WEBHOOK_SECRET;
+
+  const dispatchToken = "11111111-1111-4111-8111-111111111111";
+  const response = await h.send(
+    JSON.stringify({ id: "test-notification", dispatchToken }),
+    "ignored",
+  );
+
+  assert.equal(response.status, 200);
+  assert.ok(
+    h.filters.some(
+      ([key, value]) => key === "dispatch_token" && value === dispatchToken,
+    ),
+  );
+  assert.equal(h.sends.length, 1);
+});
+
+test("WhatsApp: despacho interno rejeita token ausente ou malformado", async () => {
+  const h = await whatsappHarness();
+  delete h.env.NOTIFICATION_WEBHOOK_SECRET;
+
+  for (const raw of [
+    '{"id":"test-notification"}',
+    '{"id":"test-notification","dispatchToken":"invalido"}',
+  ])
+    assert.equal((await h.send(raw, "ignored")).status, 401, raw);
+
+  assert.equal(h.sends.length, 0);
+  assert.equal(h.updates.length, 0);
+});

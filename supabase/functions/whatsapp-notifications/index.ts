@@ -6,21 +6,18 @@ const json = (body: unknown, status = 200) =>
     headers: { "content-type": "application/json" },
   });
 
+const uuidPattern =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
 Deno.serve(async (request) => {
   if (request.method !== "POST")
     return json({ error: "method_not_allowed" }, 405);
-  const webhookSecret = Deno.env.get("NOTIFICATION_WEBHOOK_SECRET");
-  if (
-    !webhookSecret ||
-    request.headers.get("x-horaria-webhook-secret") !== webhookSecret
-  )
-    return json({ error: "unauthorized" }, 401);
 
-  const apiToken = Deno.env.get("WHATSAPP_ACCESS_TOKEN"),
-    phoneId = Deno.env.get("WHATSAPP_PHONE_NUMBER_ID");
-  if (!apiToken || !phoneId)
-    return json({ error: "whatsapp_not_configured" }, 503);
-  let body: { id?: unknown; record?: { id?: unknown } };
+  let body: {
+    id?: unknown;
+    record?: { id?: unknown };
+    dispatchToken?: unknown;
+  };
   try {
     const parsed: unknown = await request.json();
     if (!parsed || typeof parsed !== "object" || Array.isArray(parsed))
@@ -29,43 +26,81 @@ Deno.serve(async (request) => {
   } catch {
     return json({ error: "invalid_payload" }, 400);
   }
+
   const id = body.id ?? body.record?.id;
   if (typeof id !== "string" || !id.trim())
     return json({ error: "notification_id_required" }, 400);
+
+  const webhookSecret = Deno.env.get("NOTIFICATION_WEBHOOK_SECRET");
+  const secretAuthorized =
+    Boolean(webhookSecret) &&
+    request.headers.get("x-horaria-webhook-secret") === webhookSecret;
+
+  const dispatchToken =
+    typeof body.dispatchToken === "string" ? body.dispatchToken.trim() : "";
+
+  if (!secretAuthorized && !uuidPattern.test(dispatchToken))
+    return json({ error: "unauthorized" }, 401);
 
   const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
   const serviceKey =
     Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ??
     JSON.parse(Deno.env.get("SUPABASE_SECRET_KEYS") ?? "{}").default;
   if (!serviceKey) return json({ error: "supabase_secret_missing" }, 503);
+
   const admin = createClient(supabaseUrl, serviceKey, {
     auth: { persistSession: false },
   });
-  const { data: notification, error: claimError } = await admin
+
+  let claim = admin
     .from("notificacoes")
     .update({ status: "processando", atualizado_em: new Date().toISOString() })
     .eq("id", id)
-    .eq("status", "pendente")
+    .eq("status", "pendente");
+
+  if (!secretAuthorized) claim = claim.eq("dispatch_token", dispatchToken);
+
+  const { data: notification, error: claimError } = await claim
     .select("*")
     .maybeSingle();
+
   if (claimError) return json({ error: claimError.message }, 500);
   if (!notification) return json({ ok: true, skipped: true });
+
+  const apiToken = Deno.env.get("WHATSAPP_ACCESS_TOKEN");
+  const phoneId = Deno.env.get("WHATSAPP_PHONE_NUMBER_ID");
+
+  if (!apiToken || !phoneId) {
+    await admin
+      .from("notificacoes")
+      .update({
+        status: "pendente",
+        tentativas: notification.tentativas + 1,
+        ultimo_erro: "WhatsApp oficial não configurado",
+        atualizado_em: new Date().toISOString(),
+      })
+      .eq("id", id);
+    return json({ error: "whatsapp_not_configured" }, 503);
+  }
 
   const template =
     notification.evento === "pronto_retirada"
       ? Deno.env.get("WHATSAPP_TEMPLATE_READY")
       : Deno.env.get("WHATSAPP_TEMPLATE_QUOTE");
+
   if (!template) {
     await admin
       .from("notificacoes")
       .update({
         status: "pendente",
+        tentativas: notification.tentativas + 1,
         ultimo_erro: "Template oficial não configurado",
         atualizado_em: new Date().toISOString(),
       })
       .eq("id", id);
     return json({ error: "template_not_configured" }, 503);
   }
+
   const baseUrl = (Deno.env.get("PUBLIC_APP_URL") ?? "").replace(/\/$/, "");
   const link = `${baseUrl}/acompanhar/${notification.payload.token}`;
   const parameters =
@@ -80,6 +115,7 @@ Deno.serve(async (request) => {
           }),
           link,
         ];
+
   try {
     const response = await fetch(
       `https://graph.facebook.com/${Deno.env.get("WHATSAPP_GRAPH_VERSION") ?? "v23.0"}/${phoneId}/messages`,
@@ -110,6 +146,7 @@ Deno.serve(async (request) => {
     );
     const result = await response.json();
     if (!response.ok) throw new Error(JSON.stringify(result));
+
     await admin
       .from("notificacoes")
       .update({
@@ -120,6 +157,7 @@ Deno.serve(async (request) => {
         ultimo_erro: null,
       })
       .eq("id", id);
+
     return json({ ok: true, providerMessageId: result.messages?.[0]?.id });
   } catch (error) {
     await admin
