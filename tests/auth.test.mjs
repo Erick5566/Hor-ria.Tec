@@ -23,8 +23,8 @@ test("auth: recuperação aponta para a rota correta e configuração local não
   );
   assert.doesNotMatch(recovery, /const redirectTo = location\.origin;/);
 
-  assert.match(authPage, /minLength=\{6\}/);
-  assert.match(recovery, /minLength=\{6\}/);
+  assert.match(authPage, /minLength=\{8\}/);
+  assert.match(recovery, /minLength=\{8\}/);
   assert.match(config, /enable_confirmations = false/);
   assert.match(
     config,
