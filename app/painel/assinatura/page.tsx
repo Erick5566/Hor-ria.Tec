@@ -3,10 +3,9 @@
 import { useMemo, useState } from "react";
 import { Heading } from "@/components/ui";
 import { useWorkspace } from "@/components/workspace";
-import { buildPixPayload } from "@/lib/pix";
+import { buildPixPayload, getSubscriptionPixPayment } from "@/lib/pix";
 
 const PIX_KEY = "veniciuskiwify@gmail.com";
-const INITIAL_AMOUNT = 44.99;
 
 async function copyText(value: string) {
   if (navigator.clipboard?.writeText) {
@@ -24,21 +23,33 @@ async function copyText(value: string) {
   textarea.remove();
 }
 
+function formatCurrency(value: number) {
+  return value.toLocaleString("pt-BR", {
+    style: "currency",
+    currency: "BRL",
+  });
+}
+
 export default function SubscriptionPage() {
   const { access } = useWorkspace();
   const subscription = access.subscription;
   const [copied, setCopied] = useState<"pix" | "key" | "">("");
 
+  const payment = useMemo(
+    () => getSubscriptionPixPayment(subscription?.status),
+    [subscription?.status],
+  );
+
   const pixPayload = useMemo(
     () =>
       buildPixPayload({
         key: PIX_KEY,
-        amount: INITIAL_AMOUNT,
+        amount: payment.amount,
         merchantName: "Horária",
         merchantCity: "Camaçari",
-        description: "Pagamento inicial Horária",
+        description: payment.description,
       }),
-    [],
+    [payment.amount, payment.description],
   );
 
   const qrCodeUrl =
@@ -93,16 +104,20 @@ export default function SubscriptionPage() {
         <div className="subscription-payment-head">
           <div>
             <span className="eyebrow">PAGAMENTO VIA PIX</span>
-            <h2>Pagamento inicial Horária</h2>
+            <h2>{payment.heading}</h2>
             <p>
               Escaneie o QR Code ou copie o código Pix para pagar sua
               assinatura.
             </p>
           </div>
           <div className="subscription-price">
-            <small>Valor inicial</small>
-            <strong>R$ 44,99</strong>
-            <small>Depois, R$ 59,00/mês</small>
+            <small>{payment.priceLabel}</small>
+            <strong>{formatCurrency(payment.amount)}</strong>
+            {payment.kind === "initial" ? (
+              <small>Depois, R$ 59,00/mês</small>
+            ) : (
+              <small>Pagamento mensal</small>
+            )}
           </div>
         </div>
 
@@ -111,7 +126,7 @@ export default function SubscriptionPage() {
             <div className="subscription-qr">
               <img
                 src={qrCodeUrl}
-                alt="QR Code Pix para o pagamento inicial da Horária"
+                alt={`QR Code Pix para ${payment.heading.toLowerCase()}`}
                 width={280}
                 height={280}
               />
@@ -124,8 +139,8 @@ export default function SubscriptionPage() {
 
           <div className="subscription-pix-details">
             <div className="subscription-pix-amount">
-              <span>Valor do pagamento inicial</span>
-              <strong>R$ 44,99</strong>
+              <span>{payment.priceLabel}</span>
+              <strong>{formatCurrency(payment.amount)}</strong>
             </div>
 
             <div className="subscription-pix-field">
@@ -159,7 +174,10 @@ export default function SubscriptionPage() {
             <div className="notice subscription-manual-confirmation">
               <strong>Confirmação manual</strong>
               <p>
-                Depois do pagamento, a equipe da Horária confirma o pagamento inicial
+                Depois do pagamento, a equipe da Horária confirma{" "}
+                {payment.kind === "initial"
+                  ? "o pagamento inicial"
+                  : "a mensalidade"}{" "}
                 no sistema. Não é necessário pagar novamente enquanto a
                 confirmação estiver sendo analisada.
               </p>
