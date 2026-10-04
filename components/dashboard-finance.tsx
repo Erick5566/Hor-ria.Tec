@@ -50,7 +50,7 @@ function rowDate(item: Lancamento) {
 }
 
 function percentageDelta(current: number, previous: number) {
-  if (previous === 0) return current === 0 ? 0 : null;
+  if (previous === 0) return null;
   return Math.round(((current - previous) / Math.abs(previous)) * 1000) / 10;
 }
 
@@ -67,7 +67,7 @@ function Variation({
     return (
       <div className="dashboard-finance-variation neutral">
         <span>—</span>
-        <small>sem base anterior para comparar</small>
+        <small>sem dados no período anterior</small>
       </div>
     );
   }
@@ -114,9 +114,9 @@ function FinanceMetricCard({
           <HorariaIcon name={icon} />
         </span>
         <strong>{title}</strong>
-        <button type="button" aria-label={"Mais opções de " + title}>
+        <span className="dashboard-finance-metric-more" aria-hidden="true">
           ⋮
-        </button>
+        </span>
       </div>
       <b>{value}</b>
       <Variation
@@ -136,6 +136,9 @@ export default function DashboardFinance({ onNewLaunch }: { onNewLaunch?: () => 
   );
   const [period, setPeriod] = useState(30);
   const [category, setCategory] = useState<FinanceCategory>("all");
+  const [tableType, setTableType] = useState<"all" | "receita" | "despesa">("all");
+  const [tableStatus, setTableStatus] = useState<"all" | "pago" | "pendente" | "vencido">("all");
+  const [tableSearch, setTableSearch] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -315,8 +318,30 @@ export default function DashboardFinance({ onNewLaunch }: { onNewLaunch?: () => 
     };
   };
 
-  const current = summarize(currentPaid);
-  const previous = summarize(previousPaid);
+  const currentAccruedRows = useMemo(
+    () =>
+      filteredRows.filter(
+        (item) => item.vencimento >= currentStart && item.vencimento <= end,
+      ),
+    [filteredRows, currentStart, end],
+  );
+
+  const previousAccruedRows = useMemo(
+    () =>
+      filteredRows.filter(
+        (item) =>
+          item.vencimento >= previousStart && item.vencimento <= previousEnd,
+      ),
+    [filteredRows, previousStart, previousEnd],
+  );
+
+  const currentCash = summarize(currentPaid);
+  const previousCash = summarize(previousPaid);
+  const currentAccrued = summarize(currentAccruedRows);
+  const previousAccrued = summarize(previousAccruedRows);
+
+  const current = { ...currentCash, profit: currentAccrued.profit };
+  const previous = { ...previousCash, profit: previousAccrued.profit };
 
   const days = useMemo(
     () =>
@@ -360,46 +385,82 @@ export default function DashboardFinance({ onNewLaunch }: { onNewLaunch?: () => 
 
   const axisEvery = Math.max(1, Math.ceil(period / 6));
 
-  const distributionBase =
-    current.revenue + current.expense + Math.max(current.profit, 0);
-  const revenuePercent = distributionBase
-    ? (current.revenue / distributionBase) * 100
-    : 0;
-  const expensePercent = distributionBase
-    ? (current.expense / distributionBase) * 100
-    : 0;
-  const profitPercent = distributionBase
-    ? (Math.max(current.profit, 0) / distributionBase) * 100
-    : 0;
+  const expenseGroups = useMemo(() => {
+    const groups = new Map<string, number>();
+    currentAccruedRows
+      .filter((item) => item.tipo === "despesa")
+      .forEach((item) => {
+        const key = item.origem || "manual";
+        groups.set(key, (groups.get(key) || 0) + Number(item.valor || 0));
+      });
+    return Array.from(groups.entries())
+      .map(([key, value]) => ({
+        key,
+        label: originLabel[key] || "Outros",
+        value,
+      }))
+      .sort((a, b) => b.value - a.value);
+  }, [currentAccruedRows]);
 
-  const donutBackground = distributionBase
-    ? "conic-gradient(#20b26b 0 " +
-      revenuePercent +
-      "%, #ef4d57 " +
-      revenuePercent +
-      "% " +
-      (revenuePercent + expensePercent) +
-      "%, #2f80ed " +
-      (revenuePercent + expensePercent) +
-      "% 100%)"
+  const expenseTotal = expenseGroups.reduce((sum, item) => sum + item.value, 0);
+  const expensePalette = ["#ef4d57", "#f59f3a", "#8e58e9", "#2f80ed", "#6d7f9d"];
+  const donutBackground = expenseTotal
+    ? (() => {
+        let cursor = 0;
+        const slices = expenseGroups.map((item, index) => {
+          const start = cursor;
+          cursor += (item.value / expenseTotal) * 100;
+          return `${expensePalette[index % expensePalette.length]} ${start}% ${cursor}%`;
+        });
+        return `conic-gradient(${slices.join(",")})`;
+      })()
     : "conic-gradient(#e8edf5 0 100%)";
 
   const margin =
-    current.revenue > 0 ? (current.profit / current.revenue) * 100 : 0;
+    currentAccrued.revenue > 0
+      ? (current.profit / currentAccrued.revenue) * 100
+      : 0;
   const progressWidth = Math.max(0, Math.min(100, margin));
 
-  const latestEntries = useMemo(
-    () =>
-      filteredRows
-        .filter((item) => {
-          const key = rowDate(item);
-          return key >= currentStart && key <= end;
-        })
-        .slice()
-        .sort((a, b) => rowDate(b).localeCompare(rowDate(a)))
-        .slice(0, 6),
-    [filteredRows, currentStart, end],
-  );
+  const latestEntries = useMemo(() => {
+    const query = tableSearch.trim().toLowerCase();
+    return filteredRows
+      .filter((item) => {
+        const key = rowDate(item);
+        if (key < currentStart || key > end) return false;
+        if (tableType !== "all" && item.tipo !== tableType) return false;
+
+        const overdue = item.status === "pendente" && item.vencimento < end;
+        if (tableStatus === "pago" && item.status !== "pago") return false;
+        if (tableStatus === "pendente" && (item.status !== "pendente" || overdue))
+          return false;
+        if (tableStatus === "vencido" && !overdue) return false;
+
+        if (!query) return true;
+        const detail = item.ordem_id ? orderDetails[item.ordem_id] : undefined;
+        return [
+          item.descricao,
+          originLabel[item.origem] || "",
+          detail?.clienteNome || "",
+          detail?.tecnico || "",
+          detail?.numero ? String(detail.numero) : "",
+        ]
+          .join(" ")
+          .toLowerCase()
+          .includes(query);
+      })
+      .slice()
+      .sort((a, b) => rowDate(b).localeCompare(rowDate(a)))
+      .slice(0, 8);
+  }, [
+    filteredRows,
+    currentStart,
+    end,
+    tableType,
+    tableStatus,
+    tableSearch,
+    orderDetails,
+  ]);
 
   return (
     <section
@@ -414,8 +475,8 @@ export default function DashboardFinance({ onNewLaunch }: { onNewLaunch?: () => 
             <HorariaIcon name="finance" />
           </span>
           <div>
-            <strong>Financeiro</strong>
-            <small>Receitas, despesas e caixa no mesmo resumo.</small>
+            <strong>Resumo do período</strong>
+            <small>Receitas, despesas, caixa e resultado no mesmo lugar.</small>
           </div>
         </div>
 
@@ -647,7 +708,7 @@ export default function DashboardFinance({ onNewLaunch }: { onNewLaunch?: () => 
               <span className="dashboard-finance-card-icon purple" aria-hidden="true">
                 <HorariaIcon name="donut" />
               </span>
-              <strong>Resumo financeiro</strong>
+              <strong>Despesas por categoria</strong>
             </div>
             <span>Últimos {period} dias</span>
           </div>
@@ -656,30 +717,38 @@ export default function DashboardFinance({ onNewLaunch }: { onNewLaunch?: () => 
             <div
               className="dashboard-finance-donut"
               style={{ background: donutBackground }}
-              aria-label="Distribuição financeira"
+              aria-label="Distribuição das despesas por categoria"
             >
               <div>
-                <strong>{money(current.revenue)}</strong>
-                <small>Total</small>
+                <strong>{money(expenseTotal)}</strong>
+                <small>Despesas</small>
               </div>
             </div>
 
             <div className="dashboard-finance-summary-legend">
-              <div>
-                <i className="revenue" />
-                <span>Receitas</span>
-                <strong>{revenuePercent.toFixed(1)}%</strong>
-              </div>
-              <div>
-                <i className="expense" />
-                <span>Despesas</span>
-                <strong>{expensePercent.toFixed(1)}%</strong>
-              </div>
-              <div>
-                <i className="profit" />
-                <span>Lucro líquido</span>
-                <strong>{profitPercent.toFixed(1)}%</strong>
-              </div>
+              {expenseGroups.length ? (
+                expenseGroups.slice(0, 5).map((item, index) => (
+                  <div key={item.key}>
+                    <i
+                      style={{
+                        background:
+                          expensePalette[index % expensePalette.length],
+                      }}
+                    />
+                    <span>{item.label}</span>
+                    <strong>
+                      {expenseTotal
+                        ? ((item.value / expenseTotal) * 100).toFixed(1)
+                        : "0.0"}
+                      %
+                    </strong>
+                  </div>
+                ))
+              ) : (
+                <p className="dashboard-finance-no-expense">
+                  Nenhuma despesa registrada neste período.
+                </p>
+              )}
             </div>
           </div>
 
@@ -709,6 +778,51 @@ export default function DashboardFinance({ onNewLaunch }: { onNewLaunch?: () => 
           <Link href="/painel/financeiro">Ver todos ›</Link>
         </div>
 
+        <div className="dashboard-finance-table-filters">
+          <label className="dashboard-finance-table-search">
+            <span className="sr-only">Buscar lançamentos</span>
+            <HorariaIcon name="search" />
+            <input
+              value={tableSearch}
+              onChange={(event) => setTableSearch(event.target.value)}
+              placeholder="Buscar descrição, cliente ou OS..."
+            />
+          </label>
+
+          <select
+            value={tableType}
+            onChange={(event) =>
+              setTableType(
+                event.target.value as "all" | "receita" | "despesa",
+              )
+            }
+            aria-label="Filtrar tipo"
+          >
+            <option value="all">Todos os tipos</option>
+            <option value="receita">Receitas</option>
+            <option value="despesa">Despesas</option>
+          </select>
+
+          <select
+            value={tableStatus}
+            onChange={(event) =>
+              setTableStatus(
+                event.target.value as
+                  | "all"
+                  | "pago"
+                  | "pendente"
+                  | "vencido",
+              )
+            }
+            aria-label="Filtrar status"
+          >
+            <option value="all">Todos os status</option>
+            <option value="pago">Pago</option>
+            <option value="pendente">Pendente</option>
+            <option value="vencido">Vencido</option>
+          </select>
+        </div>
+
         <div className="dashboard-finance-table-wrap">
           <table>
             <thead>
@@ -720,6 +834,7 @@ export default function DashboardFinance({ onNewLaunch }: { onNewLaunch?: () => 
                 <th>Tipo</th>
                 <th>Valor</th>
                 <th>Status</th>
+                <th>Detalhes</th>
               </tr>
             </thead>
             <tbody>
@@ -777,19 +892,31 @@ export default function DashboardFinance({ onNewLaunch }: { onNewLaunch?: () => 
                             : "Pendente"}
                       </span>
                     </td>
+                    <td>
+                      {item.ordem_id ? (
+                        <Link
+                          className="dashboard-finance-details"
+                          href={"/painel/ordens/" + item.ordem_id}
+                        >
+                          Ver detalhes
+                        </Link>
+                      ) : (
+                        <span className="dashboard-finance-manual">Manual</span>
+                      )}
+                    </td>
                   </tr>
                 );
               })}
               {!loading && !latestEntries.length && (
                 <tr>
-                  <td colSpan={7} className="dashboard-finance-empty">
+                  <td colSpan={8} className="dashboard-finance-empty">
                     Nenhum lançamento neste período.
                   </td>
                 </tr>
               )}
               {loading && (
                 <tr>
-                  <td colSpan={7} className="dashboard-finance-empty">
+                  <td colSpan={8} className="dashboard-finance-empty">
                     Carregando financeiro…
                   </td>
                 </tr>
