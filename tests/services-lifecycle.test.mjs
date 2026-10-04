@@ -26,11 +26,13 @@ test("serviços: gestor cria, edita e exclui; técnico não altera catálogo", a
       )
     ).rows[0].id;
 
+    await db.exec("set role service_role");
     await db.query(
       `insert into empresa_membros(empresa_id,usuario_id,role,status)
        values($1,$2,'TECHNICIAN','ACTIVE')`,
       [companyId, technician],
     );
+    await db.exec(`set role authenticated;set request.jwt.claim.sub='${owner}'`);
 
     const serviceId = (
       await db.query(
