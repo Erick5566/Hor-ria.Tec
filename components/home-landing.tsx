@@ -87,7 +87,7 @@ export default function HomeLanding() {
   }
 
   return (
-    <main data-entry-viewport className={`${styles.page} ${styles.homeViewport}`}>
+    <main className={`${styles.page} ${styles.homeViewport}`}>
       <div className={styles.shell}>
         <header className={styles.topbar}>
           <span>Já tem conta?</span>
@@ -95,6 +95,30 @@ export default function HomeLanding() {
             Entrar
           </Link>
         </header>
+
+        <div className={styles.decorations} aria-hidden="true">
+          <span className={styles.decorSquareOne} />
+          <span className={styles.decorSquareTwo} />
+          <span className={styles.decorSquareThree} />
+          <span className={styles.decorSquareFour} />
+          <span className={styles.decorSquareFive} />
+          <span className={styles.decorSquareSix} />
+          <span className={styles.decorDotOne} />
+          <span className={styles.decorDotTwo} />
+          <span className={styles.decorDotThree} />
+          <span className={styles.decorDotFour} />
+
+          <span className={styles.decorPhoneOne} />
+          <span className={styles.decorPhoneTwo} />
+          <span className={styles.decorPhoneThree} />
+          <span className={styles.decorTabletOne} />
+          <span className={styles.decorTabletTwo} />
+          <span className={styles.decorLaptopOne} />
+          <span className={styles.decorLaptopTwo} />
+
+          <span className={styles.decorDash} />
+          <span className={styles.entryStamp}>ENTRADA</span>
+        </div>
 
         <section className={styles.hero} aria-labelledby="home-title">
           <div className={styles.brandSide}>
@@ -109,8 +133,8 @@ export default function HomeLanding() {
           </div>
 
           <div className={styles.tagStage}>
-            <svg className={styles.string} viewBox="0 0 120 74" aria-hidden="true">
-              <path d="M60 72 C60 44, 100 38, 84 2" />
+            <svg className={styles.string} viewBox="0 0 60 180" aria-hidden="true">
+              <path d="M45 0 C45 28 60 42 55 65 C50 90 15 105 5 140 C1 153 0 166 0 180" />
             </svg>
 
             <section className={styles.tagCard} aria-label="Criar espaço Horária">
@@ -121,24 +145,22 @@ export default function HomeLanding() {
                 <span>ORDEM DE SERVIÇO</span>
               </div>
 
-              <div className={styles.companyField}>
-                <label className={styles.fieldLabel} htmlFor="home-company">
-                  ASSISTÊNCIA
-                </label>
-                <input
-                  id="home-company"
-                  className={styles.lineInput}
-                  value={company}
-                  onChange={(event) => {
-                    setCompany(event.target.value);
-                    setError("");
-                  }}
-                  placeholder="Nome da sua assistência"
-                  autoComplete="organization"
-                  maxLength={100}
-                />
-                <p className={styles.error} role="alert">{error}</p>
-              </div>
+              <label className={styles.fieldLabel} htmlFor="home-company">
+                ASSISTÊNCIA
+              </label>
+              <input
+                id="home-company"
+                className={styles.lineInput}
+                value={company}
+                onChange={(event) => {
+                  setCompany(event.target.value);
+                  setError("");
+                }}
+                placeholder="Nome da sua assistência"
+                autoComplete="organization"
+                maxLength={100}
+              />
+              <p className={styles.error} role="alert">{error}</p>
 
               <div className={styles.metaRow}>
                 <div>
@@ -180,7 +202,7 @@ export default function HomeLanding() {
 
               <div className={styles.tagFooter}>
                 <div className={styles.barcodeWrap}>
-                  <svg className={styles.barcode} viewBox="0 0 96 30" preserveAspectRatio="none" aria-hidden="true">
+                  <svg className={styles.barcode} viewBox="0 0 96 30" aria-hidden="true">
                     {bars.map((bar, index) => (
                       <rect
                         key={`${bar.x}-${index}`}

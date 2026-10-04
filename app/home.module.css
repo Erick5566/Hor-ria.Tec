@@ -813,249 +813,860 @@
   }
 }
 
-
-/* One height-based layout for the landing, login and registration screens. */
-.homeViewport, .authViewport {
-  --u: 1vh;
+/* Entry screens: fit the full visual inside one viewport. */
+.homeViewport,
+.authViewport {
+  height: 100vh;
   height: 100dvh;
-  max-height: 100dvh;
-  min-height: 0;
+  min-height: 100vh;
+  min-height: 100dvh;
+  padding: clamp(.5rem, 1.1vw, 1rem);
   overflow: hidden;
-  box-sizing: border-box;
-  padding: 2vh 3vw;
 }
-:is(.homeViewport, .authViewport) .shell {
+
+.homeViewport .shell,
+.authViewport .shell {
+  height: calc(100dvh - clamp(1rem, 2.2vw, 2rem));
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.homeViewport .topbar,
+.authViewport .topbar {
+  flex: 0 0 auto;
+  min-height: clamp(3rem, 7vh, 3.75rem);
+  padding: clamp(.5rem, 1.4vh, .8rem) clamp(1.25rem, 3vw, 2.6rem);
+  font-size: clamp(.75rem, 1vw, .9rem);
+}
+
+.homeViewport .loginButton,
+.authViewport .loginButton {
+  min-width: clamp(6.25rem, 9vw, 7.5rem);
+  min-height: clamp(2.4rem, 5.5vh, 2.8rem);
+  padding-inline: clamp(1rem, 2vw, 1.4rem);
+  border-radius: .7rem;
+  font-size: clamp(.8rem, 1vw, .92rem);
+}
+
+.homeViewport .hero,
+.authViewport .hero {
+  flex: 1 1 auto;
+  min-height: 0;
   display: grid;
-  grid-template-rows: auto minmax(0, 1fr);
-  height: 100%;
-  min-height: 0;
-  max-height: 100%;
-}
-:is(.homeViewport, .authViewport) .topbar {
-  min-height: 0;
-  padding: calc(2 * var(--u)) 2vw;
-  gap: 1vw;
-  font-size: calc(1.8 * var(--u));
-}
-:is(.homeViewport, .authViewport) .loginButton {
-  min-height: 0;
-  height: calc(5.5 * var(--u));
-  min-width: 0;
-  padding: 0 2vw;
-  font-size: calc(1.8 * var(--u));
-}
-:is(.homeViewport, .authViewport) .hero {
-  display: grid;
-  grid-template-columns: minmax(0, auto) minmax(0, auto);
-  justify-content: center;
-  width: 100%;
-  max-width: 1200px;
-  margin: 0 auto;
+  grid-template-columns: minmax(0, .9fr) minmax(18.75rem, 1.1fr);
+  gap: clamp(1.25rem, 3vw, 2.75rem);
   align-items: center;
+  padding: 0 clamp(1.5rem, 4vw, 3.25rem) clamp(.75rem, 2vh, 1.5rem);
+}
+
+.homeViewport .brandSide,
+.authViewport .brandSide {
+  min-height: 0;
   height: 100%;
-  min-height: 0;
-  column-gap: clamp(32px, 6vw, 96px);
-  padding: 0 5vw calc(2 * var(--u));
-}
-:is(.homeViewport, .authViewport) .brandSide, :is(.homeViewport, .authViewport) .tagStage {
-  min-width: 0;
-  min-height: 0;
-  max-height: 100%;
-}
-:is(.homeViewport, .authViewport) .brandSide {
-  height: auto;
-  container-type: inline-size;
-  width: min(36vw, 520px);
-  max-width: 100%;
-  gap: calc(1.5 * var(--u));
   justify-content: center;
+  overflow: visible;
 }
-:is(.homeViewport, .authViewport) .brandSide :global(.horaria-hero-brand) { transform: none; gap: calc(1.5 * var(--u)); }
-:is(.homeViewport, .authViewport) .brandSide :global(.horaria-hero-mark) {
-  height: calc(36 * var(--u));
-  max-height: 100%;
-  width: auto;
+
+.homeViewport .brandSide :global(.horaria-hero-brand),
+.authViewport .brandSide :global(.horaria-hero-brand) {
+  max-height: 55vh;
+  transform: none;
+}
+
+.homeViewport .brandSide :global(.horaria-hero-mark),
+.authViewport .brandSide :global(.horaria-hero-mark) {
+  width: clamp(11.25rem, 28vw, 23.75rem);
   max-width: 100%;
+  max-height: 43vh;
   object-fit: contain;
 }
-:is(.homeViewport, .authViewport) .brandSide :global(.horaria-hero-wordmark) {
-  margin: 0;
-  font-size: calc(8.5 * var(--u));
+
+.homeViewport .brandSide :global(.horaria-hero-wordmark),
+.authViewport .brandSide :global(.horaria-hero-wordmark) {
+  margin: clamp(.2rem, .6vh, .45rem) 0 0 .2rem;
+  font-size: clamp(2rem, 5vw, 4rem);
+  line-height: .96;
 }
-:is(.homeViewport, .authViewport) .eyebrow {
-  margin: 0;
-  max-width: 100%;
-  font-size: min(calc(2 * var(--u)), 3.7cqi);
-  letter-spacing: .035em;
-  white-space: nowrap;
+
+.homeViewport .orbit,
+.authViewport .orbit {
+  left: clamp(-8rem, -9vw, -4rem);
+  top: 50%;
+  width: clamp(18rem, 34vw, 28rem);
+  max-width: 64vh;
+  transform: translateY(-50%);
 }
-:is(.homeViewport, .authViewport) .brandSide h1 {
-  margin: 0;
-  max-width: 100%;
-  font-size: min(calc(5 * var(--u)), 7.5cqi);
-  line-height: 1.1;
+
+.homeViewport .eyebrow,
+.authViewport .eyebrow {
+  max-width: 22rem;
+  margin-top: clamp(.75rem, 2vh, 1.35rem);
+  font-size: clamp(.65rem, 1vw, .85rem);
+  line-height: 1.25;
 }
-:is(.homeViewport, .authViewport) .orbit {
-  left: calc(16.5 * var(--u));
-  top: calc(18 * var(--u));
-  transform: translate(-50%, -50%);
-  width: calc(45 * var(--u));
-  height: calc(45 * var(--u));
-  max-width: 100%;
-  max-height: 100%;
+
+.homeViewport .brandSide h1,
+.authViewport .brandSide h1 {
+  max-width: 28rem;
+  margin-top: clamp(.45rem, 1vh, .8rem);
+  font-size: clamp(1.25rem, 2.4vw, 2rem);
+  line-height: 1.14;
 }
-:is(.homeViewport, .authViewport) .tagStage {
-  width: min(46vw, 560px);
+
+.homeViewport .tagStage,
+.authViewport .tagStage {
+  width: clamp(18.75rem, 42vw, 32.5rem);
   max-width: 100%;
+  max-height: 88%;
+  padding-top: clamp(1rem, 2.6vh, 1.8rem);
+  align-self: center;
   justify-self: center;
-  padding-top: calc(3 * var(--u));
 }
-:is(.homeViewport, .authViewport) .string {
-  top: 0;
-  width: calc(6 * var(--u));
-  height: calc(5 * var(--u));
+
+.homeViewport .string,
+.authViewport .string {
+  top: -.4rem;
+  width: clamp(3.5rem, 6vw, 4.8rem);
+  height: clamp(2.2rem, 5vh, 3.2rem);
 }
-:is(.homeViewport, .authViewport) .tagCard, :is(.homeViewport, .authViewport) .authTagCard {
-  height: calc(75 * var(--u));
-  min-height: 0;
-  max-height: 82vh;
+
+.homeViewport .tagCard,
+.homeViewport .authTagCard,
+.authViewport .tagCard,
+.authViewport .authTagCard {
   width: 100%;
-  padding: calc(3 * var(--u)) 2.5vw;
-  gap: calc(2 * var(--u));
-  align-content: space-between;
-  transform: rotate(1.5deg);
+  min-height: 0;
+  max-height: 85vh;
+  padding:
+    clamp(2.65rem, 5.5vh, 3.5rem)
+    clamp(1rem, 2vw, 1.25rem)
+    clamp(.9rem, 2vh, 1.25rem);
+  align-content: start;
+  transform: rotate(1deg);
 }
-:is(.homeViewport, .authViewport) .hole {
-  top: calc(.65 * var(--u));
-  width: calc(1.4 * var(--u));
-  height: calc(1.4 * var(--u));
+
+.homeViewport .tagCard:focus-within,
+.homeViewport .authTagCard:focus-within,
+.authViewport .tagCard:focus-within,
+.authViewport .authTagCard:focus-within {
+  transform: rotate(.5deg);
 }
-:is(.homeViewport, .authViewport) .tagHeader { margin: calc(1.4 * var(--u)) 0 0; gap: 1vw; }
-:is(.homeViewport, .authViewport) .tagHeader strong { font-size: calc(3 * var(--u)); line-height: 1.1; }
-:is(.homeViewport, .authViewport) .tagHeader span, :is(.homeViewport, .authViewport) .fieldLabel, :is(.homeViewport, .authViewport) .authLabel,
-:is(.homeViewport, .authViewport) .deviceFieldset legend, :is(.homeViewport, .authViewport) .metaRow span {
-  font-size: calc(1.7 * var(--u));
+
+.homeViewport .hole,
+.authViewport .hole {
+  top: clamp(.8rem, 2vh, 1rem);
+  width: clamp(.85rem, 1.6vw, 1.05rem);
+  height: clamp(.85rem, 1.6vw, 1.05rem);
+}
+
+.homeViewport .tagHeader,
+.authViewport .tagHeader {
+  gap: .75rem;
+  margin-bottom: clamp(.6rem, 1.5vh, .8rem);
+}
+
+.homeViewport .tagHeader strong,
+.authViewport .tagHeader strong {
+  font-size: clamp(1rem, 1.5vw, 1.1rem);
+  line-height: 1;
+}
+
+.homeViewport .tagHeader span,
+.authViewport .tagHeader span {
+  font-size: clamp(.58rem, .75vw, .65rem);
+  letter-spacing: .12em;
+}
+
+.homeViewport .fieldLabel,
+.homeViewport .deviceFieldset legend,
+.homeViewport .authLabel,
+.authViewport .fieldLabel,
+.authViewport .deviceFieldset legend,
+.authViewport .authLabel {
+  font-size: clamp(.58rem, .75vw, .65rem);
   line-height: 1.1;
-  letter-spacing: .06em;
 }
-:is(.homeViewport, .authViewport) .lineInput, :is(.homeViewport, .authViewport) .authInput {
-  height: calc(6 * var(--u));
-  min-height: 0;
-  padding: calc(.5 * var(--u)) 0;
-  font-size: calc(2.4 * var(--u));
+
+.homeViewport .lineInput,
+.homeViewport .authInput,
+.authViewport .lineInput,
+.authViewport .authInput {
+  min-height: 2.25rem;
+  height: 2.25rem;
+  padding: .25rem .1rem .35rem;
+  font-size: clamp(.78rem, 1vw, .85rem);
 }
-:is(.homeViewport, .authViewport) .error, :is(.homeViewport, .authViewport) .authError {
-  min-height: 0;
-  margin: 0;
-  font-size: calc(1.5 * var(--u));
+
+.homeViewport .error,
+.homeViewport .authError,
+.authViewport .error,
+.authViewport .authError {
+  min-height: .9rem;
+  margin-top: .15rem;
+  font-size: .65rem;
   line-height: 1.15;
 }
-:is(.homeViewport, .authViewport) .error:empty { display: none; }
-:is(.homeViewport, .authViewport) .metaRow { gap: 4vw; margin: 0; }
-:is(.homeViewport, .authViewport) .metaRow > div { gap: calc(.4 * var(--u)); }
-:is(.homeViewport, .authViewport) .metaRow strong { font-size: calc(2.4 * var(--u)); }
-:is(.homeViewport, .authViewport) .deviceFieldset { margin: 0; min-width: 0; }
-:is(.homeViewport, .authViewport) .chips { margin-top: calc(.8 * var(--u)); gap: calc(.8 * var(--u)); flex-wrap: wrap; }
-:is(.homeViewport, .authViewport) .chip span {
-  min-height: 0;
-  padding: calc(1 * var(--u)) calc(1.8 * var(--u));
-  font-size: calc(2 * var(--u));
-  line-height: 1.1;
+
+.homeViewport .metaRow,
+.authViewport .metaRow {
+  gap: clamp(1.25rem, 4vw, 2.4rem);
+  margin-top: clamp(.5rem, 1.2vh, .7rem);
 }
-:is(.homeViewport, .authViewport) .cutLine { margin: 0 -2.5vw; gap: 1vw; }
-:is(.homeViewport, .authViewport) .cutLine span { width: calc(1.5 * var(--u)); height: calc(1.5 * var(--u)); margin-left: 1vw; }
-:is(.homeViewport, .authViewport) .tagFooter { gap: 1vw; padding: 0; }
-:is(.homeViewport, .authViewport) .barcode, :is(.homeViewport, .authViewport) .authBarcode { height: calc(6 * var(--u)); width: calc(13 * var(--u)); max-width: 100%; }
-:is(.homeViewport, .authViewport) .barcodeWrap small { margin-top: calc(.4 * var(--u)); font-size: calc(1.3 * var(--u)); }
-:is(.homeViewport, .authViewport) .createButton, :is(.homeViewport, .authViewport) .authSubmit {
+
+.homeViewport .metaRow > div,
+.authViewport .metaRow > div {
+  gap: .12rem;
+}
+
+.homeViewport .metaRow span,
+.authViewport .metaRow span {
+  font-size: clamp(.55rem, .7vw, .62rem);
+}
+
+.homeViewport .metaRow strong,
+.authViewport .metaRow strong {
+  font-size: clamp(.72rem, .95vw, .85rem);
+}
+
+.homeViewport .deviceFieldset,
+.authViewport .deviceFieldset {
+  margin-top: clamp(.55rem, 1.3vh, .75rem);
+}
+
+.homeViewport .chips,
+.authViewport .chips {
+  gap: .375rem;
+  margin-top: .4rem;
+}
+
+.homeViewport .chip span,
+.authViewport .chip span {
+  min-height: 2rem;
+  padding: .375rem .75rem;
+  border-width: 1.5px;
+  font-size: .8rem;
+  line-height: 1;
+}
+
+.homeViewport .cutLine,
+.authViewport .cutLine {
+  gap: .6rem;
+  margin: clamp(.6rem, 1.4vh, .8rem) clamp(-1.25rem, -2vw, -1rem) 0;
+}
+
+.homeViewport .cutLine span,
+.authViewport .cutLine span {
+  width: .8rem;
+  height: .8rem;
+  margin-left: .75rem;
+}
+
+.homeViewport .tagFooter,
+.authViewport .tagFooter {
+  gap: clamp(.7rem, 2vw, 1.1rem);
+  padding-top: clamp(.55rem, 1.2vh, .75rem);
+}
+
+.homeViewport .barcode,
+.homeViewport .authBarcode,
+.authViewport .barcode,
+.authViewport .authBarcode {
+  width: clamp(5rem, 9vw, 6.5rem);
+  height: clamp(1.65rem, 3.5vh, 2rem);
+}
+
+.homeViewport .barcodeWrap small,
+.authViewport .barcodeWrap small {
+  margin-top: .2rem;
+  font-size: .62rem;
+}
+
+.homeViewport .createButton,
+.homeViewport .authSubmit,
+.authViewport .createButton,
+.authViewport .authSubmit {
   min-width: 0;
-  min-height: 0;
-  height: calc(6.5 * var(--u));
-  padding: 0 2vw;
-  font-size: calc(2.3 * var(--u));
-  white-space: nowrap;
+  min-height: 2.6rem;
+  padding: 0 clamp(.9rem, 2vw, 1.25rem);
+  border-radius: .65rem;
+  font-size: clamp(.78rem, 1vw, .9rem);
 }
-:is(.homeViewport, .authViewport) .authForm, :is(.homeViewport, .authViewport) .authFieldsGrid { gap: calc(1.4 * var(--u)); }
-:is(.homeViewport, .authViewport) .authField { gap: calc(.4 * var(--u)); }
-:is(.homeViewport, .authViewport) .authHint { margin: 0; font-size: calc(1.3 * var(--u)); line-height: 1.2; }
-:is(.homeViewport, .authViewport) .authActionsRow, :is(.homeViewport, .authViewport) .authBottom { margin: 0; gap: 1vw; flex-direction: row; align-items: center; }
-:is(.homeViewport, .authViewport) .authBottom, :is(.homeViewport, .authViewport) .authHelpLink, :is(.homeViewport, .authViewport) .authSwitchLink { font-size: calc(1.5 * var(--u)); }
-:is(.homeViewport, .authViewport) .authHomeLink { margin: 0; font-size: calc(1.5 * var(--u)); }
-:is(.homeViewport, .authViewport) .authNotice { margin: 0; padding: calc(.8 * var(--u)) 1vw; font-size: calc(1.5 * var(--u)); line-height: 1.2; }
-:is(.homeViewport, .authViewport) .authCaptcha { min-height: 0; overflow: visible; }
+
+.homeViewport .createButton {
+  min-width: clamp(9rem, 18vw, 12rem);
+}
+
+.authViewport .authForm,
+.authViewport .authFieldsGrid {
+  gap: clamp(.5rem, 1.2vh, .7rem);
+}
+
+.authViewport .authActionsRow {
+  margin-top: 0;
+}
+
+.authViewport .authHelpLink,
+.authViewport .authSwitchLink,
+.authViewport .authLegal a {
+  font-size: .68rem;
+}
+
+.authViewport .authCutLine {
+  margin-top: .2rem;
+}
+
+.authViewport .authBottom {
+  gap: .6rem;
+  margin-top: clamp(.45rem, 1vh, .65rem);
+  font-size: .68rem;
+}
+
+.authViewport .authHomeLink {
+  min-height: 2rem;
+  margin-top: clamp(.45rem, 1vh, .7rem);
+  align-items: center;
+  font-size: .7rem;
+}
+
+.authViewport .authNotice {
+  margin-top: .4rem;
+  padding: .45rem .55rem;
+  font-size: .68rem;
+  line-height: 1.3;
+}
+
+/* Laptops baixos: reduz proporcionalmente sem criar rolagem. */
+@media (min-width: 769px) and (max-height: 700px) {
+  .homeViewport,
+  .authViewport {
+    padding: .4rem;
+  }
+
+  .homeViewport .shell,
+  .authViewport .shell {
+    height: calc(100dvh - .8rem);
+  }
+
+  .homeViewport .topbar,
+  .authViewport .topbar {
+    min-height: 2.6rem;
+    padding-block: .35rem;
+  }
+
+  .homeViewport .hero,
+  .authViewport .hero {
+    gap: 1.2rem;
+    padding-bottom: .55rem;
+  }
+
+  .homeViewport .brandSide :global(.horaria-hero-mark),
+  .authViewport .brandSide :global(.horaria-hero-mark) {
+    width: clamp(9rem, 18vw, 13.5rem);
+    max-height: 35vh;
+  }
+
+  .homeViewport .brandSide :global(.horaria-hero-wordmark),
+  .authViewport .brandSide :global(.horaria-hero-wordmark) {
+    font-size: clamp(2rem, 3.5vw, 2.7rem);
+  }
+
+  .homeViewport .orbit,
+  .authViewport .orbit {
+    width: min(28vw, 22rem);
+  }
+
+  .homeViewport .eyebrow,
+  .authViewport .eyebrow {
+    margin-top: .55rem;
+    font-size: .62rem;
+  }
+
+  .homeViewport .brandSide h1,
+  .authViewport .brandSide h1 {
+    margin-top: .35rem;
+    font-size: clamp(1.05rem, 1.7vw, 1.35rem);
+  }
+
+  .homeViewport .tagStage,
+  .authViewport .tagStage {
+    width: clamp(18rem, 39vw, 29rem);
+    padding-top: .8rem;
+  }
+
+  .homeViewport .tagCard,
+  .homeViewport .authTagCard,
+  .authViewport .tagCard,
+  .authViewport .authTagCard {
+    padding: 2rem .9rem .75rem;
+    transform: rotate(.7deg);
+  }
+
+  .homeViewport .hole,
+  .authViewport .hole {
+    top: .62rem;
+    width: .7rem;
+    height: .7rem;
+  }
+
+  .homeViewport .tagHeader,
+  .authViewport .tagHeader {
+    margin-bottom: .45rem;
+  }
+
+  .homeViewport .lineInput,
+  .homeViewport .authInput,
+  .authViewport .lineInput,
+  .authViewport .authInput {
+    min-height: 2rem;
+    height: 2rem;
+  }
+
+  .homeViewport .deviceFieldset,
+  .authViewport .deviceFieldset {
+    margin-top: .45rem;
+  }
+
+  .homeViewport .chip span,
+  .authViewport .chip span {
+    min-height: 1.8rem;
+    padding: .3rem .65rem;
+    font-size: .72rem;
+  }
+
+  .homeViewport .cutLine,
+  .authViewport .cutLine {
+    margin-top: .45rem;
+  }
+
+  .homeViewport .tagFooter,
+  .authViewport .tagFooter {
+    padding-top: .45rem;
+  }
+
+  .homeViewport .createButton,
+  .homeViewport .authSubmit,
+  .authViewport .createButton,
+  .authViewport .authSubmit {
+    min-height: 2.25rem;
+  }
+}
+
+/* Mobile: logo pequeno no topo e etiqueta inteira abaixo, ainda sem scroll. */
+@media (max-width: 768px) {
+  .homeViewport,
+  .authViewport {
+    padding: 0;
+    background: #203fb4;
+  }
+
+  .homeViewport .shell,
+  .authViewport .shell {
+    height: 100dvh;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+  }
+
+  .homeViewport .topbar,
+  .authViewport .topbar {
+    min-height: 2.7rem;
+    padding: .35rem .75rem .2rem;
+    gap: .5rem;
+    font-size: .68rem;
+  }
+
+  .homeViewport .loginButton,
+  .authViewport .loginButton {
+    min-width: 5.6rem;
+    min-height: 2.2rem;
+    padding-inline: .8rem;
+    border-radius: .6rem;
+    font-size: .75rem;
+  }
+
+  .homeViewport .hero,
+  .authViewport .hero {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: minmax(4.8rem, 16vh) minmax(0, 1fr);
+    gap: .3rem;
+    align-content: stretch;
+    padding: .15rem .6rem .55rem;
+  }
+
+  .homeViewport .brandSide,
+  .authViewport .brandSide {
+    width: min(100%, 32rem);
+    height: auto;
+    min-height: 0;
+    justify-self: center;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+  }
+
+  .homeViewport .brandSide :global(.horaria-hero-brand),
+  .authViewport .brandSide :global(.horaria-hero-brand) {
+    max-height: 18vh;
+    flex-direction: row;
+    align-items: center;
+    gap: .45rem;
+  }
+
+  .homeViewport .brandSide :global(.horaria-hero-mark),
+  .authViewport .brandSide :global(.horaria-hero-mark) {
+    width: auto;
+    height: min(8vh, 3.1rem);
+    max-height: 8vh;
+  }
+
+  .homeViewport .brandSide :global(.horaria-hero-wordmark),
+  .authViewport .brandSide :global(.horaria-hero-wordmark) {
+    margin: 0;
+    font-size: clamp(1.6rem, 9vw, 2.15rem);
+  }
+
+  .homeViewport .orbit,
+  .authViewport .orbit {
+    left: 50%;
+    top: 50%;
+    width: min(42vw, 8.5rem);
+    transform: translate(-50%, -50%);
+  }
+
+  .homeViewport .eyebrow,
+  .authViewport .eyebrow {
+    margin-top: .25rem;
+    font-size: .52rem;
+    letter-spacing: .08em;
+  }
+
+  .homeViewport .brandSide h1,
+  .authViewport .brandSide h1 {
+    max-width: 21rem;
+    margin-top: .15rem;
+    font-size: clamp(.72rem, 3.2vw, .9rem);
+    line-height: 1.05;
+  }
+
+  .homeViewport .brandSide h1 br,
+  .authViewport .brandSide h1 br {
+    display: none;
+  }
+
+  .authViewport .authHomeLink {
+    min-height: 0;
+    margin-top: .15rem;
+    font-size: .58rem;
+  }
+
+  .homeViewport .tagStage,
+  .authViewport .tagStage {
+    width: min(100%, 27rem);
+    height: 100%;
+    max-height: 100%;
+    padding-top: .3rem;
+    align-self: stretch;
+  }
+
+  .homeViewport .string,
+  .authViewport .string {
+    top: -.45rem;
+    width: 2.8rem;
+    height: 1.8rem;
+  }
+
+  .homeViewport .tagCard,
+  .homeViewport .authTagCard,
+  .authViewport .tagCard,
+  .authViewport .authTagCard {
+    max-height: 100%;
+    padding: 1.8rem .75rem .65rem;
+    transform: rotate(.5deg);
+  }
+
+  .homeViewport .hole,
+  .authViewport .hole {
+    top: .5rem;
+    width: .65rem;
+    height: .65rem;
+  }
+
+  .homeViewport .tagHeader,
+  .authViewport .tagHeader {
+    margin-bottom: .4rem;
+  }
+
+  .homeViewport .tagHeader strong,
+  .authViewport .tagHeader strong {
+    font-size: .92rem;
+  }
+
+  .homeViewport .tagHeader span,
+  .authViewport .tagHeader span,
+  .homeViewport .fieldLabel,
+  .homeViewport .deviceFieldset legend,
+  .homeViewport .authLabel,
+  .authViewport .fieldLabel,
+  .authViewport .deviceFieldset legend,
+  .authViewport .authLabel {
+    font-size: .54rem;
+  }
+
+  .homeViewport .lineInput,
+  .homeViewport .authInput,
+  .authViewport .lineInput,
+  .authViewport .authInput {
+    min-height: 2rem;
+    height: 2rem;
+    font-size: .78rem;
+  }
+
+  .homeViewport .error,
+  .authViewport .error {
+    min-height: .65rem;
+    font-size: .56rem;
+  }
+
+  .homeViewport .metaRow,
+  .authViewport .metaRow {
+    margin-top: .35rem;
+    gap: 1.1rem;
+  }
+
+  .homeViewport .metaRow span,
+  .authViewport .metaRow span {
+    font-size: .5rem;
+  }
+
+  .homeViewport .metaRow strong,
+  .authViewport .metaRow strong {
+    font-size: .68rem;
+  }
+
+  .homeViewport .deviceFieldset,
+  .authViewport .deviceFieldset {
+    margin-top: .4rem;
+  }
+
+  .homeViewport .chips,
+  .authViewport .chips {
+    gap: .35rem;
+    margin-top: .3rem;
+  }
+
+  .homeViewport .chip span,
+  .authViewport .chip span {
+    min-height: 1.75rem;
+    padding: .3rem .65rem;
+    font-size: .7rem;
+  }
+
+  .homeViewport .cutLine,
+  .authViewport .cutLine {
+    margin: .4rem -.75rem 0;
+  }
+
+  .homeViewport .tagFooter,
+  .authViewport .tagFooter {
+    gap: .5rem;
+    padding-top: .4rem;
+  }
+
+  .homeViewport .barcode,
+  .homeViewport .authBarcode,
+  .authViewport .barcode,
+  .authViewport .authBarcode {
+    width: 4.4rem;
+    height: 1.45rem;
+  }
+
+  .homeViewport .barcodeWrap small,
+  .authViewport .barcodeWrap small {
+    font-size: .52rem;
+  }
+
+  .homeViewport .createButton,
+  .homeViewport .authSubmit,
+  .authViewport .createButton,
+  .authViewport .authSubmit {
+    min-height: 2.2rem;
+    padding-inline: .75rem;
+    font-size: .72rem;
+  }
+
+  .homeViewport .createButton {
+    flex: 1;
+  }
+
+  .authViewport .authFieldsGrid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: .4rem;
+  }
+
+  .authViewport .authFieldFull {
+    grid-column: auto;
+  }
+
+  .authViewport .authForm {
+    gap: .4rem;
+  }
+
+  .authViewport .authActionsRow,
+  .authViewport .authBottom {
+    flex-direction: row;
+    align-items: center;
+  }
+
+  .authViewport .authBottom {
+    margin-top: .35rem;
+  }
+
+  .authViewport .authCaptcha {
+    min-height: 0;
+    max-height: 3.6rem;
+    overflow: hidden;
+    transform: scale(.82);
+    transform-origin: left top;
+  }
+}
+
+/* Garantia explícita para 360x640 e aparelhos compactos. */
+@media (max-width: 400px) and (max-height: 680px) {
+  .homeViewport .topbar,
+  .authViewport .topbar {
+    min-height: 2.45rem;
+    padding-top: .25rem;
+  }
+
+  .homeViewport .hero,
+  .authViewport .hero {
+    grid-template-rows: minmax(4.2rem, 14vh) minmax(0, 1fr);
+    padding-bottom: .35rem;
+  }
+
+  .homeViewport .brandSide :global(.horaria-hero-mark),
+  .authViewport .brandSide :global(.horaria-hero-mark) {
+    height: min(6.8vh, 2.65rem);
+  }
+
+  .homeViewport .brandSide :global(.horaria-hero-wordmark),
+  .authViewport .brandSide :global(.horaria-hero-wordmark) {
+    font-size: clamp(1.4rem, 8vw, 1.8rem);
+  }
+
+  .homeViewport .eyebrow,
+  .authViewport .eyebrow {
+    font-size: .48rem;
+  }
+
+  .homeViewport .brandSide h1,
+  .authViewport .brandSide h1 {
+    font-size: .68rem;
+  }
+
+  .homeViewport .tagCard,
+  .homeViewport .authTagCard,
+  .authViewport .tagCard,
+  .authViewport .authTagCard {
+    padding: 1.55rem .65rem .5rem;
+  }
+
+  .homeViewport .lineInput,
+  .homeViewport .authInput,
+  .authViewport .lineInput,
+  .authViewport .authInput {
+    min-height: 1.85rem;
+    height: 1.85rem;
+  }
+
+  .homeViewport .chip span,
+  .authViewport .chip span {
+    min-height: 1.55rem;
+    padding: .25rem .55rem;
+    font-size: .66rem;
+  }
+
+  .homeViewport .cutLine,
+  .authViewport .cutLine {
+    margin-top: .3rem;
+  }
+
+  .homeViewport .tagFooter,
+  .authViewport .tagFooter {
+    padding-top: .3rem;
+  }
+
+  .homeViewport .createButton,
+  .homeViewport .authSubmit,
+  .authViewport .createButton,
+  .authViewport .authSubmit {
+    min-height: 2rem;
+  }
+}
+
+/* Cadastro usa a mesma composição visual do login, sem criar rolagem. */
+.signupViewport {
+  height: 100dvh;
+  min-height: 100dvh;
+  max-height: 100dvh;
+  overflow: hidden;
+}
+
+.signupViewport .authTagCard {
+  max-height: 85vh;
+}
+
+.signupViewport .authForm,
+.signupViewport .authFieldsGrid {
+  gap: clamp(.42rem, 1vh, .62rem);
+}
+
+.signupViewport .authHint {
+  margin-top: .15rem;
+  font-size: .62rem;
+  line-height: 1.25;
+}
+
+.signupViewport .authLegal {
+  gap: .45rem;
+  font-size: .65rem;
+  line-height: 1.3;
+}
+
+.signupViewport .authLegal input {
+  width: .9rem;
+  min-height: .9rem;
+}
+
+.signupViewport .authBottom {
+  margin-top: clamp(.35rem, .8vh, .55rem);
+}
 
 @media (max-width: 768px) {
-  :is(.homeViewport, .authViewport) .hero { padding: 0 2vw calc(1 * var(--u)); grid-template-columns: minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr); gap: calc(1 * var(--u)); }
-  :is(.homeViewport, .authViewport) .brandSide { width: 100%; align-items: center; gap: calc(.5 * var(--u)); }
-  :is(.homeViewport, .authViewport) .brandSide :global(.horaria-hero-brand) { flex-direction: row; align-items: center; gap: 2vw; }
-  :is(.homeViewport, .authViewport) .brandSide :global(.horaria-hero-mark) { height: calc(12 * var(--u)); }
-  :is(.homeViewport, .authViewport) .brandSide :global(.horaria-hero-wordmark) { font-size: calc(4 * var(--u)); }
-  :is(.homeViewport, .authViewport) .eyebrow, :is(.homeViewport, .authViewport) .brandSide h1 { display: none; }
-  :is(.homeViewport, .authViewport) .orbit { left: 50%; top: 50%; width: calc(14 * var(--u)); height: calc(14 * var(--u)); transform: translate(-50%, -50%); }
-  :is(.homeViewport, .authViewport) .tagStage { width: 100%; max-width: 480px; padding-top: calc(2 * var(--u)); }
-  :is(.homeViewport, .authViewport) .tagCard, :is(.homeViewport, .authViewport) .authTagCard { height: auto; padding: calc(2 * var(--u)) 2.5vw; max-height: 76vh; gap: calc(1 * var(--u)); }
-  :is(.homeViewport, .authViewport) .authFieldsGrid { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
-  :is(.homeViewport, .authViewport) .authFieldFull, :is(.homeViewport, .authViewport) .authField:last-child { grid-column: 1 / -1; }
-  :is(.homeViewport, .authViewport) .authSubmit { width: auto; }
-  :is(.homeViewport, .authViewport) .tagHeader span { letter-spacing: .035em; }
-}
-@media (max-height: 600px) {
-  .homeViewport, .authViewport { --u: .8vh; }
-}
-
-:is(.homeViewport, .authViewport) .companyField {
-  display: grid;
-  gap: calc(.5 * var(--u));
-  min-width: 0;
-}
-
-/* Match the supplied reference: centered symbol and compact rounded receipt. */
-:is(.homeViewport, .authViewport) .tagCard,
-:is(.homeViewport, .authViewport) .authTagCard {
-  clip-path: none;
-  border-radius: 1.4vh;
-}
-:is(.homeViewport, .authViewport) .string { display: none; }
-@media (min-width: 769px) {
-  .homeViewport, .authViewport { --u: min(1vh, .5625vw); padding: 3.7vh 2.08vw; font-family: Arial, sans-serif; }
-  :is(.homeViewport, .authViewport) .shell { width: 100%; border: 0; box-shadow: none; }
-  :is(.homeViewport, .authViewport) .topbar { padding: calc(3.2 * var(--u)) 3.125vw calc(1 * var(--u)); gap: 1.4vw; font-size: calc(2.7 * var(--u)); }
-  :is(.homeViewport, .authViewport) .loginButton { height: calc(6.3 * var(--u)); min-width: 9.6vw; font-size: calc(2.7 * var(--u)); font-weight: 400; }
-  :is(.homeViewport, .authViewport) .hero {
-    max-width: none;
-    grid-template-columns: minmax(0, 31.25vw) minmax(0, 39.1vw);
-    column-gap: 9.375vw;
-    padding: 0 7.8vw calc(9 * var(--u));
+  .signupViewport .authForm,
+  .signupViewport .authFieldsGrid {
+    gap: .32rem;
   }
-  :is(.homeViewport, .authViewport) .brandSide { width: 100%; gap: calc(2 * var(--u)); }
-  :is(.homeViewport, .authViewport) .brandSide :global(.horaria-hero-brand) { width: 100%; gap: calc(4.2 * var(--u)); }
-  :is(.homeViewport, .authViewport) .brandSide :global(.horaria-hero-mark) { height: calc(29.6 * var(--u)); align-self: center; }
-  :is(.homeViewport, .authViewport) .brandSide :global(.horaria-hero-wordmark) { font-family: Arial, sans-serif; font-size: calc(8.1 * var(--u)); font-weight: 400; letter-spacing: -.055em; }
-  :is(.homeViewport, .authViewport) .eyebrow { font-size: min(calc(2.4 * var(--u)), 4.4cqi); letter-spacing: .04em; font-weight: 400; }
-  :is(.homeViewport, .authViewport) .brandSide h1 { font-family: Arial, sans-serif; font-size: min(calc(4.3 * var(--u)), 8cqi); line-height: 1.15; font-weight: 400; letter-spacing: -.035em; }
-  :is(.homeViewport, .authViewport) .orbit { width: calc(53 * var(--u)); height: calc(53 * var(--u)); left: 50%; top: 42%; max-height: none; }
-  :is(.homeViewport, .authViewport) .tagStage { width: 100%; padding: 0; }
-  :is(.homeViewport, .authViewport) .tagCard,
-  :is(.homeViewport, .authViewport) .authTagCard { height: auto; min-height: calc(57 * var(--u)); max-height: 82vh; padding: calc(5.5 * var(--u)) 2.5vw calc(3 * var(--u)); gap: calc(1.7 * var(--u)); align-content: space-between; transform: rotate(2deg); }
-  :is(.homeViewport, .authViewport) .hole { top: calc(1.7 * var(--u)); width: calc(1.85 * var(--u)); height: calc(1.85 * var(--u)); }
-  :is(.homeViewport, .authViewport) .tagHeader { margin: 0 0 calc(1.3 * var(--u)); }
-  :is(.homeViewport, .authViewport) .tagHeader strong { font-size: calc(3.5 * var(--u)); font-weight: 400; }
-  :is(.homeViewport, .authViewport) .tagHeader span,
-  :is(.homeViewport, .authViewport) .fieldLabel,
-  :is(.homeViewport, .authViewport) .authLabel,
-  :is(.homeViewport, .authViewport) .deviceFieldset legend,
-  :is(.homeViewport, .authViewport) .metaRow span { font-size: calc(2.1 * var(--u)); font-weight: 400; letter-spacing: .1em; }
-  :is(.homeViewport, .authViewport) .lineInput,
-  :is(.homeViewport, .authViewport) .authInput { height: calc(5 * var(--u)); font-size: calc(2.4 * var(--u)); }
-  :is(.homeViewport, .authViewport) .metaRow { gap: 4vw; }
-  :is(.homeViewport, .authViewport) .chip span { padding: calc(.8 * var(--u)) calc(2.1 * var(--u)); font-size: calc(2.3 * var(--u)); font-weight: 400; }
-  :is(.homeViewport, .authViewport) .cutLine { margin: 0; }
-  :is(.homeViewport, .authViewport) .cutLine span { display: none; }
-  :is(.homeViewport, .authViewport) .barcode,
-  :is(.homeViewport, .authViewport) .authBarcode { height: calc(5.6 * var(--u)); width: calc(9.5 * var(--u)); }
-  :is(.homeViewport, .authViewport) .barcodeWrap small { font-size: calc(1.6 * var(--u)); }
-  :is(.homeViewport, .authViewport) .createButton,
-  :is(.homeViewport, .authViewport) .authSubmit { height: calc(7.2 * var(--u)); font-size: calc(2.7 * var(--u)); font-weight: 400; padding-inline: 2.6vw; }
+
+  .signupViewport .authInput {
+    min-height: 1.85rem;
+    height: 1.85rem;
+  }
+
+  .signupViewport .authHint {
+    font-size: .56rem;
+    line-height: 1.15;
+  }
+
+  .signupViewport .authLegal {
+    font-size: .58rem;
+    line-height: 1.2;
+  }
+
+  .signupViewport .authTagCard {
+    max-height: 100%;
+  }
 }
 
 /* === HORARIA LANDING: referência 1536x864 enviada em 02/10/2026 === */
@@ -1153,30 +1764,58 @@
   }
 
   .homeViewport .hero {
-    grid-template-columns: minmax(0, 31.25vw) minmax(0, 39.0625vw);
-    column-gap: 9.375vw;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: clamp(24px, 4vw, 64px);
+    width: 100%;
+    height: 100%;
+    min-height: 0;
     max-width: none;
-    padding: 0 7.8125vw calc(9 * var(--u));
+    margin: 0;
+    padding: 0;
   }
 
   .homeViewport .brandSide {
-    width: 100%;
+    position: relative;
+    flex: 0 0 31.25vw;
+    width: 31.25vw;
+    max-width: 31.25vw;
     gap: calc(2 * var(--u));
+    align-items: flex-start;
+    justify-content: center;
+    text-align: left;
   }
 
   .homeViewport .brandSide :global(.horaria-hero-brand) {
+    position: relative;
+    z-index: 1;
     width: 100%;
     gap: calc(4.2 * var(--u));
+    align-items: flex-start;
     transform: none;
   }
 
+  .homeViewport .brandSide :global(.horaria-hero-mark-wrap) {
+    position: relative;
+    z-index: 1;
+    display: inline-flex;
+    width: fit-content;
+    line-height: 0;
+  }
+
   .homeViewport .brandSide :global(.horaria-hero-mark) {
+    position: relative;
+    z-index: 1;
     width: auto;
     height: calc(29.6 * var(--u));
-    align-self: center;
+    align-self: flex-start;
   }
 
   .homeViewport .brandSide :global(.horaria-hero-wordmark) {
+    position: relative;
+    z-index: 1;
+    align-self: flex-start;
     margin: 0;
     font-family: Arial, Helvetica, sans-serif;
     font-size: calc(8.1 * var(--u));
@@ -1186,6 +1825,9 @@
   }
 
   .homeViewport .eyebrow {
+    position: relative;
+    z-index: 1;
+    align-self: flex-start;
     margin: 0;
     max-width: 100%;
     color: #fff;
@@ -1193,10 +1835,14 @@
     font-weight: 400;
     line-height: 1.35;
     letter-spacing: .04em;
+    text-align: left;
     white-space: nowrap;
   }
 
   .homeViewport .brandSide h1 {
+    position: relative;
+    z-index: 1;
+    align-self: flex-start;
     margin: 0;
     max-width: 100%;
     color: #fff;
@@ -1205,22 +1851,28 @@
     font-weight: 400;
     line-height: 1.15;
     letter-spacing: -.035em;
+    text-align: left;
   }
 
   .homeViewport .orbit {
-    left: 50%;
-    top: 42%;
-    width: calc(53 * var(--u));
-    height: calc(53 * var(--u));
+    left: calc(13.56 * var(--u));
+    top: calc(14.8 * var(--u));
+    width: calc(35.52 * var(--u));
+    height: calc(35.52 * var(--u));
     max-width: none;
     max-height: none;
     transform: translate(-50%, -50%);
+    z-index: 0;
+    pointer-events: none;
   }
 
   .homeViewport .tagStage {
-    width: 100%;
+    flex: 0 0 39.0625vw;
+    width: 39.0625vw;
+    max-width: 39.0625vw;
+    margin: 0;
     padding: 0;
-    justify-self: center;
+    align-self: center;
   }
 
   .homeViewport .string {
@@ -1325,3 +1977,1996 @@
   }
 }
 /* === FIM HORARIA LANDING referência 1536x864 === */
+
+/* === HORARIA LANDING FINAL: referência visual 1536x864 === */
+.homeViewport {
+  height: 100dvh;
+  min-height: 0;
+  max-height: 100dvh;
+  overflow: hidden;
+  background: #151515;
+}
+
+.homeViewport .shell {
+  position: relative;
+  overflow: hidden;
+  background: #2140b5;
+}
+
+.homeViewport .decorations {
+  pointer-events: none;
+}
+
+@media (min-width: 769px) {
+  .homeViewport {
+    --frame-x: clamp(14px, 2.1vw, 32px);
+    --frame-y: clamp(14px, 3.7vh, 32px);
+    --sx: calc((100vw - (2 * var(--frame-x))) * 0.0006793478);
+    --sy: calc((100dvh - (2 * var(--frame-y))) * 0.00125);
+    --s: min(var(--sx), var(--sy));
+    display: grid;
+    place-items: center;
+    width: 100vw;
+    height: 100dvh;
+    padding: var(--frame-y) var(--frame-x);
+    box-sizing: border-box;
+    font-family: Arial, Helvetica, sans-serif;
+  }
+
+  .homeViewport .shell {
+    display: block;
+    width: calc(100vw - (2 * var(--frame-x)));
+    height: calc(100dvh - (2 * var(--frame-y)));
+    min-height: 0;
+    max-width: none;
+    margin: 0;
+    border: 0;
+    border-radius: clamp(18px, calc(29 * var(--s)), 32px);
+    box-shadow: none;
+  }
+
+  .homeViewport .topbar {
+    position: absolute;
+    z-index: 20;
+    top: calc(28 * var(--s));
+    right: calc(48 * var(--s));
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: calc(20 * var(--s));
+    width: auto;
+    min-height: 0;
+    padding: 0;
+    color: #fff;
+    font-size: calc(22 * var(--s));
+    line-height: 1;
+  }
+
+  .homeViewport .loginButton {
+    width: calc(148 * var(--s));
+    min-width: 0;
+    height: calc(54 * var(--s));
+    min-height: 0;
+    padding: 0;
+    color: #fff;
+    background: transparent;
+    border: calc(2 * var(--s)) solid #fff;
+    border-radius: calc(16 * var(--s));
+    font-size: calc(22 * var(--s));
+    font-weight: 400;
+  }
+
+  .homeViewport .loginButton:hover {
+    color: #fff;
+    background: transparent;
+    transform: none;
+  }
+
+  .homeViewport .hero {
+    position: absolute;
+    z-index: 3;
+    inset: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: calc(93 * var(--s));
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+    max-width: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  .homeViewport .brandSide {
+    position: relative;
+    flex: 0 0 calc(480 * var(--s));
+    width: calc(480 * var(--s));
+    height: calc(580 * var(--s));
+    min-width: 0;
+    min-height: 0;
+    max-width: none;
+    max-height: none;
+    display: block;
+    text-align: left;
+  }
+
+  .homeViewport .brandSide :global(.horaria-hero-brand) {
+    position: absolute;
+    z-index: 2;
+    inset: 0;
+    display: block;
+    width: 100%;
+    height: 100%;
+    color: #fff;
+    transform: none;
+  }
+
+  .homeViewport .brandSide :global(.horaria-hero-mark-wrap) {
+    position: absolute;
+    z-index: 2;
+    left: calc(144 * var(--s));
+    top: calc(32 * var(--s));
+    display: block;
+    width: calc(238 * var(--s));
+    height: calc(260 * var(--s));
+    line-height: 0;
+  }
+
+  .homeViewport .brandSide :global(.horaria-hero-mark) {
+    display: block;
+    width: auto;
+    height: calc(260 * var(--s));
+    max-width: none;
+    max-height: none;
+  }
+
+  .homeViewport .brandSide :global(.horaria-hero-wordmark) {
+    position: absolute;
+    z-index: 2;
+    left: calc(4 * var(--s));
+    top: calc(344 * var(--s));
+    margin: 0;
+    color: #fff;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: calc(68 * var(--s));
+    font-weight: 400;
+    line-height: .94;
+    letter-spacing: -.055em;
+    white-space: nowrap;
+  }
+
+  .homeViewport .orbit {
+    position: absolute;
+    z-index: 0;
+    left: calc(-48 * var(--s));
+    top: calc(-4 * var(--s));
+    width: calc(324 * var(--s));
+    height: calc(324 * var(--s));
+    max-width: none;
+    max-height: none;
+    border: calc(2 * var(--s)) solid #7489d2;
+    border-radius: 50%;
+    transform: none;
+    pointer-events: none;
+  }
+
+  .homeViewport .eyebrow {
+    position: absolute;
+    z-index: 2;
+    left: calc(4 * var(--s));
+    top: calc(423 * var(--s));
+    width: auto;
+    max-width: none;
+    margin: 0;
+    color: #fff;
+    font-size: calc(22 * var(--s));
+    font-weight: 400;
+    line-height: 1;
+    letter-spacing: .08em;
+    white-space: nowrap;
+  }
+
+  .homeViewport .brandSide h1 {
+    position: absolute;
+    z-index: 2;
+    left: calc(4 * var(--s));
+    top: calc(468 * var(--s));
+    width: calc(475 * var(--s));
+    max-width: none;
+    margin: 0;
+    color: #fff;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: calc(39 * var(--s));
+    font-weight: 400;
+    line-height: 1.18;
+    letter-spacing: -.035em;
+    text-align: left;
+  }
+
+  .homeViewport .tagStage {
+    position: relative;
+    flex: 0 0 calc(617 * var(--s));
+    width: calc(617 * var(--s));
+    height: calc(511 * var(--s));
+    min-width: 0;
+    min-height: 0;
+    max-width: none;
+    max-height: none;
+    margin: 0;
+    padding: 0;
+    transform: translateX(calc(5 * var(--s)));
+  }
+
+  .homeViewport .tagStage::before {
+    content: "";
+    position: absolute;
+    z-index: 0;
+    left: calc(290 * var(--s));
+    top: calc(-18 * var(--s));
+    width: calc(255 * var(--s));
+    height: calc(170 * var(--s));
+    border-radius: calc(10 * var(--s));
+    background: rgb(255 255 255 / 16%);
+    filter: blur(calc(8 * var(--s)));
+    transform: rotate(-5deg);
+  }
+
+  .homeViewport .string {
+    position: absolute;
+    z-index: 8;
+    left: calc(314 * var(--s));
+    top: calc(-145 * var(--s));
+    display: block;
+    width: calc(60 * var(--s));
+    height: calc(180 * var(--s));
+    overflow: visible;
+    transform: none;
+  }
+
+  .homeViewport .string path {
+    fill: none;
+    stroke: #fff;
+    stroke-width: 3.2;
+    stroke-linecap: round;
+  }
+
+  .homeViewport .tagCard {
+    position: absolute;
+    z-index: 3;
+    left: 50%;
+    top: 50%;
+    display: grid;
+    width: calc(600 * var(--s));
+    height: calc(490 * var(--s));
+    min-height: 0;
+    max-height: none;
+    padding: calc(42 * var(--s)) calc(34 * var(--s)) calc(28 * var(--s));
+    gap: calc(8 * var(--s));
+    align-content: space-between;
+    color: #161821;
+    background: #f1efe4;
+    border-radius: calc(10 * var(--s));
+    clip-path: none;
+    filter: none;
+    transform: translate(-50%, -50%) rotate(2deg);
+    transform-origin: 50% 50%;
+  }
+
+  .homeViewport .tagCard:focus-within {
+    transform: translate(-50%, -50%) rotate(2deg);
+  }
+
+  .homeViewport .hole {
+    position: absolute;
+    top: calc(14 * var(--s));
+    left: 50%;
+    width: calc(15 * var(--s));
+    height: calc(15 * var(--s));
+    background: #2140b5;
+    border-radius: 50%;
+    transform: translateX(-50%);
+  }
+
+  .homeViewport .tagHeader {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: calc(20 * var(--s));
+    margin: 0 0 calc(6 * var(--s));
+  }
+
+  .homeViewport .tagHeader strong {
+    color: #161821;
+    font-size: calc(31 * var(--s));
+    font-weight: 400;
+    font-style: italic;
+    line-height: 1;
+    letter-spacing: -.04em;
+  }
+
+  .homeViewport .tagHeader span,
+  .homeViewport .fieldLabel,
+  .homeViewport .deviceFieldset legend,
+  .homeViewport .metaRow span {
+    color: #747aa7;
+    font-size: calc(17 * var(--s));
+    font-weight: 400;
+    line-height: 1;
+    letter-spacing: .12em;
+  }
+
+  .homeViewport .lineInput {
+    width: 100%;
+    height: calc(38 * var(--s));
+    min-height: 0;
+    padding: calc(3 * var(--s)) 0 calc(7 * var(--s));
+    color: #161821;
+    background: transparent;
+    border: 0;
+    border-bottom: calc(2 * var(--s)) solid #161821;
+    border-radius: 0;
+    font-family: ui-monospace, "SFMono-Regular", Consolas, monospace;
+    font-size: calc(19 * var(--s));
+    box-shadow: none;
+  }
+
+  .homeViewport .lineInput::placeholder {
+    color: #8a8ca5;
+    opacity: 1;
+  }
+
+  .homeViewport .error {
+    min-height: 0;
+    margin: 0;
+    font-size: calc(10 * var(--s));
+    line-height: 1;
+  }
+
+  .homeViewport .error:empty {
+    display: none;
+  }
+
+  .homeViewport .metaRow {
+    display: flex;
+    gap: calc(58 * var(--s));
+    margin: calc(5 * var(--s)) 0 0;
+  }
+
+  .homeViewport .metaRow > div {
+    display: grid;
+    gap: calc(4 * var(--s));
+  }
+
+  .homeViewport .metaRow strong {
+    color: #161821;
+    font-family: ui-monospace, "SFMono-Regular", Consolas, monospace;
+    font-size: calc(18 * var(--s));
+    font-weight: 500;
+    line-height: 1;
+  }
+
+  .homeViewport .deviceFieldset {
+    min-width: 0;
+    margin: calc(9 * var(--s)) 0 0;
+    padding: 0;
+    border: 0;
+  }
+
+  .homeViewport .deviceFieldset legend {
+    padding: 0;
+  }
+
+  .homeViewport .chips {
+    display: flex;
+    flex-wrap: nowrap;
+    gap: calc(10 * var(--s));
+    margin-top: calc(10 * var(--s));
+  }
+
+  .homeViewport .chip span {
+    min-height: 0;
+    padding: calc(7 * var(--s)) calc(15 * var(--s));
+    color: #161821;
+    background: transparent;
+    border: calc(2 * var(--s)) solid #161821;
+    border-radius: 999px;
+    font-size: calc(17 * var(--s));
+    font-weight: 400;
+    line-height: 1;
+  }
+
+  .homeViewport .chipActive span {
+    color: #f1efe4;
+    background: #161821;
+  }
+
+  .homeViewport .cutLine {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    margin: calc(8 * var(--s)) 0 0;
+  }
+
+  .homeViewport .cutLine span {
+    display: none;
+  }
+
+  .homeViewport .cutLine i {
+    flex: 1;
+    border-top: calc(2 * var(--s)) dashed #aaa89e;
+  }
+
+  .homeViewport .tagFooter {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: calc(20 * var(--s));
+    padding: calc(6 * var(--s)) 0 0;
+  }
+
+  .homeViewport .barcode {
+    display: block;
+    width: calc(80 * var(--s));
+    height: calc(48 * var(--s));
+    fill: #161821;
+  }
+
+  .homeViewport .barcodeWrap small {
+    display: block;
+    margin-top: calc(3 * var(--s));
+    color: #737aa5;
+    font-family: ui-monospace, "SFMono-Regular", Consolas, monospace;
+    font-size: calc(13 * var(--s));
+    line-height: 1;
+  }
+
+  .homeViewport .createButton {
+    width: calc(224 * var(--s));
+    min-width: 0;
+    height: calc(62 * var(--s));
+    min-height: 0;
+    padding: 0;
+    color: #fff;
+    background: #2563ff;
+    border: 0;
+    border-radius: calc(14 * var(--s));
+    font-size: calc(24 * var(--s));
+    font-weight: 400;
+    line-height: 1;
+    white-space: nowrap;
+  }
+
+  .homeViewport .createButton:hover {
+    background: #2563ff;
+    transform: none;
+  }
+
+  .homeViewport .decorations {
+    position: absolute;
+    z-index: 1;
+    inset: 0;
+    display: block;
+  }
+
+  .homeViewport .decorSquareOne,
+  .homeViewport .decorSquareTwo,
+  .homeViewport .decorSquareThree,
+  .homeViewport .decorSquareFour,
+  .homeViewport .decorSquareFive,
+  .homeViewport .decorSquareSix {
+    position: absolute;
+    display: block;
+    border: calc(2 * var(--s)) solid rgb(255 255 255 / 13%);
+  }
+
+  .homeViewport .decorSquareOne {
+    left: calc(52 * var(--s));
+    top: calc(151 * var(--s));
+    width: calc(55 * var(--s));
+    height: calc(68 * var(--s));
+    transform: rotate(-15deg);
+  }
+
+  .homeViewport .decorSquareTwo {
+    left: calc(660 * var(--s));
+    top: calc(42 * var(--s));
+    width: calc(43 * var(--s));
+    height: calc(53 * var(--s));
+    transform: rotate(10deg);
+  }
+
+  .homeViewport .decorSquareThree {
+    right: calc(93 * var(--s));
+    top: calc(158 * var(--s));
+    width: calc(48 * var(--s));
+    height: calc(61 * var(--s));
+    transform: rotate(14deg);
+  }
+
+  .homeViewport .decorSquareFour {
+    left: calc(67 * var(--s));
+    bottom: calc(82 * var(--s));
+    width: calc(70 * var(--s));
+    height: calc(88 * var(--s));
+    transform: rotate(14deg);
+  }
+
+  .homeViewport .decorSquareFive {
+    left: calc(749 * var(--s));
+    bottom: calc(31 * var(--s));
+    width: calc(46 * var(--s));
+    height: calc(58 * var(--s));
+    transform: rotate(-15deg);
+  }
+
+  .homeViewport .decorSquareSix {
+    right: calc(86 * var(--s));
+    bottom: calc(63 * var(--s));
+    width: calc(52 * var(--s));
+    height: calc(69 * var(--s));
+    transform: rotate(-12deg);
+  }
+
+  .homeViewport .decorDotOne,
+  .homeViewport .decorDotTwo,
+  .homeViewport .decorDotThree,
+  .homeViewport .decorDotFour {
+    position: absolute;
+    display: block;
+    border-radius: 50%;
+    background: rgb(142 164 234 / 55%);
+  }
+
+  .homeViewport .decorDotOne {
+    left: calc(600 * var(--s));
+    top: calc(120 * var(--s));
+    width: calc(24 * var(--s));
+    height: calc(24 * var(--s));
+  }
+
+  .homeViewport .decorDotTwo {
+    left: calc(28 * var(--s));
+    top: calc(400 * var(--s));
+    width: calc(16 * var(--s));
+    height: calc(16 * var(--s));
+  }
+
+  .homeViewport .decorDotThree {
+    right: calc(32 * var(--s));
+    top: calc(460 * var(--s));
+    width: calc(20 * var(--s));
+    height: calc(20 * var(--s));
+  }
+
+  .homeViewport .decorDotFour {
+    left: calc(300 * var(--s));
+    bottom: calc(16 * var(--s));
+    width: calc(28 * var(--s));
+    height: calc(28 * var(--s));
+  }
+
+  .homeViewport .decorPhoneOne,
+  .homeViewport .decorPhoneTwo,
+  .homeViewport .decorPhoneThree,
+  .homeViewport .decorTabletOne,
+  .homeViewport .decorTabletTwo,
+  .homeViewport .decorLaptopOne,
+  .homeViewport .decorLaptopTwo {
+    position: absolute;
+    display: block;
+    box-sizing: border-box;
+    opacity: .72;
+  }
+
+  .homeViewport .decorPhoneOne,
+  .homeViewport .decorPhoneTwo,
+  .homeViewport .decorPhoneThree {
+    width: calc(34 * var(--s));
+    height: calc(62 * var(--s));
+    border: calc(2 * var(--s)) solid rgb(255 255 255 / 16%);
+    border-radius: calc(8 * var(--s));
+  }
+
+  .homeViewport .decorPhoneOne::before,
+  .homeViewport .decorPhoneTwo::before,
+  .homeViewport .decorPhoneThree::before {
+    content: "";
+    position: absolute;
+    top: calc(5 * var(--s));
+    left: 50%;
+    width: calc(10 * var(--s));
+    height: calc(2 * var(--s));
+    border-radius: 999px;
+    background: rgb(255 255 255 / 15%);
+    transform: translateX(-50%);
+  }
+
+  .homeViewport .decorPhoneOne::after,
+  .homeViewport .decorPhoneTwo::after,
+  .homeViewport .decorPhoneThree::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    bottom: calc(5 * var(--s));
+    width: calc(5 * var(--s));
+    height: calc(5 * var(--s));
+    border: calc(1.5 * var(--s)) solid rgb(255 255 255 / 14%);
+    border-radius: 50%;
+    transform: translateX(-50%);
+  }
+
+  .homeViewport .decorPhoneOne {
+    left: calc(64 * var(--s));
+    top: calc(152 * var(--s));
+    transform: rotate(-16deg);
+  }
+
+  .homeViewport .decorPhoneTwo {
+    right: calc(92 * var(--s));
+    top: calc(162 * var(--s));
+    transform: rotate(13deg);
+  }
+
+  .homeViewport .decorPhoneThree {
+    right: calc(132 * var(--s));
+    bottom: calc(55 * var(--s));
+    transform: rotate(-11deg);
+  }
+
+  .homeViewport .decorTabletOne,
+  .homeViewport .decorTabletTwo {
+    width: calc(50 * var(--s));
+    height: calc(70 * var(--s));
+    border: calc(2 * var(--s)) solid rgb(255 255 255 / 14%);
+    border-radius: calc(8 * var(--s));
+  }
+
+  .homeViewport .decorTabletOne::before,
+  .homeViewport .decorTabletTwo::before {
+    content: "";
+    position: absolute;
+    top: calc(5 * var(--s));
+    left: 50%;
+    width: calc(5 * var(--s));
+    height: calc(5 * var(--s));
+    border-radius: 50%;
+    background: rgb(255 255 255 / 14%);
+    transform: translateX(-50%);
+  }
+
+  .homeViewport .decorTabletOne {
+    left: calc(665 * var(--s));
+    top: calc(38 * var(--s));
+    transform: rotate(9deg);
+  }
+
+  .homeViewport .decorTabletTwo {
+    left: calc(742 * var(--s));
+    bottom: calc(20 * var(--s));
+    transform: rotate(-14deg);
+  }
+
+  .homeViewport .decorLaptopOne,
+  .homeViewport .decorLaptopTwo {
+    width: calc(76 * var(--s));
+    height: calc(48 * var(--s));
+    border: calc(2 * var(--s)) solid rgb(255 255 255 / 13%);
+    border-radius: calc(5 * var(--s));
+  }
+
+  .homeViewport .decorLaptopOne::before,
+  .homeViewport .decorLaptopTwo::before {
+    content: "";
+    position: absolute;
+    left: calc(-8 * var(--s));
+    right: calc(-8 * var(--s));
+    bottom: calc(-10 * var(--s));
+    height: calc(7 * var(--s));
+    border: calc(2 * var(--s)) solid rgb(255 255 255 / 12%);
+    border-top: 0;
+    border-radius: 0 0 calc(7 * var(--s)) calc(7 * var(--s));
+  }
+
+  .homeViewport .decorLaptopOne {
+    left: calc(560 * var(--s));
+    bottom: calc(86 * var(--s));
+    transform: rotate(-4deg);
+  }
+
+  .homeViewport .decorLaptopTwo {
+    right: calc(250 * var(--s));
+    top: calc(112 * var(--s));
+    transform: rotate(7deg);
+  }
+
+  .homeViewport .decorDash {
+    position: absolute;
+    left: calc(600 * var(--s));
+    top: calc(392 * var(--s));
+    width: calc(64 * var(--s));
+    border-top: calc(2 * var(--s)) dashed rgb(255 255 255 / 28%);
+  }
+
+  .homeViewport .entryStamp {
+    position: absolute;
+    z-index: 10;
+    right: calc(74 * var(--s));
+    bottom: calc(75 * var(--s));
+    display: grid;
+    place-items: center;
+    width: calc(146 * var(--s));
+    height: calc(146 * var(--s));
+    color: rgb(255 255 255 / 62%);
+    border: calc(4 * var(--s)) solid rgb(255 255 255 / 48%);
+    border-radius: 50%;
+    font-size: calc(21 * var(--s));
+    font-weight: 500;
+    letter-spacing: .04em;
+    transform: rotate(14deg);
+  }
+
+  .homeViewport .entryStamp::before {
+    content: "";
+    position: absolute;
+    inset: calc(8 * var(--s));
+    border: calc(2 * var(--s)) solid rgb(255 255 255 / 42%);
+    border-radius: 50%;
+  }
+
+  .homeViewport .entryStamp::after {
+    content: "";
+    position: absolute;
+    left: calc(10 * var(--s));
+    right: calc(10 * var(--s));
+    top: 50%;
+    height: calc(32 * var(--s));
+    border-top: calc(2 * var(--s)) solid rgb(255 255 255 / 40%);
+    border-bottom: calc(2 * var(--s)) solid rgb(255 255 255 / 40%);
+    transform: translateY(-50%);
+  }
+}
+
+@media (max-width: 768px) {
+  .homeViewport {
+    width: 100vw;
+    height: 100dvh;
+    min-height: 0;
+    padding: 0;
+    overflow: hidden;
+    background: #2140b5;
+  }
+
+  .homeViewport .shell {
+    display: grid;
+    grid-template-rows: auto minmax(0, 1fr);
+    width: 100%;
+    height: 100dvh;
+    min-height: 0;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+  }
+
+  .homeViewport .topbar {
+    position: relative;
+    z-index: 10;
+  }
+
+  .homeViewport .hero {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto minmax(0, 1fr);
+    justify-items: center;
+    align-items: center;
+    gap: 1vh;
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+    margin: 0;
+    padding: 0 4vw 1vh;
+  }
+
+  .homeViewport .brandSide {
+    width: 100%;
+    min-height: 0;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+  }
+
+  .homeViewport .brandSide :global(.horaria-hero-brand) {
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    gap: 2vw;
+  }
+
+  .homeViewport .brandSide :global(.horaria-hero-mark-wrap) {
+    display: inline-flex;
+    line-height: 0;
+  }
+
+  .homeViewport .brandSide :global(.horaria-hero-mark) {
+    width: auto;
+    height: min(10vh, 70px);
+  }
+
+  .homeViewport .brandSide :global(.horaria-hero-wordmark) {
+    margin: 0;
+    font-size: min(7vw, 36px);
+  }
+
+  .homeViewport .orbit {
+    left: 50%;
+    top: 50%;
+    width: min(14vh, 96px);
+    height: min(14vh, 96px);
+    transform: translate(-82%, -50%);
+    z-index: 0;
+  }
+
+  .homeViewport .eyebrow,
+  .homeViewport .brandSide h1 {
+    display: none;
+  }
+
+  .homeViewport .tagStage {
+    width: min(94vw, 500px);
+    height: min(72vh, 590px);
+    max-height: 100%;
+    padding: 0;
+    align-self: center;
+  }
+
+  .homeViewport .tagCard {
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+    max-height: 100%;
+    transform: rotate(.8deg);
+  }
+
+  .homeViewport .tagCard:focus-within {
+    transform: rotate(.8deg);
+  }
+
+  .homeViewport .string,
+  .homeViewport .entryStamp,
+  .homeViewport .decorSquareOne,
+  .homeViewport .decorSquareTwo,
+  .homeViewport .decorSquareThree,
+  .homeViewport .decorSquareFour,
+  .homeViewport .decorSquareFive,
+  .homeViewport .decorSquareSix,
+  .homeViewport .decorDotOne,
+  .homeViewport .decorDotTwo,
+  .homeViewport .decorDotThree,
+  .homeViewport .decorDotFour,
+  .homeViewport .decorDash,
+  .homeViewport .decorLaptopTwo,
+  .homeViewport .decorTabletTwo,
+  .homeViewport .decorPhoneThree {
+    display: none;
+  }
+
+  .homeViewport .decorations {
+    position: absolute;
+    inset: 0;
+    display: block;
+    pointer-events: none;
+    z-index: 1;
+  }
+
+  .homeViewport .decorPhoneOne {
+    left: 5vw;
+    top: 18vh;
+    width: 24px;
+    height: 44px;
+    border: 1px solid rgb(255 255 255 / 12%);
+    border-radius: 6px;
+    transform: rotate(-14deg);
+  }
+
+  .homeViewport .decorPhoneTwo {
+    right: 6vw;
+    top: 22vh;
+    width: 22px;
+    height: 40px;
+    border: 1px solid rgb(255 255 255 / 11%);
+    border-radius: 6px;
+    transform: rotate(12deg);
+  }
+
+  .homeViewport .decorTabletOne {
+    right: 8vw;
+    bottom: 8vh;
+    width: 34px;
+    height: 48px;
+    border: 1px solid rgb(255 255 255 / 10%);
+    border-radius: 7px;
+    transform: rotate(-10deg);
+  }
+
+  .homeViewport .decorLaptopOne {
+    left: 8vw;
+    bottom: 9vh;
+    width: 48px;
+    height: 30px;
+    border: 1px solid rgb(255 255 255 / 10%);
+    border-radius: 4px;
+    transform: rotate(5deg);
+  }
+}
+/* === FIM HORARIA LANDING FINAL === */
+
+/* === AUTH VISUAL IGUAL À PRIMEIRA PÁGINA === */
+.authViewport {
+  height: 100dvh;
+  min-height: 0;
+  max-height: 100dvh;
+  overflow: hidden;
+  background: #151515;
+}
+
+.authViewport .shell {
+  position: relative;
+  overflow: hidden;
+  background: #2140b5;
+  border: 0;
+  box-shadow: none;
+}
+
+.authViewport .decorations {
+  pointer-events: none;
+}
+
+@media (min-width: 769px) {
+  .authViewport {
+    --frame-x: clamp(14px, 2.1vw, 32px);
+    --frame-y: clamp(14px, 3.7vh, 32px);
+    --sx: calc((100vw - (2 * var(--frame-x))) * 0.0006793478);
+    --sy: calc((100dvh - (2 * var(--frame-y))) * 0.00125);
+    --s: min(var(--sx), var(--sy));
+    display: grid;
+    place-items: center;
+    width: 100vw;
+    height: 100dvh;
+    padding: var(--frame-y) var(--frame-x);
+    box-sizing: border-box;
+    font-family: Arial, Helvetica, sans-serif;
+  }
+
+  .authViewport .shell {
+    display: block;
+    width: calc(100vw - (2 * var(--frame-x)));
+    height: calc(100dvh - (2 * var(--frame-y)));
+    min-height: 0;
+    max-width: none;
+    margin: 0;
+    border-radius: clamp(18px, calc(29 * var(--s)), 32px);
+  }
+
+  .authViewport .topbar {
+    position: absolute;
+    z-index: 20;
+    top: calc(28 * var(--s));
+    right: calc(48 * var(--s));
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: calc(20 * var(--s));
+    width: auto;
+    min-height: 0;
+    padding: 0;
+    color: #fff;
+    font-size: calc(22 * var(--s));
+    line-height: 1;
+  }
+
+  .authViewport .loginButton {
+    width: auto;
+    min-width: calc(148 * var(--s));
+    height: calc(54 * var(--s));
+    min-height: 0;
+    padding: 0 calc(22 * var(--s));
+    color: #fff;
+    background: transparent;
+    border: calc(2 * var(--s)) solid #fff;
+    border-radius: calc(16 * var(--s));
+    font-size: calc(22 * var(--s));
+    font-weight: 400;
+  }
+
+  .authViewport .loginButton:hover {
+    color: #fff;
+    background: transparent;
+    transform: none;
+  }
+
+  .authViewport .hero {
+    position: absolute;
+    z-index: 3;
+    inset: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: calc(93 * var(--s));
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+    max-width: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  .authViewport .brandSide {
+    position: relative;
+    flex: 0 0 calc(480 * var(--s));
+    width: calc(480 * var(--s));
+    height: calc(580 * var(--s));
+    min-width: 0;
+    min-height: 0;
+    max-width: none;
+    max-height: none;
+    display: block;
+    text-align: left;
+    overflow: visible;
+  }
+
+  .authViewport .brandSide :global(.horaria-hero-brand) {
+    position: absolute;
+    z-index: 2;
+    inset: 0;
+    display: block;
+    width: 100%;
+    height: 100%;
+    max-height: none;
+    color: #fff;
+    transform: none;
+  }
+
+  .authViewport .brandSide :global(.horaria-hero-mark-wrap) {
+    position: absolute;
+    z-index: 2;
+    left: calc(144 * var(--s));
+    top: calc(32 * var(--s));
+    display: block;
+    width: calc(238 * var(--s));
+    height: calc(260 * var(--s));
+    line-height: 0;
+  }
+
+  .authViewport .brandSide :global(.horaria-hero-mark) {
+    display: block;
+    width: auto;
+    height: calc(260 * var(--s));
+    max-width: none;
+    max-height: none;
+  }
+
+  .authViewport .brandSide :global(.horaria-hero-wordmark) {
+    position: absolute;
+    z-index: 2;
+    left: calc(4 * var(--s));
+    top: calc(344 * var(--s));
+    margin: 0;
+    color: #fff;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: calc(68 * var(--s));
+    font-weight: 400;
+    line-height: .94;
+    letter-spacing: -.055em;
+    white-space: nowrap;
+  }
+
+  .authViewport .orbit {
+    position: absolute;
+    z-index: 0;
+    left: calc(-48 * var(--s));
+    top: calc(-4 * var(--s));
+    width: calc(324 * var(--s));
+    height: calc(324 * var(--s));
+    max-width: none;
+    max-height: none;
+    border: calc(2 * var(--s)) solid #7489d2;
+    border-radius: 50%;
+    transform: none;
+    pointer-events: none;
+  }
+
+  .authViewport .eyebrow {
+    position: absolute;
+    z-index: 2;
+    left: calc(4 * var(--s));
+    top: calc(423 * var(--s));
+    width: auto;
+    max-width: none;
+    margin: 0;
+    color: #fff;
+    font-size: calc(22 * var(--s));
+    font-weight: 400;
+    line-height: 1;
+    letter-spacing: .08em;
+    white-space: nowrap;
+  }
+
+  .authViewport .brandSide h1 {
+    position: absolute;
+    z-index: 2;
+    left: calc(4 * var(--s));
+    top: calc(468 * var(--s));
+    width: calc(475 * var(--s));
+    max-width: none;
+    margin: 0;
+    color: #fff;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: calc(39 * var(--s));
+    font-weight: 400;
+    line-height: 1.18;
+    letter-spacing: -.035em;
+    text-align: left;
+  }
+
+  .authViewport .authHomeLink {
+    position: absolute;
+    z-index: 4;
+    left: calc(4 * var(--s));
+    bottom: calc(5 * var(--s));
+    margin: 0;
+    min-height: 0;
+    color: #dce5ff;
+    font-size: calc(13 * var(--s));
+    font-weight: 700;
+  }
+
+  .authViewport .tagStage {
+    position: relative;
+    flex: 0 0 calc(617 * var(--s));
+    width: calc(617 * var(--s));
+    height: calc(511 * var(--s));
+    min-width: 0;
+    min-height: 0;
+    max-width: none;
+    max-height: none;
+    margin: 0;
+    padding: 0;
+    align-self: center;
+    justify-self: auto;
+    transform: translateX(calc(5 * var(--s)));
+  }
+
+  .signupViewport .tagStage {
+    flex-basis: calc(650 * var(--s));
+    width: calc(650 * var(--s));
+    height: calc(640 * var(--s));
+  }
+
+  .authViewport .tagStage::before {
+    content: "";
+    position: absolute;
+    z-index: 0;
+    left: calc(290 * var(--s));
+    top: calc(-18 * var(--s));
+    width: calc(255 * var(--s));
+    height: calc(170 * var(--s));
+    border-radius: calc(10 * var(--s));
+    background: rgb(255 255 255 / 16%);
+    filter: blur(calc(8 * var(--s)));
+    transform: rotate(-5deg);
+  }
+
+  .authViewport .string {
+    position: absolute;
+    z-index: 8;
+    left: calc(314 * var(--s));
+    top: calc(-145 * var(--s));
+    display: block;
+    width: calc(60 * var(--s));
+    height: calc(180 * var(--s));
+    overflow: visible;
+    transform: none;
+  }
+
+  .signupViewport .string {
+    left: calc(330 * var(--s));
+    top: calc(-105 * var(--s));
+  }
+
+  .authViewport .string path {
+    fill: none;
+    stroke: #fff;
+    stroke-width: 3.2;
+    stroke-linecap: round;
+  }
+
+  .authViewport .authTagCard {
+    position: absolute;
+    z-index: 3;
+    left: 50%;
+    top: 50%;
+    display: grid;
+    width: calc(600 * var(--s));
+    height: calc(490 * var(--s));
+    min-height: 0;
+    max-height: none;
+    padding: calc(42 * var(--s)) calc(34 * var(--s)) calc(28 * var(--s));
+    gap: calc(8 * var(--s));
+    align-content: space-between;
+    color: #161821;
+    background: #f1efe4;
+    border-radius: calc(10 * var(--s));
+    clip-path: none;
+    filter: none;
+    transform: translate(-50%, -50%) rotate(2deg);
+    transform-origin: 50% 50%;
+  }
+
+  .signupViewport .authTagCard {
+    width: calc(620 * var(--s));
+    height: calc(610 * var(--s));
+    padding: calc(40 * var(--s)) calc(30 * var(--s)) calc(24 * var(--s));
+    gap: calc(6 * var(--s));
+  }
+
+  .authViewport .authTagCard:focus-within,
+  .signupViewport .authTagCard:focus-within {
+    transform: translate(-50%, -50%) rotate(2deg);
+  }
+
+  .authViewport .hole {
+    position: absolute;
+    top: calc(14 * var(--s));
+    left: 50%;
+    width: calc(15 * var(--s));
+    height: calc(15 * var(--s));
+    background: #2140b5;
+    border-radius: 50%;
+    transform: translateX(-50%);
+  }
+
+  .authViewport .tagHeader {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: calc(20 * var(--s));
+    margin: 0 0 calc(6 * var(--s));
+  }
+
+  .authViewport .tagHeader strong {
+    color: #161821;
+    font-size: calc(31 * var(--s));
+    font-weight: 400;
+    font-style: italic;
+    line-height: 1;
+    letter-spacing: -.04em;
+  }
+
+  .authViewport .tagHeader span,
+  .authViewport .authLabel {
+    color: #747aa7;
+    font-size: calc(15 * var(--s));
+    font-weight: 400;
+    line-height: 1;
+    letter-spacing: .12em;
+  }
+
+  .authViewport .authForm {
+    display: grid;
+    gap: calc(10 * var(--s));
+    margin: 0;
+  }
+
+  .authViewport .authFieldsGrid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: calc(10 * var(--s)) calc(16 * var(--s));
+  }
+
+  .signupViewport .authFieldsGrid {
+    grid-template-columns: 1fr 1fr;
+    gap: calc(7 * var(--s)) calc(14 * var(--s));
+  }
+
+  .authViewport .authField {
+    display: grid;
+    gap: calc(3 * var(--s));
+    min-width: 0;
+  }
+
+  .authViewport .authFieldFull {
+    grid-column: 1 / -1;
+  }
+
+  .authViewport .authInput {
+    width: 100%;
+    min-height: 0;
+    height: calc(38 * var(--s));
+    padding: calc(3 * var(--s)) 0 calc(7 * var(--s));
+    color: #161821;
+    background: transparent;
+    border: 0;
+    border-bottom: calc(2 * var(--s)) solid #161821;
+    border-radius: 0;
+    font-family: ui-monospace, "SFMono-Regular", Consolas, monospace;
+    font-size: calc(17 * var(--s));
+    box-shadow: none;
+  }
+
+  .authViewport .authInput::placeholder {
+    color: #8a8ca5;
+    opacity: 1;
+  }
+
+  .authViewport .authHint {
+    margin-top: calc(2 * var(--s));
+    color: #676c87;
+    font-size: calc(10 * var(--s));
+    line-height: 1.25;
+  }
+
+  .authViewport .authActionsRow {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: calc(12 * var(--s));
+    margin: 0;
+  }
+
+  .authViewport .authHelpLink,
+  .authViewport .authSwitchLink,
+  .authViewport .authLegal a {
+    color: #1a5cff;
+    font-size: calc(11 * var(--s));
+    font-weight: 700;
+  }
+
+  .authViewport .authLegal {
+    display: flex;
+    align-items: flex-start;
+    gap: calc(7 * var(--s));
+    margin: 0;
+    color: #555b76;
+    font-size: calc(10 * var(--s));
+    line-height: 1.3;
+  }
+
+  .authViewport .authLegal input {
+    width: calc(14 * var(--s));
+    min-height: calc(14 * var(--s));
+    margin-top: calc(1 * var(--s));
+    accent-color: #1a5cff;
+  }
+
+  .authViewport .authCaptcha {
+    min-height: 0;
+    max-height: calc(62 * var(--s));
+    overflow: hidden;
+    transform: scale(.82);
+    transform-origin: left top;
+  }
+
+  .authViewport .authCutLine {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    margin: calc(4 * var(--s)) 0 0;
+  }
+
+  .authViewport .authCutLine span {
+    display: none;
+  }
+
+  .authViewport .authCutLine i {
+    flex: 1;
+    border-top: calc(2 * var(--s)) dashed #aaa89e;
+  }
+
+  .authViewport .tagFooter {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: calc(20 * var(--s));
+    padding: calc(4 * var(--s)) 0 0;
+  }
+
+  .authViewport .authBarcode {
+    display: block;
+    width: calc(80 * var(--s));
+    height: calc(48 * var(--s));
+    background:
+      repeating-linear-gradient(
+        90deg,
+        #161821 0 calc(2 * var(--s)),
+        transparent calc(2 * var(--s)) calc(5 * var(--s))
+      );
+  }
+
+  .authViewport .barcodeWrap small {
+    display: block;
+    margin-top: calc(3 * var(--s));
+    color: #737aa5;
+    font-family: ui-monospace, "SFMono-Regular", Consolas, monospace;
+    font-size: calc(12 * var(--s));
+    line-height: 1;
+  }
+
+  .authViewport .authSubmit {
+    width: calc(210 * var(--s));
+    min-width: 0;
+    height: calc(56 * var(--s));
+    min-height: 0;
+    padding: 0 calc(18 * var(--s));
+    color: #fff;
+    background: #2563ff;
+    border: 0;
+    border-radius: calc(14 * var(--s));
+    font-size: calc(21 * var(--s));
+    font-weight: 400;
+    line-height: 1;
+    white-space: nowrap;
+  }
+
+  .authViewport .authSubmit:hover {
+    background: #2563ff;
+    transform: none;
+  }
+
+  .authViewport .authBottom {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: calc(12 * var(--s));
+    margin-top: calc(6 * var(--s));
+    color: #656b91;
+    font-size: calc(11 * var(--s));
+  }
+
+  .authViewport .authNotice {
+    margin: calc(6 * var(--s)) 0 0;
+    padding: calc(7 * var(--s)) calc(9 * var(--s));
+    color: #822d29;
+    background: #f9e9e5;
+    border: calc(1 * var(--s)) solid #e8c3bc;
+    border-radius: calc(8 * var(--s));
+    font-size: calc(10 * var(--s));
+    line-height: 1.3;
+  }
+
+  .authViewport .decorations {
+    position: absolute;
+    z-index: 1;
+    inset: 0;
+    display: block;
+  }
+
+  .authViewport .decorSquareOne,
+  .authViewport .decorSquareTwo,
+  .authViewport .decorSquareThree,
+  .authViewport .decorSquareFour,
+  .authViewport .decorSquareFive,
+  .authViewport .decorSquareSix {
+    position: absolute;
+    display: block;
+    border: calc(2 * var(--s)) solid rgb(255 255 255 / 13%);
+  }
+
+  .authViewport .decorSquareOne { left: calc(52 * var(--s)); top: calc(151 * var(--s)); width: calc(55 * var(--s)); height: calc(68 * var(--s)); transform: rotate(-15deg); }
+  .authViewport .decorSquareTwo { left: calc(660 * var(--s)); top: calc(42 * var(--s)); width: calc(43 * var(--s)); height: calc(53 * var(--s)); transform: rotate(10deg); }
+  .authViewport .decorSquareThree { right: calc(93 * var(--s)); top: calc(158 * var(--s)); width: calc(48 * var(--s)); height: calc(61 * var(--s)); transform: rotate(14deg); }
+  .authViewport .decorSquareFour { left: calc(67 * var(--s)); bottom: calc(82 * var(--s)); width: calc(70 * var(--s)); height: calc(88 * var(--s)); transform: rotate(14deg); }
+  .authViewport .decorSquareFive { left: calc(749 * var(--s)); bottom: calc(31 * var(--s)); width: calc(46 * var(--s)); height: calc(58 * var(--s)); transform: rotate(-15deg); }
+  .authViewport .decorSquareSix { right: calc(86 * var(--s)); bottom: calc(63 * var(--s)); width: calc(52 * var(--s)); height: calc(69 * var(--s)); transform: rotate(-12deg); }
+
+  .authViewport .decorDotOne,
+  .authViewport .decorDotTwo,
+  .authViewport .decorDotThree,
+  .authViewport .decorDotFour {
+    position: absolute;
+    display: block;
+    border-radius: 50%;
+    background: rgb(142 164 234 / 55%);
+  }
+
+  .authViewport .decorDotOne { left: calc(600 * var(--s)); top: calc(120 * var(--s)); width: calc(24 * var(--s)); height: calc(24 * var(--s)); }
+  .authViewport .decorDotTwo { left: calc(28 * var(--s)); top: calc(400 * var(--s)); width: calc(16 * var(--s)); height: calc(16 * var(--s)); }
+  .authViewport .decorDotThree { right: calc(32 * var(--s)); top: calc(460 * var(--s)); width: calc(20 * var(--s)); height: calc(20 * var(--s)); }
+  .authViewport .decorDotFour { left: calc(300 * var(--s)); bottom: calc(16 * var(--s)); width: calc(28 * var(--s)); height: calc(28 * var(--s)); }
+
+  .authViewport .decorPhoneOne,
+  .authViewport .decorPhoneTwo,
+  .authViewport .decorPhoneThree,
+  .authViewport .decorTabletOne,
+  .authViewport .decorTabletTwo,
+  .authViewport .decorLaptopOne,
+  .authViewport .decorLaptopTwo {
+    position: absolute;
+    display: block;
+    box-sizing: border-box;
+    opacity: .72;
+  }
+
+  .authViewport .decorPhoneOne,
+  .authViewport .decorPhoneTwo,
+  .authViewport .decorPhoneThree {
+    width: calc(34 * var(--s));
+    height: calc(62 * var(--s));
+    border: calc(2 * var(--s)) solid rgb(255 255 255 / 16%);
+    border-radius: calc(8 * var(--s));
+  }
+
+  .authViewport .decorPhoneOne { left: calc(64 * var(--s)); top: calc(152 * var(--s)); transform: rotate(-16deg); }
+  .authViewport .decorPhoneTwo { right: calc(92 * var(--s)); top: calc(162 * var(--s)); transform: rotate(13deg); }
+  .authViewport .decorPhoneThree { right: calc(132 * var(--s)); bottom: calc(55 * var(--s)); transform: rotate(-11deg); }
+
+  .authViewport .decorTabletOne,
+  .authViewport .decorTabletTwo {
+    width: calc(50 * var(--s));
+    height: calc(70 * var(--s));
+    border: calc(2 * var(--s)) solid rgb(255 255 255 / 14%);
+    border-radius: calc(8 * var(--s));
+  }
+
+  .authViewport .decorTabletOne { left: calc(665 * var(--s)); top: calc(38 * var(--s)); transform: rotate(9deg); }
+  .authViewport .decorTabletTwo { left: calc(742 * var(--s)); bottom: calc(20 * var(--s)); transform: rotate(-14deg); }
+
+  .authViewport .decorLaptopOne,
+  .authViewport .decorLaptopTwo {
+    width: calc(76 * var(--s));
+    height: calc(48 * var(--s));
+    border: calc(2 * var(--s)) solid rgb(255 255 255 / 13%);
+    border-radius: calc(5 * var(--s));
+  }
+
+  .authViewport .decorLaptopOne::before,
+  .authViewport .decorLaptopTwo::before {
+    content: "";
+    position: absolute;
+    left: calc(-8 * var(--s));
+    right: calc(-8 * var(--s));
+    bottom: calc(-10 * var(--s));
+    height: calc(7 * var(--s));
+    border: calc(2 * var(--s)) solid rgb(255 255 255 / 12%);
+    border-top: 0;
+    border-radius: 0 0 calc(7 * var(--s)) calc(7 * var(--s));
+  }
+
+  .authViewport .decorLaptopOne { left: calc(560 * var(--s)); bottom: calc(86 * var(--s)); transform: rotate(-4deg); }
+  .authViewport .decorLaptopTwo { right: calc(250 * var(--s)); top: calc(112 * var(--s)); transform: rotate(7deg); }
+
+  .authViewport .decorDash {
+    position: absolute;
+    left: calc(600 * var(--s));
+    top: calc(392 * var(--s));
+    width: calc(64 * var(--s));
+    border-top: calc(2 * var(--s)) dashed rgb(255 255 255 / 28%);
+  }
+
+  .authViewport .entryStamp {
+    position: absolute;
+    z-index: 10;
+    right: calc(74 * var(--s));
+    bottom: calc(75 * var(--s));
+    display: grid;
+    place-items: center;
+    width: calc(146 * var(--s));
+    height: calc(146 * var(--s));
+    color: rgb(255 255 255 / 62%);
+    border: calc(4 * var(--s)) solid rgb(255 255 255 / 48%);
+    border-radius: 50%;
+    font-size: calc(21 * var(--s));
+    font-weight: 500;
+    letter-spacing: .04em;
+    transform: rotate(14deg);
+  }
+
+  .authViewport .entryStamp::before {
+    content: "";
+    position: absolute;
+    inset: calc(8 * var(--s));
+    border: calc(2 * var(--s)) solid rgb(255 255 255 / 42%);
+    border-radius: 50%;
+  }
+
+  .authViewport .entryStamp::after {
+    content: "";
+    position: absolute;
+    left: calc(10 * var(--s));
+    right: calc(10 * var(--s));
+    top: 50%;
+    height: calc(32 * var(--s));
+    border-top: calc(2 * var(--s)) solid rgb(255 255 255 / 40%);
+    border-bottom: calc(2 * var(--s)) solid rgb(255 255 255 / 40%);
+    transform: translateY(-50%);
+  }
+}
+
+@media (max-width: 768px) {
+  .authViewport {
+    width: 100vw;
+    height: 100dvh;
+    min-height: 0;
+    padding: 0;
+    overflow: hidden;
+    background: #2140b5;
+  }
+
+  .authViewport .shell {
+    display: grid;
+    grid-template-rows: auto minmax(0, 1fr);
+    width: 100%;
+    height: 100dvh;
+    min-height: 0;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+  }
+
+  .authViewport .topbar {
+    position: relative;
+    z-index: 10;
+  }
+
+  .authViewport .hero {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto minmax(0, 1fr);
+    justify-items: center;
+    align-items: center;
+    gap: .4vh;
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+    margin: 0;
+    padding: 0 3vw 1vh;
+  }
+
+  .authViewport .brandSide {
+    width: 100%;
+    min-height: 0;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+  }
+
+  .authViewport .brandSide :global(.horaria-hero-brand) {
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    gap: 2vw;
+  }
+
+  .authViewport .brandSide :global(.horaria-hero-mark-wrap) {
+    display: inline-flex;
+    line-height: 0;
+  }
+
+  .authViewport .brandSide :global(.horaria-hero-mark) {
+    width: auto;
+    height: min(8vh, 58px);
+  }
+
+  .authViewport .brandSide :global(.horaria-hero-wordmark) {
+    margin: 0;
+    font-size: min(7vw, 34px);
+  }
+
+  .authViewport .orbit {
+    left: 50%;
+    top: 50%;
+    width: min(12vh, 82px);
+    height: min(12vh, 82px);
+    transform: translate(-82%, -50%);
+    z-index: 0;
+  }
+
+  .authViewport .eyebrow,
+  .authViewport .brandSide h1 {
+    display: none;
+  }
+
+  .authViewport .authHomeLink {
+    display: none;
+  }
+
+  .authViewport .tagStage {
+    width: min(94vw, 500px);
+    height: min(73vh, 590px);
+    max-height: 100%;
+    padding: 0;
+    align-self: center;
+  }
+
+  .signupViewport .tagStage {
+    height: min(78vh, 640px);
+  }
+
+  .authViewport .authTagCard {
+    position: relative;
+    left: auto;
+    top: auto;
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+    max-height: 100%;
+    padding: 1.8rem .75rem .65rem;
+    transform: rotate(.8deg);
+  }
+
+  .authViewport .authTagCard:focus-within,
+  .signupViewport .authTagCard:focus-within {
+    transform: rotate(.8deg);
+  }
+
+  .authViewport .authFieldsGrid,
+  .signupViewport .authFieldsGrid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: .28rem;
+  }
+
+  .authViewport .authFieldFull {
+    grid-column: auto;
+  }
+
+  .authViewport .authInput {
+    min-height: 1.75rem;
+    height: 1.75rem;
+    font-size: .72rem;
+  }
+
+  .authViewport .authHint {
+    margin-top: .05rem;
+    font-size: .52rem;
+    line-height: 1.1;
+  }
+
+  .authViewport .authForm {
+    gap: .3rem;
+  }
+
+  .authViewport .authLegal {
+    gap: .35rem;
+    font-size: .54rem;
+    line-height: 1.15;
+  }
+
+  .authViewport .authBottom {
+    margin-top: .25rem;
+    font-size: .58rem;
+  }
+
+  .authViewport .string {
+    display: none;
+  }
+
+  .authViewport .decorations {
+    position: absolute;
+    inset: 0;
+    display: block;
+    pointer-events: none;
+    z-index: 1;
+  }
+
+  .authViewport .entryStamp,
+  .authViewport .decorSquareOne,
+  .authViewport .decorSquareTwo,
+  .authViewport .decorSquareThree,
+  .authViewport .decorSquareFour,
+  .authViewport .decorSquareFive,
+  .authViewport .decorSquareSix,
+  .authViewport .decorDotOne,
+  .authViewport .decorDotTwo,
+  .authViewport .decorDotThree,
+  .authViewport .decorDotFour,
+  .authViewport .decorDash,
+  .authViewport .decorLaptopTwo,
+  .authViewport .decorTabletTwo,
+  .authViewport .decorPhoneThree {
+    display: none;
+  }
+}
+/* === FIM AUTH VISUAL IGUAL À PRIMEIRA PÁGINA === */
+
+/* === SIGNUP LEGIBILITY + CAPTCHA FIX === */
+@media (min-width: 769px) {
+  .signupViewport .tagStage {
+    flex-basis: calc(668 * var(--s));
+    width: calc(668 * var(--s));
+    height: calc(660 * var(--s));
+  }
+
+  .signupViewport .authTagCard {
+    width: calc(636 * var(--s));
+    height: calc(636 * var(--s));
+    max-height: none;
+    padding: calc(42 * var(--s)) calc(34 * var(--s)) calc(26 * var(--s));
+    gap: calc(8 * var(--s));
+  }
+
+  .signupViewport .tagHeader strong {
+    font-size: calc(33 * var(--s));
+  }
+
+  .signupViewport .tagHeader span,
+  .signupViewport .authLabel {
+    color: #626a9d;
+    font-size: calc(18 * var(--s));
+    font-weight: 500;
+    letter-spacing: .11em;
+  }
+
+  .signupViewport .authFieldsGrid {
+    gap: calc(11 * var(--s)) calc(18 * var(--s));
+  }
+
+  .signupViewport .authInput {
+    height: calc(44 * var(--s));
+    min-height: 0;
+    padding: calc(4 * var(--s)) 0 calc(8 * var(--s));
+    color: #161821;
+    border-bottom: calc(2 * var(--s)) solid #161821;
+    font-size: calc(20 * var(--s));
+    font-weight: 500;
+  }
+
+  .signupViewport .authInput::placeholder {
+    color: #7d829f;
+    opacity: 1;
+  }
+
+  .signupViewport .authHint {
+    margin-top: calc(3 * var(--s));
+    color: #4f566f;
+    font-size: calc(12 * var(--s));
+    font-weight: 500;
+    line-height: 1.3;
+  }
+
+  .signupViewport .authLegal {
+    display: flex;
+    align-items: flex-start;
+    gap: calc(9 * var(--s));
+    margin-top: calc(4 * var(--s));
+    padding: calc(8 * var(--s)) calc(10 * var(--s));
+    color: #3f455e;
+    background: rgb(255 255 255 / 28%);
+    border: calc(1 * var(--s)) solid rgb(79 86 111 / 18%);
+    border-radius: calc(8 * var(--s));
+    font-size: calc(12.5 * var(--s));
+    font-weight: 500;
+    line-height: 1.35;
+  }
+
+  .signupViewport .authLegal input {
+    flex: 0 0 auto;
+    width: calc(17 * var(--s));
+    min-width: calc(17 * var(--s));
+    height: calc(17 * var(--s));
+    min-height: calc(17 * var(--s));
+    margin-top: calc(1 * var(--s));
+  }
+
+  .signupViewport .authLegal a {
+    font-size: inherit;
+    font-weight: 700;
+  }
+
+  .signupViewport .authCaptcha {
+    display: flex;
+    align-items: flex-start;
+    justify-content: flex-start;
+    width: 100%;
+    min-height: calc(78 * var(--s));
+    max-height: none;
+    overflow: visible;
+    transform: none;
+    transform-origin: left top;
+  }
+
+  .signupViewport .authCaptcha > div,
+  .signupViewport .authCaptcha iframe {
+    max-width: 100%;
+    overflow: visible;
+  }
+
+  .signupViewport .authBottom {
+    margin-top: calc(6 * var(--s));
+    font-size: calc(12 * var(--s));
+  }
+
+  .signupViewport .authSubmit {
+    width: calc(215 * var(--s));
+    height: calc(58 * var(--s));
+    font-size: calc(21 * var(--s));
+  }
+}
+
+@media (max-width: 768px) {
+  .signupViewport .authTagCard {
+    padding: 1.8rem .8rem .75rem;
+  }
+
+  .signupViewport .authInput {
+    min-height: 1.95rem;
+    height: 1.95rem;
+    font-size: .82rem;
+    font-weight: 500;
+  }
+
+  .signupViewport .authLabel,
+  .signupViewport .tagHeader span {
+    font-size: .62rem;
+    font-weight: 500;
+  }
+
+  .signupViewport .authHint {
+    font-size: .59rem;
+    font-weight: 500;
+    line-height: 1.2;
+  }
+
+  .signupViewport .authLegal {
+    gap: .45rem;
+    padding: .45rem .5rem;
+    background: rgb(255 255 255 / 28%);
+    border: 1px solid rgb(79 86 111 / 18%);
+    border-radius: .45rem;
+    font-size: .62rem;
+    font-weight: 500;
+    line-height: 1.25;
+  }
+
+  .signupViewport .authLegal input {
+    width: 1rem;
+    min-width: 1rem;
+    height: 1rem;
+    min-height: 1rem;
+  }
+
+  .signupViewport .authLegal a {
+    font-size: inherit;
+  }
+
+  .signupViewport .authCaptcha {
+    display: flex;
+    align-items: flex-start;
+    justify-content: flex-start;
+    min-height: 76px;
+    max-height: none;
+    overflow: visible;
+    transform: scale(.88);
+    transform-origin: left top;
+  }
+
+  .signupViewport .authCaptcha > div,
+  .signupViewport .authCaptcha iframe {
+    max-width: 100%;
+    overflow: visible;
+  }
+}
+/* === FIM SIGNUP LEGIBILITY + CAPTCHA FIX === */
+
+/* === STRING CENTER HOLE FIX === */
+@media (min-width: 769px) {
+  .signupViewport .string {
+    left: 50%;
+    top: calc(-105 * var(--s));
+    width: calc(60 * var(--s));
+    height: calc(140 * var(--s));
+    z-index: 8;
+    /* microajuste visual: a ponta cai no centro exato do furo */
+    transform: translate(calc(-50% - 10px), -13px);
+  }
+
+  .signupViewport .string path {
+    fill: none;
+    stroke: #fff;
+    stroke-width: 3.2;
+    stroke-linecap: round;
+  }
+
+  .signupViewport .hole {
+    z-index: 6;
+  }
+}
+/* === FIM STRING CENTER HOLE FIX === */

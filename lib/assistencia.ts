@@ -367,7 +367,7 @@ async function cachedRows<T>(
   return request;
 }
 
-export function useRows<T>(table: string) {
+export function useRows<T>(table: string, enabled = true) {
   const { empresa, userId } = useWorkspace();
   const key = rowCacheKey(table, empresa.id, userId);
   const initialCache = rowCache.get(key);
@@ -379,6 +379,12 @@ export function useRows<T>(table: string) {
 
   const load = useCallback(
     async (force = false) => {
+      if (!enabled) {
+        setData([]);
+        setLoading(false);
+        setError("");
+        return;
+      }
       const cached = rowCache.get(rowCacheKey(table, empresa.id, userId));
       if (!cached?.ready) setLoading(true);
       try {
@@ -390,7 +396,7 @@ export function useRows<T>(table: string) {
         setLoading(false);
       }
     },
-    [table, empresa.id, userId],
+    [table, empresa.id, userId, enabled],
   );
 
   const reload = useCallback(async () => {
@@ -398,6 +404,12 @@ export function useRows<T>(table: string) {
   }, [load]);
 
   useEffect(() => {
+    if (!enabled) {
+      setData([]);
+      setLoading(false);
+      setError("");
+      return;
+    }
     const cached = rowCache.get(key);
     if (cached?.ready) {
       setData(cached.data as T[]);
@@ -407,9 +419,10 @@ export function useRows<T>(table: string) {
       setLoading(true);
     }
     void load(false);
-  }, [key, load]);
+  }, [key, load, enabled]);
 
   useEffect(() => {
+    if (!enabled) return;
     const realtimeTables = new Set([
       "agendamentos",
       "ordens_servico",
@@ -446,7 +459,7 @@ export function useRows<T>(table: string) {
       window.clearTimeout(refreshTimer);
       void supabase!.removeChannel(channel);
     };
-  }, [table, empresa.id, reload]);
+  }, [table, empresa.id, reload, enabled]);
 
   return { data, loading, error, reload };
 }

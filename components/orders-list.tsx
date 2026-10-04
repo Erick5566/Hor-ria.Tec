@@ -69,7 +69,10 @@ function initials(name?: string | null) {
 
 export default function OrdersList() {
   const params = useSearchParams();
-  const { empresa } = useWorkspace();
+  const { empresa, access } = useWorkspace();
+  const canViewFinance = ["OWNER", "ADMIN"].includes(
+    access.company?.role || "",
+  );
   const [search, setSearch] = useState(params.get("q") || "");
   const [debouncedSearch, setDebouncedSearch] = useState(search);
   const [status, setStatus] = useState("");
@@ -215,13 +218,17 @@ export default function OrdersList() {
       iconName: "check",
       tone: "green",
     },
-    {
-      label: "Previsão de faturamento",
-      value: money(data?.metrics.forecast ?? 0),
-      note: "Orçamentos das OS abertas",
-      iconName: "receipt",
-      tone: "purple",
-    },
+    ...(canViewFinance
+      ? [
+          {
+            label: "Previsão de faturamento",
+            value: money(data?.metrics.forecast ?? 0),
+            note: "Orçamentos das OS abertas",
+            iconName: "receipt",
+            tone: "purple",
+          },
+        ]
+      : []),
   ];
 
   const clearFilters = () => {
@@ -241,7 +248,7 @@ export default function OrdersList() {
     <section className="orders-pro consolidated-list">
       <ErrorBox error={error} />
 
-      <MetricGrid columns={5} className="orders-summary">
+      <MetricGrid columns={canViewFinance ? 5 : 4} className="orders-summary">
         {metrics.map((metric) => (
           <MetricCard
             key={metric.label}
@@ -365,7 +372,7 @@ export default function OrdersList() {
             >
               <option value="recent">Mais recentes</option>
               <option value="oldest">Mais antigas</option>
-              <option value="value">Maior valor</option>
+              {canViewFinance && <option value="value">Maior valor</option>}
             </select>
           </label>
         </div>
@@ -390,7 +397,7 @@ export default function OrdersList() {
                     <th>Equipamento</th>
                     <th>Problema</th>
                     <th>Entrada</th>
-                    <th>Valor</th>
+                    {canViewFinance && <th>Valor</th>}
                     <th>Técnico</th>
                     <th>Prioridade</th>
                     <th>Status</th>
@@ -463,17 +470,19 @@ export default function OrdersList() {
                             {stamp(order.criado_em)}
                           </Link>
                         </td>
-                        <td className="orders-value">
-                          <Link
-                            className="orders-cell-link"
-                            href={orderHref}
-                            aria-label={orderLabel}
-                          >
-                            {order.quote_total != null
-                              ? money(order.quote_total)
-                              : "A orçar"}
-                          </Link>
-                        </td>
+                        {canViewFinance && (
+                          <td className="orders-value">
+                            <Link
+                              className="orders-cell-link"
+                              href={orderHref}
+                              aria-label={orderLabel}
+                            >
+                              {order.quote_total != null
+                                ? money(order.quote_total)
+                                : "A orçar"}
+                            </Link>
+                          </td>
+                        )}
                         <td>
                           <Link
                             className="orders-cell-link"
@@ -559,11 +568,13 @@ export default function OrdersList() {
                       {priorityLabels[order.prioridade]}
                     </SemanticBadge>
                     <span>{order.tecnico || "Sem técnico"}</span>
-                    <strong>
-                      {order.quote_total != null
-                        ? money(order.quote_total)
-                        : "A orçar"}
-                    </strong>
+                    {canViewFinance && (
+                      <strong>
+                        {order.quote_total != null
+                          ? money(order.quote_total)
+                          : "A orçar"}
+                      </strong>
+                    )}
                   </div>
                 </Link>
               ))}

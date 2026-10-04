@@ -231,10 +231,8 @@ export default function Workspace({
         router.refresh();
         return;
       }
-
       setUserId(data.user.id);
       setEmail(data.user.email || "");
-
       const accessResult = await supabase.rpc("access_context");
       if (accessResult.error) throw accessResult.error;
       if (!accessResult.data) {
@@ -248,12 +246,10 @@ export default function Workspace({
         router.replace("/admin");
         return;
       }
-
       if (nextAccess.globalMaintenance || nextAccess.company?.maintenance) {
         router.replace(nextAccess.isSuperAdmin ? "/admin" : "/manutencao");
         return;
       }
-
       if (
         nextAccess.company &&
         ["SUSPENDED", "CANCELED", "PENDING_DELETION"].includes(
@@ -263,7 +259,6 @@ export default function Workspace({
         router.replace(`/conta-bloqueada?status=${nextAccess.company.status}`);
         return;
       }
-
       if (!nextAccess.company?.id) {
         setEmpresa(null);
         return;
@@ -425,8 +420,7 @@ export default function Workspace({
     ]);
 
     if (ordersResult.error) {
-      // Notificações são auxiliares; uma falha nelas não deve marcar o painel
-      // inteiro como quebrado.
+      // Notificações são auxiliares; uma falha nelas não deve derrubar o painel.
       return;
     }
 

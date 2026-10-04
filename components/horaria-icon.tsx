@@ -20,6 +20,7 @@ export type HorariaIconName =
   | "help"
   | "logout"
   | "more"
+  | "search"
   | "check"
   | "alert"
   | "clock"
@@ -49,6 +50,14 @@ export function HorariaIcon({ name, className = "", ...props }: Props) {
     className: `horaria-icon ${className}`.trim(),
     ...props,
   };
+
+  if (name === "search")
+    return (
+      <svg {...common}>
+        <circle cx="11" cy="11" r="7" />
+        <path d="m20 20l-4.35-4.35" />
+      </svg>
+    );
 
   if (name === "home")
     return (

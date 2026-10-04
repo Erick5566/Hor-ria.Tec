@@ -143,7 +143,7 @@ small {
 
 /* Cadastro/login: H maior com recorte estável e sem distorcer o wordmark */
 .login-story .brand {
-  width: 140px;
+  width: 280px;
   max-width: 100%;
   flex-direction: column;
   align-items: flex-start;
@@ -165,20 +165,20 @@ small {
 
 /* Símbolo H: maior que o wordmark, mas sem estourar o bloco */
 .login-story .brand::before {
-  width: 110px;
-  height: 120px;
-  margin-left: 15px;
-  background-size: 224.5px 190.5px;
-  background-position: -57px -6px;
+  width: 220px;
+  height: 239px;
+  margin-left: 30px;
+  background-size: 449px 381px;
+  background-position: -114px -12px;
 }
 
 /* Nome Horária: recorte separado para evitar sobreposição ou corte */
 .login-story .brand::after {
-  width: 140px;
-  height: 31px;
+  width: 280px;
+  height: 62px;
   margin-top: 2px;
-  background-size: 146px 124px;
-  background-position: -3px -88.5px;
+  background-size: 292px 248px;
+  background-position: -6px -177px;
 }
 .brand-dot {
   color: #4a5c6a;
@@ -206,15 +206,15 @@ small {
 .login-layout {
   min-height: 100dvh;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  grid-template-columns: 1fr 1fr;
 }
 .login-story {
   background: #ccd0cf;
-  padding: clamp(24px, 3vw, 48px);
+  padding: 48px 10%;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  gap: 28px;
+  gap: 60px;
   position: relative;
   overflow: hidden;
 }
@@ -233,10 +233,10 @@ small {
   pointer-events: none;
 }
 .login-story h1 {
-  font-size: clamp(32px, 3.2vw, 48px);
+  font-size: clamp(44px, 5vw, 74px);
   line-height: 1.14;
-  margin: 16px 0;
-  letter-spacing: -1.5px;
+  margin: 22px 0;
+  letter-spacing: -3px;
 }
 .login-story em {
   font-family: Georgia, serif;
@@ -270,20 +270,19 @@ small {
   color: #253745;
 }
 .login-form {
-  min-width: 0;
   display: grid;
   place-items: center;
-  padding: clamp(24px, 4vw, 48px);
+  padding: 45px;
 }
 .form-wrap {
   width: 100%;
   max-width: 385px;
 }
 .form-wrap > p {
-  margin-bottom: 20px;
+  margin-bottom: 32px;
 }
 .form-wrap form {
-  margin-top: 20px;
+  margin-top: 30px;
 }
 .switch {
   text-align: center;
@@ -1099,7 +1098,7 @@ small {
     padding: 35px;
   }
   .login-story h1 {
-    font-size: clamp(30px, 3.2vw, 40px);
+    font-size: 49px;
   }
   .login-form {
     padding: 30px;
@@ -1125,6 +1124,47 @@ small {
   }
 }
 @media (max-width: 600px) {
+  .login-story .brand {
+    width: 220px;
+  }
+
+  .login-story .brand::before {
+    width: 175px;
+    height: 190px;
+    margin-left: 23px;
+    background-size: 357px 303px;
+    background-position: -91px -9px;
+  }
+
+  .login-story .brand::after {
+    width: 220px;
+    height: 49px;
+    background-size: 229px 194px;
+    background-position: -5px -139px;
+  }
+
+  .login-layout {
+    display: block;
+  }
+  .login-story {
+    padding: 24px;
+    gap: 25px;
+  }
+  .login-story > div:not(.brand) {
+    display: none;
+  }
+  .login-story > small {
+    display: none;
+  }
+  .login-story:after {
+    display: none;
+  }
+  .login-story .brand {
+    font-size: 27px;
+  }
+  .login-form {
+    padding: 48px 25px;
+  }
   .page-heading {
     align-items: flex-start;
     flex-direction: column;
@@ -2007,458 +2047,4 @@ hr {
     width: 100%;
     border-radius: 10px;
   }
-}
-
-/* Shared proportions for the home, sign-in and registration screens. */
-.login-layout .form-wrap h2 {
-  font-size: clamp(24px, 2.2vw, 32px);
-  line-height: 1.2;
-  letter-spacing: -0.7px;
-  margin: 12px 0 16px;
-}
-.login-layout .form-wrap input {
-  min-width: 0;
-  min-height: 44px;
-  font-size: 16px;
-  padding: 10px 12px;
-}
-.login-layout .primary,
-.login-layout .outline {
-  min-height: 44px;
-  padding: 11px 16px;
-}
-.login-layout .privacy {
-  padding-top: 16px;
-  line-height: 1.6;
-}
-.login-layout .decor-card {
-  margin-top: 24px;
-  padding: 14px;
-  transform: none;
-}
-.login-layout .landing-actions {
-  margin: 22px 0;
-}
-.login-layout .landing-actions a {
-  flex: 1;
-  min-width: 0;
-}
-@media (max-width: 800px) {
-  .login-layout {
-    display: flex;
-    flex-direction: column;
-  }
-  .login-story {
-    padding: 20px 24px;
-    gap: 12px;
-  }
-  .login-story .brand {
-    width: 84px;
-  }
-  .login-story .brand::before {
-    width: 66px;
-    height: 72px;
-    margin-left: 9px;
-    background-size: 134.7px 114.3px;
-    background-position: -34.2px -3.6px;
-  }
-  .login-story .brand::after {
-    width: 84px;
-    height: 19px;
-    margin-top: 2px;
-    background-size: 87.6px 74.4px;
-    background-position: -1.8px -53.1px;
-  }
-  .login-story > div:not(.brand),
-  .login-story > small,
-  .login-story::after {
-    display: none;
-  }
-  .login-story > a:not(.brand) {
-    display: inline-flex;
-    align-items: center;
-    min-height: 44px;
-    align-self: flex-start;
-    font-size: 14px;
-  }
-  .login-form {
-    flex: 1;
-    padding: 28px 20px;
-  }
-}
-@media (max-width: 360px) {
-  .login-form {
-    padding-inline: 16px;
-  }
-}
-
-/* Keep the entry screens within ordinary laptop and phone viewports. */
-.login-layout .login-story {
-  padding: 24px clamp(24px, 4vw, 56px);
-  gap: 20px;
-}
-.login-layout .login-story .brand {
-  width: 118px;
-}
-.login-layout .login-story .brand::before {
-  width: 66px;
-  height: 72px;
-  margin-left: 26px;
-  background-size: 134.7px 114.3px;
-  background-position: -34.2px -3.6px;
-}
-.login-layout .login-story .brand::after {
-  width: 118px;
-  height: 26px;
-  margin-top: 2px;
-  background-size: 123px 104.5px;
-  background-position: -2.5px -74.6px;
-}
-.login-layout .login-story h1 {
-  font-size: clamp(30px, 3vw, 42px);
-  line-height: 1.12;
-  margin: 12px 0;
-}
-.login-layout .login-story p {
-  margin: 10px 0;
-  font-size: 14px;
-  line-height: 1.5;
-}
-.login-layout .login-form {
-  padding: 24px;
-}
-.login-layout .form-wrap form {
-  gap: 12px;
-  margin-top: 16px;
-}
-.login-layout .form-wrap label {
-  gap: 6px;
-}
-.login-layout .form-wrap > .switch {
-  margin: 16px 0;
-}
-.login-layout .auth-help-row {
-  margin: 0;
-}
-.login-layout .privacy {
-  padding-top: 12px;
-}
-@media (max-width: 800px) {
-  .login-layout .login-story {
-    flex-direction: row;
-    align-items: center;
-    padding: 12px 20px;
-    gap: 16px;
-  }
-  .login-layout .login-story .brand {
-    width: 84px;
-  }
-  .login-layout .login-story .brand::before {
-    display: none;
-  }
-  .login-layout .login-story .brand::after {
-    width: 84px;
-    height: 19px;
-    margin: 0;
-    background-size: 87.6px 74.4px;
-    background-position: -1.8px -53.1px;
-  }
-  .login-layout .login-story > a:not(.brand) {
-    align-self: center;
-    font-size: 12px;
-  }
-  .login-layout .login-form {
-    padding: 20px;
-  }
-}
-@media (min-width: 801px) and (max-height: 720px) {
-  .login-layout .login-story {
-    padding-block: 20px;
-    gap: 16px;
-  }
-  .login-layout .login-story h1 {
-    font-size: 32px;
-  }
-  .login-layout .decor-card {
-    margin-top: 16px;
-    padding: 12px;
-  }
-}
-
-
-/* Login: composição inteira dentro da viewport, sem alterar cadastro. */
-.login-layout.is-login {
-  height: 100vh;
-  height: 100dvh;
-  min-height: 100vh;
-  min-height: 100dvh;
-  overflow: hidden;
-}
-
-.login-layout.is-login .login-story,
-.login-layout.is-login .login-form {
-  min-height: 0;
-}
-
-.login-layout.is-login .login-form {
-  padding: clamp(16px, 3vh, 24px) clamp(18px, 3vw, 28px);
-  overflow: hidden;
-}
-
-.login-layout.is-login .form-wrap {
-  max-width: 372px;
-}
-
-.login-layout.is-login .form-wrap h2 {
-  margin: 8px 0 10px;
-  font-size: clamp(22px, 2vw, 29px);
-}
-
-.login-layout.is-login .form-wrap form {
-  margin-top: 10px;
-  gap: 10px;
-}
-
-.login-layout.is-login .form-wrap label {
-  gap: 5px;
-  font-size: 12.5px;
-}
-
-.login-layout.is-login .form-wrap input {
-  min-height: 40px;
-  height: 40px;
-  padding: 8px 11px;
-  font-size: 15px;
-}
-
-.login-layout.is-login .primary,
-.login-layout.is-login .outline {
-  min-height: 40px;
-  padding: 9px 14px;
-}
-
-.login-layout.is-login .auth-help-row {
-  min-height: 18px;
-  font-size: 12px;
-}
-
-.login-layout.is-login .form-wrap > .switch {
-  margin: 10px 0;
-  font-size: 12px;
-  line-height: 1.35;
-}
-
-.login-layout.is-login .privacy {
-  margin-top: 0;
-  padding-top: 9px;
-  font-size: 10.5px;
-  line-height: 1.35;
-}
-
-/* Aviso/nota do login: mais compacto para não empurrar o formulário. */
-.login-layout.is-login .notice {
-  margin: 7px 0;
-  padding: 8px 10px;
-  border-radius: 7px;
-  font-size: 11.5px;
-  line-height: 1.35;
-}
-
-.login-layout.is-login .decor-card {
-  margin-top: 12px;
-  padding: 10px 12px;
-  gap: 9px;
-  border-radius: 10px;
-  font-size: 12px;
-}
-
-.login-layout.is-login .decor-card small {
-  margin-top: 2px;
-  font-size: 10.5px;
-  line-height: 1.3;
-}
-
-.login-layout.is-login .decor-card .check {
-  padding: 7px;
-  font-size: 11px;
-}
-
-@media (max-width: 800px) {
-  .login-layout.is-login {
-    display: flex;
-    flex-direction: column;
-  }
-
-  .login-layout.is-login .login-story {
-    flex: 0 0 auto;
-    min-height: 50px;
-    padding: 8px 16px;
-    gap: 12px;
-  }
-
-  .login-layout.is-login .login-story .brand {
-    width: 76px;
-  }
-
-  .login-layout.is-login .login-story .brand::after {
-    width: 76px;
-    height: 17px;
-    background-size: 79.3px 67.3px;
-    background-position: -1.6px -48px;
-  }
-
-  .login-layout.is-login .login-story > a:not(.brand) {
-    min-height: 32px;
-    font-size: 11px;
-  }
-
-  .login-layout.is-login .login-form {
-    flex: 1 1 auto;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 12px 16px;
-  }
-
-  .login-layout.is-login .form-wrap {
-    width: min(100%, 360px);
-  }
-
-  .login-layout.is-login .form-wrap h2 {
-    margin: 5px 0 8px;
-    font-size: clamp(20px, 6vw, 25px);
-  }
-
-  .login-layout.is-login .form-wrap form {
-    margin-top: 8px;
-    gap: 8px;
-  }
-
-  .login-layout.is-login .form-wrap label {
-    gap: 4px;
-    font-size: 12px;
-  }
-
-  .login-layout.is-login .form-wrap input {
-    min-height: 38px;
-    height: 38px;
-    padding: 7px 10px;
-    font-size: 16px;
-  }
-
-  .login-layout.is-login .primary,
-  .login-layout.is-login .outline {
-    min-height: 38px;
-    padding: 8px 12px;
-  }
-
-  .login-layout.is-login .form-wrap > .switch {
-    margin: 8px 0;
-  }
-
-  .login-layout.is-login .privacy {
-    padding-top: 7px;
-  }
-
-  .login-layout.is-login .notice {
-    margin: 5px 0;
-    padding: 7px 9px;
-    font-size: 11px;
-  }
-}
-
-@media (max-width: 400px), (max-height: 680px) {
-  .login-layout.is-login .login-story {
-    min-height: 44px;
-    padding-block: 6px;
-  }
-
-  .login-layout.is-login .login-form {
-    padding-block: 8px;
-  }
-
-  .login-layout.is-login .eyebrow {
-    font-size: 9px;
-    letter-spacing: 1.6px;
-  }
-
-  .login-layout.is-login .form-wrap h2 {
-    margin: 3px 0 6px;
-    font-size: clamp(19px, 5.6vw, 23px);
-  }
-
-  .login-layout.is-login .form-wrap form {
-    margin-top: 6px;
-    gap: 7px;
-  }
-
-  .login-layout.is-login .form-wrap input {
-    min-height: 36px;
-    height: 36px;
-    padding-block: 6px;
-  }
-
-  .login-layout.is-login .primary,
-  .login-layout.is-login .outline {
-    min-height: 36px;
-    padding-block: 7px;
-  }
-
-  .login-layout.is-login .auth-help-row,
-  .login-layout.is-login .form-wrap > .switch {
-    font-size: 11px;
-  }
-
-  .login-layout.is-login .form-wrap > .switch {
-    margin: 6px 0;
-  }
-
-  .login-layout.is-login .privacy {
-    padding-top: 6px;
-    font-size: 9.5px;
-  }
-
-  .login-layout.is-login .notice {
-    padding: 6px 8px;
-    font-size: 10.5px;
-    line-height: 1.3;
-  }
-}
-
-@media (max-height: 600px) {
-  .login-layout.is-login .login-story {
-    min-height: 40px;
-    padding-block: 4px;
-  }
-
-  .login-layout.is-login .login-form {
-    padding-block: 6px;
-  }
-
-  .login-layout.is-login .form-wrap h2 {
-    font-size: 20px;
-  }
-
-  .login-layout.is-login .form-wrap form {
-    gap: 6px;
-  }
-
-  .login-layout.is-login .form-wrap input,
-  .login-layout.is-login .primary,
-  .login-layout.is-login .outline {
-    min-height: 34px;
-    height: 34px;
-  }
-
-  .login-layout.is-login .privacy {
-    font-size: 9px;
-  }
-}
-
-/* Lock only entry routes; dashboard pages retain their normal scrolling. */
-html:has([data-entry-viewport]),
-body:has([data-entry-viewport]) {
-  height: 100%;
-  margin: 0;
-  overflow: hidden;
 }

@@ -11,6 +11,7 @@ import {
   syncServerSession,
 } from "@/lib/supabase";
 import type { AccessContext } from "@/lib/access";
+import { turnstileSiteKey } from "@/lib/turnstile-config";
 import styles from "@/app/home.module.css";
 import HorariaHeroBrand from "@/components/horaria-hero-brand";
 
@@ -75,8 +76,6 @@ export default function AuthPage({ mode }: { mode: "login" | "signup" }) {
     [registration, setRegistration] = useState<RegistrationStatus | null>(null),
     [captchaToken, setCaptchaToken] = useState(""),
     [captchaResetKey, setCaptchaResetKey] = useState(0);
-  const turnstileSiteKey =
-    process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY ?? "";
   useEffect(() => {
     publicDb
       ?.rpc("registration_status")
@@ -125,6 +124,13 @@ export default function AuthPage({ mode }: { mode: "login" | "signup" }) {
       return;
     }
 
+    if (signup && form.get("legal") !== "on") {
+      setNotice(
+        "Para criar a conta, confirme que leu os Termos de Uso e a Política de Privacidade.",
+      );
+      return;
+    }
+
     try {
       const credentials = {
         email: String(form.get("email")),
@@ -145,6 +151,7 @@ export default function AuthPage({ mode }: { mode: "login" | "signup" }) {
           "entrar",
           "cadastro",
           "privacidade",
+          "termos",
           "recuperar-senha",
           "redefinir-senha",
           "solicitacao-enviada",
@@ -173,6 +180,8 @@ export default function AuthPage({ mode }: { mode: "login" | "signup" }) {
                 responsible_name: String(form.get("responsavel")),
                 company_name: String(form.get("empresa")),
                 company_slug: String(form.get("slug")),
+                terms_accepted_at: new Date().toISOString(),
+                privacy_accepted_at: new Date().toISOString(),
               },
               ...(turnstileSiteKey ? { captchaToken } : {}),
             },
@@ -210,7 +219,7 @@ export default function AuthPage({ mode }: { mode: "login" | "signup" }) {
         setNotice(
           turnstileSiteKey
             ? "Não foi possível validar a verificação de segurança. Tente novamente."
-            : "A verificação de segurança está ativa no Supabase, mas o Turnstile não está configurado neste ambiente.",
+            : "A verificação de segurança está ativa, mas não foi configurada neste ambiente. Atualize a configuração da aplicação e tente novamente.",
         );
       } else if (
         message.includes("vagas") ||
@@ -229,7 +238,7 @@ export default function AuthPage({ mode }: { mode: "login" | "signup" }) {
     }
   }
   return (
-    <main data-entry-viewport className={`${styles.page} ${styles.authViewport}`}>
+    <main className={`${styles.page} ${styles.authViewport} ${signup ? styles.signupViewport : ""}`}>
       <div className={styles.shell}>
         <header className={styles.topbar}>
           <span>{signup ? "Já tem conta?" : "Ainda não tem conta?"}</span>
@@ -240,6 +249,28 @@ export default function AuthPage({ mode }: { mode: "login" | "signup" }) {
             {signup ? "Entrar" : "Criar conta"}
           </Link>
         </header>
+
+        <div className={styles.decorations} aria-hidden="true">
+          <span className={styles.decorSquareOne} />
+          <span className={styles.decorSquareTwo} />
+          <span className={styles.decorSquareThree} />
+          <span className={styles.decorSquareFour} />
+          <span className={styles.decorSquareFive} />
+          <span className={styles.decorSquareSix} />
+          <span className={styles.decorDotOne} />
+          <span className={styles.decorDotTwo} />
+          <span className={styles.decorDotThree} />
+          <span className={styles.decorDotFour} />
+          <span className={styles.decorPhoneOne} />
+          <span className={styles.decorPhoneTwo} />
+          <span className={styles.decorPhoneThree} />
+          <span className={styles.decorTabletOne} />
+          <span className={styles.decorTabletTwo} />
+          <span className={styles.decorLaptopOne} />
+          <span className={styles.decorLaptopTwo} />
+          <span className={styles.decorDash} />
+          <span className={styles.entryStamp}>ENTRADA</span>
+        </div>
 
         <section className={styles.hero} aria-labelledby="auth-title">
           <div className={styles.brandSide}>
@@ -257,8 +288,8 @@ export default function AuthPage({ mode }: { mode: "login" | "signup" }) {
           </div>
 
           <div className={styles.tagStage}>
-            <svg className={styles.string} viewBox="0 0 120 74" aria-hidden="true">
-              <path d="M60 72 C60 44, 100 38, 84 2" />
+            <svg className={styles.string} viewBox="0 0 60 140" aria-hidden="true">
+              <path d="M45 0 C45 24 58 39 53 58 C48 78 43 96 40 138" />
             </svg>
 
             <section
@@ -371,14 +402,14 @@ export default function AuthPage({ mode }: { mode: "login" | "signup" }) {
                         className={styles.authInput}
                         name="password"
                         type="password"
-                        minLength={5}
+                        minLength={6}
                         autoComplete={signup ? "new-password" : "current-password"}
                         required
-                        placeholder={signup ? "Mínimo de 5 caracteres" : "Sua senha"}
+                        placeholder={signup ? "Mínimo de 6 caracteres" : "Sua senha"}
                       />
                       {signup && (
                         <small className={styles.authHint}>
-                          Use pelo menos 5 caracteres e prefira uma senha única.
+                          Use pelo menos 6 caracteres e prefira uma senha única.
                         </small>
                       )}
                     </label>
@@ -391,6 +422,16 @@ export default function AuthPage({ mode }: { mode: "login" | "signup" }) {
                         Esqueci minha senha
                       </Link>
                     </div>
+                  )}
+
+                  {signup && (
+                    <label className={styles.authLegal}>
+                      <input name="legal" type="checkbox" required />
+                      <span>
+                        Li e aceito os <Link href="/termos">Termos de Uso</Link> e a{" "}
+                        <Link href="/privacidade">Política de Privacidade</Link>.
+                      </span>
+                    </label>
                   )}
 
                   {turnstileSiteKey && (

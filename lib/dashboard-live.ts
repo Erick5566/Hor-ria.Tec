@@ -5,6 +5,7 @@ export function watchDashboard(
   client: SupabaseClient,
   companyId: string,
   refresh: () => Promise<void>,
+  includeFinance = true,
 ) {
   let stopped = false;
   let running = false;
@@ -35,13 +36,14 @@ export function watchDashboard(
     timer = setTimeout(() => void run(), 250);
   };
   const channel = client.channel(`dashboard-${companyId}`);
-  for (const table of [
+  const tables = [
     "ordens_servico",
     "agendamentos",
     "clientes",
     "equipamentos",
-    "financeiro",
-  ]) {
+    ...(includeFinance ? ["financeiro"] : []),
+  ];
+  for (const table of tables) {
     channel.on(
       "postgres_changes",
       {

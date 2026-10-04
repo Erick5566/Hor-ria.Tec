@@ -13,9 +13,13 @@ import {
 import { ErrorBox, PanelTitle } from "./ui";
 export default function OrderAdministration({
   order,
+  canManageTechnical,
+  canViewDeviceSecret,
   onChanged,
 }: {
   order: Ordem;
+  canManageTechnical: boolean;
+  canViewDeviceSecret: boolean;
   onChanged: () => void;
 }) {
   const [error, setError] = useState(""),
@@ -28,10 +32,12 @@ export default function OrderAdministration({
     [order.id, order.previsao],
   );
   const deadlineNotice = deliveryState(delivery || null, order.status);
-  const benches = useRows<MesaReparo>("mesas_reparo");
+  const benches = useRows<MesaReparo>("mesas_reparo", canManageTechnical);
   return (
     <section className="panel order-administration-panel">
-      <PanelTitle title="Responsável e previsão" icon="team" />
+      {canManageTechnical && (
+        <PanelTitle title="Responsável e previsão" icon="team" />
+      )}
       <ErrorBox error={error} />
       <p role="status">{notice}</p>
       {delivery && (
@@ -40,6 +46,7 @@ export default function OrderAdministration({
           {deadlineNotice ? ` — ${deadlineNotice}` : ""}
         </p>
       )}
+      {canManageTechnical && (
       <form
         onSubmit={async (e) => {
           e.preventDefault();
@@ -144,6 +151,7 @@ export default function OrderAdministration({
           Salvar organização da OS
         </button>
       </form>
+      )}
       <div className="order-tracking-section">
         <div className="order-section-heading">
           <PanelTitle
@@ -153,31 +161,33 @@ export default function OrderAdministration({
           />
         </div>
 
-        <div className="order-device-password">
-          <PanelTitle title="Senha do aparelho" icon="devices" as="h3" />
-          {secret === null ? (
-            <button
-              onClick={async () => {
-                const r = await supabase!
-                  .from("equipamento_segredos")
-                  .select("senha")
-                  .eq("ordem_id", order.id)
-                  .maybeSingle();
-                if (r.error) setError(message(r.error));
-                else setSecret(r.data?.senha || "Não informada");
-              }}
-            >
-              Mostrar senha do aparelho
-            </button>
-          ) : (
-            <div className="order-device-secret">
-              <p>
-                <strong>Senha:</strong> {secret}
-              </p>
-              <button onClick={() => setSecret(null)}>Ocultar senha</button>
-            </div>
-          )}
-        </div>
+        {canViewDeviceSecret && (
+          <div className="order-device-password">
+            <PanelTitle title="Senha do aparelho" icon="devices" as="h3" />
+            {secret === null ? (
+              <button
+                onClick={async () => {
+                  const r = await supabase!
+                    .from("equipamento_segredos")
+                    .select("senha")
+                    .eq("ordem_id", order.id)
+                    .maybeSingle();
+                  if (r.error) setError(message(r.error));
+                  else setSecret(r.data?.senha || "Não informada");
+                }}
+              >
+                Mostrar senha do aparelho
+              </button>
+            ) : (
+              <div className="order-device-secret">
+                <p>
+                  <strong>Senha:</strong> {secret}
+                </p>
+                <button onClick={() => setSecret(null)}>Ocultar senha</button>
+              </div>
+            )}
+          </div>
+        )}
 
         <p className="order-tracking-description">
           O link individual mostra somente os dados públicos desta ordem.

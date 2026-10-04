@@ -127,6 +127,7 @@ const reservedSlugs = [
   "manutencao",
   "conta-bloqueada",
   "privacidade",
+  "termos",
   "recuperar-senha",
   "redefinir-senha",
   "solicitacao-enviada",

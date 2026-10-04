@@ -96,7 +96,10 @@ function formatShortDate(value: string) {
 }
 
 export default function Overview() {
-  const { empresa, periodStart, periodEnd } = useWorkspace();
+  const { empresa, access, periodStart, periodEnd } = useWorkspace();
+  const canViewFinance = ["OWNER", "ADMIN"].includes(
+    access?.company?.role || "",
+  );
   const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -135,8 +138,13 @@ export default function Overview() {
 
   useEffect(() => {
     if (!supabase || !empresa.id) return;
-    return watchDashboard(supabase, empresa.id, () => load(true));
-  }, [empresa.id, load]);
+    return watchDashboard(
+      supabase,
+      empresa.id,
+      () => load(true),
+      canViewFinance,
+    );
+  }, [empresa.id, load, canViewFinance]);
 
   const contentProps = {
     loading,
@@ -196,17 +204,24 @@ export default function Overview() {
         note: comparisonNote(m?.previousPeriodClients),
         spark: spark?.clients ?? [],
       },
-      {
-        name: "Faturamento do período",
-        value: money(m?.periodRevenue ?? 0),
-        iconName: "finance" as HorariaIconName,
-        tone: "green",
-        trend: percentageDelta(m?.periodRevenue ?? 0, m?.previousPeriodRevenue),
-        note: comparisonNote(m?.previousPeriodRevenue),
-        spark: spark?.revenue ?? [],
-      },
+      ...(canViewFinance
+        ? [
+            {
+              name: "Faturamento do período",
+              value: money(m?.periodRevenue ?? 0),
+              iconName: "finance" as HorariaIconName,
+              tone: "green",
+              trend: percentageDelta(
+                m?.periodRevenue ?? 0,
+                m?.previousPeriodRevenue,
+              ),
+              note: comparisonNote(m?.previousPeriodRevenue),
+              spark: spark?.revenue ?? [],
+            },
+          ]
+        : []),
     ];
-  }, [data]);
+  }, [data, canViewFinance]);
 
   const allStatusData = [
     {
@@ -261,7 +276,7 @@ export default function Overview() {
             return `${item.color} ${start}% ${cursor}%`;
           })
           .join(",")})`
-      : "transparent";
+      : "conic-gradient(#e8edf5 0 100%)";
 
   const today = saoPauloDay();
 
@@ -302,7 +317,7 @@ export default function Overview() {
       <ErrorBox error={error} />
 
       <DashboardContent {...contentProps}>
-        <MetricGrid columns={6} className="dashboard-kpis">
+        <MetricGrid columns={canViewFinance ? 6 : 5} className="dashboard-kpis">
           {metrics.map((metric) => (
             <MetricCard
               key={metric.name}

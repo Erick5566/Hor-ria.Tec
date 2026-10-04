@@ -46,9 +46,11 @@ export default async function Page({
   const { module } = await params;
   if (!betaModules.includes(module as (typeof betaModules)[number])) notFound();
 
+  const stockOperationalModules = new Set(["estoque"]);
+
   if (
     managerOnlyModules.has(module) ||
-    module === "estoque"
+    stockOperationalModules.has(module)
   ) {
     const access = await getServerAccess();
     const company = access?.context.company;
@@ -59,7 +61,7 @@ export default async function Page({
       redirect("/painel");
 
     if (
-      module === "estoque" &&
+      stockOperationalModules.has(module) &&
       (!company.featureFlags.stockEnabled || role === "ATTENDANT")
     )
       redirect("/painel");

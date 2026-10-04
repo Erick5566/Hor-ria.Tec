@@ -12,6 +12,7 @@ import DeviceFields from "./device-fields";
 import Turnstile from "./turnstile";
 import { publicDb, message, Servico, today, time } from "@/lib/supabase";
 import { money } from "@/lib/assistencia";
+import { turnstileSiteKey } from "@/lib/turnstile-config";
 type Profile = {
   nome: string;
   descricao: string;
@@ -162,8 +163,6 @@ export default function PublicPortal({ slug }: { slug: string }) {
       setError("Selecione um horário disponível.");
       return;
     }
-    const turnstileSiteKey =
-      process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY || "";
     if (turnstileSiteKey && !turnstileToken) {
       setError("Confirme a verificação de segurança para continuar.");
       return;
@@ -570,9 +569,9 @@ export default function PublicPortal({ slug }: { slug: string }) {
                     />
                   </details>
 
-                  {process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY && (
+                  {turnstileSiteKey && (
                     <Turnstile
-                      siteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY}
+                      siteKey={turnstileSiteKey}
                       onToken={setTurnstileToken}
                     />
                   )}
