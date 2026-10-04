@@ -573,6 +573,7 @@ export default function PublicPortal({ slug }: { slug: string }) {
                     <Turnstile
                       siteKey={turnstileSiteKey}
                       onToken={setTurnstileToken}
+                      size="compact"
                     />
                   )}
 
@@ -943,3 +944,4 @@ export default function PublicPortal({ slug }: { slug: string }) {
     </main>
   );
 }
+

@@ -13,6 +13,7 @@ declare global {
           "expired-callback": () => void;
           "error-callback": (errorCode?: string) => void;
           theme: "auto";
+          size: "normal" | "compact";
         },
       ) => string;
       remove: (widgetId: string) => void;
@@ -73,9 +74,11 @@ function loadScript() {
 export default function Turnstile({
   siteKey,
   onToken,
+  size = "normal",
 }: {
   siteKey: string;
   onToken: (token: string) => void;
+  size?: "normal" | "compact";
 }) {
   const ref = useRef<HTMLDivElement>(null);
 
@@ -98,6 +101,7 @@ export default function Turnstile({
             onToken("");
           },
           theme: "auto",
+          size,
         });
       })
       .catch((error) => {
@@ -109,7 +113,7 @@ export default function Turnstile({
       active = false;
       if (widgetId && window.turnstile) window.turnstile.remove(widgetId);
     };
-  }, [siteKey, onToken]);
+  }, [siteKey, onToken, size]);
 
   return (
     <div className="booking-turnstile" aria-label="Verificação de segurança">
@@ -117,3 +121,4 @@ export default function Turnstile({
     </div>
   );
 }
+
