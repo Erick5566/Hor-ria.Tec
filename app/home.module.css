@@ -3970,3 +3970,12 @@
   }
 }
 /* === FIM STRING CENTER HOLE FIX === */
+
+
+/* Mobile auth inputs stay readable and avoid iOS focus zoom without changing card height. */
+@media (max-width: 768px) {
+  .authViewport .authInput,
+  .signupViewport .authInput {
+    font-size: 16px;
+  }
+}
