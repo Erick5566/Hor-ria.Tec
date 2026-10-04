@@ -1,7 +1,9 @@
 import { createClient } from "@supabase/supabase-js";
 import type { Session } from "@supabase/supabase-js";
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+const key =
+  process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ||
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 export const configured = Boolean(url && key);
 export const supabase = configured ? createClient(url!, key!) : null;
 // Reservas públicas usam sempre o papel anon, mesmo com um dono logado no navegador.
