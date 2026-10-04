@@ -101,7 +101,9 @@ Deno.serve(async (request) => {
     return json({ error: "template_not_configured" }, 503);
   }
 
-  const baseUrl = (Deno.env.get("PUBLIC_APP_URL") ?? "").replace(/\/$/, "");
+  const baseUrl = (
+    Deno.env.get("PUBLIC_APP_URL") ?? "https://horaria.site"
+  ).replace(/\/$/, "");
   const link = `${baseUrl}/acompanhar/${notification.payload.token}`;
   const parameters =
     notification.evento === "pronto_retirada"
