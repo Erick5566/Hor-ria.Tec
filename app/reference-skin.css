@@ -1321,3 +1321,48 @@ body {
     font-size: 16px;
   }
 }
+
+
+/* ===== Finance empty states 2026-10-04 ===== */
+.consolidated-finance .consolidated-view-nav a {
+  min-height: 50px;
+  padding: 10px 14px;
+  font-size: 14px;
+}
+
+.dashboard-finance-empty-chart {
+  display: grid;
+  place-items: center;
+  min-height: 190px;
+  margin-top: 10px;
+  padding: 24px;
+  color: #76869f;
+  text-align: center;
+  background: linear-gradient(180deg, #fbfdff, #f8fbff);
+  border: 1px dashed #dce5f1;
+  border-radius: 11px;
+}
+
+.dashboard-finance-empty-chart .horaria-icon {
+  width: 28px;
+  height: 28px;
+  margin-bottom: 9px;
+  color: #4d7bc8;
+}
+
+.dashboard-finance-empty-chart strong {
+  color: #2a3e61;
+  font-size: .84rem;
+}
+
+.dashboard-finance-empty-chart small {
+  max-width: 360px;
+  margin-top: 5px;
+  font-size: .72rem;
+  line-height: 1.45;
+}
+
+.dashboard-finance-empty-chart + .dashboard-finance-line-chart,
+.dashboard-finance-empty-chart + .dashboard-finance-bars {
+  display: none;
+}
