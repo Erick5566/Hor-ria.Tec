@@ -9,7 +9,7 @@ import { createHmac, timingSafeEqual } from "node:crypto";
 // No network calls or production database writes are possible in these tests.
 async function loadHandler(path, globals) {
   const source = (await readFile(path, "utf8"))
-    .replace(/^import .*;\n/gm, "")
+    .replace(/^import .*;\r?\n/gm, "")
     .replace("export async function POST", "async function POST");
   const javascript = ts.transpileModule(source, {
     compilerOptions: {
@@ -286,3 +286,4 @@ test("WhatsApp: usa horaria.site quando PUBLIC_APP_URL não estiver configurada"
     "https://horaria.site/acompanhar/test-token",
   );
 });
+
