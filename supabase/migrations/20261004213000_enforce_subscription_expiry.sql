@@ -19,7 +19,7 @@ as $function$
     when e.status in ('SUSPENDED', 'CANCELED', 'PENDING_DELETION')
       then e.status
     when a.id is null
-      then 'SUSPENDED'
+      then e.status
     when a.status = 'CANCELED'
       then 'CANCELED'
     when a.status = 'SUSPENDED'
