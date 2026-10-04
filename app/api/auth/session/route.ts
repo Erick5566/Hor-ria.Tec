@@ -18,7 +18,9 @@ export async function POST(request: Request) {
   if (!body?.accessToken)
     return NextResponse.json({ error: "Sessão inválida" }, { status: 400 });
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  const key =
+    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ||
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
   if (!url || !key)
     return NextResponse.json(
       { error: "Configuração ausente" },
