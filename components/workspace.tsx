@@ -244,16 +244,24 @@ export default function Workspace({
         router.replace(`/conta-bloqueada?status=${nextAccess.company.status}`);
         return;
       }
+      if (!nextAccess.company?.id) {
+        setEmpresa(null);
+        return;
+      }
+
       const result = await supabase
         .from("empresas")
         .select("*")
-        .eq(
-          "id",
-          nextAccess.company?.id || "00000000-0000-0000-0000-000000000000",
-        )
+        .eq("id", nextAccess.company.id)
         .maybeSingle();
+
       if (result.error) throw result.error;
+      if (!result.data) {
+        throw new Error("Não foi possível carregar os dados da assistência.");
+      }
+
       setEmpresa(result.data);
+      setError("");
       void supabase.rpc("registrar_acesso");
     } catch (e) {
       setError(message(e as Error));
@@ -263,13 +271,23 @@ export default function Workspace({
   }, [router]);
   useEffect(() => {
     const { data } = supabase?.auth.onAuthStateChange(
-      async (event, session) => {
-        if (["SIGNED_IN", "TOKEN_REFRESHED"].includes(event) && session)
-          await syncServerSession(session);
-        if (event === "SIGNED_OUT") {
-          await syncServerSession(null);
-          router.replace("/");
-        }
+      (event, session) => {
+        void (async () => {
+          try {
+            if (["SIGNED_IN", "TOKEN_REFRESHED"].includes(event) && session) {
+              await syncServerSession(session);
+              return;
+            }
+
+            if (event === "SIGNED_OUT") {
+              await syncServerSession(null).catch(() => undefined);
+              router.replace("/entrar");
+              router.refresh();
+            }
+          } catch (caught) {
+            setError(message(caught as Error));
+          }
+        })();
       },
     ) || { data: null };
 
