@@ -9,6 +9,7 @@ test("auth: recuperação aponta para a rota correta e configuração local não
   const terms = await readFile("app/termos/page.tsx", "utf8");
   const setup = await readFile("components/setup.tsx", "utf8");
   const authStyles = await readFile("app/home.module.css", "utf8");
+  const globalStyles = await readFile("app/globals.css", "utf8");
   const publicPageSettings = await readFile(
     "components/public-page-settings.tsx",
     "utf8",
@@ -47,4 +48,6 @@ test("auth: recuperação aponta para a rota correta e configuração local não
   assert.match(terms, /Termos de uso da Horária/);
   assert.match(authStyles, /Mobile auth inputs stay readable/);
   assert.match(authStyles, /\.authViewport \.authInput,[\s\S]*\.signupViewport \.authInput[\s\S]*font-size: 16px/);
+  assert.match(globalStyles, /Password recovery inputs match mobile auth readability/);
+  assert.match(globalStyles, /\.auth-simple-card input,[\s\S]*font-size: 16px/);
 });
