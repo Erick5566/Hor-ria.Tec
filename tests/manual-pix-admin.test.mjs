@@ -13,10 +13,12 @@ test("admin: confirmação manual do Pix é segura, idempotente e renova a assin
 
     await db.exec(`
       insert into auth.users values ('${admin}'), ('${outsider}');
-      insert into public.perfis(usuario_id,nome,email,platform_role)
-      values
-        ('${admin}','Admin','admin@example.invalid','SUPER_ADMIN'),
-        ('${outsider}','Usuário','user@example.invalid','USER');
+      update public.perfis
+      set nome='Admin', email='admin@example.invalid', platform_role='SUPER_ADMIN'
+      where usuario_id='${admin}';
+      update public.perfis
+      set nome='Usuário', email='user@example.invalid', platform_role='USER'
+      where usuario_id='${outsider}';
       set request.jwt.claim.sub='${admin}';
       set request.jwt.claims='{"aal":"aal2"}';
       set role authenticated;
