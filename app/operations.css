@@ -11163,9 +11163,9 @@ svg {
     background: transparent;
     border: 0;
     border-radius: 11px;
-    font-size: .72rem;
-    font-weight: 750;
-    line-height: 1.05;
+    font-size: .78rem;
+    font-weight: 760;
+    line-height: 1.08;
     text-align: center;
     -webkit-tap-highlight-color: transparent;
   }
@@ -11270,7 +11270,7 @@ svg {
   .mobile-more-sheet-head small {
     margin-top: 3px;
     color: #7b879a;
-    font-size: .74rem;
+    font-size: .78rem;
   }
 
   .mobile-more-sheet-head > button {
@@ -11332,8 +11332,8 @@ svg {
   .mobile-more-grid > a > strong {
     min-width: 0;
     overflow-wrap: anywhere;
-    font-size: .76rem;
-    line-height: 1.25;
+    font-size: .82rem;
+    line-height: 1.28;
   }
 
   .mobile-more-grid > a.is-current {
@@ -11351,7 +11351,7 @@ svg {
   .mobile-bottom-nav > a,
   .mobile-bottom-nav > button {
     padding-inline: 1px;
-    font-size: .72rem;
+    font-size: .75rem;
   }
 
   .mobile-bottom-nav svg {

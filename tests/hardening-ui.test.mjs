@@ -28,10 +28,13 @@ test("UI: contratos de autenticação, financeiro e papéis permanecem alinhados
   const panelLayout = await readFile("app/painel/layout.tsx", "utf8");
   const adminLayout = await readFile("app/admin/layout.tsx", "utf8");
   const turnstileConfig = await readFile("lib/turnstile-config.ts", "utf8");
+  const operationsCss = await readFile("app/operations.css", "utf8");
 
   assert.match(panelLayout, /reference-skin\.css/);
   assert.match(adminLayout, /reference-skin\.css/);
   assert.match(turnstileConfig, /0x4AAAAAAFKqY_KmjjTsBeEo/);
+  assert.match(operationsCss, /\.mobile-bottom-nav[\s\S]*font-size: \.78rem/);
+  assert.match(operationsCss, /\.mobile-more-grid > a > strong[\s\S]*font-size: \.82rem/);
 
   for (const source of [authPage, recovery, adminModule]) {
     assert.doesNotMatch(source, /minLength=\{5\}/);
