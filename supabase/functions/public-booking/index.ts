@@ -13,6 +13,20 @@ const json = (body: unknown, status = 200) =>
     headers: { ...cors, "content-type": "application/json" },
   });
 
+function getSupabaseAdminKey() {
+  const secretKeys = Deno.env.get("SUPABASE_SECRET_KEYS");
+  if (secretKeys) {
+    try {
+      const parsed = JSON.parse(secretKeys) as Record<string, string>;
+      if (parsed.default) return parsed.default;
+    } catch {
+      // Mantém compatibilidade com o service_role legado durante a transição.
+    }
+  }
+
+  return Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+}
+
 const textEncoder = new TextEncoder();
 
 async function hmacHex(secret: string, value: string) {
@@ -64,7 +78,7 @@ Deno.serve(async (request) => {
     return json({ ok: false, error: "method_not_allowed" }, 405);
 
   const supabaseUrl = Deno.env.get("SUPABASE_URL");
-  const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+  const serviceKey = getSupabaseAdminKey();
   if (!supabaseUrl || !serviceKey)
     return json({ ok: false, error: "service_unavailable" }, 503);
 
