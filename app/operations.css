@@ -4351,6 +4351,28 @@ button.danger,
   border-color: #3a4da1;
 }
 
+.catalog-row-actions {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.catalog-delete {
+  padding: 7px 10px;
+  color: #b13f4c;
+  background: #fff1f3;
+  border: 1px solid #f0cbd0;
+  border-radius: 8px;
+  font-size: .74rem;
+  font-weight: 800;
+}
+
+.catalog-delete:hover:not(:disabled) {
+  color: #fff;
+  background: #b13f4c;
+  border-color: #b13f4c;
+}
+
 .quotes-layout {
   display: grid;
   grid-template-columns: minmax(0, 1.65fr) minmax(280px, .7fr);

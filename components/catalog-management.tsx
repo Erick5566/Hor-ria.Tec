@@ -163,6 +163,35 @@ export default function CatalogManagement({
 
   const items = data?.items || [];
 
+  async function removeService(item: CatalogItem) {
+    if (stock || !canEdit || !supabase) return;
+    if (!window.confirm(`Excluir o serviço "${item.nome}"? Esta ação não pode ser desfeita.`))
+      return;
+
+    setBusy(true);
+    setError("");
+    try {
+      const result = await supabase
+        .from("servicos")
+        .delete()
+        .eq("id", item.id)
+        .eq("empresa_id", empresa.id)
+        .select("id")
+        .maybeSingle();
+
+      if (result.error) throw result.error;
+      if (!result.data)
+        throw new Error("Serviço não encontrado ou sem permissão para excluir.");
+
+      if (current?.id === item.id) setEditing(null);
+      await load(true);
+    } catch (caught) {
+      setError(message(caught as Error));
+    } finally {
+      setBusy(false);
+    }
+  }
+
   return (
     <div className="catalog-dashboard">
       <ErrorBox error={error} />
@@ -503,12 +532,23 @@ export default function CatalogManagement({
                       )}
                       {canEdit && (
                         <td>
-                          <button
-                            className="catalog-edit"
-                            onClick={() => setEditing(item)}
-                          >
-                            Editar
-                          </button>
+                          <div className="catalog-row-actions">
+                            <button
+                              className="catalog-edit"
+                              onClick={() => setEditing(item)}
+                            >
+                              Editar
+                            </button>
+                            {!stock && (
+                              <button
+                                className="catalog-delete"
+                                disabled={busy}
+                                onClick={() => void removeService(item)}
+                              >
+                                Excluir
+                              </button>
+                            )}
+                          </div>
                         </td>
                       )}
                     </tr>
