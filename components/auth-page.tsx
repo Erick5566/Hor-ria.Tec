@@ -402,14 +402,14 @@ export default function AuthPage({ mode }: { mode: "login" | "signup" }) {
                         className={styles.authInput}
                         name="password"
                         type="password"
-                        minLength={6}
+                        minLength={8}
                         autoComplete={signup ? "new-password" : "current-password"}
                         required
-                        placeholder={signup ? "Mínimo de 6 caracteres" : "Sua senha"}
+                        placeholder={signup ? "Mínimo de 8 caracteres" : "Sua senha"}
                       />
                       {signup && (
                         <small className={styles.authHint}>
-                          Use pelo menos 6 caracteres e prefira uma senha única.
+                          Use pelo menos 8 caracteres e prefira uma senha única.
                         </small>
                       )}
                     </label>
