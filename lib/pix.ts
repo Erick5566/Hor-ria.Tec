@@ -37,6 +37,7 @@ export function getSubscriptionPixPayment(
   const isInitialPayment = !status || status === "TRIAL";
 
   return {
+    kind: isInitialPayment ? ("initial" as const) : ("monthly" as const),
     amount: isInitialPayment ? 44.99 : 59,
     heading: isInitialPayment ? "Pagamento inicial Horária" : "Mensalidade Horária",
     priceLabel: isInitialPayment ? "Valor inicial" : "Mensalidade",
