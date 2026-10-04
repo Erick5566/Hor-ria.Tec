@@ -272,3 +272,17 @@ test("WhatsApp: despacho interno rejeita token ausente ou malformado", async () 
   assert.equal(h.sends.length, 0);
   assert.equal(h.updates.length, 0);
 });
+
+
+test("WhatsApp: usa horaria.site quando PUBLIC_APP_URL não estiver configurada", async () => {
+  const h = await whatsappHarness();
+  delete h.env.PUBLIC_APP_URL;
+
+  assert.equal((await h.send()).status, 200);
+  assert.equal(h.sends.length, 1);
+  const params = h.sends[0].body.template.components[0].parameters;
+  assert.equal(
+    params.at(-1).text,
+    "https://horaria.site/acompanhar/test-token",
+  );
+});
