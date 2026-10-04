@@ -3,6 +3,10 @@ begin;
 select set_config('qa.owner_a',gen_random_uuid()::text,true),set_config('qa.owner_b',gen_random_uuid()::text,true);
 insert into auth.users(id) values(current_setting('qa.owner_a')::uuid),(current_setting('qa.owner_b')::uuid);
 insert into public.empresas(dono_id,nome,slug) values(current_setting('qa.owner_a')::uuid,'QA rollback A','qa-'||current_setting('qa.owner_a')),(current_setting('qa.owner_b')::uuid,'QA rollback B','qa-'||current_setting('qa.owner_b'));
+insert into public.empresa_membros(empresa_id,usuario_id,role,status)
+select id,dono_id,'OWNER','ACTIVE'
+from public.empresas
+where dono_id in (current_setting('qa.owner_a')::uuid,current_setting('qa.owner_b')::uuid);
 select set_config('qa.empresa_a',(select id::text from public.empresas where dono_id=current_setting('qa.owner_a')::uuid),true);
 set local role authenticated;
 select set_config('request.jwt.claim.sub',current_setting('qa.owner_a'),true);
