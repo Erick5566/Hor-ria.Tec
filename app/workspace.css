@@ -95,26 +95,29 @@ a.primary {
 }
 .main-sidebar nav {
   flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
 }
 .main-sidebar nav section {
-  margin: 20px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  margin: 0;
+  padding: 0;
 }
 .main-sidebar nav h2 {
-  font:
-    600 9px "DM Sans",
-    sans-serif;
-  letter-spacing: 1.8px;
-  color: #9ba8ab;
-  margin: 0 12px 9px;
+  display: none;
 }
 .main-sidebar nav a {
   display: flex;
   align-items: center;
   gap: 11px;
-  padding: 10px 12px;
+  min-height: 42px;
+  padding: 8px 12px;
   font-size: 13px;
   border-radius: 6px;
-  margin: 3px 0;
+  margin: 1px 0;
   color: #ccd0cf;
 }
 .main-sidebar nav a > .sidebar-nav-icon {

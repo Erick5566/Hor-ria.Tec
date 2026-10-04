@@ -14752,21 +14752,27 @@ body {
   font-size: 10.5px;
 }
 
+.main-sidebar nav {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
 .main-sidebar nav section {
-  margin: 12px 0 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  margin: 0;
+  padding: 0;
 }
 
 .main-sidebar nav h2 {
-  margin: 0 11px 8px;
-  color: #8299b6;
-  font-size: 8px;
-  font-weight: 800;
-  letter-spacing: .16em;
+  display: none;
 }
 
 .main-sidebar nav a {
   min-height: 42px;
-  margin: 2px 0;
+  margin: 1px 0;
   padding: 6px 9px;
   gap: 9px;
   color: #c8d5e6;
