@@ -2048,3 +2048,13 @@ hr {
     border-radius: 10px;
   }
 }
+
+
+/* Password recovery inputs match mobile auth readability and avoid iOS focus zoom. */
+@media (max-width: 600px) {
+  .auth-simple-card input,
+  .auth-simple-card select,
+  .auth-simple-card textarea {
+    font-size: 16px;
+  }
+}
