@@ -184,8 +184,8 @@ export function ResetPassword() {
   async function submit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setError("");
-    if (password.length < 6) {
-      setError("Use uma senha com pelo menos 6 caracteres.");
+    if (password.length < 8) {
+      setError("Use uma senha com pelo menos 8 caracteres.");
       return;
     }
     if (password !== confirmPassword) {
@@ -247,14 +247,14 @@ export function ResetPassword() {
           <>
             <span className="eyebrow">NOVA SENHA</span>
             <h1>Crie uma nova senha.</h1>
-            <p>Use pelo menos 6 caracteres e prefira uma senha única.</p>
+            <p>Use pelo menos 8 caracteres e prefira uma senha única.</p>
             <form onSubmit={submit}>
               <label>
                 Nova senha
                 <input
                   type="password"
                   autoComplete="new-password"
-                  minLength={6}
+                  minLength={8}
                   required
                   value={password}
                   onChange={(event) => setPassword(event.target.value)}
@@ -265,7 +265,7 @@ export function ResetPassword() {
                 <input
                   type="password"
                   autoComplete="new-password"
-                  minLength={6}
+                  minLength={8}
                   required
                   value={confirmPassword}
                   onChange={(event) => setConfirmPassword(event.target.value)}
