@@ -34,6 +34,10 @@ test("auth: recuperação aponta para a rota correta e configuração local não
   assert.match(authPage, /name="legal" type="checkbox" required/);
   assert.match(authPage, /terms_accepted_at/);
   assert.match(authPage, /privacy_accepted_at/);
+  assert.match(authPage, /terms_version: TERMS_VERSION/);
+  assert.match(authPage, /privacy_version: PRIVACY_VERSION/);
+  assert.match(authPage, /const TERMS_VERSION = "2026-10-01"/);
+  assert.match(authPage, /const PRIVACY_VERSION = "2026-09-20"/);
   assert.match(authPage, /"termos"/);
   assert.match(setup, /"termos"/);
   assert.match(publicPageSettings, /"termos"/);

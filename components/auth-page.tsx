@@ -23,6 +23,8 @@ type RegistrationStatus = {
   globalMaintenance: boolean;
 };
 
+const TERMS_VERSION = "2026-10-01";
+const PRIVACY_VERSION = "2026-09-20";
 const SIGNUP_ATTEMPTS_KEY = "horaria_signup_attempts";
 const SIGNUP_ATTEMPTS_WINDOW_MS = 10 * 60 * 1000;
 const SIGNUP_ATTEMPTS_LIMIT = 5;
@@ -181,7 +183,9 @@ export default function AuthPage({ mode }: { mode: "login" | "signup" }) {
                 company_name: String(form.get("empresa")),
                 company_slug: String(form.get("slug")),
                 terms_accepted_at: new Date().toISOString(),
+                terms_version: TERMS_VERSION,
                 privacy_accepted_at: new Date().toISOString(),
+                privacy_version: PRIVACY_VERSION,
               },
               ...(turnstileSiteKey ? { captchaToken } : {}),
             },
