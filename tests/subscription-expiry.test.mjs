@@ -111,6 +111,31 @@ test("assinatura: vencimento vira pendência e depois suspensão sem cron", asyn
     assert.equal(context.company.status, "SUSPENDED");
     assert.equal(context.subscription.status, "SUSPENDED");
     assert.equal((await readPublicStatus()).state, "UNAVAILABLE");
+
+    await db.exec(`
+      reset role;
+      update public.perfis
+      set platform_role='SUPER_ADMIN'
+      where usuario_id='${owner}';
+      set request.jwt.claims='{"aal":"aal2"}';
+      set role authenticated;
+    `);
+
+    const adminCompanies = (
+      await db.query("select admin_list_companies() as result")
+    ).rows[0].result;
+    const adminCompany = adminCompanies.find(
+      (item) => item.slug === "empresa-vencimento",
+    );
+
+    assert.equal(adminCompany.status, "SUSPENDED");
+    assert.equal(adminCompany.subscriptionStatus, "SUSPENDED");
+
+    const adminDetail = (
+      await db.query("select admin_company_detail($1) as result", [company])
+    ).rows[0].result;
+    assert.equal(adminDetail.status, "SUSPENDED");
+    assert.equal(adminDetail.subscription.status, "SUSPENDED");
   } finally {
     await db.close();
   }
