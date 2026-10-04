@@ -15775,3 +15775,13 @@ body {
   width: 16px;
   height: 16px;
 }
+
+
+/* Public booking controls stay readable on phones and avoid iOS focus zoom. */
+@media (max-width: 800px) {
+  .public-booking-modern input,
+  .public-booking-modern select,
+  .public-booking-modern textarea {
+    font-size: 16px;
+  }
+}
