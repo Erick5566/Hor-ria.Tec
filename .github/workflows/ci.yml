@@ -43,3 +43,21 @@ jobs:
 
       - name: Runtime smoke
         run: node tests/runtime-smoke.mjs
+
+
+  sync-vercel-production:
+    name: Sync Vercel production branch
+    needs: validate
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout validated commit
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Fast-forward Vercel production branch
+        run: git push origin "$GITHUB_SHA:refs/heads/chatgpt/mvp-hardening-20261001"
