@@ -1,8 +1,11 @@
 "use client";
 
 import {
+  useCallback,
+  useEffect,
   useMemo,
   useState,
+  type FormEvent,
   type KeyboardEvent,
   type MouseEvent,
 } from "react";
@@ -22,8 +25,13 @@ export type AdminCompanyRow = {
   subscriptionStatus?: string | null;
   trialEndsAt?: string | null;
   nextBillingDate?: string | null;
+  dueAt?: string | null;
+  graceEndsAt?: string | null;
+  amountDue?: number | null;
   monthlyValue?: number | null;
   currency?: string | null;
+  lastPaymentAt?: string | null;
+  lastPaymentAmount?: number | null;
   lastAccessAt?: string | null;
   usersCount: number;
   customersCount: number;
@@ -42,6 +50,36 @@ export type PlatformOverview = {
   currentCompanies: number;
   publicAppUrl?: string | null;
   featureFlags: Record<string, boolean>;
+};
+
+export type BillingOverview = {
+  receivedThisMonth: number;
+  receivedTotal: number;
+  expensesThisMonth: number;
+  expensesTotal: number;
+  netThisMonth: number;
+  receivableTotal: number;
+  pendingCount: number;
+  overdueCount: number;
+  dueNext24hCount: number;
+  activeSubscriptions: number;
+  trialSubscriptions: number;
+  suspendedCount: number;
+  estimatedMrr: number;
+  graceHours: number;
+  initialAmount: number;
+  monthlyAmount: number;
+};
+
+export type PlatformExpense = {
+  id: string;
+  description: string;
+  category: string;
+  amount: number;
+  incurredOn: string;
+  recurring: boolean;
+  notes?: string | null;
+  createdAt: string;
 };
 
 type AdminCompanyDetail = {
@@ -149,6 +187,27 @@ function daysUntil(value?: string | null) {
   );
 }
 
+function billingStatus(company: AdminCompanyRow) {
+  if (!company.dueAt) return "Cobrança a definir";
+  const due = new Date(company.dueAt).getTime();
+  if (!Number.isFinite(due)) return "Cobrança a definir";
+
+  if (Number(company.amountDue || 0) > 0 || due < Date.now()) {
+    return "Vencido " + relativeDate(company.dueAt);
+  }
+
+  return "Vence " + relativeDate(company.dueAt);
+}
+
+function localToday() {
+  return new Intl.DateTimeFormat("en-CA", {
+    timeZone: "America/Sao_Paulo",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(new Date());
+}
+
 function weeklyCompanies(companies: AdminCompanyRow[]) {
   const today = new Date();
   const base = new Date(today);
@@ -179,11 +238,19 @@ function weeklyCompanies(companies: AdminCompanyRow[]) {
 export default function AdminCompaniesDashboard({
   initialCompanies,
   initialOverview,
+  initialBillingOverview,
+  initialExpenses,
 }: {
   initialCompanies: AdminCompanyRow[];
   initialOverview: PlatformOverview;
+  initialBillingOverview: BillingOverview;
+  initialExpenses: PlatformExpense[];
 }) {
   const router = useRouter();
+  const [companiesData, setCompaniesData] = useState(initialCompanies);
+  const [overviewData, setOverviewData] = useState(initialOverview);
+  const [billingOverview, setBillingOverview] = useState(initialBillingOverview);
+  const [expenses, setExpenses] = useState(initialExpenses);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("ALL");
   const [sortBy, setSortBy] = useState("last_access");
@@ -194,45 +261,39 @@ export default function AdminCompaniesDashboard({
   const [note, setNote] = useState("");
   const [noteBusy, setNoteBusy] = useState(false);
   const [paymentBusy, setPaymentBusy] = useState(false);
+  const [expenseBusy, setExpenseBusy] = useState(false);
   const [actionBusy, setActionBusy] = useState("");
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
 
   const metrics = useMemo(() => {
-    const active = initialCompanies.filter((company) =>
+    const active = companiesData.filter((company) =>
       ["ACTIVE", "TRIAL"].includes(company.status),
     ).length;
-    const activeSubscriptions = initialCompanies.filter(
-      (company) => company.subscriptionStatus === "ACTIVE",
-    );
-    const mrr = activeSubscriptions.reduce(
-      (sum, company) => sum + Number(company.monthlyValue || 0),
-      0,
-    );
     return {
       active,
-      mrr,
-      activeSubscriptions: activeSubscriptions.length,
-      weekly: weeklyCompanies(initialCompanies),
+      mrr: Number(billingOverview.estimatedMrr || 0),
+      activeSubscriptions: Number(billingOverview.activeSubscriptions || 0),
+      weekly: weeklyCompanies(companiesData),
     };
-  }, [initialCompanies]);
+  }, [billingOverview, companiesData]);
 
   const capacity = Math.min(
     100,
-    initialOverview.maxCompanies
-      ? (initialOverview.currentCompanies / initialOverview.maxCompanies) * 100
+    overviewData.maxCompanies
+      ? (overviewData.currentCompanies / overviewData.maxCompanies) * 100
       : 0,
   );
 
   const pending = useMemo(() => {
-    const payment = initialCompanies.find(
+    const payment = companiesData.find(
       (company) =>
         company.status === "PAST_DUE" ||
         company.subscriptionStatus === "PAST_DUE",
     );
     if (payment) return { type: "payment" as const, company: payment, days: null };
 
-    const trial = initialCompanies
+    const trial = companiesData
       .map((company) => ({
         company,
         days: daysUntil(company.trialEndsAt),
@@ -249,11 +310,11 @@ export default function AdminCompaniesDashboard({
     return trial
       ? { type: "trial" as const, company: trial.company, days: trial.days }
       : null;
-  }, [initialCompanies]);
+  }, [companiesData]);
 
   const companies = useMemo(() => {
     const query = search.trim().toLocaleLowerCase("pt-BR");
-    const filtered = initialCompanies.filter((company) => {
+    const filtered = companiesData.filter((company) => {
       const matchesSearch =
         !query ||
         [company.name, company.responsible, company.email]
@@ -285,7 +346,129 @@ export default function AdminCompaniesDashboard({
         : Number.NEGATIVE_INFINITY;
       return bTime - aTime;
     });
-  }, [initialCompanies, search, sortBy, statusFilter]);
+  }, [companiesData, search, sortBy, statusFilter]);
+
+  const refreshDashboard = useCallback(async () => {
+    if (!supabase) return;
+
+    const [companiesResult, overviewResult, billingResult, expensesResult] =
+      await Promise.all([
+        supabase.rpc("admin_list_companies"),
+        supabase.rpc("admin_platform_overview"),
+        supabase.rpc("admin_billing_overview"),
+        supabase.rpc("admin_list_platform_expenses", { p_limit: 50 }),
+      ]);
+
+    const firstError =
+      companiesResult.error ||
+      overviewResult.error ||
+      billingResult.error ||
+      expensesResult.error;
+    if (firstError) throw firstError;
+
+    setCompaniesData((companiesResult.data || []) as AdminCompanyRow[]);
+    setOverviewData(overviewResult.data as PlatformOverview);
+    setBillingOverview(billingResult.data as BillingOverview);
+    setExpenses((expensesResult.data || []) as PlatformExpense[]);
+
+    if (selectedCompanyId) {
+      const detailResult = await supabase.rpc("admin_company_detail", {
+        p_empresa: selectedCompanyId,
+      });
+      if (!detailResult.error && detailResult.data) {
+        setDetail(detailResult.data as AdminCompanyDetail);
+      }
+    }
+  }, [selectedCompanyId]);
+
+  useEffect(() => {
+    let active = true;
+
+    const run = async () => {
+      try {
+        await refreshDashboard();
+        if (active) setError("");
+      } catch (caught) {
+        if (active) setError(message(caught as Error));
+      }
+    };
+
+    const timer = window.setInterval(() => void run(), 10000);
+    const visibility = () => {
+      if (document.visibilityState === "visible") void run();
+    };
+    document.addEventListener("visibilitychange", visibility);
+
+    return () => {
+      active = false;
+      window.clearInterval(timer);
+      document.removeEventListener("visibilitychange", visibility);
+    };
+  }, [refreshDashboard]);
+
+  const receivables = useMemo(
+    () =>
+      companiesData
+        .filter((company) => Number(company.amountDue || 0) > 0)
+        .sort(
+          (a, b) =>
+            new Date(a.dueAt || 0).getTime() -
+            new Date(b.dueAt || 0).getTime(),
+        ),
+    [companiesData],
+  );
+
+  async function addExpense(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!supabase || expenseBusy) return;
+
+    const formElement = event.currentTarget;
+    const form = new FormData(formElement);
+    const amount = Number(String(form.get("amount") || "").replace(",", "."));
+    setExpenseBusy(true);
+    setError("");
+    setNotice("");
+
+    try {
+      const result = await supabase.rpc("admin_add_platform_expense", {
+        p_description: String(form.get("description") || ""),
+        p_amount: amount,
+        p_category: String(form.get("category") || "outros"),
+        p_incurred_on: String(form.get("incurredOn") || localToday()),
+        p_recurring: form.get("recurring") === "on",
+        p_notes: String(form.get("notes") || ""),
+      });
+      if (result.error) throw result.error;
+      formElement.reset();
+      setNotice("Despesa da Horária registrada.");
+      await refreshDashboard();
+    } catch (caught) {
+      setError(message(caught as Error));
+    } finally {
+      setExpenseBusy(false);
+    }
+  }
+
+  async function deleteExpense(expense: PlatformExpense) {
+    if (!supabase || expenseBusy) return;
+    if (!window.confirm("Excluir a despesa “" + expense.description + "”?"))
+      return;
+
+    setExpenseBusy(true);
+    setError("");
+    try {
+      const result = await supabase.rpc("admin_delete_platform_expense", {
+        p_expense: expense.id,
+      });
+      if (result.error) throw result.error;
+      setNotice("Despesa removida.");
+      await refreshDashboard();
+    } catch (caught) {
+      setError(message(caught as Error));
+    } finally {
+      setExpenseBusy(false);
+    }
+  }
 
   async function selectCompany(
     company: AdminCompanyRow,
@@ -382,6 +565,7 @@ export default function AdminCompaniesDashboard({
             : "a definir") +
           ".",
       );
+      await refreshDashboard();
       router.refresh();
     } catch (caught) {
       setDetailError(message(caught as Error));
@@ -409,6 +593,7 @@ export default function AdminCompaniesDashboard({
       setNotice(
         reactivate ? "Empresa reativada." : "Empresa suspensa com sucesso.",
       );
+      await refreshDashboard();
       router.refresh();
       if (selectedCompanyId === company.id) {
         await selectCompany(company);
@@ -475,14 +660,88 @@ export default function AdminCompaniesDashboard({
         </section>
       )}
 
+      <div className="admin-overview-grid admin-billing-overview-grid">
+        <article className="admin-overview-card admin-finance-card is-revenue">
+          <div className="admin-overview-card-head">
+            <span>Faturamento no mês</span>
+            <b aria-hidden="true">↗</b>
+          </div>
+          <strong>{money(billingOverview.receivedThisMonth)}</strong>
+          <small>Recebido e confirmado</small>
+        </article>
+
+        <article className="admin-overview-card admin-finance-card is-expense">
+          <div className="admin-overview-card-head">
+            <span>Gastos no mês</span>
+            <b aria-hidden="true">↘</b>
+          </div>
+          <strong>{money(billingOverview.expensesThisMonth)}</strong>
+          <small>Despesas da própria Horária</small>
+        </article>
+
+        <article className="admin-overview-card admin-finance-card is-profit">
+          <div className="admin-overview-card-head">
+            <span>Resultado no mês</span>
+            <b aria-hidden="true">=</b>
+          </div>
+          <strong>{money(billingOverview.netThisMonth)}</strong>
+          <small>Faturamento menos despesas</small>
+        </article>
+
+        <article className="admin-overview-card admin-finance-card is-receivable">
+          <div className="admin-overview-card-head">
+            <span>A receber</span>
+            <b aria-hidden="true">◷</b>
+          </div>
+          <strong>{money(billingOverview.receivableTotal)}</strong>
+          <small>{billingOverview.overdueCount} cobrança(s) vencida(s)</small>
+        </article>
+
+        <article className="admin-overview-card">
+          <div className="admin-overview-card-head">
+            <span>Pagamento pendente</span>
+            <b aria-hidden="true">!</b>
+          </div>
+          <strong>{billingOverview.pendingCount}</strong>
+          <small>Dentro da tolerância de {billingOverview.graceHours}h</small>
+        </article>
+
+        <article className="admin-overview-card">
+          <div className="admin-overview-card-head">
+            <span>Vencem em 24h</span>
+            <b aria-hidden="true">⌛</b>
+          </div>
+          <strong>{billingOverview.dueNext24hCount}</strong>
+          <small>Assinaturas que exigem atenção</small>
+        </article>
+
+        <article className="admin-overview-card">
+          <div className="admin-overview-card-head">
+            <span>MRR estimado</span>
+            <b aria-hidden="true">R$</b>
+          </div>
+          <strong>{money(billingOverview.estimatedMrr)}</strong>
+          <small>{billingOverview.activeSubscriptions} assinaturas ativas</small>
+        </article>
+
+        <article className="admin-overview-card">
+          <div className="admin-overview-card-head">
+            <span>Recebido total</span>
+            <b aria-hidden="true">✓</b>
+          </div>
+          <strong>{money(billingOverview.receivedTotal)}</strong>
+          <small>Histórico de pagamentos aprovados</small>
+        </article>
+      </div>
+
       <div className="admin-overview-grid">
         <article className="admin-overview-card">
           <div className="admin-overview-card-head">
             <span>Empresas</span>
             <b aria-hidden="true">▦</b>
           </div>
-          <strong>{initialOverview.currentCompanies}</strong>
-          <small>de {initialOverview.maxCompanies} vagas</small>
+          <strong>{overviewData.currentCompanies}</strong>
+          <small>de {overviewData.maxCompanies} vagas</small>
           <div
             className="admin-capacity-track"
             title={Math.round(capacity) + "% da capacidade utilizada"}
@@ -502,15 +761,12 @@ export default function AdminCompaniesDashboard({
 
         <article className="admin-overview-card">
           <div className="admin-overview-card-head">
-            <span>MRR estimado</span>
-            <b aria-hidden="true">R$</b>
+            <span>Em período inicial</span>
+            <b aria-hidden="true">⌛</b>
           </div>
-          <strong>{money(metrics.mrr)}</strong>
+          <strong>{billingOverview.trialSubscriptions}</strong>
           <small>
-            {metrics.activeSubscriptions}{" "}
-            {metrics.activeSubscriptions === 1
-              ? "assinatura ativa"
-              : "assinaturas ativas"}
+            {billingOverview.suspendedCount} conta(s) suspensa(s)
           </small>
         </article>
 
@@ -537,6 +793,123 @@ export default function AdminCompaniesDashboard({
           <small>Últimas 6 semanas</small>
         </article>
       </div>
+
+      {receivables.length > 0 && (
+        <section className="panel admin-receivables-panel">
+          <div className="admin-section-heading">
+            <div>
+              <span className="eyebrow">COBRANÇAS</span>
+              <h2>Quem está devendo</h2>
+              <p>Empresas com vencimento passado e valor ainda a receber.</p>
+            </div>
+            <strong>{money(billingOverview.receivableTotal)}</strong>
+          </div>
+          <div className="admin-receivable-list">
+            {receivables.slice(0, 8).map((company) => (
+              <article key={company.id}>
+                <div>
+                  <strong>{company.name}</strong>
+                  <small>{company.responsible || company.email}</small>
+                </div>
+                <div>
+                  <span>{billingStatus(company)}</span>
+                  <strong>{money(company.amountDue, company.currency || "BRL")}</strong>
+                </div>
+                <button
+                  type="button"
+                  className="outline"
+                  onClick={() => void selectCompany(company, true)}
+                >
+                  Ver cobrança
+                </button>
+              </article>
+            ))}
+          </div>
+        </section>
+      )}
+
+      <section className="panel admin-platform-expenses">
+        <div className="admin-section-heading">
+          <div>
+            <span className="eyebrow">FINANCEIRO DA HORÁRIA</span>
+            <h2>Despesas da plataforma</h2>
+            <p>
+              Registre aqui apenas gastos da Horária, como domínio, serviços e
+              ferramentas. O financeiro das assistências continua separado.
+            </p>
+          </div>
+          <strong>{money(billingOverview.expensesThisMonth)}</strong>
+        </div>
+
+        <div className="admin-expense-layout">
+          <form className="admin-expense-form" onSubmit={addExpense}>
+            <label>
+              Descrição
+              <input name="description" required maxLength={200} placeholder="Ex.: domínio anual" />
+            </label>
+            <label>
+              Valor
+              <input name="amount" type="number" min="0.01" step="0.01" required placeholder="0,00" />
+            </label>
+            <label>
+              Categoria
+              <select name="category" defaultValue="infraestrutura">
+                <option value="infraestrutura">Infraestrutura</option>
+                <option value="dominio">Domínio</option>
+                <option value="ferramentas">Ferramentas</option>
+                <option value="marketing">Marketing</option>
+                <option value="impostos">Impostos</option>
+                <option value="outros">Outros</option>
+              </select>
+            </label>
+            <label>
+              Data
+              <input name="incurredOn" type="date" defaultValue={localToday()} required />
+            </label>
+            <label className="check-label admin-expense-recurring">
+              <input name="recurring" type="checkbox" /> Despesa recorrente
+            </label>
+            <label className="admin-expense-notes">
+              Observação
+              <input name="notes" maxLength={500} placeholder="Opcional" />
+            </label>
+            <button className="primary" disabled={expenseBusy}>
+              {expenseBusy ? "Salvando…" : "Adicionar despesa"}
+            </button>
+          </form>
+
+          <div className="admin-expense-list">
+            {expenses.length ? (
+              expenses.slice(0, 12).map((expense) => (
+                <article key={expense.id}>
+                  <div>
+                    <strong>{expense.description}</strong>
+                    <small>
+                      {new Date(expense.incurredOn + "T12:00:00").toLocaleDateString("pt-BR")}
+                      {" · "}
+                      {expense.category}
+                      {expense.recurring ? " · recorrente" : ""}
+                    </small>
+                  </div>
+                  <strong>{money(expense.amount)}</strong>
+                  <button
+                    type="button"
+                    aria-label={"Excluir " + expense.description}
+                    disabled={expenseBusy}
+                    onClick={() => void deleteExpense(expense)}
+                  >
+                    ×
+                  </button>
+                </article>
+              ))
+            ) : (
+              <p className="admin-detail-muted">
+                Nenhuma despesa da Horária registrada ainda.
+              </p>
+            )}
+          </div>
+        </div>
+      </section>
 
       <div className="admin-companies-layout">
         <section className="panel admin-companies-list">
@@ -582,6 +955,7 @@ export default function AdminCompaniesDashboard({
                   <th>Empresa</th>
                   <th>Responsável</th>
                   <th>Plano</th>
+                  <th>Cobrança</th>
                   <th>Uso</th>
                   <th>Último acesso</th>
                   <th>Status</th>
@@ -610,6 +984,24 @@ export default function AdminCompaniesDashboard({
                       </td>
                       <td>
                         <strong>{company.plan || "Horária"}</strong>
+                      </td>
+                      <td>
+                        <strong
+                          className={
+                            Number(company.amountDue || 0) > 0
+                              ? "admin-billing-cell is-overdue"
+                              : "admin-billing-cell"
+                          }
+                        >
+                          {billingStatus(company)}
+                        </strong>
+                        <small>
+                          {Number(company.amountDue || 0) > 0
+                            ? money(company.amountDue, company.currency || "BRL")
+                            : company.lastPaymentAt
+                              ? "Último: " + fullDate(company.lastPaymentAt)
+                              : "Sem pagamento"}
+                        </small>
                       </td>
                       <td>
                         <div className="admin-usage-pills">

@@ -46,8 +46,8 @@ test("assinatura: vencimento vira pendência e depois suspensão sem cron", asyn
       reset role;
       update public.assinaturas
       set status='TRIAL',
-          trial_ends_at=now()-interval '1 day',
-          next_billing_date=now()-interval '1 day'
+          trial_ends_at=now()-interval '12 hours',
+          next_billing_date=now()-interval '12 hours'
       where empresa_id='${company}';
       update public.empresas set status='TRIAL' where id='${company}';
       set role authenticated;
@@ -61,8 +61,8 @@ test("assinatura: vencimento vira pendência e depois suspensão sem cron", asyn
     await db.exec(`
       reset role;
       update public.assinaturas
-      set trial_ends_at=now()-interval '4 days',
-          next_billing_date=now()-interval '4 days'
+      set trial_ends_at=now()-interval '25 hours',
+          next_billing_date=now()-interval '25 hours'
       where empresa_id='${company}';
       set role authenticated;
     `);
@@ -89,7 +89,7 @@ test("assinatura: vencimento vira pendência e depois suspensão sem cron", asyn
     await db.exec(`
       reset role;
       update public.assinaturas
-      set next_billing_date=now()-interval '1 day'
+      set next_billing_date=now()-interval '12 hours'
       where empresa_id='${company}';
       set role authenticated;
     `);
@@ -102,7 +102,7 @@ test("assinatura: vencimento vira pendência e depois suspensão sem cron", asyn
     await db.exec(`
       reset role;
       update public.assinaturas
-      set next_billing_date=now()-interval '4 days'
+      set next_billing_date=now()-interval '25 hours'
       where empresa_id='${company}';
       set role authenticated;
     `);

@@ -1,3 +1,21 @@
-import { Brand } from "@/components/brand";
-import SignOutButton from "@/components/sign-out-button";
-export default function BlockedPage() { return <main className="state-page"><Brand /><section className="state-card"><span className="state-icon">!</span><span className="eyebrow">ACESSO TEMPORARIAMENTE LIMITADO</span><h1>Esta conta está temporariamente suspensa.</h1><p>Os clientes, ordens, fotos, histórico e configurações permanecem armazenados. Entre em contato com o suporte para regularizar ou reativar sua assinatura.</p><SignOutButton /></section></main>; }
+import { redirect } from "next/navigation";
+import BlockedSubscription from "@/components/blocked-subscription";
+import { getServerAccess } from "@/lib/server-auth";
+
+export default async function BlockedPage() {
+  const access = await getServerAccess();
+  if (!access) redirect("/entrar?next=/conta-bloqueada");
+
+  if (access.context.isSuperAdmin && !access.context.company) {
+    redirect("/admin");
+  }
+
+  const company = access.context.company;
+  if (!company) redirect("/");
+
+  if (!["SUSPENDED", "CANCELED", "PENDING_DELETION"].includes(company.status)) {
+    redirect("/painel");
+  }
+
+  return <BlockedSubscription initialAccess={access.context} />;
+}
