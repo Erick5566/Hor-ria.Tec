@@ -422,7 +422,8 @@ export default function AdminCompaniesDashboard({
     event.preventDefault();
     if (!supabase || expenseBusy) return;
 
-    const form = new FormData(event.currentTarget);
+    const formElement = event.currentTarget;
+    const form = new FormData(formElement);
     const amount = Number(String(form.get("amount") || "").replace(",", "."));
     setExpenseBusy(true);
     setError("");
@@ -438,7 +439,7 @@ export default function AdminCompaniesDashboard({
         p_notes: String(form.get("notes") || ""),
       });
       if (result.error) throw result.error;
-      event.currentTarget.reset();
+      formElement.reset();
       setNotice("Despesa da Horária registrada.");
       await refreshDashboard();
     } catch (caught) {
@@ -760,15 +761,12 @@ export default function AdminCompaniesDashboard({
 
         <article className="admin-overview-card">
           <div className="admin-overview-card-head">
-            <span>MRR estimado</span>
-            <b aria-hidden="true">R$</b>
+            <span>Em período inicial</span>
+            <b aria-hidden="true">⌛</b>
           </div>
-          <strong>{money(metrics.mrr)}</strong>
+          <strong>{billingOverview.trialSubscriptions}</strong>
           <small>
-            {metrics.activeSubscriptions}{" "}
-            {metrics.activeSubscriptions === 1
-              ? "assinatura ativa"
-              : "assinaturas ativas"}
+            {billingOverview.suspendedCount} conta(s) suspensa(s)
           </small>
         </article>
 
