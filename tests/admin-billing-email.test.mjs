@@ -141,6 +141,24 @@ test("cobrança: enfileira e-mails únicos para tolerância de 24h e pagamento a
       db.query("select * from public.admin_email_notifications limit 1"),
       /permission denied/,
     );
+
+    await assert.rejects(
+      db.query("select public.admin_email_provider_credentials()"),
+      /permission denied/,
+    );
+
+    await db.exec("reset role; set role service_role;");
+    const providerCredentials = (
+      await db.query(
+        "select public.admin_email_provider_credentials() as result",
+      )
+    ).rows[0].result;
+
+    assert.equal(providerCredentials.resendApiKey, null);
+    assert.equal(
+      providerCredentials.from,
+      "Horária <onboarding@resend.dev>",
+    );
   } finally {
     await db.close();
   }
