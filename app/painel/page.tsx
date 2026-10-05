@@ -301,17 +301,6 @@ export default function Overview() {
           <HorariaIcon name="receive" />
           Nova Ordem
         </Link>
-
-        <Link className="dashboard-callout" href="/painel/ajuda">
-          <span className="dashboard-callout-icon">
-            <HorariaIcon name="trend" />
-          </span>
-          <div>
-            <strong>Aumente a produtividade da sua assistência</strong>
-            <small>Dicas, tutoriais e novidades da Horária.</small>
-          </div>
-          <span>→</span>
-        </Link>
       </div>
 
       <ErrorBox error={error} />
