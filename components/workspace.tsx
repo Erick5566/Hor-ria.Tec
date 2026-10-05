@@ -341,13 +341,24 @@ export default function Workspace({
     if (!supabase || !empresa?.id) return;
 
     let refreshTimer: number | null = null;
-    const scheduleLiveRefresh = (payload?: unknown) => {
+    const scheduleLiveRefresh = (
+      payload?: { table?: string } | Event,
+      forceAccessRefresh = false,
+    ) => {
       window.dispatchEvent(
         new CustomEvent("horaria:data-change", { detail: payload }),
       );
       if (refreshTimer) window.clearTimeout(refreshTimer);
       refreshTimer = window.setTimeout(() => {
-        void refresh();
+        const table =
+          payload && "table" in payload ? payload.table : undefined;
+        if (
+          forceAccessRefresh ||
+          table === "empresas" ||
+          table === "assinaturas"
+        ) {
+          void refresh();
+        }
         router.refresh();
       }, 300);
     };
@@ -361,18 +372,23 @@ export default function Workspace({
       )
       .subscribe();
 
+    const onFocus = () => scheduleLiveRefresh(undefined, true);
     const onVisible = () => {
-      if (document.visibilityState === "visible") scheduleLiveRefresh();
+      if (document.visibilityState === "visible")
+        scheduleLiveRefresh(undefined, true);
     };
-    window.addEventListener("focus", scheduleLiveRefresh);
+    window.addEventListener("focus", onFocus);
     document.addEventListener("visibilitychange", onVisible);
 
-    const safetySync = window.setInterval(() => scheduleLiveRefresh(), 45000);
+    const safetySync = window.setInterval(
+      () => scheduleLiveRefresh(undefined, true),
+      45000,
+    );
 
     return () => {
       if (refreshTimer) window.clearTimeout(refreshTimer);
       window.clearInterval(safetySync);
-      window.removeEventListener("focus", scheduleLiveRefresh);
+      window.removeEventListener("focus", onFocus);
       document.removeEventListener("visibilitychange", onVisible);
       void supabase!.removeChannel(channel);
     };
