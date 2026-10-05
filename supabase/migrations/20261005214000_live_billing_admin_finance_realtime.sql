@@ -205,7 +205,8 @@ begin
     'pecas_aplicadas','pos_venda','seminovos','venda_itens','venda_pagamentos'
   ]
   loop
-    if exists(select 1 from information_schema.tables where table_schema='public' and table_name=tbl)
+    if exists(select 1 from pg_publication where pubname='supabase_realtime')
+       and exists(select 1 from information_schema.tables where table_schema='public' and table_name=tbl)
        and not exists(select 1 from pg_publication_tables where pubname='supabase_realtime' and schemaname='public' and tablename=tbl)
     then
       execute format('alter publication supabase_realtime add table public.%I',tbl);
