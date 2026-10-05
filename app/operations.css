@@ -15785,3 +15785,78 @@ body {
     font-size: 16px;
   }
 }
+
+
+/* ===== Feedback de erro centralizado e temporário ===== */
+.notice.error.error-toast {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  z-index: 10000;
+  width: min(560px, calc(100vw - 32px));
+  margin: 0;
+  padding: 16px 20px;
+  color: #8b2d35;
+  text-align: left;
+  background: #fff5f5;
+  border: 1px solid #efc8cc;
+  border-left: 4px solid #c44852;
+  border-radius: 12px;
+  box-shadow: 0 18px 50px rgb(39 54 82 / 22%);
+  pointer-events: none;
+  animation: horaria-error-toast 5s ease forwards;
+}
+
+@keyframes horaria-error-toast {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -44%) scale(.98);
+  }
+
+  6%,
+  86% {
+    opacity: 1;
+    visibility: visible;
+    transform: translate(-50%, -50%) scale(1);
+  }
+
+  100% {
+    opacity: 0;
+    visibility: hidden;
+    transform: translate(-50%, -56%) scale(.98);
+  }
+}
+
+@media (max-width: 600px) {
+  .notice.error.error-toast {
+    width: calc(100vw - 24px);
+    padding: 14px 16px;
+    font-size: .9rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .notice.error.error-toast {
+    animation-name: horaria-error-toast-reduced;
+  }
+
+  @keyframes horaria-error-toast-reduced {
+    0% {
+      opacity: 1;
+      visibility: visible;
+      transform: translate(-50%, -50%);
+    }
+
+    90% {
+      opacity: 1;
+      visibility: visible;
+      transform: translate(-50%, -50%);
+    }
+
+    100% {
+      opacity: 0;
+      visibility: hidden;
+      transform: translate(-50%, -50%);
+    }
+  }
+}
