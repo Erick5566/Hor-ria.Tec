@@ -370,7 +370,16 @@ export default function AdminCompaniesDashboard({
     setOverviewData(overviewResult.data as PlatformOverview);
     setBillingOverview(billingResult.data as BillingOverview);
     setExpenses((expensesResult.data || []) as PlatformExpense[]);
-  }, []);
+
+    if (selectedCompanyId) {
+      const detailResult = await supabase.rpc("admin_company_detail", {
+        p_empresa: selectedCompanyId,
+      });
+      if (!detailResult.error && detailResult.data) {
+        setDetail(detailResult.data as AdminCompanyDetail);
+      }
+    }
+  }, [selectedCompanyId]);
 
   useEffect(() => {
     let active = true;
