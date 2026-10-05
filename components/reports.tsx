@@ -1,5 +1,5 @@
 "use client";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { money, statuses, type Status } from "@/lib/assistencia";
 import { message, supabase, today } from "@/lib/supabase";
 import { ErrorBox, MetricCard, MetricGrid, PanelTitle } from "./ui";
@@ -28,30 +28,67 @@ export default function Reports() {
   const [month, setMonth] = useState(today().slice(0, 7));
   const [data, setData] = useState<ReportsData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [exporting, setExporting] = useState(false);
   const [error, setError] = useState("");
+  const requestRef = useRef<AbortController | null>(null);
 
   const load = useCallback(
     async (silent = false) => {
-      if (!supabase) return;
-      if (!silent) setLoading(true);
+      if (!silent) {
+        requestRef.current?.abort();
+        setLoading(true);
+      }
+
+      if (!supabase) {
+        if (!silent) {
+          setData(null);
+          setError("Não foi possível conectar ao banco de dados.");
+          setLoading(false);
+        }
+        return;
+      }
+
+      const controller = new AbortController();
+      if (!silent) requestRef.current = controller;
+      const timeout = window.setTimeout(() => controller.abort(), 12000);
+
       try {
-        const result = await supabase.rpc("reports_month_overview", {
-          p_month: month,
-        });
+        const result = await supabase
+          .rpc("reports_month_overview", { p_month: month })
+          .abortSignal(controller.signal);
+
+        if (controller.signal.aborted) {
+          throw new Error("O relatório demorou demais para responder. Tente novamente.");
+        }
         if (result.error) throw result.error;
-        setData(result.data as ReportsData);
+
+        setData((result.data as ReportsData | null) ?? {
+          metrics: { orders: 0, income: 0, cost: 0 },
+          statuses: {},
+          rows: [],
+        });
         setError("");
       } catch (caught) {
-        setError(message(caught as Error));
+        if (controller.signal.aborted) {
+          setError("O relatório demorou demais para responder. Tente novamente.");
+        } else {
+          setError(message(caught as Error));
+        }
       } finally {
-        if (!silent) setLoading(false);
+        window.clearTimeout(timeout);
+        if (!silent && requestRef.current === controller) {
+          requestRef.current = null;
+          setLoading(false);
+        }
       }
     },
     [month],
   );
 
   useEffect(() => {
+    setData(null);
     void load(false);
+    return () => requestRef.current?.abort();
   }, [load]);
 
   useEffect(() => {
@@ -94,33 +131,46 @@ export default function Reports() {
   }, [empresa.id, load]);
 
   function exportCSV() {
-    const cell = (value: unknown) =>
-      '"' +
-      String(value ?? "")
-        .replace(/^[=+@-]/, "'$&")
-        .replaceAll('"', '""') +
-      '"';
+    if (!data?.rows.length || exporting) return;
 
-    const csv = [
-      ["OS", "Entrada", "Equipamento", "Status"],
-      ...(data?.rows || []).map((row) => [
-        row.numero,
-        row.criado_em,
-        row.equipamento_modelo,
-        statuses[row.status],
-      ]),
-    ]
-      .map((row) => row.map(cell).join(";"))
-      .join("\r\n");
+    setExporting(true);
+    try {
+      const cell = (value: unknown) =>
+        '"' +
+        String(value ?? "")
+          .replace(/^[=+@-]/, "'$&")
+          .replaceAll('"', '""') +
+        '"';
 
-    const url = URL.createObjectURL(
-      new Blob(["\ufeff" + csv], { type: "text/csv;charset=utf-8" }),
-    );
-    const anchor = document.createElement("a");
-    anchor.href = url;
-    anchor.download = `horaria-ordens-${month}.csv`;
-    anchor.click();
-    setTimeout(() => URL.revokeObjectURL(url), 1000);
+      const csv = [
+        ["OS", "Entrada", "Equipamento", "Status"],
+        ...data.rows.map((row) => [
+          row.numero,
+          row.criado_em,
+          row.equipamento_modelo,
+          statuses[row.status],
+        ]),
+      ]
+        .map((row) => row.map(cell).join(";"))
+        .join("\r\n");
+
+      const url = URL.createObjectURL(
+        new Blob(["\ufeff" + csv], { type: "text/csv;charset=utf-8" }),
+      );
+      const anchor = document.createElement("a");
+      anchor.href = url;
+      anchor.download = `horaria-ordens-${month}.csv`;
+      anchor.style.display = "none";
+      document.body.appendChild(anchor);
+      anchor.click();
+      anchor.remove();
+      window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+      setError("");
+    } catch (caught) {
+      setError(message(caught as Error));
+    } finally {
+      setExporting(false);
+    }
   }
 
   const income = Number(data?.metrics.income || 0);
@@ -139,8 +189,18 @@ export default function Reports() {
             onChange={(event) => setMonth(event.target.value)}
           />
         </label>
-        <button disabled={loading || !data?.rows.length} onClick={exportCSV}>
-          Exportar ordens em CSV
+        <button
+          type="button"
+          disabled={loading || exporting || !data?.rows.length}
+          onClick={exportCSV}
+        >
+          {loading
+            ? "Carregando ordens..."
+            : exporting
+              ? "Gerando CSV..."
+              : data?.rows.length
+                ? "Exportar ordens em CSV"
+                : "Sem ordens para exportar"}
         </button>
       </div>
 
