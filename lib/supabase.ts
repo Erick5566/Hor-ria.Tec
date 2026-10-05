@@ -97,8 +97,18 @@ export function message(error: { message: string; code?: string }) {
     error.message.includes("ordens_servico_problema_check")
   )
     return "Descreva o problema do aparelho com 3 a 5.000 caracteres, sem contar espaços no início e no fim. Exemplo: Não liga.";
+  if (
+    error.code === "23514" &&
+    error.message.includes("fiscal_settings_cnpj_check")
+  )
+    return "Confira o CNPJ informado. Ele deve conter exatamente 14 dígitos.";
+  if (
+    error.code === "23514" &&
+    error.message.includes("fiscal_settings_codigo_municipio_check")
+  )
+    return "Não foi possível validar o município. Confira cidade e UF.";
   if (error.code === "23514")
-    return "Confira os campos e os horários informados.";
+    return "Confira os campos informados.";
   if (error.code === "23503")
     return "O vínculo informado é inválido. Selecione registros desta assistência.";
   return error.code === "23P01"
