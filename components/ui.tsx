@@ -91,7 +91,12 @@ export function Empty({
 }
 export function ErrorBox({ error }: { error?: string }) {
   return error ? (
-    <p className="notice error" role="alert">
+    <p
+      key={error}
+      className="notice error error-toast"
+      role="alert"
+      aria-live="assertive"
+    >
       {error}
     </p>
   ) : null;
