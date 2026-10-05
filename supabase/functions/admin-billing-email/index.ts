@@ -34,6 +34,41 @@ const dateTime = (value: unknown) => {
   }).format(date);
 };
 
+
+const display = (value: unknown) => {
+  const text = String(value ?? "").trim();
+  return text || "Não informado";
+};
+
+const accountLocation = (p: Record<string, unknown>) => {
+  const city = String(p.city ?? "").trim();
+  const state = String(p.state ?? "").trim();
+  if (city && state) return city + "/" + state;
+  return city || state || "Não informado";
+};
+
+const accountText = (p: Record<string, unknown>) =>
+  "Dados da conta" +
+  "\nEmpresa: " + display(p.companyName) +
+  "\nResponsável: " + display(p.ownerName) +
+  "\nE-mail: " + display(p.ownerEmail) +
+  "\nWhatsApp: " + display(p.companyWhatsapp || p.ownerPhone) +
+  "\nCidade/UF: " + accountLocation(p) +
+  "\nPlano: " + display(p.planName) +
+  "\nStatus: " + display(p.status);
+
+const accountHtml = (p: Record<string, unknown>, labelColor = "#61718b") =>
+  '<h2 style="font-size:16px;margin:20px 0 8px">Dados da conta</h2>' +
+  '<table style="width:100%;border-collapse:collapse">' +
+  '<tr><td style="padding:6px 0;color:' + labelColor + '">Empresa</td><td style="padding:6px 0;text-align:right"><strong>' + escapeHtml(display(p.companyName)) + '</strong></td></tr>' +
+  '<tr><td style="padding:6px 0;color:' + labelColor + '">Responsável</td><td style="padding:6px 0;text-align:right">' + escapeHtml(display(p.ownerName)) + '</td></tr>' +
+  '<tr><td style="padding:6px 0;color:' + labelColor + '">E-mail</td><td style="padding:6px 0;text-align:right">' + escapeHtml(display(p.ownerEmail)) + '</td></tr>' +
+  '<tr><td style="padding:6px 0;color:' + labelColor + '">WhatsApp</td><td style="padding:6px 0;text-align:right">' + escapeHtml(display(p.companyWhatsapp || p.ownerPhone)) + '</td></tr>' +
+  '<tr><td style="padding:6px 0;color:' + labelColor + '">Cidade/UF</td><td style="padding:6px 0;text-align:right">' + escapeHtml(accountLocation(p)) + '</td></tr>' +
+  '<tr><td style="padding:6px 0;color:' + labelColor + '">Plano</td><td style="padding:6px 0;text-align:right">' + escapeHtml(display(p.planName)) + '</td></tr>' +
+  '<tr><td style="padding:6px 0;color:' + labelColor + '">Status</td><td style="padding:6px 0;text-align:right"><strong>' + escapeHtml(display(p.status)) + '</strong></td></tr>' +
+  '</table>';
+
 function paymentContent(p: Record<string, unknown>) {
   const company = escapeHtml(p.companyName || "Empresa");
   const amount = money(p.amount);
@@ -50,8 +85,9 @@ function paymentContent(p: Record<string, unknown>) {
 
   return {
     text:
-      "Pagamento confirmado na Horária\n\nEmpresa: " +
-      String(p.companyName || "Empresa") +
+      "Pagamento confirmado na Horária\n\n" +
+      accountText(p) +
+      "\n\nDados da cobrança" +
       "\nValor: " +
       amount +
       "\nTipo: " +
@@ -73,6 +109,8 @@ function paymentContent(p: Record<string, unknown>) {
       "<p>O pagamento de <strong>" +
       company +
       "</strong> foi confirmado.</p>" +
+      accountHtml(p) +
+      '<h2 style="font-size:16px;margin:20px 0 8px">Dados da cobrança</h2>' +
       '<table style="width:100%;border-collapse:collapse">' +
       '<tr><td style="padding:8px 0;color:#61718b">Valor</td><td style="padding:8px 0;text-align:right"><strong>' +
       escapeHtml(amount) +
@@ -105,8 +143,9 @@ function graceContent(p: Record<string, unknown>) {
 
   return {
     text:
-      "Assinatura entrou nas 24h de tolerância\n\nEmpresa: " +
-      String(p.companyName || "Empresa") +
+      "Assinatura entrou nas 24h de tolerância\n\n" +
+      accountText(p) +
+      "\n\nDados da cobrança" +
       "\nValor em aberto: " +
       amount +
       "\nVenceu em: " +
@@ -124,6 +163,8 @@ function graceContent(p: Record<string, unknown>) {
       "<p><strong>" +
       company +
       "</strong> entrou no prazo de tolerância antes do bloqueio.</p>" +
+      accountHtml(p, "#725b31") +
+      '<h2 style="font-size:16px;margin:20px 0 8px">Dados da cobrança</h2>' +
       '<table style="width:100%;border-collapse:collapse">' +
       '<tr><td style="padding:8px 0;color:#725b31">Valor em aberto</td><td style="padding:8px 0;text-align:right"><strong>' +
       escapeHtml(amount) +
