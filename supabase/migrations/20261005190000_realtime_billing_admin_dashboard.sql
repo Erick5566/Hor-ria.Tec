@@ -40,7 +40,7 @@ create table if not exists private.platform_expenses (
 
 revoke all on table private.platform_expenses from public, anon, authenticated;
 
-do $
+do $realtime$
 declare
   target_table text;
 begin
@@ -63,7 +63,7 @@ begin
     end loop;
   end if;
 end
-$;
+$realtime$;
 
 create or replace function private.effective_company_status(p_empresa uuid)
 returns text
