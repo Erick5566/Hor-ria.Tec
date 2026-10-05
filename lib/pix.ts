@@ -33,12 +33,21 @@ export function pixCrc16(payload: string) {
 
 export function getSubscriptionPixPayment(
   status?: "TRIAL" | "ACTIVE" | "PAST_DUE" | "SUSPENDED" | "CANCELED" | null,
+  pricing?: {
+    initialAmount?: number | null;
+    monthlyAmount?: number | null;
+    hasApprovedPayment?: boolean | null;
+  },
 ) {
-  const isInitialPayment = !status || status === "TRIAL";
+  const initialAmount = Number(pricing?.initialAmount ?? 44.99);
+  const monthlyAmount = Number(pricing?.monthlyAmount ?? 59);
+  const isInitialPayment =
+    pricing?.hasApprovedPayment === false ||
+    (pricing?.hasApprovedPayment == null && (!status || status === "TRIAL"));
 
   return {
     kind: isInitialPayment ? ("initial" as const) : ("monthly" as const),
-    amount: isInitialPayment ? 44.99 : 59,
+    amount: isInitialPayment ? initialAmount : monthlyAmount,
     heading: isInitialPayment ? "Pagamento inicial Horária" : "Mensalidade Horária",
     priceLabel: isInitialPayment ? "Valor inicial" : "Mensalidade",
     description: isInitialPayment
