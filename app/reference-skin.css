@@ -477,7 +477,7 @@ body {
 }
 
 .dashboard-reference .dashboard-hero {
-  grid-template-columns: minmax(0, 1fr) minmax(250px, 330px) auto;
+  grid-template-columns: minmax(0, 1fr) auto;
   gap: 12px;
   margin-bottom: 15px;
 }
@@ -1088,7 +1088,7 @@ body {
   }
 
   .dashboard-reference .dashboard-hero {
-    grid-template-columns: minmax(0, 1fr) auto minmax(280px, 360px);
+    grid-template-columns: minmax(0, 1fr) auto;
     align-items: end;
     gap: 14px;
   }
