@@ -1366,3 +1366,137 @@ body {
 .dashboard-finance-empty-chart + .dashboard-finance-bars {
   display: none;
 }
+
+
+/* ===== Live billing / Super Admin finance ===== */
+.admin-billing-overview-grid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+.admin-money-positive > strong { color: #16895d; }
+.admin-money-negative > strong { color: #c4424d; }
+.admin-money-warning > strong { color: #c67b0b; }
+
+.admin-platform-finance {
+  margin: 0 0 20px;
+  padding: 22px;
+}
+.admin-platform-finance-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+  margin-bottom: 18px;
+}
+.admin-platform-finance-head h2 {
+  margin: 4px 0 5px;
+}
+.admin-platform-finance-head p {
+  margin: 0;
+  color: var(--ref-muted);
+  font-size: 12px;
+}
+.admin-platform-finance-head > strong {
+  color: #203957;
+  white-space: nowrap;
+}
+.admin-expense-form {
+  display: grid;
+  grid-template-columns: minmax(220px, 1.6fr) minmax(150px, .8fr) 130px auto auto;
+  gap: 10px;
+  align-items: center;
+}
+.admin-expense-recurring {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  color: #52647f;
+  font-size: 12px;
+  font-weight: 700;
+}
+.admin-expense-recurring input {
+  width: 16px;
+  min-height: 16px;
+}
+.admin-expense-list {
+  display: grid;
+  gap: 8px;
+  margin-top: 16px;
+}
+.admin-expense-list article {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 14px;
+  background: #f8faff;
+  border: 1px solid #e1e8f2;
+  border-radius: 10px;
+}
+.admin-expense-list article strong,
+.admin-expense-list article small {
+  display: block;
+}
+.admin-expense-list article small {
+  margin-top: 3px;
+  color: #7a8aa2;
+  font-size: 11px;
+}
+.admin-expense-list article > b {
+  color: #c4424d;
+}
+.subscription-paid-status,
+.subscription-countdown {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin: 0 0 16px;
+}
+.subscription-paid-status {
+  border-color: #bfe8d7;
+  background: #f1fbf6;
+  color: #126b48;
+}
+.subscription-countdown {
+  border-color: #f1cf91;
+  background: #fff9ed;
+  color: #8a5a09;
+}
+.subscription-paid-status span,
+.subscription-countdown span {
+  font-size: 12px;
+}
+
+@media (max-width: 1180px) {
+  .admin-billing-overview-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .admin-expense-form {
+    grid-template-columns: 1fr 1fr;
+  }
+  .admin-expense-form > :first-child {
+    grid-column: 1 / -1;
+  }
+}
+@media (max-width: 700px) {
+  .admin-billing-overview-grid {
+    grid-template-columns: 1fr;
+  }
+  .admin-platform-finance-head,
+  .subscription-paid-status,
+  .subscription-countdown {
+    flex-direction: column;
+  }
+  .admin-expense-form {
+    grid-template-columns: 1fr;
+  }
+  .admin-expense-form > :first-child {
+    grid-column: auto;
+  }
+  .admin-expense-list article {
+    grid-template-columns: 1fr auto;
+  }
+  .admin-expense-list article > button {
+    grid-column: 1 / -1;
+  }
+}
