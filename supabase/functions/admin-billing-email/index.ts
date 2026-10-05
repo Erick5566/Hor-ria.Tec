@@ -190,9 +190,17 @@ Deno.serve(async (request) => {
   if (claimError) return json({ error: claimError.message }, 500);
   if (!notification) return json({ ok: true, skipped: true });
 
-  const resendKey = Deno.env.get("RESEND_API_KEY");
-  const from =
+  let resendKey = Deno.env.get("RESEND_API_KEY") || "";
+  let from =
     Deno.env.get("ADMIN_EMAIL_FROM") ?? "Horária <onboarding@resend.dev>";
+
+  if (!resendKey) {
+    const { data: providerCredentials } = await admin.rpc(
+      "admin_email_provider_credentials",
+    );
+    resendKey = String(providerCredentials?.resendApiKey || "");
+    from = String(providerCredentials?.from || from);
+  }
 
   if (!resendKey) {
     await admin
