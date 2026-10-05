@@ -64,6 +64,21 @@ function rangeForMonth(month = localMonth()) {
   return { start: month + "-01", end };
 }
 
+function billingCountdown(
+  dueAt?: string | null,
+  graceHours = 24,
+) {
+  if (!dueAt) return "";
+  const target = new Date(dueAt).getTime() + graceHours * 60 * 60 * 1000;
+  const remaining = Math.max(0, target - Date.now());
+  const hours = Math.floor(remaining / 3600000);
+  const minutes = Math.floor((remaining % 3600000) / 60000);
+  const seconds = Math.floor((remaining % 60000) / 1000);
+  return [hours, minutes, seconds]
+    .map((value) => String(value).padStart(2, "0"))
+    .join(":");
+}
+
 const Context = createContext<WorkspaceValue | null>(null);
 export function useWorkspace() {
   const value = useContext(Context);
@@ -321,6 +336,47 @@ export default function Workspace({
     setOpen(false);
     setMobileMoreOpen(false);
   }, [path]);
+
+  useEffect(() => {
+    if (!supabase || !empresa?.id) return;
+
+    let refreshTimer: number | null = null;
+    const scheduleLiveRefresh = (payload?: unknown) => {
+      window.dispatchEvent(
+        new CustomEvent("horaria:data-change", { detail: payload }),
+      );
+      if (refreshTimer) window.clearTimeout(refreshTimer);
+      refreshTimer = window.setTimeout(() => {
+        void refresh();
+        router.refresh();
+      }, 300);
+    };
+
+    const channel = supabase
+      .channel(`horaria-live-${empresa.id}-${userId || "user"}`)
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public" },
+        (payload) => scheduleLiveRefresh(payload),
+      )
+      .subscribe();
+
+    const onVisible = () => {
+      if (document.visibilityState === "visible") scheduleLiveRefresh();
+    };
+    window.addEventListener("focus", scheduleLiveRefresh);
+    document.addEventListener("visibilitychange", onVisible);
+
+    const safetySync = window.setInterval(() => scheduleLiveRefresh(), 45000);
+
+    return () => {
+      if (refreshTimer) window.clearTimeout(refreshTimer);
+      window.clearInterval(safetySync);
+      window.removeEventListener("focus", scheduleLiveRefresh);
+      document.removeEventListener("visibilitychange", onVisible);
+      void supabase.removeChannel(channel);
+    };
+  }, [empresa?.id, refresh, router, userId]);
 
   useEffect(() => {
     const updateClock = () => {
@@ -1292,10 +1348,16 @@ export default function Workspace({
         {access.subscription?.status === "PAST_DUE" && (
           <div className="notice subscription-warning">
             <div>
-              <strong>
-                Não conseguimos confirmar o pagamento da sua assinatura.
-              </strong>
-              <span>Seus dados permanecem seguros.</span>
+              <strong>Pagamento pendente — acesso será bloqueado ao fim da tolerância.</strong>
+              <span>
+                {access.subscription.nextBillingDate
+                  ? "Tempo restante: " +
+                    billingCountdown(
+                      access.subscription.nextBillingDate,
+                      access.billing?.graceHours || 24,
+                    )
+                  : "Regularize a assinatura para evitar a interrupção."}
+              </span>
             </div>
             <Link className="outline" href="/painel/assinatura">
               Regularizar assinatura
