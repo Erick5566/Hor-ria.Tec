@@ -64,6 +64,27 @@ function rangeForMonth(month = localMonth()) {
   return { start: month + "-01", end };
 }
 
+function billingDeadline(access: AccessContext) {
+  if (access.subscription?.status !== "PAST_DUE") return null;
+  const raw =
+    access.subscription.nextBillingDate || access.subscription.trialEndsAt;
+  if (!raw) return null;
+  const due = new Date(raw).getTime();
+  if (!Number.isFinite(due)) return null;
+  return due + Number(access.billing?.graceHours || 24) * 60 * 60 * 1000;
+}
+
+function countdownLabel(milliseconds: number) {
+  const safe = Math.max(0, milliseconds);
+  const seconds = Math.floor(safe / 1000);
+  const hours = Math.floor(seconds / 3600);
+  const minutes = Math.floor((seconds % 3600) / 60);
+  const remainingSeconds = seconds % 60;
+  return [hours, minutes, remainingSeconds]
+    .map((value) => String(value).padStart(2, "0"))
+    .join(":");
+}
+
 const Context = createContext<WorkspaceValue | null>(null);
 export function useWorkspace() {
   const value = useContext(Context);
@@ -155,10 +176,13 @@ export default function Workspace({
     [profileOpen, setProfileOpen] = useState(false),
     [mobileMoreOpen, setMobileMoreOpen] = useState(false),
     [alerts, setAlerts] = useState<WorkspaceAlert[]>([]),
-    [readAlertIds, setReadAlertIds] = useState<Set<string>>(new Set());
+    [readAlertIds, setReadAlertIds] = useState<Set<string>>(new Set()),
+    [billingNow, setBillingNow] = useState(() => Date.now());
   const router = useRouter(),
     path = usePathname();
   const profileMenuRef = useRef<HTMLDivElement>(null);
+  const globalSyncTimerRef = useRef<number | null>(null);
+  const billingExpiryTriggeredRef = useRef(false);
 
   useEffect(() => {
     setProfileOpen(false);
@@ -321,6 +345,125 @@ export default function Workspace({
     setOpen(false);
     setMobileMoreOpen(false);
   }, [path]);
+
+  const scheduleGlobalSync = useCallback(
+    (table: string, accessCritical = false) => {
+      window.dispatchEvent(
+        new CustomEvent("horaria:data-change", { detail: { table } }),
+      );
+
+      if (globalSyncTimerRef.current) {
+        window.clearTimeout(globalSyncTimerRef.current);
+      }
+
+      globalSyncTimerRef.current = window.setTimeout(() => {
+        router.refresh();
+        if (accessCritical) void refresh();
+      }, 220);
+    },
+    [refresh, router],
+  );
+
+  useEffect(() => {
+    if (!supabase || !empresa?.id || !userId) return;
+
+    const companyId = empresa.id;
+    const channel = supabase.channel(
+      "workspace-live-sync-" + companyId + "-" + userId,
+    );
+
+    const tables = [
+      "clientes",
+      "equipamentos",
+      "financeiro",
+      "ordens_servico",
+      "orcamentos",
+      "agendamentos",
+      "pecas",
+      "servicos",
+      "vendas",
+    ];
+
+    tables.forEach((table) => {
+      channel.on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table,
+          filter: "empresa_id=eq." + companyId,
+        },
+        () => scheduleGlobalSync(table),
+      );
+    });
+
+    channel
+      .on(
+        "postgres_changes",
+        {
+          event: "UPDATE",
+          schema: "public",
+          table: "empresas",
+          filter: "id=eq." + companyId,
+        },
+        () => scheduleGlobalSync("empresas", true),
+      )
+      .on(
+        "postgres_changes",
+        {
+          event: "UPDATE",
+          schema: "public",
+          table: "assinaturas",
+          filter: "empresa_id=eq." + companyId,
+        },
+        () => scheduleGlobalSync("assinaturas", true),
+      )
+      .subscribe();
+
+    const accessSafetySync = window.setInterval(() => {
+      void refresh();
+    }, 60000);
+
+    const visibility = () => {
+      if (document.visibilityState === "visible") void refresh();
+    };
+    document.addEventListener("visibilitychange", visibility);
+
+    return () => {
+      if (globalSyncTimerRef.current) {
+        window.clearTimeout(globalSyncTimerRef.current);
+        globalSyncTimerRef.current = null;
+      }
+      window.clearInterval(accessSafetySync);
+      document.removeEventListener("visibilitychange", visibility);
+      void supabase!.removeChannel(channel);
+    };
+  }, [empresa?.id, refresh, scheduleGlobalSync, userId]);
+
+  useEffect(() => {
+    const deadline = billingDeadline(access);
+    if (!deadline) {
+      billingExpiryTriggeredRef.current = false;
+      return;
+    }
+
+    const tick = () => {
+      const current = Date.now();
+      setBillingNow(current);
+      if (
+        current >= deadline &&
+        !billingExpiryTriggeredRef.current
+      ) {
+        billingExpiryTriggeredRef.current = true;
+        void refresh();
+        router.refresh();
+      }
+    };
+
+    tick();
+    const timer = window.setInterval(tick, 1000);
+    return () => window.clearInterval(timer);
+  }, [access, refresh, router]);
 
   useEffect(() => {
     const updateClock = () => {
@@ -1292,10 +1435,18 @@ export default function Workspace({
         {access.subscription?.status === "PAST_DUE" && (
           <div className="notice subscription-warning">
             <div>
-              <strong>
-                Não conseguimos confirmar o pagamento da sua assinatura.
-              </strong>
-              <span>Seus dados permanecem seguros.</span>
+              <strong>Pagamento pendente — tolerância de 24 horas.</strong>
+              <span>
+                Prazo restante:{" "}
+                <b className="subscription-warning-countdown">
+                  {billingDeadline(access)
+                    ? countdownLabel(
+                        Number(billingDeadline(access)) - billingNow,
+                      )
+                    : "verificando…"}
+                </b>
+                . O status e o acesso são atualizados automaticamente.
+              </span>
             </div>
             <Link className="outline" href="/painel/assinatura">
               Regularizar assinatura
