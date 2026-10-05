@@ -16,6 +16,12 @@ export type AccessContext = {
   registrationEnabled: boolean;
   maxCompanies: number;
   publicAppUrl?: string | null;
+  billing?: {
+    graceHours: number;
+    initialAmount: number;
+    monthlyAmount: number;
+    hasApprovedPayment: boolean;
+  };
   company: null | {
     id: string;
     name: string;
