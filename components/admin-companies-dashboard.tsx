@@ -8,7 +8,6 @@ import {
   type KeyboardEvent,
   type MouseEvent,
 } from "react";
-import { useRouter } from "next/navigation";
 import { supabase, message } from "@/lib/supabase";
 import { ErrorBox, Heading } from "./ui";
 
@@ -224,7 +223,6 @@ export default function AdminCompaniesDashboard({
   initialBilling: AdminBillingOverview;
   initialExpenses: PlatformExpense[];
 }) {
-  const router = useRouter();
   const [companyRows, setCompanyRows] = useState(initialCompanies);
   const [overview, setOverview] = useState(initialOverview);
   const [billing, setBilling] = useState(initialBilling);
