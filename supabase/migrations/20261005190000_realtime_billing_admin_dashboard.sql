@@ -40,24 +40,30 @@ create table if not exists private.platform_expenses (
 
 revoke all on table private.platform_expenses from public, anon, authenticated;
 
-do $$
+do $
 declare
   target_table text;
 begin
-  foreach target_table in array array['empresas','assinaturas','vendas','empresa_membros']
-  loop
-    if not exists (
-      select 1
-      from pg_publication_tables
-      where pubname = 'supabase_realtime'
-        and schemaname = 'public'
-        and tablename = target_table
-    ) then
-      execute format('alter publication supabase_realtime add table public.%I', target_table);
-    end if;
-  end loop;
+  if exists (
+    select 1
+    from pg_publication
+    where pubname = 'supabase_realtime'
+  ) then
+    foreach target_table in array array['empresas','assinaturas','vendas','empresa_membros']
+    loop
+      if not exists (
+        select 1
+        from pg_publication_tables
+        where pubname = 'supabase_realtime'
+          and schemaname = 'public'
+          and tablename = target_table
+      ) then
+        execute format('alter publication supabase_realtime add table public.%I', target_table);
+      end if;
+    end loop;
+  end if;
 end
-$$;
+$;
 
 create or replace function private.effective_company_status(p_empresa uuid)
 returns text
