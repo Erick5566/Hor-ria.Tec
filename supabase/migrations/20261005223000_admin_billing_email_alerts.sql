@@ -43,6 +43,13 @@ revoke all on public.admin_email_notifications from anon, authenticated;
 create index if not exists admin_email_notifications_status_retry_idx
   on public.admin_email_notifications(status, last_attempt_at, created_at);
 
+create index if not exists admin_email_notifications_empresa_idx
+  on public.admin_email_notifications(empresa_id);
+create index if not exists admin_email_notifications_assinatura_idx
+  on public.admin_email_notifications(assinatura_id);
+create index if not exists admin_email_notifications_pagamento_idx
+  on public.admin_email_notifications(pagamento_id);
+
 create or replace function private.dispatch_admin_email_notification()
 returns trigger
 language plpgsql
