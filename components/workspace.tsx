@@ -374,7 +374,7 @@ export default function Workspace({
       window.clearInterval(safetySync);
       window.removeEventListener("focus", scheduleLiveRefresh);
       document.removeEventListener("visibilitychange", onVisible);
-      void supabase.removeChannel(channel);
+      void supabase!.removeChannel(channel);
     };
   }, [empresa?.id, refresh, router, userId]);
 
