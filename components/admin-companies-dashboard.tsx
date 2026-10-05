@@ -1,12 +1,13 @@
 "use client";
 
 import {
+  useCallback,
+  useEffect,
   useMemo,
   useState,
   type KeyboardEvent,
   type MouseEvent,
 } from "react";
-import { useRouter } from "next/navigation";
 import { supabase, message } from "@/lib/supabase";
 import { ErrorBox, Heading } from "./ui";
 
@@ -22,6 +23,11 @@ export type AdminCompanyRow = {
   subscriptionStatus?: string | null;
   trialEndsAt?: string | null;
   nextBillingDate?: string | null;
+  dueAt?: string | null;
+  graceEndsAt?: string | null;
+  amountDue?: number | null;
+  lastPaymentAt?: string | null;
+  lastPaymentAmount?: number | null;
   monthlyValue?: number | null;
   currency?: string | null;
   lastAccessAt?: string | null;
@@ -42,6 +48,36 @@ export type PlatformOverview = {
   currentCompanies: number;
   publicAppUrl?: string | null;
   featureFlags: Record<string, boolean>;
+};
+
+export type AdminBillingOverview = {
+  receivedThisMonth: number;
+  receivedTotal: number;
+  expensesThisMonth: number;
+  expensesTotal: number;
+  netThisMonth: number;
+  receivableTotal: number;
+  pendingCount: number;
+  overdueCount: number;
+  dueNext24hCount: number;
+  activeSubscriptions: number;
+  trialSubscriptions: number;
+  suspendedCount: number;
+  estimatedMrr: number;
+  graceHours: number;
+  initialAmount: number;
+  monthlyAmount: number;
+};
+
+export type PlatformExpense = {
+  id: string;
+  description: string;
+  category: string;
+  amount: number;
+  incurredOn: string;
+  recurring: boolean;
+  notes?: string | null;
+  createdAt: string;
 };
 
 type AdminCompanyDetail = {
@@ -179,11 +215,23 @@ function weeklyCompanies(companies: AdminCompanyRow[]) {
 export default function AdminCompaniesDashboard({
   initialCompanies,
   initialOverview,
+  initialBilling,
+  initialExpenses,
 }: {
   initialCompanies: AdminCompanyRow[];
   initialOverview: PlatformOverview;
+  initialBilling: AdminBillingOverview;
+  initialExpenses: PlatformExpense[];
 }) {
-  const router = useRouter();
+  const [companyRows, setCompanyRows] = useState(initialCompanies);
+  const [overview, setOverview] = useState(initialOverview);
+  const [billing, setBilling] = useState(initialBilling);
+  const [expenses, setExpenses] = useState(initialExpenses);
+  const [expenseDescription, setExpenseDescription] = useState("");
+  const [expenseCategory, setExpenseCategory] = useState("Infraestrutura");
+  const [expenseAmount, setExpenseAmount] = useState("");
+  const [expenseRecurring, setExpenseRecurring] = useState(false);
+  const [expenseBusy, setExpenseBusy] = useState(false);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("ALL");
   const [sortBy, setSortBy] = useState("last_access");
@@ -199,10 +247,10 @@ export default function AdminCompaniesDashboard({
   const [notice, setNotice] = useState("");
 
   const metrics = useMemo(() => {
-    const active = initialCompanies.filter((company) =>
+    const active = companyRows.filter((company) =>
       ["ACTIVE", "TRIAL"].includes(company.status),
     ).length;
-    const activeSubscriptions = initialCompanies.filter(
+    const activeSubscriptions = companyRows.filter(
       (company) => company.subscriptionStatus === "ACTIVE",
     );
     const mrr = activeSubscriptions.reduce(
@@ -213,26 +261,26 @@ export default function AdminCompaniesDashboard({
       active,
       mrr,
       activeSubscriptions: activeSubscriptions.length,
-      weekly: weeklyCompanies(initialCompanies),
+      weekly: weeklyCompanies(companyRows),
     };
-  }, [initialCompanies]);
+  }, [companyRows]);
 
   const capacity = Math.min(
     100,
-    initialOverview.maxCompanies
-      ? (initialOverview.currentCompanies / initialOverview.maxCompanies) * 100
+    overview.maxCompanies
+      ? (overview.currentCompanies / overview.maxCompanies) * 100
       : 0,
   );
 
   const pending = useMemo(() => {
-    const payment = initialCompanies.find(
+    const payment = companyRows.find(
       (company) =>
         company.status === "PAST_DUE" ||
         company.subscriptionStatus === "PAST_DUE",
     );
     if (payment) return { type: "payment" as const, company: payment, days: null };
 
-    const trial = initialCompanies
+    const trial = companyRows
       .map((company) => ({
         company,
         days: daysUntil(company.trialEndsAt),
@@ -249,11 +297,11 @@ export default function AdminCompaniesDashboard({
     return trial
       ? { type: "trial" as const, company: trial.company, days: trial.days }
       : null;
-  }, [initialCompanies]);
+  }, [companyRows]);
 
   const companies = useMemo(() => {
     const query = search.trim().toLocaleLowerCase("pt-BR");
-    const filtered = initialCompanies.filter((company) => {
+    const filtered = companyRows.filter((company) => {
       const matchesSearch =
         !query ||
         [company.name, company.responsible, company.email]
@@ -285,7 +333,114 @@ export default function AdminCompaniesDashboard({
         : Number.NEGATIVE_INFINITY;
       return bTime - aTime;
     });
-  }, [initialCompanies, search, sortBy, statusFilter]);
+  }, [companyRows, search, sortBy, statusFilter]);
+
+  const refreshAdminData = useCallback(async () => {
+    if (!supabase) return;
+    const [companiesResult, overviewResult, billingResult, expensesResult] =
+      await Promise.all([
+        supabase.rpc("admin_list_companies"),
+        supabase.rpc("admin_platform_overview"),
+        supabase.rpc("admin_billing_overview"),
+        supabase.rpc("admin_list_platform_expenses", { p_limit: 50 }),
+      ]);
+
+    if (!companiesResult.error)
+      setCompanyRows((companiesResult.data || []) as AdminCompanyRow[]);
+    if (!overviewResult.error)
+      setOverview(overviewResult.data as PlatformOverview);
+    if (!billingResult.error)
+      setBilling(billingResult.data as AdminBillingOverview);
+    if (!expensesResult.error)
+      setExpenses((expensesResult.data || []) as PlatformExpense[]);
+
+    if (selectedCompanyId) {
+      const detailResult = await supabase.rpc("admin_company_detail", {
+        p_empresa: selectedCompanyId,
+      });
+      if (!detailResult.error) {
+        const next = detailResult.data as AdminCompanyDetail;
+        setDetail(next);
+        setNote(next.note || "");
+      }
+    }
+  }, [selectedCompanyId]);
+
+  useEffect(() => {
+    if (!supabase) return;
+
+    let refreshTimer: number | null = null;
+    const scheduleRefresh = () => {
+      if (refreshTimer) window.clearTimeout(refreshTimer);
+      refreshTimer = window.setTimeout(() => void refreshAdminData(), 250);
+    };
+
+    const channel = supabase
+      .channel("admin-live-dashboard")
+      .on("postgres_changes", { event: "*", schema: "public", table: "empresas" }, scheduleRefresh)
+      .on("postgres_changes", { event: "*", schema: "public", table: "assinaturas" }, scheduleRefresh)
+      .on("postgres_changes", { event: "*", schema: "public", table: "pagamentos" }, scheduleRefresh)
+      .on("postgres_changes", { event: "*", schema: "public", table: "empresa_membros" }, scheduleRefresh)
+      .subscribe();
+
+    const safetySync = window.setInterval(() => void refreshAdminData(), 30000);
+
+    return () => {
+      if (refreshTimer) window.clearTimeout(refreshTimer);
+      window.clearInterval(safetySync);
+      void supabase!.removeChannel(channel);
+    };
+  }, [refreshAdminData]);
+
+  async function addPlatformExpense() {
+    const amount = Number(expenseAmount.replace(",", "."));
+    if (!expenseDescription.trim() || !Number.isFinite(amount) || amount <= 0) {
+      setError("Informe a descrição e um valor válido para a despesa.");
+      return;
+    }
+
+    setExpenseBusy(true);
+    setError("");
+    setNotice("");
+    try {
+      const result = await supabase!.rpc("admin_add_platform_expense", {
+        p_description: expenseDescription.trim(),
+        p_amount: amount,
+        p_category: expenseCategory,
+        p_incurred_on: new Date().toISOString().slice(0, 10),
+        p_recurring: expenseRecurring,
+        p_notes: null,
+      });
+      if (result.error) throw result.error;
+      setExpenseDescription("");
+      setExpenseAmount("");
+      setExpenseRecurring(false);
+      setNotice("Despesa da plataforma registrada.");
+      await refreshAdminData();
+    } catch (caught) {
+      setError(message(caught as Error));
+    } finally {
+      setExpenseBusy(false);
+    }
+  }
+
+  async function deletePlatformExpense(expense: PlatformExpense) {
+    if (!window.confirm("Excluir a despesa “" + expense.description + "”?")) return;
+    setExpenseBusy(true);
+    setError("");
+    try {
+      const result = await supabase!.rpc("admin_delete_platform_expense", {
+        p_expense: expense.id,
+      });
+      if (result.error) throw result.error;
+      setNotice("Despesa removida.");
+      await refreshAdminData();
+    } catch (caught) {
+      setError(message(caught as Error));
+    } finally {
+      setExpenseBusy(false);
+    }
+  }
 
   async function selectCompany(
     company: AdminCompanyRow,
@@ -382,7 +537,7 @@ export default function AdminCompaniesDashboard({
             : "a definir") +
           ".",
       );
-      router.refresh();
+      await refreshAdminData();
     } catch (caught) {
       setDetailError(message(caught as Error));
     } finally {
@@ -409,7 +564,7 @@ export default function AdminCompaniesDashboard({
       setNotice(
         reactivate ? "Empresa reativada." : "Empresa suspensa com sucesso.",
       );
-      router.refresh();
+      await refreshAdminData();
       if (selectedCompanyId === company.id) {
         await selectCompany(company);
       }
@@ -475,68 +630,112 @@ export default function AdminCompaniesDashboard({
         </section>
       )}
 
-      <div className="admin-overview-grid">
+      <div className="admin-overview-grid admin-billing-overview-grid">
         <article className="admin-overview-card">
-          <div className="admin-overview-card-head">
-            <span>Empresas</span>
-            <b aria-hidden="true">▦</b>
-          </div>
-          <strong>{initialOverview.currentCompanies}</strong>
-          <small>de {initialOverview.maxCompanies} vagas</small>
-          <div
-            className="admin-capacity-track"
-            title={Math.round(capacity) + "% da capacidade utilizada"}
-          >
+          <div className="admin-overview-card-head"><span>Empresas</span><b aria-hidden="true">▦</b></div>
+          <strong>{overview.currentCompanies}</strong>
+          <small>de {overview.maxCompanies} vagas</small>
+          <div className="admin-capacity-track" title={Math.round(capacity) + "% da capacidade utilizada"}>
             <i style={{ width: capacity + "%" }} />
           </div>
         </article>
-
         <article className="admin-overview-card">
-          <div className="admin-overview-card-head">
-            <span>Ativas</span>
-            <b aria-hidden="true">✓</b>
-          </div>
-          <strong>{metrics.active}</strong>
-          <small>Incluindo período inicial</small>
+          <div className="admin-overview-card-head"><span>MRR estimado</span><b aria-hidden="true">R$</b></div>
+          <strong>{money(billing.estimatedMrr)}</strong>
+          <small>{billing.activeSubscriptions} assinaturas ativas</small>
         </article>
-
+        <article className="admin-overview-card admin-money-positive">
+          <div className="admin-overview-card-head"><span>Recebido no mês</span><b aria-hidden="true">↗</b></div>
+          <strong>{money(billing.receivedThisMonth)}</strong>
+          <small>Total histórico: {money(billing.receivedTotal)}</small>
+        </article>
+        <article className="admin-overview-card admin-money-negative">
+          <div className="admin-overview-card-head"><span>Gastos no mês</span><b aria-hidden="true">↘</b></div>
+          <strong>{money(billing.expensesThisMonth)}</strong>
+          <small>Total registrado: {money(billing.expensesTotal)}</small>
+        </article>
         <article className="admin-overview-card">
-          <div className="admin-overview-card-head">
-            <span>MRR estimado</span>
-            <b aria-hidden="true">R$</b>
-          </div>
-          <strong>{money(metrics.mrr)}</strong>
-          <small>
-            {metrics.activeSubscriptions}{" "}
-            {metrics.activeSubscriptions === 1
-              ? "assinatura ativa"
-              : "assinaturas ativas"}
-          </small>
+          <div className="admin-overview-card-head"><span>Resultado do mês</span><b aria-hidden="true">＝</b></div>
+          <strong>{money(billing.netThisMonth)}</strong>
+          <small>Receitas menos despesas da Horária</small>
         </article>
-
-        <article className="admin-overview-card admin-new-companies-card">
-          <div className="admin-overview-card-head">
-            <span>Novas empresas</span>
-            <b aria-hidden="true">＋</b>
-          </div>
-          <div
-            className="admin-week-spark"
-            aria-label="Novas empresas por semana nas últimas seis semanas"
-          >
-            {metrics.weekly.map((item) => (
-              <span key={item.label} title={item.label + ": " + item.count}>
-                <i
-                  style={{
-                    height: Math.max(12, (item.count / sparkMax) * 52) + "px",
-                  }}
-                />
-                <small>{item.count}</small>
-              </span>
-            ))}
-          </div>
-          <small>Últimas 6 semanas</small>
+        <article className="admin-overview-card admin-money-warning">
+          <div className="admin-overview-card-head"><span>A receber</span><b aria-hidden="true">!</b></div>
+          <strong>{money(billing.receivableTotal)}</strong>
+          <small>{billing.overdueCount} em atraso · {billing.pendingCount} pendentes</small>
+        </article>
+        <article className="admin-overview-card">
+          <div className="admin-overview-card-head"><span>Vencem em 24h</span><b aria-hidden="true">◷</b></div>
+          <strong>{billing.dueNext24hCount}</strong>
+          <small>Tolerância configurada: {billing.graceHours}h</small>
+        </article>
+        <article className="admin-overview-card">
+          <div className="admin-overview-card-head"><span>Suspensas</span><b aria-hidden="true">×</b></div>
+          <strong>{billing.suspendedCount}</strong>
+          <small>{billing.trialSubscriptions} em período inicial</small>
         </article>
       </div>
+
+      <section className="panel admin-platform-finance">
+        <div className="admin-platform-finance-head">
+          <div>
+            <span className="eyebrow">FINANCEIRO DA HORÁRIA</span>
+            <h2>Despesas da plataforma</h2>
+            <p>Registre apenas custos da Horária, como domínio, infraestrutura e ferramentas.</p>
+          </div>
+          <strong>{money(billing.expensesThisMonth)} no mês</strong>
+        </div>
+        <div className="admin-expense-form">
+          <input
+            aria-label="Descrição da despesa"
+            placeholder="Ex.: domínio, ferramenta, infraestrutura"
+            value={expenseDescription}
+            onChange={(event) => setExpenseDescription(event.target.value)}
+          />
+          <select
+            aria-label="Categoria da despesa"
+            value={expenseCategory}
+            onChange={(event) => setExpenseCategory(event.target.value)}
+          >
+            <option>Infraestrutura</option>
+            <option>Domínio</option>
+            <option>Ferramentas</option>
+            <option>Marketing</option>
+            <option>Operação</option>
+            <option>Outros</option>
+          </select>
+          <input
+            aria-label="Valor da despesa"
+            inputMode="decimal"
+            placeholder="R$ 0,00"
+            value={expenseAmount}
+            onChange={(event) => setExpenseAmount(event.target.value)}
+          />
+          <label className="admin-expense-recurring">
+            <input
+              type="checkbox"
+              checked={expenseRecurring}
+              onChange={(event) => setExpenseRecurring(event.target.checked)}
+            />
+            Recorrente
+          </label>
+          <button className="primary" type="button" disabled={expenseBusy} onClick={() => void addPlatformExpense()}>
+            {expenseBusy ? "Salvando…" : "Adicionar despesa"}
+          </button>
+        </div>
+        <div className="admin-expense-list">
+          {expenses.length ? expenses.slice(0, 8).map((expense) => (
+            <article key={expense.id}>
+              <div>
+                <strong>{expense.description}</strong>
+                <small>{expense.category} · {new Date(expense.incurredOn + "T12:00:00").toLocaleDateString("pt-BR")}{expense.recurring ? " · recorrente" : ""}</small>
+              </div>
+              <b>{money(expense.amount)}</b>
+              <button type="button" className="outline" disabled={expenseBusy} onClick={() => void deletePlatformExpense(expense)}>Excluir</button>
+            </article>
+          )) : <p className="admin-detail-muted">Nenhuma despesa da Horária registrada.</p>}
+        </div>
+      </section>
 
       <div className="admin-companies-layout">
         <section className="panel admin-companies-list">
@@ -583,6 +782,8 @@ export default function AdminCompaniesDashboard({
                   <th>Responsável</th>
                   <th>Plano</th>
                   <th>Uso</th>
+                  <th>Vencimento</th>
+                  <th>Cobrança</th>
                   <th>Último acesso</th>
                   <th>Status</th>
                   <th aria-label="Ações" />
@@ -626,6 +827,28 @@ export default function AdminCompaniesDashboard({
                             {company.ordersCount}
                           </span>
                         </div>
+                      </td>
+                      <td>
+                        <strong>{company.dueAt ? relativeDate(company.dueAt) : "—"}</strong>
+                        <small>{company.dueAt ? fullDate(company.dueAt) : "Sem vencimento"}</small>
+                      </td>
+                      <td>
+                        {Number(company.amountDue || 0) > 0 ? (
+                          <>
+                            <strong>{money(company.amountDue)}</strong>
+                            <small>em aberto</small>
+                          </>
+                        ) : company.lastPaymentAt ? (
+                          <>
+                            <strong>Pago</strong>
+                            <small>{fullDate(company.lastPaymentAt)}</small>
+                          </>
+                        ) : (
+                          <>
+                            <strong>Sem pagamento</strong>
+                            <small>{company.subscriptionStatus === "TRIAL" ? "Período inicial" : "Sem cobrança registrada"}</small>
+                          </>
+                        )}
                       </td>
                       <td>
                         <time

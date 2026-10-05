@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Heading } from "@/components/ui";
 import { useWorkspace } from "@/components/workspace";
 import { buildPixPayload, getSubscriptionPixPayment } from "@/lib/pix";
@@ -34,6 +34,7 @@ export default function SubscriptionPage() {
   const { access } = useWorkspace();
   const subscription = access.subscription;
   const [copied, setCopied] = useState<"pix" | "key" | "">("");
+  const [, setClockTick] = useState(0);
 
   const payment = useMemo(
     () => getSubscriptionPixPayment(subscription?.status),
@@ -56,6 +57,23 @@ export default function SubscriptionPage() {
     "https://quickchart.io/qr?size=320&margin=2&ecLevel=M&text=" +
     encodeURIComponent(pixPayload);
 
+  useEffect(() => {
+    const timer = window.setInterval(() => setClockTick((value) => value + 1), 1000);
+    return () => window.clearInterval(timer);
+  }, []);
+
+  const graceEndsAt =
+    subscription?.nextBillingDate && subscription.status === "PAST_DUE"
+      ? new Date(subscription.nextBillingDate).getTime() +
+        (access.billing?.graceHours || 24) * 60 * 60 * 1000
+      : null;
+  const remainingMs = graceEndsAt ? Math.max(0, graceEndsAt - Date.now()) : 0;
+  const remainingLabel = graceEndsAt
+    ? [Math.floor(remainingMs / 3600000), Math.floor((remainingMs % 3600000) / 60000), Math.floor((remainingMs % 60000) / 1000)]
+        .map((value) => String(value).padStart(2, "0"))
+        .join(":")
+    : "";
+
   async function handleCopy(type: "pix" | "key", value: string) {
     try {
       await copyText(value);
@@ -72,6 +90,20 @@ export default function SubscriptionPage() {
         title="Assinatura da Horária"
         subtitle="Situação de acesso, ciclo da empresa e pagamento."
       />
+
+      {subscription?.status === "ACTIVE" && (
+        <section className="notice subscription-paid-status" role="status">
+          <strong>Pagamento confirmado ✓</strong>
+          <span>Sua assinatura está ativa. Esta tela acompanha novas confirmações automaticamente.</span>
+        </section>
+      )}
+
+      {subscription?.status === "PAST_DUE" && remainingLabel && (
+        <section className="notice subscription-countdown" role="status">
+          <strong>Tolerância de pagamento: {remainingLabel}</strong>
+          <span>Ao chegar a zero, o acesso é bloqueado automaticamente se o pagamento ainda não tiver sido confirmado.</span>
+        </section>
+      )}
 
       <section className="panel subscription-card">
         <dl className="definition-grid">
@@ -172,14 +204,11 @@ export default function SubscriptionPage() {
             </div>
 
             <div className="notice subscription-manual-confirmation">
-              <strong>Confirmação manual</strong>
+              <strong>Acompanhamento automático da assinatura</strong>
               <p>
-                Depois do pagamento, a equipe da Horária confirma{" "}
-                {payment.kind === "initial"
-                  ? "o pagamento inicial"
-                  : "a mensalidade"}{" "}
-                no sistema. Não é necessário pagar novamente enquanto a
-                confirmação estiver sendo analisada.
+                Esta página monitora a situação da conta em tempo real. Assim que
+                o backend receber a confirmação do pagamento, o status muda para
+                pago e o acesso é liberado sem F5.
               </p>
             </div>
           </div>
@@ -191,9 +220,9 @@ export default function SubscriptionPage() {
           <div className="notice">
             <strong>Mensalidade pendente</strong>
             <p>
-              Use o Pix acima para regularizar a assinatura. Após a confirmação
-              do pagamento, o status da conta poderá ser atualizado pela
-              administração da Horária.
+              Use o Pix acima para regularizar a assinatura. A página permanece
+              acompanhando a assinatura e muda automaticamente quando a confirmação
+              do pagamento chegar ao sistema.
             </p>
           </div>
         </section>
