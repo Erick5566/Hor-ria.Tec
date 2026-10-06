@@ -8,7 +8,10 @@ import { createRequire } from "node:module";
 const require = createRequire(import.meta.url);
 
 async function loadPixModule() {
-  const source = await readFile(new URL("../lib/pix.ts", import.meta.url), "utf8");
+  const source = await readFile(
+    new URL("../lib/pix.ts", import.meta.url),
+    "utf8",
+  );
   const transpiled = ts.transpileModule(source, {
     compilerOptions: {
       module: ts.ModuleKind.CommonJS,
@@ -77,4 +80,12 @@ test("pix: rejeita chave vazia e valores inválidos", async () => {
       merchantCity: "Camaçari",
     }),
   );
+});
+
+test("pix: trial vencido sem pagamento aprovado mantém R$44,99, enquanto renovação custa R$59", async () => {
+  const { getSubscriptionPixPayment } = await loadPixModule();
+  assert.equal(getSubscriptionPixPayment("PAST_DUE", false).amount, 44.99);
+  assert.equal(getSubscriptionPixPayment("SUSPENDED", false).amount, 44.99);
+  assert.equal(getSubscriptionPixPayment("PAST_DUE", true).amount, 59);
+  assert.equal(getSubscriptionPixPayment("TRIAL", true).amount, 59);
 });

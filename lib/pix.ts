@@ -33,13 +33,19 @@ export function pixCrc16(payload: string) {
 
 export function getSubscriptionPixPayment(
   status?: "TRIAL" | "ACTIVE" | "PAST_DUE" | "SUSPENDED" | "CANCELED" | null,
+  hasApprovedPayment?: boolean,
 ) {
-  const isInitialPayment = !status || status === "TRIAL";
+  const isInitialPayment =
+    hasApprovedPayment === undefined
+      ? !status || status === "TRIAL"
+      : !hasApprovedPayment;
 
   return {
     kind: isInitialPayment ? ("initial" as const) : ("monthly" as const),
     amount: isInitialPayment ? 44.99 : 59,
-    heading: isInitialPayment ? "Pagamento inicial Horária" : "Mensalidade Horária",
+    heading: isInitialPayment
+      ? "Pagamento inicial Horária"
+      : "Mensalidade Horária",
     priceLabel: isInitialPayment ? "Valor inicial" : "Mensalidade",
     description: isInitialPayment
       ? "Pagamento inicial Horária"

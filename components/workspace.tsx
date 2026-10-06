@@ -372,16 +372,19 @@ export default function Workspace({
       )
       .subscribe();
 
-    const onFocus = () => scheduleLiveRefresh(undefined, true);
+    const onFocus = () => {
+      if (document.visibilityState === "visible" && navigator.onLine)
+        scheduleLiveRefresh(undefined, true);
+    };
     const onVisible = () => {
       if (document.visibilityState === "visible")
-        scheduleLiveRefresh(undefined, true);
+        onFocus();
     };
     window.addEventListener("focus", onFocus);
     document.addEventListener("visibilitychange", onVisible);
 
     const safetySync = window.setInterval(
-      () => scheduleLiveRefresh(undefined, true),
+      onFocus,
       45000,
     );
 

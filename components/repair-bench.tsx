@@ -1,4 +1,5 @@
 "use client";
+import { subscribeWorkspaceDataChanges } from "@/lib/data-change";
 import { localDay } from "@/lib/receipt-dates";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
@@ -362,7 +363,13 @@ export default function RepairBench({
         refreshSoon,
       )
       .subscribe();
+    const stopWorkspaceSync = subscribeWorkspaceDataChanges(refreshSoon, [
+      "ordens_servico",
+      "orcamentos",
+      "historico_os",
+    ]);
     return () => {
+      stopWorkspaceSync();
       window.clearTimeout(timer);
       void supabase!.removeChannel(channel);
     };
@@ -905,7 +912,9 @@ export default function RepairBench({
                     <article
                       className={`repair-card repair-card-pro priority-${order.prioridade}`}
                       key={order.id}
-                      draggable={manager || !quoteWaitingStatuses.has(order.status)}
+                      draggable={
+                        manager || !quoteWaitingStatuses.has(order.status)
+                      }
                       onDragStart={(event) =>
                         event.dataTransfer.setData("text/order-id", order.id)
                       }

@@ -1,8 +1,16 @@
 "use client";
+import { subscribeWorkspaceDataChanges } from "@/lib/data-change";
 import { useCallback, useEffect, useState } from "react";
 import { money, type Peca, saveRow, stamp } from "@/lib/assistencia";
 import { message, supabase } from "@/lib/supabase";
-import { Empty, ErrorBox, MetricCard, MetricGrid, Pagination, PanelTitle } from "./ui";
+import {
+  Empty,
+  ErrorBox,
+  MetricCard,
+  MetricGrid,
+  Pagination,
+  PanelTitle,
+} from "./ui";
 import { useWorkspace } from "./workspace";
 
 type Movement = {
@@ -52,7 +60,9 @@ export default function InventoryManagement() {
   const [page, setPage] = useState(1);
   const [editing, setEditing] = useState<Peca | "new" | null>(null);
   const [moving, setMoving] = useState<Peca | null>(null);
-  const [movementType, setMovementType] = useState<"entrada" | "saida">("entrada");
+  const [movementType, setMovementType] = useState<"entrada" | "saida">(
+    "entrada",
+  );
   const [query, setQuery] = useState("");
   const [debouncedQuery, setDebouncedQuery] = useState("");
   const [type, setType] = useState("Todos");
@@ -131,7 +141,12 @@ export default function InventoryManagement() {
       )
       .subscribe();
 
+    const stopWorkspaceSync = subscribeWorkspaceDataChanges(refreshSoon, [
+      "pecas",
+      "movimentos_estoque",
+    ]);
     return () => {
+      stopWorkspaceSync();
       window.clearTimeout(timer);
       void supabase!.removeChannel(channel);
     };

@@ -34,7 +34,6 @@ const dateTime = (value: unknown) => {
   }).format(date);
 };
 
-
 const display = (value: unknown) => {
   const text = String(value ?? "").trim();
   return text || "Não informado";
@@ -49,25 +48,60 @@ const accountLocation = (p: Record<string, unknown>) => {
 
 const accountText = (p: Record<string, unknown>) =>
   "Dados da conta" +
-  "\nEmpresa: " + display(p.companyName) +
-  "\nResponsável: " + display(p.ownerName) +
-  "\nE-mail: " + display(p.ownerEmail) +
-  "\nWhatsApp: " + display(p.companyWhatsapp || p.ownerPhone) +
-  "\nCidade/UF: " + accountLocation(p) +
-  "\nPlano: " + display(p.planName) +
-  "\nStatus: " + display(p.status);
+  "\nEmpresa: " +
+  display(p.companyName) +
+  "\nResponsável: " +
+  display(p.ownerName) +
+  "\nE-mail: " +
+  display(p.ownerEmail) +
+  "\nWhatsApp: " +
+  display(p.companyWhatsapp || p.ownerPhone) +
+  "\nCidade/UF: " +
+  accountLocation(p) +
+  "\nPlano: " +
+  display(p.planName) +
+  "\nStatus: " +
+  display(p.status);
 
 const accountHtml = (p: Record<string, unknown>, labelColor = "#61718b") =>
   '<h2 style="font-size:16px;margin:20px 0 8px">Dados da conta</h2>' +
   '<table style="width:100%;border-collapse:collapse">' +
-  '<tr><td style="padding:6px 0;color:' + labelColor + '">Empresa</td><td style="padding:6px 0;text-align:right"><strong>' + escapeHtml(display(p.companyName)) + '</strong></td></tr>' +
-  '<tr><td style="padding:6px 0;color:' + labelColor + '">Responsável</td><td style="padding:6px 0;text-align:right">' + escapeHtml(display(p.ownerName)) + '</td></tr>' +
-  '<tr><td style="padding:6px 0;color:' + labelColor + '">E-mail</td><td style="padding:6px 0;text-align:right">' + escapeHtml(display(p.ownerEmail)) + '</td></tr>' +
-  '<tr><td style="padding:6px 0;color:' + labelColor + '">WhatsApp</td><td style="padding:6px 0;text-align:right">' + escapeHtml(display(p.companyWhatsapp || p.ownerPhone)) + '</td></tr>' +
-  '<tr><td style="padding:6px 0;color:' + labelColor + '">Cidade/UF</td><td style="padding:6px 0;text-align:right">' + escapeHtml(accountLocation(p)) + '</td></tr>' +
-  '<tr><td style="padding:6px 0;color:' + labelColor + '">Plano</td><td style="padding:6px 0;text-align:right">' + escapeHtml(display(p.planName)) + '</td></tr>' +
-  '<tr><td style="padding:6px 0;color:' + labelColor + '">Status</td><td style="padding:6px 0;text-align:right"><strong>' + escapeHtml(display(p.status)) + '</strong></td></tr>' +
-  '</table>';
+  '<tr><td style="padding:6px 0;color:' +
+  labelColor +
+  '">Empresa</td><td style="padding:6px 0;text-align:right"><strong>' +
+  escapeHtml(display(p.companyName)) +
+  "</strong></td></tr>" +
+  '<tr><td style="padding:6px 0;color:' +
+  labelColor +
+  '">Responsável</td><td style="padding:6px 0;text-align:right">' +
+  escapeHtml(display(p.ownerName)) +
+  "</td></tr>" +
+  '<tr><td style="padding:6px 0;color:' +
+  labelColor +
+  '">E-mail</td><td style="padding:6px 0;text-align:right">' +
+  escapeHtml(display(p.ownerEmail)) +
+  "</td></tr>" +
+  '<tr><td style="padding:6px 0;color:' +
+  labelColor +
+  '">WhatsApp</td><td style="padding:6px 0;text-align:right">' +
+  escapeHtml(display(p.companyWhatsapp || p.ownerPhone)) +
+  "</td></tr>" +
+  '<tr><td style="padding:6px 0;color:' +
+  labelColor +
+  '">Cidade/UF</td><td style="padding:6px 0;text-align:right">' +
+  escapeHtml(accountLocation(p)) +
+  "</td></tr>" +
+  '<tr><td style="padding:6px 0;color:' +
+  labelColor +
+  '">Plano</td><td style="padding:6px 0;text-align:right">' +
+  escapeHtml(display(p.planName)) +
+  "</td></tr>" +
+  '<tr><td style="padding:6px 0;color:' +
+  labelColor +
+  '">Status</td><td style="padding:6px 0;text-align:right"><strong>' +
+  escapeHtml(display(p.status)) +
+  "</strong></td></tr>" +
+  "</table>";
 
 function paymentContent(p: Record<string, unknown>) {
   const company = escapeHtml(p.companyName || "Empresa");
@@ -92,6 +126,10 @@ function paymentContent(p: Record<string, unknown>) {
       amount +
       "\nTipo: " +
       kind +
+      "\nVencimento: " +
+      dateTime(p.dueAt) +
+      "\nFim da tolerância: " +
+      dateTime(p.graceEndsAt) +
       "\nConfirmado em: " +
       paidAt +
       "\nPróxima cobrança: " +
@@ -117,6 +155,12 @@ function paymentContent(p: Record<string, unknown>) {
       "</strong></td></tr>" +
       '<tr><td style="padding:8px 0;color:#61718b">Tipo</td><td style="padding:8px 0;text-align:right">' +
       escapeHtml(kind) +
+      "</td></tr>" +
+      "<tr><td>Vencimento</td><td>" +
+      escapeHtml(dateTime(p.dueAt)) +
+      "</td></tr>" +
+      "<tr><td>Fim da tolerância</td><td>" +
+      escapeHtml(dateTime(p.graceEndsAt)) +
       "</td></tr>" +
       '<tr><td style="padding:8px 0;color:#61718b">Confirmado em</td><td style="padding:8px 0;text-align:right">' +
       escapeHtml(paidAt) +
@@ -204,9 +248,14 @@ Deno.serve(async (request) => {
     return json({ error: "unauthorized" }, 401);
 
   const supabaseUrl = Deno.env.get("SUPABASE_URL");
-  const serviceKey =
-    Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ??
-    JSON.parse(Deno.env.get("SUPABASE_SECRET_KEYS") ?? "{}").default;
+  let serviceKey: string | undefined;
+  try {
+    serviceKey =
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ??
+      JSON.parse(Deno.env.get("SUPABASE_SECRET_KEYS") ?? "{}").default;
+  } catch {
+    return json({ error: "supabase_secret_missing" }, 503);
+  }
 
   if (!supabaseUrl || !serviceKey)
     return json({ error: "supabase_secret_missing" }, 503);
@@ -215,44 +264,76 @@ Deno.serve(async (request) => {
     auth: { persistSession: false, autoRefreshToken: false },
   });
 
+  const processingToken = crypto.randomUUID();
   const { data: notification, error: claimError } = await admin
     .from("admin_email_notifications")
     .update({
       status: "processing",
       last_attempt_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
+      processing_token: processingToken,
     })
     .eq("id", id)
     .eq("dispatch_token", dispatchToken)
+    .eq("requires_review", false)
     .in("status", ["pending", "failed"])
     .select("*")
     .maybeSingle();
 
-  if (claimError) return json({ error: claimError.message }, 500);
+  if (claimError) return json({ error: "notification_claim_failed" }, 503);
   if (!notification) return json({ ok: true, skipped: true });
+
+  // Only the worker holding this lease may finish or fail the notification.
+  const persist = async (patch: Record<string, unknown>) => {
+    const result = await admin
+      .from("admin_email_notifications")
+      .update({ ...patch, updated_at: new Date().toISOString() })
+      .eq("id", id)
+      .eq("processing_token", processingToken)
+      .select("id")
+      .maybeSingle();
+    return !result.error && !!result.data;
+  };
+  const deliveryStarted = notification.delivery_started_at;
+  const legacyAttempt =
+    !deliveryStarted &&
+    notification.attempts > 0 &&
+    notification.last_error !== "RESEND_API_KEY não configurada";
+  if (
+    legacyAttempt ||
+    (deliveryStarted &&
+      Date.now() - new Date(deliveryStarted).getTime() >= 23 * 60 * 60 * 1000)
+  ) {
+    const reviewed = await persist({
+      status: "failed",
+      requires_review: true,
+      last_error: "Conferir entrega no provedor antes de reenviar",
+    });
+    if (!reviewed) return json({ error: "notification_state_failed" }, 503);
+    return json({ error: "delivery_requires_review" }, 409);
+  }
 
   let resendKey = Deno.env.get("RESEND_API_KEY") || "";
   let from =
-    Deno.env.get("ADMIN_EMAIL_FROM") ?? "Horária <onboarding@resend.dev>";
+    Deno.env.get("ADMIN_EMAIL_FROM") || "Horária <notificacoes@horaria.site>";
 
-  if (!resendKey) {
+  if (!resendKey || !Deno.env.get("ADMIN_EMAIL_FROM")) {
     const { data: providerCredentials } = await admin.rpc(
       "admin_email_provider_credentials",
     );
-    resendKey = String(providerCredentials?.resendApiKey || "");
-    from = String(providerCredentials?.from || from);
+    resendKey = resendKey || String(providerCredentials?.resendApiKey || "");
+    from =
+      Deno.env.get("ADMIN_EMAIL_FROM") ||
+      String(providerCredentials?.from || from);
   }
 
   if (!resendKey) {
-    await admin
-      .from("admin_email_notifications")
-      .update({
-        status: "pending",
-        attempts: notification.attempts + 1,
-        last_error: "RESEND_API_KEY não configurada",
-        updated_at: new Date().toISOString(),
-      })
-      .eq("id", id);
+    await persist({
+      status: "pending",
+      attempts: notification.attempts + 1,
+      last_error: "RESEND_API_KEY não configurada",
+      updated_at: new Date().toISOString(),
+    });
     return json({ error: "email_provider_not_configured" }, 503);
   }
 
@@ -261,9 +342,19 @@ Deno.serve(async (request) => {
       ? paymentContent(notification.payload || {})
       : graceContent(notification.payload || {});
 
+  if (
+    !(await persist({
+      delivery_started_at: deliveryStarted || new Date().toISOString(),
+    }))
+  )
+    return json({ error: "notification_state_failed" }, 503);
+
+  let result: { id?: string };
+
   try {
     const response = await fetch("https://api.resend.com/emails", {
       method: "POST",
+      signal: AbortSignal.timeout(15000),
       headers: {
         authorization: "Bearer " + resendKey,
         "content-type": "application/json",
@@ -278,33 +369,27 @@ Deno.serve(async (request) => {
       }),
     });
 
-    const result = await response.json();
+    result = await response.json();
     if (!response.ok) throw new Error(JSON.stringify(result));
-
-    await admin
-      .from("admin_email_notifications")
-      .update({
-        status: "sent",
-        attempts: notification.attempts + 1,
-        sent_at: new Date().toISOString(),
-        provider_message_id: result.id ?? null,
-        last_error: null,
-        updated_at: new Date().toISOString(),
-      })
-      .eq("id", id);
-
-    return json({ ok: true, providerMessageId: result.id ?? null });
   } catch (error) {
-    await admin
-      .from("admin_email_notifications")
-      .update({
-        status: "failed",
-        attempts: notification.attempts + 1,
-        last_error: String(error).slice(0, 2000),
-        updated_at: new Date().toISOString(),
-      })
-      .eq("id", id);
+    const failed = await persist({
+      status: "failed",
+      attempts: notification.attempts + 1,
+      last_error: String(error).slice(0, 2000),
+      updated_at: new Date().toISOString(),
+    });
+    if (!failed) return json({ error: "notification_state_failed" }, 503);
 
     return json({ error: "delivery_failed" }, 502);
   }
+
+  const saved = await persist({
+    status: "sent",
+    attempts: notification.attempts + 1,
+    sent_at: new Date().toISOString(),
+    provider_message_id: result.id ?? null,
+    last_error: null,
+  });
+  if (!saved) return json({ error: "notification_state_failed" }, 503);
+  return json({ ok: true, providerMessageId: result.id ?? null });
 });

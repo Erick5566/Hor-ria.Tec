@@ -1,4 +1,5 @@
 "use client";
+import { subscribeWorkspaceDataChanges } from "@/lib/data-change";
 
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -119,16 +120,16 @@ function FinanceMetricCard({
         </span>
       </div>
       <b>{value}</b>
-      <Variation
-        value={variation}
-        period={period}
-        inverse={inverseVariation}
-      />
+      <Variation value={variation} period={period} inverse={inverseVariation} />
     </article>
   );
 }
 
-export default function DashboardFinance({ onNewLaunch }: { onNewLaunch?: () => void }) {
+export default function DashboardFinance({
+  onNewLaunch,
+}: {
+  onNewLaunch?: () => void;
+}) {
   const { empresa } = useWorkspace();
   const [rows, setRows] = useState<Lancamento[]>([]);
   const [orderDetails, setOrderDetails] = useState<Record<string, OrderDetail>>(
@@ -136,8 +137,12 @@ export default function DashboardFinance({ onNewLaunch }: { onNewLaunch?: () => 
   );
   const [period, setPeriod] = useState(30);
   const [category, setCategory] = useState<FinanceCategory>("all");
-  const [tableType, setTableType] = useState<"all" | "receita" | "despesa">("all");
-  const [tableStatus, setTableStatus] = useState<"all" | "pago" | "pendente" | "vencido">("all");
+  const [tableType, setTableType] = useState<"all" | "receita" | "despesa">(
+    "all",
+  );
+  const [tableStatus, setTableStatus] = useState<
+    "all" | "pago" | "pendente" | "vencido"
+  >("all");
   const [tableSearch, setTableSearch] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -264,7 +269,11 @@ export default function DashboardFinance({ onNewLaunch }: { onNewLaunch?: () => 
       )
       .subscribe();
 
+    const stopWorkspaceSync = subscribeWorkspaceDataChanges(refreshSoon, [
+      "financeiro",
+    ]);
     return () => {
+      stopWorkspaceSync();
       window.clearTimeout(timer);
       void supabase!.removeChannel(channel);
     };
@@ -276,10 +285,7 @@ export default function DashboardFinance({ onNewLaunch }: { onNewLaunch?: () => 
   const previousStart = shiftDate(previousEnd, -(period - 1));
 
   const filteredRows = useMemo(
-    () =>
-      rows.filter(
-        (item) => category === "all" || item.origem === category,
-      ),
+    () => rows.filter((item) => category === "all" || item.origem === category),
     [rows, category],
   );
 
@@ -403,7 +409,13 @@ export default function DashboardFinance({ onNewLaunch }: { onNewLaunch?: () => 
   }, [currentAccruedRows]);
 
   const expenseTotal = expenseGroups.reduce((sum, item) => sum + item.value, 0);
-  const expensePalette = ["#ef4d57", "#f59f3a", "#8e58e9", "#2f80ed", "#6d7f9d"];
+  const expensePalette = [
+    "#ef4d57",
+    "#f59f3a",
+    "#8e58e9",
+    "#2f80ed",
+    "#6d7f9d",
+  ];
   const donutBackground = expenseTotal
     ? (() => {
         let cursor = 0;
@@ -432,7 +444,10 @@ export default function DashboardFinance({ onNewLaunch }: { onNewLaunch?: () => 
 
         const overdue = item.status === "pendente" && item.vencimento < end;
         if (tableStatus === "pago" && item.status !== "pago") return false;
-        if (tableStatus === "pendente" && (item.status !== "pendente" || overdue))
+        if (
+          tableStatus === "pendente" &&
+          (item.status !== "pendente" || overdue)
+        )
           return false;
         if (tableStatus === "vencido" && !overdue) return false;
 
@@ -578,7 +593,10 @@ export default function DashboardFinance({ onNewLaunch }: { onNewLaunch?: () => 
         <article className="dashboard-finance-card dashboard-finance-line-card">
           <div className="dashboard-finance-card-head">
             <div>
-              <span className="dashboard-finance-card-icon green" aria-hidden="true">
+              <span
+                className="dashboard-finance-card-icon green"
+                aria-hidden="true"
+              >
                 <HorariaIcon name="trend" />
               </span>
               <strong>Receitas x Despesas</strong>
@@ -587,15 +605,21 @@ export default function DashboardFinance({ onNewLaunch }: { onNewLaunch?: () => 
           </div>
 
           <div className="dashboard-finance-legend">
-            <span><i className="revenue" /> Receitas</span>
-            <span><i className="expense" /> Despesas</span>
+            <span>
+              <i className="revenue" /> Receitas
+            </span>
+            <span>
+              <i className="expense" /> Despesas
+            </span>
           </div>
 
           {!loading && currentPaid.length === 0 && (
             <div className="dashboard-finance-empty-chart">
               <HorariaIcon name="trend" />
               <strong>Nenhuma movimentação neste período</strong>
-              <small>Os gráficos aparecem assim que houver entradas ou saídas pagas.</small>
+              <small>
+                Os gráficos aparecem assim que houver entradas ou saídas pagas.
+              </small>
             </div>
           )}
 
@@ -607,24 +631,29 @@ export default function DashboardFinance({ onNewLaunch }: { onNewLaunch?: () => 
               aria-label="Receitas e despesas no período"
             >
               <defs>
-                <linearGradient id="dashboardRevenueArea" x1="0" y1="0" x2="0" y2="1">
+                <linearGradient
+                  id="dashboardRevenueArea"
+                  x1="0"
+                  y1="0"
+                  x2="0"
+                  y2="1"
+                >
                   <stop offset="0%" stopColor="#20b26b" stopOpacity=".18" />
                   <stop offset="100%" stopColor="#20b26b" stopOpacity="0" />
                 </linearGradient>
-                <linearGradient id="dashboardExpenseArea" x1="0" y1="0" x2="0" y2="1">
+                <linearGradient
+                  id="dashboardExpenseArea"
+                  x1="0"
+                  y1="0"
+                  x2="0"
+                  y2="1"
+                >
                   <stop offset="0%" stopColor="#ef4d57" stopOpacity=".14" />
                   <stop offset="100%" stopColor="#ef4d57" stopOpacity="0" />
                 </linearGradient>
               </defs>
               {[18, 36, 54, 72, 90].map((y) => (
-                <line
-                  key={y}
-                  x1="0"
-                  x2="100"
-                  y1={y}
-                  y2={y}
-                  className="grid"
-                />
+                <line key={y} x1="0" x2="100" y1={y} y2={y} className="grid" />
               ))}
               <polygon
                 points={"0,90 " + linePoints("revenue") + " 100,90"}
@@ -659,7 +688,10 @@ export default function DashboardFinance({ onNewLaunch }: { onNewLaunch?: () => 
         <article className="dashboard-finance-card dashboard-finance-flow-card">
           <div className="dashboard-finance-card-head">
             <div>
-              <span className="dashboard-finance-card-icon blue" aria-hidden="true">
+              <span
+                className="dashboard-finance-card-icon blue"
+                aria-hidden="true"
+              >
                 <HorariaIcon name="finance" />
               </span>
               <strong>Fluxo de caixa</strong>
@@ -668,15 +700,21 @@ export default function DashboardFinance({ onNewLaunch }: { onNewLaunch?: () => 
           </div>
 
           <div className="dashboard-finance-legend">
-            <span><i className="revenue" /> Entradas</span>
-            <span><i className="expense" /> Saídas</span>
+            <span>
+              <i className="revenue" /> Entradas
+            </span>
+            <span>
+              <i className="expense" /> Saídas
+            </span>
           </div>
 
           {!loading && currentPaid.length === 0 && (
             <div className="dashboard-finance-empty-chart">
               <HorariaIcon name="finance" />
               <strong>Sem fluxo de caixa no período</strong>
-              <small>Registre um recebimento ou pagamento para visualizar a evolução.</small>
+              <small>
+                Registre um recebimento ou pagamento para visualizar a evolução.
+              </small>
             </div>
           )}
 
@@ -721,7 +759,10 @@ export default function DashboardFinance({ onNewLaunch }: { onNewLaunch?: () => 
         <article className="dashboard-finance-card dashboard-finance-summary-card">
           <div className="dashboard-finance-card-head">
             <div>
-              <span className="dashboard-finance-card-icon purple" aria-hidden="true">
+              <span
+                className="dashboard-finance-card-icon purple"
+                aria-hidden="true"
+              >
                 <HorariaIcon name="donut" />
               </span>
               <strong>Despesas por categoria</strong>
@@ -786,7 +827,10 @@ export default function DashboardFinance({ onNewLaunch }: { onNewLaunch?: () => 
       <article className="dashboard-finance-card dashboard-finance-table-card">
         <div className="dashboard-finance-card-head">
           <div>
-            <span className="dashboard-finance-card-icon blue" aria-hidden="true">
+            <span
+              className="dashboard-finance-card-icon blue"
+              aria-hidden="true"
+            >
               <HorariaIcon name="receipt" />
             </span>
             <strong>Últimos lançamentos</strong>
@@ -808,9 +852,7 @@ export default function DashboardFinance({ onNewLaunch }: { onNewLaunch?: () => 
           <select
             value={tableType}
             onChange={(event) =>
-              setTableType(
-                event.target.value as "all" | "receita" | "despesa",
-              )
+              setTableType(event.target.value as "all" | "receita" | "despesa")
             }
             aria-label="Filtrar tipo"
           >
@@ -823,11 +865,7 @@ export default function DashboardFinance({ onNewLaunch }: { onNewLaunch?: () => 
             value={tableStatus}
             onChange={(event) =>
               setTableStatus(
-                event.target.value as
-                  | "all"
-                  | "pago"
-                  | "pendente"
-                  | "vencido",
+                event.target.value as "all" | "pago" | "pendente" | "vencido",
               )
             }
             aria-label="Filtrar status"
@@ -868,9 +906,7 @@ export default function DashboardFinance({ onNewLaunch }: { onNewLaunch?: () => 
                       {detail && <small>OS #{detail.numero}</small>}
                     </td>
                     <td>{originLabel[item.origem] || "Outros"}</td>
-                    <td>
-                      {detail?.clienteNome || detail?.tecnico || "—"}
-                    </td>
+                    <td>{detail?.clienteNome || detail?.tecnico || "—"}</td>
                     <td>
                       <span
                         className={
@@ -887,7 +923,8 @@ export default function DashboardFinance({ onNewLaunch }: { onNewLaunch?: () => 
                           item.tipo === "receita" ? "money-in" : "money-out"
                         }
                       >
-                        {item.tipo === "receita" ? "+" : "-"} {money(item.valor)}
+                        {item.tipo === "receita" ? "+" : "-"}{" "}
+                        {money(item.valor)}
                       </b>
                     </td>
                     <td>

@@ -1,4 +1,5 @@
 "use client";
+import { subscribeWorkspaceDataChanges } from "@/lib/data-change";
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import {
@@ -148,7 +149,12 @@ export default function Records({
     }
     channel.subscribe();
 
+    const stopWorkspaceSync = subscribeWorkspaceDataChanges(
+      refreshSoon,
+      tables,
+    );
     return () => {
+      stopWorkspaceSync();
       window.clearTimeout(timer);
       void supabase!.removeChannel(channel);
     };
@@ -178,12 +184,7 @@ export default function Records({
     } finally {
       setCustomersLoading(false);
     }
-  }, [
-    isClient,
-    empresa.id,
-    customerOptions.length,
-    customersLoading,
-  ]);
+  }, [isClient, empresa.id, customerOptions.length, customersLoading]);
 
   function openEditor(record: ClientItem | DeviceItem | null) {
     setEditing(record);
@@ -208,7 +209,8 @@ export default function Records({
     setError("");
     try {
       const value: Record<string, unknown> = { empresa_id: empresa.id };
-      for (const [key, v] of form.entries()) value[key] = String(v).trim() || null;
+      for (const [key, v] of form.entries())
+        value[key] = String(v).trim() || null;
       if (isClient) value.whatsapp = phone(String(form.get("whatsapp")));
       else value.marca = String(form.get("marca") || "");
       await saveRow(kind, value, editing?.id);
@@ -289,7 +291,9 @@ export default function Records({
   const total = data?.total ?? 0;
 
   return (
-    <section className={`module dashboard-pro records-dashboard records-${kind}`}>
+    <section
+      className={`module dashboard-pro records-dashboard records-${kind}`}
+    >
       <div className="dashboard-hero">
         <Heading
           title={isClient ? "Clientes" : "Equipamentos"}
@@ -307,7 +311,9 @@ export default function Records({
           </span>
           <div>
             <strong>
-              {isClient ? "Conheça melhor cada cliente" : "Controle cada equipamento"}
+              {isClient
+                ? "Conheça melhor cada cliente"
+                : "Controle cada equipamento"}
             </strong>
             <small>
               {isClient
@@ -337,9 +343,12 @@ export default function Records({
       <section className="dashboard-card records-main-card">
         <div className="dashboard-card-head records-card-head">
           <div>
-            <h2>{isClient ? "Base de clientes" : "Equipamentos cadastrados"}</h2>
+            <h2>
+              {isClient ? "Base de clientes" : "Equipamentos cadastrados"}
+            </h2>
             <p>
-              {total} {total === 1 ? "registro encontrado" : "registros encontrados"}.
+              {total}{" "}
+              {total === 1 ? "registro encontrado" : "registros encontrados"}.
             </p>
           </div>
           <div className="records-actions">
@@ -364,7 +373,11 @@ export default function Records({
         </div>
 
         {open && (
-          <form onSubmit={save} className="records-editor" key={editing?.id || "new"}>
+          <form
+            onSubmit={save}
+            className="records-editor"
+            key={editing?.id || "new"}
+          >
             <div className="records-editor-head">
               <div>
                 <span className="eyebrow">CADASTRO</span>
@@ -559,7 +572,9 @@ export default function Records({
                                 : "—"}
                             </td>
                             <td>
-                              <strong>{money(client.relationship_total)}</strong>
+                              <strong>
+                                {money(client.relationship_total)}
+                              </strong>
                             </td>
                           </>
                         ) : (

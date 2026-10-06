@@ -4,11 +4,12 @@ import {
   useCallback,
   useEffect,
   useMemo,
+  useRef,
   useState,
   type KeyboardEvent,
   type MouseEvent,
 } from "react";
-import { supabase, message } from "@/lib/supabase";
+import { supabase, message, today } from "@/lib/supabase";
 import { ErrorBox, Heading } from "./ui";
 
 export type AdminCompanyRow = {
@@ -242,6 +243,11 @@ export default function AdminCompaniesDashboard({
   const [note, setNote] = useState("");
   const [noteBusy, setNoteBusy] = useState(false);
   const [paymentBusy, setPaymentBusy] = useState(false);
+  const paymentLockRef = useRef(false);
+  const selectedCompanyRef = useRef<string | null>(null);
+  const adminRefreshVersionRef = useRef(0);
+  const noteDirtyRef = useRef(false);
+  const paymentConfirmationRef = useRef(new Map<string, string>());
   const [actionBusy, setActionBusy] = useState("");
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
@@ -337,6 +343,7 @@ export default function AdminCompaniesDashboard({
 
   const refreshAdminData = useCallback(async () => {
     if (!supabase) return;
+    const refreshVersion = ++adminRefreshVersionRef.current;
     const [companiesResult, overviewResult, billingResult, expensesResult] =
       await Promise.all([
         supabase.rpc("admin_list_companies"),
@@ -345,6 +352,7 @@ export default function AdminCompaniesDashboard({
         supabase.rpc("admin_list_platform_expenses", { p_limit: 50 }),
       ]);
 
+    if (refreshVersion !== adminRefreshVersionRef.current) return;
     if (!companiesResult.error)
       setCompanyRows((companiesResult.data || []) as AdminCompanyRow[]);
     if (!overviewResult.error)
@@ -358,10 +366,11 @@ export default function AdminCompaniesDashboard({
       const detailResult = await supabase.rpc("admin_company_detail", {
         p_empresa: selectedCompanyId,
       });
+      if (refreshVersion !== adminRefreshVersionRef.current || selectedCompanyRef.current !== selectedCompanyId) return;
       if (!detailResult.error) {
         const next = detailResult.data as AdminCompanyDetail;
         setDetail(next);
-        setNote(next.note || "");
+        if (!noteDirtyRef.current) setNote(next.note || "");
       }
     }
   }, [selectedCompanyId]);
@@ -371,6 +380,7 @@ export default function AdminCompaniesDashboard({
 
     let refreshTimer: number | null = null;
     const scheduleRefresh = () => {
+      if (document.visibilityState !== "visible" || !navigator.onLine) return;
       if (refreshTimer) window.clearTimeout(refreshTimer);
       refreshTimer = window.setTimeout(() => void refreshAdminData(), 250);
     };
@@ -383,11 +393,15 @@ export default function AdminCompaniesDashboard({
       .on("postgres_changes", { event: "*", schema: "public", table: "empresa_membros" }, scheduleRefresh)
       .subscribe();
 
-    const safetySync = window.setInterval(() => void refreshAdminData(), 30000);
+    window.addEventListener("focus", scheduleRefresh);
+    document.addEventListener("visibilitychange", scheduleRefresh);
+    const safetySync = window.setInterval(scheduleRefresh, 30000);
 
     return () => {
       if (refreshTimer) window.clearTimeout(refreshTimer);
       window.clearInterval(safetySync);
+      window.removeEventListener("focus", scheduleRefresh);
+      document.removeEventListener("visibilitychange", scheduleRefresh);
       void supabase!.removeChannel(channel);
     };
   }, [refreshAdminData]);
@@ -407,7 +421,7 @@ export default function AdminCompaniesDashboard({
         p_description: expenseDescription.trim(),
         p_amount: amount,
         p_category: expenseCategory,
-        p_incurred_on: new Date().toISOString().slice(0, 10),
+        p_incurred_on: today(),
         p_recurring: expenseRecurring,
         p_notes: null,
       });
@@ -446,6 +460,9 @@ export default function AdminCompaniesDashboard({
     company: AdminCompanyRow,
     focusBilling = false,
   ) {
+    selectedCompanyRef.current = company.id;
+    adminRefreshVersionRef.current += 1;
+    noteDirtyRef.current = false;
     setSelectedCompanyId(company.id);
     setDetailLoading(true);
     setDetailError("");
@@ -453,6 +470,7 @@ export default function AdminCompaniesDashboard({
       const result = await supabase!.rpc("admin_company_detail", {
         p_empresa: company.id,
       });
+      if (selectedCompanyRef.current !== company.id) return;
       if (result.error) throw result.error;
       const next = result.data as AdminCompanyDetail;
       setDetail(next);
@@ -465,15 +483,17 @@ export default function AdminCompaniesDashboard({
         }, 80);
       }
     } catch (caught) {
+      if (selectedCompanyRef.current !== company.id) return;
       setDetail(null);
       setDetailError(message(caught as Error));
     } finally {
-      setDetailLoading(false);
+      if (selectedCompanyRef.current === company.id) setDetailLoading(false);
     }
   }
 
   async function saveNote() {
     if (!detail) return;
+    noteDirtyRef.current = false;
     setNoteBusy(true);
     setDetailError("");
     try {
@@ -486,8 +506,9 @@ export default function AdminCompaniesDashboard({
       const refreshed = await supabase!.rpc("admin_company_detail", {
         p_empresa: detail.id,
       });
-      if (!refreshed.error) setDetail(refreshed.data as AdminCompanyDetail);
+      if (!refreshed.error && selectedCompanyRef.current === detail.id) setDetail(refreshed.data as AdminCompanyDetail);
     } catch (caught) {
+      noteDirtyRef.current = true;
       setDetailError(message(caught as Error));
     } finally {
       setNoteBusy(false);
@@ -495,7 +516,7 @@ export default function AdminCompaniesDashboard({
   }
 
   async function confirmManualPayment() {
-    if (!detail?.subscription?.id || paymentBusy) return;
+    if (!detail?.subscription?.id || paymentBusy || paymentLockRef.current) return;
 
     if (
       !window.confirm(
@@ -504,12 +525,14 @@ export default function AdminCompaniesDashboard({
     )
       return;
 
+    paymentLockRef.current = true;
     setPaymentBusy(true);
     setDetailError("");
     setNotice("");
 
     try {
-      const confirmationId = crypto.randomUUID();
+      const confirmationId = paymentConfirmationRef.current.get(detail.id) || crypto.randomUUID();
+      paymentConfirmationRef.current.set(detail.id, confirmationId);
       const result = await supabase!.rpc("admin_confirm_manual_payment", {
         p_empresa: detail.id,
         p_confirmation_id: confirmationId,
@@ -527,7 +550,8 @@ export default function AdminCompaniesDashboard({
       });
       if (refreshed.error) throw refreshed.error;
 
-      setDetail(refreshed.data as AdminCompanyDetail);
+      if (selectedCompanyRef.current === detail.id)
+        setDetail(refreshed.data as AdminCompanyDetail);
       setNotice(
         "Pagamento Pix de " +
           money(payment.amount) +
@@ -538,9 +562,11 @@ export default function AdminCompaniesDashboard({
           ".",
       );
       await refreshAdminData();
+      paymentConfirmationRef.current.delete(detail.id);
     } catch (caught) {
       setDetailError(message(caught as Error));
     } finally {
+      paymentLockRef.current = false;
       setPaymentBusy(false);
     }
   }
@@ -1019,7 +1045,7 @@ export default function AdminCompaniesDashboard({
                   value={note}
                   maxLength={4000}
                   placeholder="Registre contexto de cobrança, contato ou acompanhamento interno…"
-                  onChange={(event) => setNote(event.target.value)}
+                  onChange={(event) => { noteDirtyRef.current = true; setNote(event.target.value); }}
                 />
                 <div className="admin-note-actions">
                   <small>{note.length}/4000</small>

@@ -1,4 +1,5 @@
 "use client";
+import { subscribeWorkspaceDataChanges } from "@/lib/data-change";
 import { useCallback, useEffect, useState } from "react";
 import { useWorkspace } from "./workspace";
 import { saveRow, categories, money } from "@/lib/assistencia";
@@ -122,7 +123,11 @@ export default function CatalogManagement({
       )
       .subscribe();
 
+    const stopWorkspaceSync = subscribeWorkspaceDataChanges(refreshSoon, [
+      stock ? "pecas" : "servicos",
+    ]);
     return () => {
+      stopWorkspaceSync();
       window.clearTimeout(timer);
       void supabase!.removeChannel(channel);
     };
@@ -153,7 +158,7 @@ export default function CatalogManagement({
     {
       name: stock ? "Compatibilidades" : "Duração média",
       value: stock
-        ? data?.metrics.secondary ?? 0
+        ? (data?.metrics.secondary ?? 0)
         : `${data?.metrics.secondary ?? 0} min`,
       iconName: (stock ? "stock" : "clock") as HorariaIconName,
       tone: "amber",
@@ -165,7 +170,11 @@ export default function CatalogManagement({
 
   async function removeService(item: CatalogItem) {
     if (stock || !canEdit || !supabase) return;
-    if (!window.confirm(`Excluir o serviço "${item.nome}"? Esta ação não pode ser desfeita.`))
+    if (
+      !window.confirm(
+        `Excluir o serviço "${item.nome}"? Esta ação não pode ser desfeita.`,
+      )
+    )
       return;
 
     setBusy(true);
@@ -181,7 +190,9 @@ export default function CatalogManagement({
 
       if (result.error) throw result.error;
       if (!result.data)
-        throw new Error("Serviço não encontrado ou sem permissão para excluir.");
+        throw new Error(
+          "Serviço não encontrado ou sem permissão para excluir.",
+        );
 
       if (current?.id === item.id) setEditing(null);
       await load(true);
@@ -273,11 +284,7 @@ export default function CatalogManagement({
                     ativo: form.get("ativo") === "on",
                   });
 
-                await saveRow(
-                  stock ? "pecas" : "servicos",
-                  value,
-                  current?.id,
-                );
+                await saveRow(stock ? "pecas" : "servicos", value, current?.id);
                 setEditing(null);
                 if (!current) setPage(1);
                 await load(true);
@@ -497,9 +504,7 @@ export default function CatalogManagement({
                           </small>
                         )}
                       </td>
-                      <td>
-                        {stock ? item.compatibilidade : item.categoria}
-                      </td>
+                      <td>{stock ? item.compatibilidade : item.categoria}</td>
                       <td>
                         {stock
                           ? item.quantidade || 0
@@ -580,36 +585,28 @@ export default function CatalogManagement({
               <span>▣</span>
               <div>
                 <strong>Celular</strong>
-                <small>
-                  Troca de tela, bateria, conector e desoxidação.
-                </small>
+                <small>Troca de tela, bateria, conector e desoxidação.</small>
               </div>
             </article>
             <article>
               <span>▤</span>
               <div>
                 <strong>Notebook</strong>
-                <small>
-                  SSD, RAM, teclado, limpeza e reparo de placa.
-                </small>
+                <small>SSD, RAM, teclado, limpeza e reparo de placa.</small>
               </div>
             </article>
             <article>
               <span>⌘</span>
               <div>
                 <strong>Console</strong>
-                <small>
-                  HDMI, limpeza, superaquecimento e controle.
-                </small>
+                <small>HDMI, limpeza, superaquecimento e controle.</small>
               </div>
             </article>
             <article>
               <span>▦</span>
               <div>
                 <strong>Computador</strong>
-                <small>
-                  Montagem, upgrade, diagnóstico, fonte e GPU.
-                </small>
+                <small>Montagem, upgrade, diagnóstico, fonte e GPU.</small>
               </div>
             </article>
           </div>

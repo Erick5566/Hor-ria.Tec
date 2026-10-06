@@ -19,3 +19,14 @@ enable_confirmations = false
 
 [functions.whatsapp-notifications]
 verify_jwt = false
+
+# Public endpoints authenticate with Turnstile/tokens and server-side rate limits.
+[functions.public-booking]
+verify_jwt = false
+[functions.public-tracking]
+verify_jwt = false
+# Server dispatch is authenticated by the private per-event dispatch token.
+[functions.admin-billing-email]
+verify_jwt = false
+[functions.invite-team-member]
+verify_jwt = true

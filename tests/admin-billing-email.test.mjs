@@ -183,7 +183,7 @@ test("cobrança: enfileira e-mails únicos para tolerância de 24h e pagamento a
     assert.equal(providerCredentials.resendApiKey, null);
     assert.equal(
       providerCredentials.from,
-      "Horária <onboarding@resend.dev>",
+      "Horária <notificacoes@horaria.site>",
     );
   } finally {
     await db.close();

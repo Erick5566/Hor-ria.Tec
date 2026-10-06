@@ -1,4 +1,5 @@
 "use client";
+import { subscribeWorkspaceDataChanges } from "@/lib/data-change";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import dynamic from "next/dynamic";
 import { useWorkspace } from "./workspace";
@@ -142,7 +143,12 @@ export default function Finance({ ordemId }: { ordemId?: string }) {
 
     channel.subscribe();
 
+    const stopWorkspaceSync = subscribeWorkspaceDataChanges(refreshSoon, [
+      "financeiro",
+      "ordens_servico",
+    ]);
     return () => {
+      stopWorkspaceSync();
       window.clearTimeout(timer);
       void supabase!.removeChannel(channel);
     };

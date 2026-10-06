@@ -1,4 +1,5 @@
 "use client";
+import { subscribeWorkspaceDataChanges } from "@/lib/data-change";
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
@@ -183,7 +184,14 @@ export default function OrdersList() {
       )
       .subscribe();
 
+    const stopWorkspaceSync = subscribeWorkspaceDataChanges(refreshSoon, [
+      "ordens_servico",
+      "orcamentos",
+      "clientes",
+      "equipamentos",
+    ]);
     return () => {
+      stopWorkspaceSync();
       window.clearTimeout(timer);
       void supabase!.removeChannel(channel);
     };

@@ -1,4 +1,5 @@
 "use client";
+import { subscribeWorkspaceDataChanges } from "@/lib/data-change";
 import { useState, useEffect, useCallback } from "react";
 import { supabase, message } from "./supabase";
 import { useWorkspace } from "@/components/workspace";
@@ -371,8 +372,8 @@ export function useRows<T>(table: string, enabled = true) {
   const { empresa, userId } = useWorkspace();
   const key = rowCacheKey(table, empresa.id, userId);
   const initialCache = rowCache.get(key);
-  const [data, setData] = useState<T[]>(
-      () => (initialCache?.ready ? (initialCache.data as T[]) : []),
+  const [data, setData] = useState<T[]>(() =>
+      initialCache?.ready ? (initialCache.data as T[]) : [],
     ),
     [loading, setLoading] = useState(!initialCache?.ready),
     [error, setError] = useState("");
@@ -455,7 +456,11 @@ export function useRows<T>(table: string, enabled = true) {
       )
       .subscribe();
 
+    const stopWorkspaceSync = subscribeWorkspaceDataChanges(refreshSoon, [
+      table,
+    ]);
     return () => {
+      stopWorkspaceSync();
       window.clearTimeout(refreshTimer);
       void supabase!.removeChannel(channel);
     };

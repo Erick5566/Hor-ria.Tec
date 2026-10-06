@@ -6,7 +6,6 @@ import { redirect } from "next/navigation";
 import { Brand } from "@/components/brand";
 import SignOutButton from "@/components/sign-out-button";
 import AdminHeader from "@/components/admin-header";
-import SessionKeeper from "@/components/session-keeper";
 import { getServerAccess } from "@/lib/server-auth";
 
 export const metadata: Metadata = {
@@ -28,7 +27,6 @@ export default async function AdminLayout({
     redirect("/seguranca/mfa?next=/admin");
   return (
     <div className="admin-workspace">
-      <SessionKeeper />
       <aside className="admin-sidebar">
         <Brand />
         <div className="admin-identity">

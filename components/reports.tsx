@@ -1,4 +1,5 @@
 "use client";
+import { subscribeWorkspaceDataChanges } from "@/lib/data-change";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { money, statuses, type Status } from "@/lib/assistencia";
 import { message, supabase, today } from "@/lib/supabase";
@@ -58,19 +59,25 @@ export default function Reports() {
           .abortSignal(controller.signal);
 
         if (controller.signal.aborted) {
-          throw new Error("O relatório demorou demais para responder. Tente novamente.");
+          throw new Error(
+            "O relatório demorou demais para responder. Tente novamente.",
+          );
         }
         if (result.error) throw result.error;
 
-        setData((result.data as ReportsData | null) ?? {
-          metrics: { orders: 0, income: 0, cost: 0 },
-          statuses: {},
-          rows: [],
-        });
+        setData(
+          (result.data as ReportsData | null) ?? {
+            metrics: { orders: 0, income: 0, cost: 0 },
+            statuses: {},
+            rows: [],
+          },
+        );
         setError("");
       } catch (caught) {
         if (controller.signal.aborted) {
-          setError("O relatório demorou demais para responder. Tente novamente.");
+          setError(
+            "O relatório demorou demais para responder. Tente novamente.",
+          );
         } else {
           setError(message(caught as Error));
         }
@@ -124,7 +131,12 @@ export default function Reports() {
       )
       .subscribe();
 
+    const stopWorkspaceSync = subscribeWorkspaceDataChanges(refreshSoon, [
+      "ordens_servico",
+      "financeiro",
+    ]);
     return () => {
+      stopWorkspaceSync();
       window.clearTimeout(timer);
       void supabase!.removeChannel(channel);
     };
@@ -237,13 +249,14 @@ export default function Reports() {
       </MetricGrid>
 
       <section className="panel">
-        <PanelTitle title="Situação das ordens recebidas no mês" icon="reports" />
+        <PanelTitle
+          title="Situação das ordens recebidas no mês"
+          icon="reports"
+        />
         {Object.entries(statuses).map(([key, label]) => (
           <div className="list-line" key={key}>
             <span>{label}</span>
-            <strong>
-              {data?.statuses?.[key as Status] || 0}
-            </strong>
+            <strong>{data?.statuses?.[key as Status] || 0}</strong>
           </div>
         ))}
       </section>
