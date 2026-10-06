@@ -40,6 +40,8 @@ test("manual PIX: uncertain transport retry reuses the same confirmation ID", as
     crypto: webcrypto,
     supabase: {
       rpc: async (name, args) => {
+        if (name === "admin_payment_operation") return { data: { confirmationId: "20000000-0000-4000-8000-000000000091", status: "pending" }, error: null };
+        if (name === "admin_complete_payment_operation") return { data: null, error: null };
         if (name === "admin_confirm_manual_payment") {
           ids.push(args.p_confirmation_id);
           if (ids.length === 1) throw Error("Response lost after commit");

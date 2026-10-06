@@ -1,6 +1,8 @@
 "use client";
 import { useEffect, useRef, useState, useCallback } from "react";
 import InlineCamera from "./inline-camera";
+import SavedPhotoActions from "./saved-photo-actions";
+import { cleanupSavedPhotos } from "@/lib/photo-corrections";
 import { PendingPhoto, preparePhoto, uploadPhotos } from "@/lib/photos";
 import { Foto, photoCategories, stamp } from "@/lib/assistencia";
 import { supabase, message } from "@/lib/supabase";
@@ -799,6 +801,9 @@ export function PhotosPanel({
   useEffect(() => {
     load();
   }, [load]);
+  useEffect(() => {
+    if (!readOnly) void cleanupSavedPhotos(ordemId).catch(() => false);
+  }, [ordemId, readOnly]);
   async function saveCameraPhoto(file: File) {
     setBusy(true);
     setError("");
@@ -882,6 +887,9 @@ export function PhotosPanel({
                         <strong>{stamp(p.criado_em)}</strong>
                         <p>{p.usuario_id === userId ? email : p.autor}</p>
                         <p>{p.descricao}</p>
+                        {!readOnly && <SavedPhotoActions orderId={ordemId} photoId={p.id}
+                          description={p.descricao || p.categoria} onChanged={load}
+                          onCleanupPending={() => setError("Foto corrigida. A limpeza do arquivo anterior está pendente e será tentada ao reabrir a galeria.")} />}
                       </div>
                     </article>
                   ))}

@@ -2068,3 +2068,8 @@ hr {
   }
 }
 
+.saved-photo-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+.saved-photo-actions button { min-height: 44px; max-width: 100%; white-space: normal; overflow-wrap: anywhere; }
+.saved-photo-backdrop { z-index: 150; }
+.saved-photo-modal { background: var(--white); color: var(--ink); border-radius: 12px; max-height: calc(100dvh - 40px); overflow-y: auto; }
+.saved-photo-preview { display: block; max-width: 100%; max-height: 40dvh; margin: 12px auto; object-fit: contain; }

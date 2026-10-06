@@ -34,7 +34,7 @@ test('admin: an older refresh cannot overwrite newer overview data',async()=>{
 
 test('admin: payment refresh cannot replace a subsequently selected company',async()=>{
   let resolveDetail,displayed={id:'b'};
-  const ctx=context({detail:{id:'a',subscription:{id:'sa'}},selectedCompanyRef:{current:'a'},paymentBusy:false,paymentLockRef:{current:false},paymentConfirmationRef:{current:new Map()},crypto:webcrypto,window:{confirm:()=>true},setPaymentBusy:()=>{},setNotice:()=>{},money:String,refreshAdminData:async()=>{},setDetail:value=>{displayed=value;},supabase:{rpc:async name=>name==='admin_confirm_manual_payment'?{data:{amount:44.99},error:null}:new Promise(resolve=>{resolveDetail=resolve;})}});
+  const ctx=context({detail:{id:'a',subscription:{id:'sa'}},selectedCompanyRef:{current:'a'},paymentBusy:false,paymentLockRef:{current:false},paymentConfirmationRef:{current:new Map()},crypto:webcrypto,window:{confirm:()=>true},setPaymentBusy:()=>{},setNotice:()=>{},money:String,refreshAdminData:async()=>{},setDetail:value=>{displayed=value;},supabase:{rpc:async name=>name==='admin_payment_operation'?{data:{confirmationId:'operation-a',status:'pending'},error:null}:name==='admin_complete_payment_operation'?{data:null,error:null}:name==='admin_confirm_manual_payment'?{data:{amount:44.99},error:null}:new Promise(resolve=>{resolveDetail=resolve;})}});
   load(ctx,'confirmManualPayment');
   const action=ctx.confirmManualPayment();await new Promise(resolve=>setImmediate(resolve));
   ctx.selectedCompanyRef.current='b';resolveDetail({data:{id:'a'},error:null});await action;

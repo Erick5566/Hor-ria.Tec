@@ -520,7 +520,9 @@ export default function AdminCompaniesDashboard({
 
     if (
       !window.confirm(
-        "Confirmar que o pagamento via Pix desta empresa foi recebido?",
+        paymentConfirmationRef.current.has(detail.id + ":completed")
+          ? "Confirmar um NOVO pagamento Pix recebido? O pagamento anterior já foi reconciliado."
+          : "Confirmar que o pagamento via Pix desta empresa foi recebido? Uma tentativa pendente será reconciliada antes de permitir outro pagamento.",
       )
     )
       return;
@@ -531,9 +533,18 @@ export default function AdminCompaniesDashboard({
     setNotice("");
 
     try {
-      const confirmationId = paymentConfirmationRef.current.get(detail.id) || crypto.randomUUID();
+      const operationResult = await supabase!.rpc("admin_payment_operation", {
+        p_empresa: detail.id,
+        p_previous_confirmation_id: paymentConfirmationRef.current.get(detail.id + ":completed") || null,
+      });
+      if (operationResult.error) throw operationResult.error;
+      const operation = operationResult.data as { confirmationId: string; status: string };
+      if (!operation.confirmationId) throw new Error("Operação de pagamento não disponível.");
+      if (operation.status === "requires_review") throw new Error("Operação pendente de revisão. Nenhum novo pagamento foi registrado.");
+      const confirmationId = operation.confirmationId;
       paymentConfirmationRef.current.set(detail.id, confirmationId);
-      const result = await supabase!.rpc("admin_confirm_manual_payment", {
+      paymentConfirmationRef.current.delete(detail.id + ":completed");
+      const result = operation.status === "completed" ? { data: {}, error: null } : await supabase!.rpc("admin_confirm_manual_payment", {
         p_empresa: detail.id,
         p_confirmation_id: confirmationId,
         p_note: "Confirmação manual pelo painel do Super Admin",
@@ -552,7 +563,16 @@ export default function AdminCompaniesDashboard({
 
       if (selectedCompanyRef.current === detail.id)
         setDetail(refreshed.data as AdminCompanyDetail);
-      setNotice(
+      await refreshAdminData();
+      const completed = await supabase!.rpc("admin_complete_payment_operation", {
+        p_empresa: detail.id,
+        p_confirmation_id: confirmationId,
+      });
+      if (completed.error) throw completed.error;
+      paymentConfirmationRef.current.set(detail.id + ":completed", confirmationId);
+      setNotice(operation.status === "completed"
+        ? "Pagamento anterior reconciliado. Para registrar outro pagamento recebido, confirme explicitamente uma nova operação."
+        :
         "Pagamento Pix de " +
           money(payment.amount) +
           " confirmado. Próxima cobrança: " +
@@ -561,10 +581,11 @@ export default function AdminCompaniesDashboard({
             : "a definir") +
           ".",
       );
-      await refreshAdminData();
       paymentConfirmationRef.current.delete(detail.id);
     } catch (caught) {
-      setDetailError(message(caught as Error));
+      const code = (caught as { code?: string }).code || "";
+      const knownRejection = code === "P0001" || code.startsWith("23") || code === "42501";
+      setDetailError((knownRejection ? "Operação recusada pelo servidor: " : "Resultado incerto: ") + message(caught as Error) + " Nenhum novo identificador será criado enquanto esta tentativa estiver pendente. Tente novamente para reconciliar o resultado.");
     } finally {
       paymentLockRef.current = false;
       setPaymentBusy(false);
