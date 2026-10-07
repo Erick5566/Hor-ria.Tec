@@ -1500,3 +1500,173 @@ body {
     grid-column: 1 / -1;
   }
 }
+
+
+/* ===== Mobile KPI containment + finance readability 2026-10-07 ===== */
+/* Finance: the movements card must stay light even though legacy finance styles are dark. */
+.finance-dashboard .finance-entry-card {
+  color: #1b2739;
+  background: #ffffff;
+  border: 1px solid var(--ref-border);
+  box-shadow: var(--ref-shadow);
+}
+
+.finance-dashboard .finance-entry-card .panel-title-wrap h2,
+.finance-dashboard .finance-entry-card .panel-title-wrap h3,
+.finance-dashboard .finance-entry-card .finance-table-description {
+  color: #17263f;
+}
+
+.finance-dashboard .finance-entry-card .panel-title-wrap p,
+.finance-dashboard .finance-entry-card .hint {
+  color: #66758c;
+}
+
+.finance-dashboard .finance-entry-card .finance-entry-form {
+  color: #243550;
+  background: #f8fafe;
+  border-color: #dde6f2;
+}
+
+.finance-dashboard .finance-entry-card .finance-entry-form label,
+.finance-dashboard .finance-entry-card .check-label {
+  color: #34445f;
+}
+
+.finance-dashboard .finance-entry-card .finance-entry-form input,
+.finance-dashboard .finance-entry-card .finance-entry-form select {
+  color: #17263f;
+  background: #ffffff;
+  border-color: #d7e0ec;
+}
+
+.finance-dashboard .finance-entry-card .finance-table {
+  background: #ffffff;
+  border-color: #dfe6ef;
+}
+
+.finance-dashboard .finance-entry-card .finance-table th {
+  color: #52627a;
+  background: #f3f6fa;
+  border-bottom-color: #dfe6ef;
+}
+
+.finance-dashboard .finance-entry-card .finance-table td {
+  color: #26364f;
+  background: #ffffff;
+  border-bottom-color: #e7ecf3;
+}
+
+.finance-dashboard .finance-entry-card .finance-table tbody tr:nth-child(even) td {
+  background: #f8fafc;
+}
+
+.finance-dashboard .finance-entry-card .finance-paid-date {
+  color: #66758c;
+}
+
+/* Dashboard KPIs: keep every sparkline and every label inside its own card. */
+.dashboard-reference .ui-metric-card {
+  overflow: hidden;
+}
+
+.dashboard-reference .ui-metric-content {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.dashboard-reference .ui-metric-value-row {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  width: 100%;
+  min-width: 0;
+  gap: 8px;
+}
+
+.dashboard-reference .ui-metric-value-row > strong {
+  min-width: 0;
+  white-space: nowrap;
+}
+
+.dashboard-reference .kpi-trend-v2 {
+  justify-self: stretch;
+  width: 100%;
+  min-width: 0;
+  max-width: 92px;
+  height: 34px;
+  margin-left: 0;
+  overflow: hidden;
+}
+
+.dashboard-reference .kpi-trend-v2 svg {
+  overflow: hidden;
+}
+
+.dashboard-reference .kpi-trend-empty {
+  min-width: 0;
+  max-width: 100%;
+  color: #7b8aa1;
+  font-size: .64rem;
+  line-height: 1.15;
+  text-align: right;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+.dashboard-reference .ui-metric-content > b,
+.dashboard-reference .dashboard-trend-note,
+.dashboard-reference .dashboard-trend-note small {
+  min-width: 0;
+  max-width: 100%;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 760px) {
+  .dashboard-reference .ui-metric-card {
+    align-items: flex-start;
+  }
+
+  .dashboard-reference .ui-metric-value-row {
+    gap: 6px;
+  }
+
+  .dashboard-reference .kpi-trend-v2 {
+    max-width: 64px;
+    height: 28px;
+  }
+
+  .dashboard-reference .ui-metric-content > b {
+    line-height: 1.15;
+  }
+
+  .dashboard-reference .dashboard-trend-note {
+    line-height: 1.15;
+  }
+}
+
+@media (max-width: 520px) {
+  .dashboard-reference .ui-metric-content {
+    width: calc(100% - 43px);
+  }
+
+  .dashboard-reference .ui-metric-value-row {
+    grid-template-columns: auto minmax(34px, 1fr);
+    gap: 5px;
+  }
+
+  .dashboard-reference .ui-metric-value-row > strong {
+    font-size: 1.12rem;
+  }
+
+  .dashboard-reference .kpi-trend-v2 {
+    max-width: 52px;
+    height: 25px;
+  }
+
+  .dashboard-reference .kpi-trend-empty {
+    font-size: .58rem;
+  }
+}
