@@ -3,6 +3,16 @@ import assert from "node:assert/strict";
 import { savedPhotoHarness } from "./photo-ui-helper.mjs";
 import { readFileSync } from "node:fs";
 
+test("galeria salva: modal sai do painel com backdrop-filter e usa o viewport", async () => {
+  const h = savedPhotoHarness();
+  assert.equal(h.portals.length, 0);
+  await h.click("Substituir foto");
+  assert.equal(h.portals.at(-1), h.body);
+  assert.equal(h.nodes("div").filter(n => n.props.role === "dialog").length, 1);
+  await h.click("Cancelar");
+  assert.equal(h.nodes("div").filter(n => n.props.role === "dialog").length, 0);
+});
+
 test("galeria salva: modal tem superfície opaca própria para leitura sobre fotos", () => {
   const css = readFileSync(new URL("../app/globals.css", import.meta.url), "utf8");
   const rule = css.match(/\.saved-photo-modal\s*\{([^}]+)\}/)?.[1];
@@ -75,3 +85,4 @@ test("galeria salva: erro mantém preview e permite reconciliação", async () =
   assert.ok(h.state[3]);
   assert.ok(h.state[5].includes("database failed"));
 });
+

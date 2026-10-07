@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import InlineCamera from "./inline-camera";
 import { preparePhoto } from "@/lib/photos";
 import {
@@ -104,7 +105,7 @@ export default function SavedPhotoActions({
         </button>
       </div>
       <ErrorBox error={error} />
-      {open && (
+      {open && createPortal(
         <div
           className="modal-backdrop saved-photo-backdrop"
           role="dialog"
@@ -199,7 +200,8 @@ export default function SavedPhotoActions({
             </div>
             <ErrorBox error={error} />
           </section>
-        </div>
+        </div>,
+        document.body,
       )}
       {camera && (
         <InlineCamera onClose={() => setCamera(false)} onUse={choose} />
@@ -207,3 +209,4 @@ export default function SavedPhotoActions({
     </>
   );
 }
+

@@ -13,6 +13,8 @@ export function savedPhotoHarness({
   const state = [...initial],
     refs = [],
     calls = [],
+    portals = [],
+    body = {},
     exports = {};
   let index = 0,
     refIndex = 0,
@@ -53,7 +55,9 @@ export function savedPhotoHarness({
     {
       exports,
       require: (name) =>
-        name === "react"
+        name === "react-dom"
+          ? { createPortal: (children, container) => { portals.push(container); return children; } }
+          : name === "react"
           ? mockReact
           : name === "@/lib/photo-corrections"
             ? {
@@ -74,6 +78,7 @@ export function savedPhotoHarness({
                     ? { default: () => null }
                     : require(name),
       window: { confirm: () => confirm },
+      document: { body },
       URL: { createObjectURL: () => "blob:fixture", revokeObjectURL: () => {} },
       Promise,
     },
@@ -108,6 +113,8 @@ export function savedPhotoHarness({
     render,
     nodes,
     calls,
+    portals,
+    body,
     state,
     get changed() {
       return changed;
@@ -131,3 +138,4 @@ export function savedPhotoHarness({
     },
   };
 }
+
