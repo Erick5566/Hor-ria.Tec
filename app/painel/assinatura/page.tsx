@@ -3,7 +3,11 @@
 import { useEffect, useMemo, useState } from "react";
 import { Heading } from "@/components/ui";
 import { useWorkspace } from "@/components/workspace";
-import { buildPixPayload, getSubscriptionPixPayment } from "@/lib/pix";
+import {
+  buildPixPayload,
+  getSubscriptionPixPayment,
+  MONTHLY_PAYMENT_AMOUNT,
+} from "@/lib/pix";
 
 const PIX_KEY = "veniciuskiwify@gmail.com";
 
@@ -163,7 +167,7 @@ export default function SubscriptionPage() {
             <small>{payment.priceLabel}</small>
             <strong>{formatCurrency(payment.amount)}</strong>
             {payment.kind === "initial" ? (
-              <small>Depois, R$ 59,00/mês</small>
+              <small>Depois, {formatCurrency(MONTHLY_PAYMENT_AMOUNT)}/mês</small>
             ) : (
               <small>Pagamento mensal</small>
             )}
