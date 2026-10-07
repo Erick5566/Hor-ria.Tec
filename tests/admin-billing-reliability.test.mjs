@@ -73,7 +73,7 @@ test("billing email: payment payload matches the final subscription status and d
     const company = await fixture(db);
     for (const [index, amount] of [
       [1, 44.99],
-      [2, 59],
+      [2, 49],
     ]) {
       await db.exec("set role authenticated");
       const result = (

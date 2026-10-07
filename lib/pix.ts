@@ -1,5 +1,8 @@
 const PIX_GUI = "BR.GOV.BCB.PIX";
 
+export const INITIAL_PAYMENT_AMOUNT = 44.99;
+export const MONTHLY_PAYMENT_AMOUNT = 49;
+
 function field(id: string, value: string) {
   return `${id}${String(value.length).padStart(2, "0")}${value}`;
 }
@@ -42,7 +45,7 @@ export function getSubscriptionPixPayment(
 
   return {
     kind: isInitialPayment ? ("initial" as const) : ("monthly" as const),
-    amount: isInitialPayment ? 44.99 : 59,
+    amount: isInitialPayment ? INITIAL_PAYMENT_AMOUNT : MONTHLY_PAYMENT_AMOUNT,
     heading: isInitialPayment
       ? "Pagamento inicial Horária"
       : "Mensalidade Horária",

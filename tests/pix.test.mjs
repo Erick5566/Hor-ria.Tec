@@ -54,10 +54,10 @@ test("pix: usa valor inicial apenas durante o trial", async () => {
 
   assert.equal(getSubscriptionPixPayment("TRIAL").amount, 44.99);
   assert.equal(getSubscriptionPixPayment(null).amount, 44.99);
-  assert.equal(getSubscriptionPixPayment("ACTIVE").amount, 59);
-  assert.equal(getSubscriptionPixPayment("PAST_DUE").amount, 59);
-  assert.equal(getSubscriptionPixPayment("SUSPENDED").amount, 59);
-  assert.equal(getSubscriptionPixPayment("CANCELED").amount, 59);
+  assert.equal(getSubscriptionPixPayment("ACTIVE").amount, 49);
+  assert.equal(getSubscriptionPixPayment("PAST_DUE").amount, 49);
+  assert.equal(getSubscriptionPixPayment("SUSPENDED").amount, 49);
+  assert.equal(getSubscriptionPixPayment("CANCELED").amount, 49);
 });
 
 test("pix: rejeita chave vazia e valores inválidos", async () => {
@@ -66,7 +66,7 @@ test("pix: rejeita chave vazia e valores inválidos", async () => {
   assert.throws(() =>
     buildPixPayload({
       key: "",
-      amount: 59,
+      amount: 49,
       merchantName: "Horária",
       merchantCity: "Camaçari",
     }),
@@ -82,10 +82,10 @@ test("pix: rejeita chave vazia e valores inválidos", async () => {
   );
 });
 
-test("pix: trial vencido sem pagamento aprovado mantém R$44,99, enquanto renovação custa R$59", async () => {
+test("pix: trial vencido sem pagamento aprovado mantém R$44,99, enquanto renovação custa R$49", async () => {
   const { getSubscriptionPixPayment } = await loadPixModule();
   assert.equal(getSubscriptionPixPayment("PAST_DUE", false).amount, 44.99);
   assert.equal(getSubscriptionPixPayment("SUSPENDED", false).amount, 44.99);
-  assert.equal(getSubscriptionPixPayment("PAST_DUE", true).amount, 59);
-  assert.equal(getSubscriptionPixPayment("TRIAL", true).amount, 59);
+  assert.equal(getSubscriptionPixPayment("PAST_DUE", true).amount, 49);
+  assert.equal(getSubscriptionPixPayment("TRIAL", true).amount, 49);
 });

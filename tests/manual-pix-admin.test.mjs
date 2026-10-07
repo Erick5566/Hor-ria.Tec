@@ -97,7 +97,7 @@ test("admin: confirmação manual do Pix é segura, idempotente e renova a assin
       )
     ).rows[0].result;
 
-    assert.equal(Number(renewal.amount), 59);
+    assert.equal(Number(renewal.amount), 49);
     assert.equal(renewal.kind, "monthly");
     assert.equal(renewal.duplicate, false);
     assert.ok(
