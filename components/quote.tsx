@@ -47,6 +47,7 @@ export default function Quote({
     [labor, setLabor] = useState(0),
     [discount, setDiscount] = useState(0),
     [validity, setValidity] = useState(shift(today(), 7)),
+    [deliveryForecast, setDeliveryForecast] = useState(""),
     [error, setError] = useState(""),
     [busy, setBusy] = useState(false);
 
@@ -63,13 +64,26 @@ export default function Quote({
   const total = gross - discount;
 
   const load = useCallback(async () => {
-    const { data, error } = await supabase!
-      .from("orcamentos")
-      .select("*")
-      .eq("ordem_id", ordemId)
-      .order("versao", { ascending: false });
-    if (error) setError(message(error));
-    else setQuotes(data as Orcamento[]);
+    const [quotesResult, orderResult] = await Promise.all([
+      supabase!
+        .from("orcamentos")
+        .select("*")
+        .eq("ordem_id", ordemId)
+        .order("versao", { ascending: false }),
+      supabase!
+        .from("ordens_servico")
+        .select("previsao")
+        .eq("id", ordemId)
+        .single(),
+    ]);
+
+    if (quotesResult.error || orderResult.error) {
+      setError(message((quotesResult.error || orderResult.error) as Error));
+      return;
+    }
+
+    setQuotes((quotesResult.data || []) as Orcamento[]);
+    setDeliveryForecast(orderResult.data?.previsao || "");
   }, [ordemId]);
 
   useEffect(() => {
@@ -158,6 +172,12 @@ export default function Quote({
     setBusy(true);
     setError("");
     try {
+      if (!deliveryForecast || deliveryForecast < today()) {
+        throw new Error(
+          "Informe uma previsão de entrega para hoje ou uma data futura.",
+        );
+      }
+
       const { data: quoteId, error } = await supabase!.rpc("salvar_orcamento", {
         p_ordem: ordemId,
         p_servicos: services,
@@ -168,6 +188,15 @@ export default function Quote({
       });
       if (error) throw error;
       if (!quoteId) throw new Error("Orçamento salvo sem identificador.");
+
+      const deliveryResult = await supabase!
+        .from("ordens_servico")
+        .update({ previsao: deliveryForecast })
+        .eq("id", ordemId)
+        .select("id")
+        .single();
+      if (deliveryResult.error) throw deliveryResult.error;
+
       const sendResult = await supabase!.rpc("enviar_orcamento", {
         p_orcamento: quoteId,
       });
@@ -310,7 +339,9 @@ export default function Quote({
       <div className="panel-head">
         <div>
           <PanelTitle title="Orçamento detalhado" icon="receipt" />
-          <p>Informe serviços, peças, mão de obra, desconto e validade.</p>
+          <p>
+            Informe serviços, peças, valores, validade e a previsão de entrega.
+          </p>
         </div>
         <button className="outline" onClick={start}>
           {latest ? "Criar nova versão" : "+ Criar orçamento"}
@@ -421,7 +452,7 @@ export default function Quote({
               />
             </label>
             <label>
-              Validade
+              Validade do orçamento
               <input
                 required
                 type="date"
@@ -430,6 +461,19 @@ export default function Quote({
                 value={validity}
                 onChange={(event) => setValidity(event.target.value)}
               />
+            </label>
+            <label>
+              Previsão de entrega
+              <input
+                required
+                type="date"
+                min={today()}
+                value={deliveryForecast}
+                onChange={(event) => setDeliveryForecast(event.target.value)}
+              />
+              <small className="field-helper">
+                Esta data aparecerá no acompanhamento e na aprovação do cliente.
+              </small>
             </label>
           </div>
 
@@ -477,6 +521,12 @@ export default function Quote({
               <small>
                 Validade:{" "}
                 {latest.validade.slice(0, 10).split("-").reverse().join("/")}
+                {deliveryForecast
+                  ? ` · Entrega prevista: ${deliveryForecast
+                      .split("-")
+                      .reverse()
+                      .join("/")}`
+                  : ""}
               </small>
             </div>
             <span className={`quote-status ${latest.status}`}>
