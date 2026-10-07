@@ -143,6 +143,8 @@ export default function TrackingResult({
               <p>
                 Versão {quote.versao} · válido até{" "}
                 {quote.validade.slice(0, 10).split("-").reverse().join("/")}
+                <br />
+                <strong>Previsão de entrega:</strong> {forecast}
               </p>
             </div>
             <span className={`customer-quote-status ${quote.status}`}>
