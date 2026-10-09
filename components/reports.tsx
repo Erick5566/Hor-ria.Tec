@@ -1,4 +1,5 @@
 "use client";
+import { csvCell } from "@/lib/csv";
 import { subscribeWorkspaceDataChanges } from "@/lib/data-change";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { money, statuses, type Status } from "@/lib/assistencia";
@@ -147,13 +148,6 @@ export default function Reports() {
 
     setExporting(true);
     try {
-      const cell = (value: unknown) =>
-        '"' +
-        String(value ?? "")
-          .replace(/^[=+@-]/, "'$&")
-          .replaceAll('"', '""') +
-        '"';
-
       const csv = [
         ["OS", "Entrada", "Equipamento", "Status"],
         ...data.rows.map((row) => [
@@ -163,7 +157,7 @@ export default function Reports() {
           statuses[row.status],
         ]),
       ]
-        .map((row) => row.map(cell).join(";"))
+        .map((row) => row.map(csvCell).join(";"))
         .join("\r\n");
 
       const url = URL.createObjectURL(
