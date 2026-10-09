@@ -40,3 +40,11 @@ test('admin: payment refresh cannot replace a subsequently selected company',asy
   ctx.selectedCompanyRef.current='b';resolveDetail({data:{id:'a'},error:null});await action;
   assert.equal(displayed.id,'b');
 });
+
+
+test('admin: changing company cannot discard a draft without confirmation',async()=>{
+  let requested=false;
+  const ctx=context({selectedCompanyRef:{current:'a'},noteDirtyRef:{current:true},window:{confirm:()=>false},supabase:{rpc:async()=>{requested=true;return {data:{id:'b'}}}}});
+  load(ctx,'selectCompany');await ctx.selectCompany({id:'b'});
+  assert.equal(requested,false);assert.equal(ctx.selectedCompanyRef.current,'a');assert.equal(ctx.noteDirtyRef.current,true);
+});

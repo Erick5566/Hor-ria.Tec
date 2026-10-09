@@ -8,6 +8,13 @@ export default async function AdminPage() {
     access!.client.rpc("admin_billing_overview"),
     access!.client.rpc("admin_list_platform_expenses", { p_limit: 50 }),
   ]);
+  if (
+    [companies, overview, billing, expenses].some((result) => result.error) ||
+    !overview.data ||
+    !billing.data
+  ) {
+    throw new Error("Não foi possível carregar os dados administrativos.");
+  }
   return (
     <AdminCompaniesDashboard
       initialCompanies={companies.data || []}

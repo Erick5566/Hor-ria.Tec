@@ -40,6 +40,9 @@ test("platform expense uses the São Paulo date after UTC midnight", async () =>
     expenseDescription: "Audit",
     expenseCategory: "outros",
     expenseRecurring: false,
+    expenseDate: "2026-10-05",
+    expenseNotes: "Referência de teste",
+    setExpenseNotes: () => {},
     supabase: {
       rpc: async (_name, args) => {
         captured = args;
@@ -72,6 +75,12 @@ test("platform expense uses the São Paulo date after UTC midnight", async () =>
     }).outputText,
     ctx,
   );
+  assert.equal(ctx.today(), "2026-10-05");
+  ctx.expenseDate = ctx.today();
   await ctx.addPlatformExpense();
   assert.equal(captured.p_incurred_on, "2026-10-05");
+  assert.equal(captured.p_notes, "Referência de teste");
+  ctx.expenseDate = "2026-09-20";
+  await ctx.addPlatformExpense();
+  assert.equal(captured.p_incurred_on, "2026-09-20");
 });
