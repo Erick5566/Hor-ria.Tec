@@ -1,0 +1,68 @@
+$ next build
+▲ Next.js 16.3.5 (Turbopack)
+✓ Running next.config.ts took 27ms
+- Experiments (use with caution):
+  · cpus: 1
+  ⨯ useTypeScriptCli
+  ✓ workerThreads
+
+  Creating an optimized production build ...
+✓ Compiled successfully in 442ms
+  Running TypeScript ...
+  Finished TypeScript in 7.5s ...
+  Collecting page data using 1 worker ...
+  Generating static pages using 1 worker (0/32) ...
+  Finalizing page optimization ...
+
+Route (app)
+┌ ƒ /
+├ ○ /_not-found
+├ ƒ /[slug]
+├ ○ /acompanhar
+├ ƒ /acompanhar/[token]
+├ ƒ /admin
+├ ƒ /admin/auditoria
+├ ƒ /admin/configuracoes
+├ ƒ /admin/empresas/[id]
+├ ƒ /agendar/[slug]
+├ ƒ /agendar/[slug]/obrigado
+├ ƒ /api/auth/session
+├ ƒ /api/cep/[cep]
+├ ƒ /api/fiscal/assistida
+├ ƒ /api/fiscal/municipio
+├ ƒ /api/photos/cleanup
+├ ƒ /api/webhooks/billing/[provider]
+├ ○ /cadastro
+├ ○ /conta-bloqueada
+├ ○ /entrar
+├ ○ /icon.svg
+├ ○ /manutencao
+├ ○ /opengraph-image
+├ ƒ /painel
+├ ƒ /painel/[module]
+├ ƒ /painel/agenda
+├ ƒ /painel/assinatura
+├ ƒ /painel/clientes
+├ ƒ /painel/clientes/[id]
+├ ƒ /painel/equipamentos
+├ ƒ /painel/equipamentos/[id]
+├ ƒ /painel/notas-fiscais/[id]/imprimir
+├ ƒ /painel/orcamentos
+├ ƒ /painel/ordens
+├ ƒ /painel/ordens/[id]
+├ ƒ /painel/ordens/nova
+├ ○ /privacidade
+├ ○ /recuperar-senha
+├ ○ /redefinir-senha
+├ ○ /robots.txt
+├ ƒ /seguranca/mfa
+├ ○ /sitemap.xml
+├ ƒ /solicitacao-enviada/[token]
+└ ○ /termos
+
+
+ƒ Proxy (Middleware)
+
+○  (Static)   prerendered as static content
+ƒ  (Dynamic)  server-rendered on demand
+

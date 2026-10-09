@@ -1,0 +1,106 @@
+✖ billing: subscription.created never grants paid access (1555.801768ms)
+✖ billing: missing payment, wrong amount/currency and expired due date fail atomically (1209.653078ms)
+✖ billing: payment identity is tenant-bound and duplicate delivery cannot renew again (1166.023653ms)
+✖ billing: rejected then approved payment is reconciled and late rejection cannot revoke it (1018.712715ms)
+✖ billing: approved payment preserves administrative suspension and commercial periods (939.638324ms)
+ℹ tests 5
+ℹ suites 0
+ℹ pass 0
+ℹ fail 5
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 5917.560511
+
+✖ failing tests:
+
+test at tests/billing-baseline-repro.mjs:25:1
+✖ billing: subscription.created never grants paid access (1555.801768ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  'ACTIVE' !== 'TRIAL'
+  
+      at file:///workspace/scratch/c431b7051009/horaria/tests/billing-baseline-repro.mjs:27:10
+      at async fixture (file:///workspace/scratch/c431b7051009/horaria/tests/billing-baseline-repro.mjs:21:5)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 'ACTIVE',
+    expected: 'TRIAL',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/billing-baseline-repro.mjs:31:1
+✖ billing: missing payment, wrong amount/currency and expired due date fail atomically (1209.653078ms)
+  AssertionError [ERR_ASSERTION]: Missing expected rejection.
+      at async file:///workspace/scratch/c431b7051009/horaria/tests/billing-baseline-repro.mjs:33:5
+      at async fixture (file:///workspace/scratch/c431b7051009/horaria/tests/billing-baseline-repro.mjs:21:5)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: undefined,
+    operator: 'rejects',
+    diff: 'simple'
+  }
+
+test at tests/billing-baseline-repro.mjs:39:1
+✖ billing: payment identity is tenant-bound and duplicate delivery cannot renew again (1166.023653ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  true !== false
+  
+      at file:///workspace/scratch/c431b7051009/horaria/tests/billing-baseline-repro.mjs:42:10
+      at async fixture (file:///workspace/scratch/c431b7051009/horaria/tests/billing-baseline-repro.mjs:21:5)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: true,
+    expected: false,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/billing-baseline-repro.mjs:49:1
+✖ billing: rejected then approved payment is reconciled and late rejection cannot revoke it (1018.712715ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+  
+  + 'REJECTED'
+  - 'APPROVED'
+  
+      at file:///workspace/scratch/c431b7051009/horaria/tests/billing-baseline-repro.mjs:52:10
+      at async fixture (file:///workspace/scratch/c431b7051009/horaria/tests/billing-baseline-repro.mjs:21:5)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 'REJECTED',
+    expected: 'APPROVED',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at tests/billing-baseline-repro.mjs:57:1
+✖ billing: approved payment preserves administrative suspension and commercial periods (939.638324ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+  
+  + 'ACTIVE'
+  - 'SUSPENDED'
+  
+      at file:///workspace/scratch/c431b7051009/horaria/tests/billing-baseline-repro.mjs:61:10
+      at async fixture (file:///workspace/scratch/c431b7051009/horaria/tests/billing-baseline-repro.mjs:21:5)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 'ACTIVE',
+    expected: 'SUSPENDED',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
