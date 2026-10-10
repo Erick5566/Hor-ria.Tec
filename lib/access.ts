@@ -1,4 +1,6 @@
-export type FeatureFlags = {
+import type { PlatformFeatureValues } from "./platform-features";
+
+export type FeatureFlags = PlatformFeatureValues & {
   aiEnabled: boolean;
   financialEnabled: boolean;
   stockEnabled: boolean;

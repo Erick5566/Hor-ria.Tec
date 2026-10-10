@@ -3,6 +3,8 @@ import { useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { supabase, message } from "@/lib/supabase";
+import PlatformFeatureControls from "./platform-feature-controls";
+import { platformFeatureChanges } from "@/lib/platform-features";
 import { ErrorBox, Heading, MetricCard, MetricGrid } from "./ui";
 
 export type AdminCompany = {
@@ -44,13 +46,7 @@ const statusLabel: Record<string, string> = {
 };
 const size = (bytes: number) =>
   bytes ? `${(bytes / 1024 / 1024).toFixed(1)} MB` : "0 MB";
-const featureNames: Record<string, string> = {
-  aiEnabled: "Inteligência artificial",
-  financialEnabled: "Financeiro",
-  stockEnabled: "Estoque",
-  whatsappEnabled: "WhatsApp",
-  appointmentsEnabled: "Agenda",
-};
+
 
 function normalizePublicUrl(value?: string | null) {
   const raw = value?.trim();
@@ -369,17 +365,12 @@ export default function AdminDashboard({
       </section>
       <section className="panel admin-settings">
         <h2>Recursos globais</h2>
-        <p>Desative um módulo com problema sem interromper toda a Horária.</p>
+        <p>Controle as páginas do painel por área. As integrações mantêm suas próprias regras de funcionamento.</p>
         <form
           onSubmit={(event) => {
             event.preventDefault();
             const form = new FormData(event.currentTarget);
-            const flags = Object.fromEntries(
-              Object.keys(featureNames).map((key) => [
-                key,
-                form.get(key) === "on",
-              ]),
-            );
+            const flags = platformFeatureChanges(form, overview.featureFlags);
             if (
               !window.confirm(
                 "Aplicar estes recursos para todas as empresas? Configurações específicas continuam prevalecendo.",
@@ -392,18 +383,7 @@ export default function AdminDashboard({
             );
           }}
         >
-          <div className="feature-grid">
-            {Object.entries(featureNames).map(([key, label]) => (
-              <label className="check-label" key={key}>
-                <input
-                  name={key}
-                  type="checkbox"
-                  defaultChecked={Boolean(overview.featureFlags[key])}
-                />{" "}
-                {label}
-              </label>
-            ))}
-          </div>
+          <PlatformFeatureControls flags={overview.featureFlags} disabled={busy} />
           <button className="primary" disabled={busy}>
             Salvar recursos globais
           </button>
