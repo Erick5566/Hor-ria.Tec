@@ -18,6 +18,8 @@ import {
   configured,
   syncServerSession,
 } from "@/lib/supabase";
+import { panelPathEnabled } from "@/lib/platform-features";
+import { FeatureUnavailable } from "./panel-feature-gate";
 import type { AccessContext } from "@/lib/access";
 import { Brand, MissingConfig } from "./brand";
 const Setup = dynamic(() => import("./setup"), {
@@ -958,6 +960,8 @@ export default function Workspace({
       : []),
   ];
 
+  const visibleMobilePrimaryNav = mobilePrimaryNav.filter((item) => panelPathEnabled(access.company?.featureFlags, item.href));
+
   const mobileMoreLinks = ([
     { label: "Recebimento", href: "/painel/ordens/nova", icon: "receive" },
     { label: "Clientes", href: "/painel/clientes", icon: "clients" },
@@ -990,8 +994,9 @@ export default function Workspace({
     managerOnly?: boolean;
   }>).filter(
     (item) =>
-      !item.managerOnly ||
-      ["OWNER", "ADMIN"].includes(access.company?.role || ""),
+      panelPathEnabled(access.company?.featureFlags, item.href) &&
+      (!item.managerOnly ||
+      ["OWNER", "ADMIN"].includes(access.company?.role || "")),
   );
 
   const mobilePrimaryActive = (href: string) => {
@@ -1067,6 +1072,7 @@ export default function Workspace({
               {items
                 .filter(
                   ([, href]) =>
+                    panelPathEnabled(access.company?.featureFlags, href) &&
                     !(
                       (href === "/painel/agenda" &&
                         !access.company?.featureFlags.appointmentsEnabled) ||
@@ -1412,7 +1418,7 @@ export default function Workspace({
               refresh,
             }}
           >
-            {children}
+            {panelPathEnabled(access.company?.featureFlags, path) ? children : <FeatureUnavailable />}
           </Context.Provider>
         )}
       </main>
@@ -1471,7 +1477,7 @@ export default function Workspace({
             className="mobile-bottom-nav"
             aria-label="Navegação rápida no celular"
           >
-            {mobilePrimaryNav.map((item) => {
+            {visibleMobilePrimaryNav.map((item) => {
               const active = mobilePrimaryActive(item.href);
               return (
                 <Link

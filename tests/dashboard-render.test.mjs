@@ -77,7 +77,7 @@ function render(
     });
     return exports;
   }
-  const Overview = load(resolve("app/painel/page.tsx")).default;
+  const Overview = load(resolve("components/dashboard-page.tsx")).default;
   return renderToStaticMarkup(React.createElement(Overview));
 }
 const fixture = () => ({

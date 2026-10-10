@@ -1,4 +1,6 @@
 import { notFound, redirect } from "next/navigation";
+import { featureForPath } from "@/lib/platform-features";
+import { requirePanelFeature } from "@/lib/require-panel-feature";
 import AdminModule from "@/components/admin-module";
 import { getServerAccess } from "@/lib/server-auth";
 
@@ -45,6 +47,9 @@ export default async function Page({
 }) {
   const { module } = await params;
   if (!betaModules.includes(module as (typeof betaModules)[number])) notFound();
+
+  const feature = featureForPath("/painel/" + module);
+  if (feature) await requirePanelFeature(feature);
 
   const stockOperationalModules = new Set(["estoque"]);
 
