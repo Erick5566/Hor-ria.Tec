@@ -6,7 +6,7 @@ import ts from 'typescript';
 import {webcrypto} from 'node:crypto';
 const path='components/admin-companies-dashboard.tsx';
 function actionSource(name){const ast=ts.createSourceFile(path,readFileSync(path,'utf8'),ts.ScriptTarget.Latest,true,ts.ScriptKind.TSX);let source;const visit=node=>{if(ts.isFunctionDeclaration(node)&&node.name?.text===name)source=node.getText(ast);if(ts.isVariableDeclaration(node)&&node.name.getText(ast)===name&&ts.isCallExpression(node.initializer))source=`this.${name} = `+node.initializer.arguments[0].getText(ast);ts.forEachChild(node,visit);};visit(ast);assert.ok(source);return source;}
-function context(extra){const ctx={selectedCompanyRef:{current:null},adminRefreshVersionRef:{current:0},noteDirtyRef:{current:false},setSelectedCompanyId:()=>{},setDetailLoading:()=>{},setDetailError:()=>{},setDetail:()=>{},setNote:()=>{},setCompanyRows:()=>{},setOverview:()=>{},setBilling:()=>{},setExpenses:()=>{},message:e=>e.message,window:{setTimeout:()=>0},...extra};vm.createContext(ctx);return ctx;}
+function context(extra){const ctx={noteRevisionRef:{current:0},noteSaveLockRef:{current:false},setNoteBusy:()=>{},setNotice:()=>{},selectedCompanyRef:{current:null},adminRefreshVersionRef:{current:0},noteDirtyRef:{current:false},setSelectedCompanyId:()=>{},setDetailLoading:()=>{},setDetailError:()=>{},setDetail:()=>{},setNote:()=>{},setCompanyRows:()=>{},setOverview:()=>{},setBilling:()=>{},setExpenses:()=>{},message:e=>e.message,window:{setTimeout:()=>0},...extra};vm.createContext(ctx);return ctx;}
 function load(ctx,name){vm.runInContext(ts.transpileModule(actionSource(name),{compilerOptions:{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.None}}).outputText,ctx);}
 
 test('admin: older company selection cannot replace the newer company detail',async()=>{
@@ -39,4 +39,51 @@ test('admin: payment refresh cannot replace a subsequently selected company',asy
   const action=ctx.confirmManualPayment();await new Promise(resolve=>setImmediate(resolve));
   ctx.selectedCompanyRef.current='b';resolveDetail({data:{id:'a'},error:null});await action;
   assert.equal(displayed.id,'b');
+});
+
+
+test('admin: changing company cannot discard a draft without confirmation',async()=>{
+  let requested=false;
+  const ctx=context({selectedCompanyRef:{current:'a'},noteDirtyRef:{current:true},window:{confirm:()=>false},supabase:{rpc:async()=>{requested=true;return {data:{id:'b'}}}}});
+  load(ctx,'selectCompany');await ctx.selectCompany({id:'b'});
+  assert.equal(requested,false);assert.equal(ctx.selectedCompanyRef.current,'a');assert.equal(ctx.noteDirtyRef.current,true);
+});
+
+
+test('admin: note stays protected while save and live refresh overlap',async()=>{
+  let resolveSave,note='Draft';
+  const ctx=context({detail:{id:'a'},note,selectedCompanyId:'a',selectedCompanyRef:{current:'a'},setNote:value=>{note=value;},supabase:{rpc:async name=>name==='admin_save_company_note'?new Promise(resolve=>{resolveSave=resolve;}):{data:name==='admin_company_detail'?{id:'a',note:'Old'}:[],error:null}}});
+  load(ctx,'saveNote');load(ctx,'refreshAdminData');
+  const saving=ctx.saveNote();await ctx.refreshAdminData();
+  assert.equal(note,'Draft');assert.equal(ctx.noteDirtyRef.current,true);
+  resolveSave({error:null});await saving;
+  assert.equal(ctx.noteDirtyRef.current,false);
+});
+
+test('admin: edits made during save remain dirty and duplicate saves are ignored',async()=>{
+  let resolveSave,calls=0;
+  const ctx=context({detail:{id:'a'},note:'First',selectedCompanyRef:{current:'a'},supabase:{rpc:()=>{calls++;return new Promise(resolve=>{resolveSave=resolve;});}}});load(ctx,'saveNote');
+  const saving=ctx.saveNote();await ctx.saveNote();
+  ctx.noteRevisionRef.current++;ctx.note='New draft';
+  resolveSave({error:null});await saving;
+  assert.equal(calls,1);assert.equal(ctx.noteDirtyRef.current,true);assert.equal(ctx.noteSaveLockRef.current,false);
+});
+
+test('admin: failed save from previous company does not mark the new company dirty',async()=>{
+  let resolveSave,error='';
+  const ctx=context({detail:{id:'a'},note:'Draft',selectedCompanyRef:{current:'a'},setDetailError:value=>{error=value;},supabase:{rpc:()=>new Promise(resolve=>{resolveSave=resolve;})}});load(ctx,'saveNote');
+  const saving=ctx.saveNote();ctx.selectedCompanyRef.current='b';ctx.noteRevisionRef.current++;ctx.noteDirtyRef.current=false;
+  resolveSave({error:new Error('Failed A')});await saving;
+  assert.equal(error,'');assert.equal(ctx.noteDirtyRef.current,false);
+});
+
+test('admin: refresh started before save acknowledgement cannot restore an old note',async()=>{
+  let resolveSave,resolveDetail,note='Draft';
+  const ctx=context({detail:{id:'a'},note,selectedCompanyId:'a',selectedCompanyRef:{current:'a'},setNote:value=>{note=value;},supabase:{rpc:async name=>name==='admin_save_company_note'?new Promise(resolve=>{resolveSave=resolve;}):name==='admin_company_detail'?new Promise(resolve=>{resolveDetail=resolve;}):{data:[],error:null}}});
+  load(ctx,'saveNote');load(ctx,'refreshAdminData');
+  const saving=ctx.saveNote(),refreshing=ctx.refreshAdminData();
+  await new Promise(resolve=>setImmediate(resolve));
+  resolveSave({error:null});await saving;
+  resolveDetail({data:{id:'a',note:'Old'},error:null});await refreshing;
+  assert.equal(note,'Draft');assert.equal(ctx.noteDirtyRef.current,false);
 });

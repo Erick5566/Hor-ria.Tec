@@ -1,3 +1,4 @@
+import "./admin-management.css";
 import "../theme.css";
 import "../reference-skin.css";
 import type { Metadata } from "next";

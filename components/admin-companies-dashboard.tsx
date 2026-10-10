@@ -11,6 +11,17 @@ import {
 } from "react";
 import { supabase, message, today } from "@/lib/supabase";
 import { ErrorBox, Heading } from "./ui";
+import Link from "next/link";
+import {
+  adminQueues,
+  adminStatusLabels,
+  filterAdminCompanies,
+  inAdminQueue,
+  adminCompaniesCsv,
+  companyWhatsapp,
+  type AdminQueue,
+  type AdminSort,
+} from "@/lib/admin-management";
 
 export type AdminCompanyRow = {
   id: string;
@@ -119,14 +130,7 @@ type AdminCompanyDetail = {
   }>;
 };
 
-const statusLabel: Record<string, string> = {
-  ACTIVE: "Ativa",
-  TRIAL: "Período inicial",
-  PAST_DUE: "Pagamento pendente",
-  SUSPENDED: "Suspensa",
-  CANCELED: "Cancelada",
-  PENDING_DELETION: "Aguardando exclusão",
-};
+const statusLabel = adminStatusLabels;
 
 const paymentLabel: Record<string, string> = {
   APPROVED: "Pago",
@@ -179,40 +183,6 @@ function relativeDate(value?: string | null) {
   return formatter.format(days, "day");
 }
 
-function daysUntil(value?: string | null) {
-  if (!value) return null;
-  return Math.ceil(
-    (new Date(value).getTime() - Date.now()) / (24 * 60 * 60 * 1000),
-  );
-}
-
-function weeklyCompanies(companies: AdminCompanyRow[]) {
-  const today = new Date();
-  const base = new Date(today);
-  base.setHours(0, 0, 0, 0);
-  const mondayOffset = (base.getDay() + 6) % 7;
-  base.setDate(base.getDate() - mondayOffset);
-
-  return Array.from({ length: 6 }, (_, index) => {
-    const weeksAgo = 5 - index;
-    const start = new Date(base);
-    start.setDate(start.getDate() - weeksAgo * 7);
-    const end = new Date(start);
-    end.setDate(end.getDate() + 7);
-    const count = companies.filter((company) => {
-      const created = new Date(company.createdAt);
-      return created >= start && created < end;
-    }).length;
-    return {
-      count,
-      label: new Intl.DateTimeFormat("pt-BR", {
-        day: "2-digit",
-        month: "2-digit",
-      }).format(start),
-    };
-  });
-}
-
 export default function AdminCompaniesDashboard({
   initialCompanies,
   initialOverview,
@@ -235,8 +205,17 @@ export default function AdminCompaniesDashboard({
   const [expenseBusy, setExpenseBusy] = useState(false);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("ALL");
-  const [sortBy, setSortBy] = useState("last_access");
-  const [selectedCompanyId, setSelectedCompanyId] = useState<string | null>(null);
+  const [sortBy, setSortBy] = useState<AdminSort>("last_access");
+  const [queue, setQueue] = useState<AdminQueue>("ALL");
+  const [page, setPage] = useState(1);
+  const [clock, setClock] = useState(() => Date.now());
+  const [expenseDate, setExpenseDate] = useState(today);
+  const [expenseNotes, setExpenseNotes] = useState("");
+  const [showAllExpenses, setShowAllExpenses] = useState(false);
+  const pageSize = 15;
+  const [selectedCompanyId, setSelectedCompanyId] = useState<string | null>(
+    null,
+  );
   const [detail, setDetail] = useState<AdminCompanyDetail | null>(null);
   const [detailLoading, setDetailLoading] = useState(false);
   const [detailError, setDetailError] = useState("");
@@ -247,29 +226,12 @@ export default function AdminCompaniesDashboard({
   const selectedCompanyRef = useRef<string | null>(null);
   const adminRefreshVersionRef = useRef(0);
   const noteDirtyRef = useRef(false);
+  const noteRevisionRef = useRef(0);
+  const noteSaveLockRef = useRef(false);
   const paymentConfirmationRef = useRef(new Map<string, string>());
   const [actionBusy, setActionBusy] = useState("");
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
-
-  const metrics = useMemo(() => {
-    const active = companyRows.filter((company) =>
-      ["ACTIVE", "TRIAL"].includes(company.status),
-    ).length;
-    const activeSubscriptions = companyRows.filter(
-      (company) => company.subscriptionStatus === "ACTIVE",
-    );
-    const mrr = activeSubscriptions.reduce(
-      (sum, company) => sum + Number(company.monthlyValue || 0),
-      0,
-    );
-    return {
-      active,
-      mrr,
-      activeSubscriptions: activeSubscriptions.length,
-      weekly: weeklyCompanies(companyRows),
-    };
-  }, [companyRows]);
 
   const capacity = Math.min(
     100,
@@ -278,68 +240,81 @@ export default function AdminCompaniesDashboard({
       : 0,
   );
 
-  const pending = useMemo(() => {
-    const payment = companyRows.find(
-      (company) =>
-        company.status === "PAST_DUE" ||
-        company.subscriptionStatus === "PAST_DUE",
+  const queueCounts = useMemo(
+    () =>
+      Object.fromEntries(
+        adminQueues.map((item) => [
+          item.id,
+          companyRows.filter((company) => inAdminQueue(company, item.id, clock))
+            .length,
+        ]),
+      ),
+    [companyRows, clock],
+  );
+  const companies = useMemo(
+    () =>
+      filterAdminCompanies(companyRows, {
+        search,
+        status: statusFilter,
+        queue,
+        sort: sortBy,
+        now: clock,
+      }),
+    [companyRows, search, statusFilter, queue, sortBy, clock],
+  );
+  const totalPages = Math.max(1, Math.ceil(companies.length / pageSize));
+  const currentPage = Math.min(page, totalPages);
+  const visibleCompanies = companies.slice(
+    (currentPage - 1) * pageSize,
+    currentPage * pageSize,
+  );
+  const filteredAmount = companies.reduce(
+    (sum, company) => sum + Number(company.amountDue || 0),
+    0,
+  );
+
+  useEffect(() => {
+    const timer = window.setInterval(() => setClock(Date.now()), 60000);
+    return () => window.clearInterval(timer);
+  }, []);
+
+  function resetFilters() {
+    setSearch("");
+    setStatusFilter("ALL");
+    setQueue("ALL");
+    setSortBy("last_access");
+    setPage(1);
+  }
+
+  function exportCompanies() {
+    if (!companies.length) return;
+    const url = URL.createObjectURL(
+      new Blob([adminCompaniesCsv(companies)], {
+        type: "text/csv;charset=utf-8",
+      }),
     );
-    if (payment) return { type: "payment" as const, company: payment, days: null };
+    const anchor = document.createElement("a");
+    anchor.href = url;
+    anchor.download = `horaria-empresas-${today()}.csv`;
+    document.body.appendChild(anchor);
+    anchor.click();
+    anchor.remove();
+    window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+    setNotice(`${companies.length} empresas exportadas com os filtros atuais.`);
+  }
 
-    const trial = companyRows
-      .map((company) => ({
-        company,
-        days: daysUntil(company.trialEndsAt),
-      }))
-      .filter(
-        (item) =>
-          ["TRIAL"].includes(item.company.status) &&
-          item.days !== null &&
-          item.days >= 0 &&
-          item.days <= 3,
-      )
-      .sort((a, b) => Number(a.days) - Number(b.days))[0];
-
-    return trial
-      ? { type: "trial" as const, company: trial.company, days: trial.days }
-      : null;
-  }, [companyRows]);
-
-  const companies = useMemo(() => {
-    const query = search.trim().toLocaleLowerCase("pt-BR");
-    const filtered = companyRows.filter((company) => {
-      const matchesSearch =
-        !query ||
-        [company.name, company.responsible, company.email]
-          .join(" ")
-          .toLocaleLowerCase("pt-BR")
-          .includes(query);
-
-      const matchesStatus =
-        statusFilter === "ALL" ||
-        (statusFilter === "ACTIVE" &&
-          ["ACTIVE", "TRIAL"].includes(company.status)) ||
-        company.status === statusFilter;
-
-      return matchesSearch && matchesStatus;
-    });
-
-    return [...filtered].sort((a, b) => {
-      if (sortBy === "name")
-        return a.name.localeCompare(b.name, "pt-BR", { sensitivity: "base" });
-      if (sortBy === "created")
-        return (
-          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-        );
-      const aTime = a.lastAccessAt
-        ? new Date(a.lastAccessAt).getTime()
-        : Number.NEGATIVE_INFINITY;
-      const bTime = b.lastAccessAt
-        ? new Date(b.lastAccessAt).getTime()
-        : Number.NEGATIVE_INFINITY;
-      return bTime - aTime;
-    });
-  }, [companyRows, search, sortBy, statusFilter]);
+  async function copyCompanyLink(slug: string) {
+    try {
+      await navigator.clipboard.writeText(
+        new URL("/" + encodeURIComponent(slug), window.location.origin).href,
+      );
+      setNotice("Link público da empresa copiado.");
+    } catch {
+      setError(
+        "Não foi possível copiar. Abra a página pública e copie o endereço.",
+      );
+    }
+  }
 
   const refreshAdminData = useCallback(async () => {
     if (!supabase) return;
@@ -366,7 +341,11 @@ export default function AdminCompaniesDashboard({
       const detailResult = await supabase.rpc("admin_company_detail", {
         p_empresa: selectedCompanyId,
       });
-      if (refreshVersion !== adminRefreshVersionRef.current || selectedCompanyRef.current !== selectedCompanyId) return;
+      if (
+        refreshVersion !== adminRefreshVersionRef.current ||
+        selectedCompanyRef.current !== selectedCompanyId
+      )
+        return;
       if (!detailResult.error) {
         const next = detailResult.data as AdminCompanyDetail;
         setDetail(next);
@@ -387,10 +366,26 @@ export default function AdminCompaniesDashboard({
 
     const channel = supabase
       .channel("admin-live-dashboard")
-      .on("postgres_changes", { event: "*", schema: "public", table: "empresas" }, scheduleRefresh)
-      .on("postgres_changes", { event: "*", schema: "public", table: "assinaturas" }, scheduleRefresh)
-      .on("postgres_changes", { event: "*", schema: "public", table: "pagamentos" }, scheduleRefresh)
-      .on("postgres_changes", { event: "*", schema: "public", table: "empresa_membros" }, scheduleRefresh)
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "empresas" },
+        scheduleRefresh,
+      )
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "assinaturas" },
+        scheduleRefresh,
+      )
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "pagamentos" },
+        scheduleRefresh,
+      )
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "empresa_membros" },
+        scheduleRefresh,
+      )
       .subscribe();
 
     window.addEventListener("focus", scheduleRefresh);
@@ -413,6 +408,13 @@ export default function AdminCompaniesDashboard({
       return;
     }
 
+    if (
+      !/^\d{4}-\d{2}-\d{2}$/.test(expenseDate) ||
+      !Number.isFinite(Date.parse(expenseDate + "T12:00:00"))
+    ) {
+      setError("Informe uma data válida para a despesa.");
+      return;
+    }
     setExpenseBusy(true);
     setError("");
     setNotice("");
@@ -421,14 +423,15 @@ export default function AdminCompaniesDashboard({
         p_description: expenseDescription.trim(),
         p_amount: amount,
         p_category: expenseCategory,
-        p_incurred_on: today(),
+        p_incurred_on: expenseDate,
         p_recurring: expenseRecurring,
-        p_notes: null,
+        p_notes: expenseNotes.trim() || null,
       });
       if (result.error) throw result.error;
       setExpenseDescription("");
       setExpenseAmount("");
       setExpenseRecurring(false);
+      setExpenseNotes("");
       setNotice("Despesa da plataforma registrada.");
       await refreshAdminData();
     } catch (caught) {
@@ -439,7 +442,8 @@ export default function AdminCompaniesDashboard({
   }
 
   async function deletePlatformExpense(expense: PlatformExpense) {
-    if (!window.confirm("Excluir a despesa “" + expense.description + "”?")) return;
+    if (!window.confirm("Excluir a despesa “" + expense.description + "”?"))
+      return;
     setExpenseBusy(true);
     setError("");
     try {
@@ -456,10 +460,15 @@ export default function AdminCompaniesDashboard({
     }
   }
 
-  async function selectCompany(
-    company: AdminCompanyRow,
-    focusBilling = false,
-  ) {
+  async function selectCompany(company: AdminCompanyRow, focusBilling = false) {
+    if (
+      noteDirtyRef.current &&
+      !window.confirm(
+        "Há uma anotação não salva. Deseja descartá-la para abrir esta empresa?",
+      )
+    )
+      return;
+    noteRevisionRef.current += 1;
     selectedCompanyRef.current = company.id;
     adminRefreshVersionRef.current += 1;
     noteDirtyRef.current = false;
@@ -475,7 +484,7 @@ export default function AdminCompaniesDashboard({
       const next = result.data as AdminCompanyDetail;
       setDetail(next);
       setNote(next.note || "");
-      if (focusBilling) {
+      if (focusBilling || window.matchMedia?.("(max-width: 1100px)").matches) {
         window.setTimeout(() => {
           document
             .getElementById("admin-detail-invoices")
@@ -492,31 +501,41 @@ export default function AdminCompaniesDashboard({
   }
 
   async function saveNote() {
-    if (!detail) return;
-    noteDirtyRef.current = false;
+    if (!detail || noteSaveLockRef.current) return;
+    const companyId = detail.id;
+    const revision = noteRevisionRef.current;
+    noteSaveLockRef.current = true;
+    noteDirtyRef.current = true;
     setNoteBusy(true);
     setDetailError("");
     try {
       const result = await supabase!.rpc("admin_save_company_note", {
-        p_empresa: detail.id,
+        p_empresa: companyId,
         p_note: note,
       });
       if (result.error) throw result.error;
+      if (
+        selectedCompanyRef.current !== companyId ||
+        noteRevisionRef.current !== revision
+      ) return;
+      // Discard refreshes started before this write was acknowledged.
+      adminRefreshVersionRef.current += 1;
+      noteDirtyRef.current = false;
       setNotice("Anotação interna salva.");
-      const refreshed = await supabase!.rpc("admin_company_detail", {
-        p_empresa: detail.id,
-      });
-      if (!refreshed.error && selectedCompanyRef.current === detail.id) setDetail(refreshed.data as AdminCompanyDetail);
     } catch (caught) {
-      noteDirtyRef.current = true;
-      setDetailError(message(caught as Error));
+      if (
+        selectedCompanyRef.current === companyId &&
+        noteRevisionRef.current === revision
+      ) setDetailError(message(caught as Error));
     } finally {
+      noteSaveLockRef.current = false;
       setNoteBusy(false);
     }
   }
 
   async function confirmManualPayment() {
-    if (!detail?.subscription?.id || paymentBusy || paymentLockRef.current) return;
+    if (!detail?.subscription?.id || paymentBusy || paymentLockRef.current)
+      return;
 
     if (
       !window.confirm(
@@ -535,20 +554,31 @@ export default function AdminCompaniesDashboard({
     try {
       const operationResult = await supabase!.rpc("admin_payment_operation", {
         p_empresa: detail.id,
-        p_previous_confirmation_id: paymentConfirmationRef.current.get(detail.id + ":completed") || null,
+        p_previous_confirmation_id:
+          paymentConfirmationRef.current.get(detail.id + ":completed") || null,
       });
       if (operationResult.error) throw operationResult.error;
-      const operation = operationResult.data as { confirmationId: string; status: string };
-      if (!operation.confirmationId) throw new Error("Operação de pagamento não disponível.");
-      if (operation.status === "requires_review") throw new Error("Operação pendente de revisão. Nenhum novo pagamento foi registrado.");
+      const operation = operationResult.data as {
+        confirmationId: string;
+        status: string;
+      };
+      if (!operation.confirmationId)
+        throw new Error("Operação de pagamento não disponível.");
+      if (operation.status === "requires_review")
+        throw new Error(
+          "Operação pendente de revisão. Nenhum novo pagamento foi registrado.",
+        );
       const confirmationId = operation.confirmationId;
       paymentConfirmationRef.current.set(detail.id, confirmationId);
       paymentConfirmationRef.current.delete(detail.id + ":completed");
-      const result = operation.status === "completed" ? { data: {}, error: null } : await supabase!.rpc("admin_confirm_manual_payment", {
-        p_empresa: detail.id,
-        p_confirmation_id: confirmationId,
-        p_note: "Confirmação manual pelo painel do Super Admin",
-      });
+      const result =
+        operation.status === "completed"
+          ? { data: {}, error: null }
+          : await supabase!.rpc("admin_confirm_manual_payment", {
+              p_empresa: detail.id,
+              p_confirmation_id: confirmationId,
+              p_note: "Confirmação manual pelo painel do Super Admin",
+            });
       if (result.error) throw result.error;
 
       const payment = result.data as {
@@ -564,28 +594,41 @@ export default function AdminCompaniesDashboard({
       if (selectedCompanyRef.current === detail.id)
         setDetail(refreshed.data as AdminCompanyDetail);
       await refreshAdminData();
-      const completed = await supabase!.rpc("admin_complete_payment_operation", {
-        p_empresa: detail.id,
-        p_confirmation_id: confirmationId,
-      });
+      const completed = await supabase!.rpc(
+        "admin_complete_payment_operation",
+        {
+          p_empresa: detail.id,
+          p_confirmation_id: confirmationId,
+        },
+      );
       if (completed.error) throw completed.error;
-      paymentConfirmationRef.current.set(detail.id + ":completed", confirmationId);
-      setNotice(operation.status === "completed"
-        ? "Pagamento anterior reconciliado. Para registrar outro pagamento recebido, confirme explicitamente uma nova operação."
-        :
-        "Pagamento Pix de " +
-          money(payment.amount) +
-          " confirmado. Próxima cobrança: " +
-          (payment.nextBillingDate
-            ? new Date(payment.nextBillingDate).toLocaleDateString("pt-BR")
-            : "a definir") +
-          ".",
+      paymentConfirmationRef.current.set(
+        detail.id + ":completed",
+        confirmationId,
+      );
+      setNotice(
+        operation.status === "completed"
+          ? "Pagamento anterior reconciliado. Para registrar outro pagamento recebido, confirme explicitamente uma nova operação."
+          : "Pagamento Pix de " +
+              money(payment.amount) +
+              " confirmado. Próxima cobrança: " +
+              (payment.nextBillingDate
+                ? new Date(payment.nextBillingDate).toLocaleDateString("pt-BR")
+                : "a definir") +
+              ".",
       );
       paymentConfirmationRef.current.delete(detail.id);
     } catch (caught) {
       const code = (caught as { code?: string }).code || "";
-      const knownRejection = code === "P0001" || code.startsWith("23") || code === "42501";
-      setDetailError((knownRejection ? "Operação recusada pelo servidor: " : "Resultado incerto: ") + message(caught as Error) + " Nenhum novo identificador será criado enquanto esta tentativa estiver pendente. Tente novamente para reconciliar o resultado.");
+      const knownRejection =
+        code === "P0001" || code.startsWith("23") || code === "42501";
+      setDetailError(
+        (knownRejection
+          ? "Operação recusada pelo servidor: "
+          : "Resultado incerto: ") +
+          message(caught as Error) +
+          " Nenhum novo identificador será criado enquanto esta tentativa estiver pendente. Tente novamente para reconciliar o resultado.",
+      );
     } finally {
       paymentLockRef.current = false;
       setPaymentBusy(false);
@@ -626,6 +669,7 @@ export default function AdminCompaniesDashboard({
     event: KeyboardEvent<HTMLTableRowElement>,
     company: AdminCompanyRow,
   ) {
+    if (event.target !== event.currentTarget) return;
     if (event.key === "Enter" || event.key === " ") {
       event.preventDefault();
       void selectCompany(company);
@@ -635,11 +679,6 @@ export default function AdminCompaniesDashboard({
   function stopRow(event: MouseEvent<HTMLElement>) {
     event.stopPropagation();
   }
-
-  const sparkMax = Math.max(
-    1,
-    ...metrics.weekly.map((item) => item.count),
-  );
 
   return (
     <section className="module admin-module admin-companies-page">
@@ -654,133 +693,110 @@ export default function AdminCompaniesDashboard({
         </p>
       )}
 
-      {pending && (
-        <section className="admin-warning-banner" role="status">
-          <span aria-hidden="true">!</span>
-          <div>
-            <strong>
-              {pending.type === "trial"
-                ? pending.company.name +
-                  " sai do período inicial em " +
-                  pending.days +
-                  (pending.days === 1 ? " dia" : " dias")
-                : pending.company.name + " está com pagamento pendente"}
-            </strong>
-            <small>Revise a empresa antes que o acesso seja afetado.</small>
-          </div>
-          <button
-            type="button"
-            onClick={() => void selectCompany(pending.company, pending.type === "payment")}
-          >
-            Ver empresa
-          </button>
-        </section>
-      )}
-
       <div className="admin-overview-grid admin-billing-overview-grid">
         <article className="admin-overview-card">
-          <div className="admin-overview-card-head"><span>Empresas</span><b aria-hidden="true">▦</b></div>
+          <div className="admin-overview-card-head">
+            <span>Empresas</span>
+            <b aria-hidden="true">▦</b>
+          </div>
           <strong>{overview.currentCompanies}</strong>
           <small>de {overview.maxCompanies} vagas</small>
-          <div className="admin-capacity-track" title={Math.round(capacity) + "% da capacidade utilizada"}>
+          <div
+            className="admin-capacity-track"
+            title={Math.round(capacity) + "% da capacidade utilizada"}
+          >
             <i style={{ width: capacity + "%" }} />
           </div>
         </article>
         <article className="admin-overview-card">
-          <div className="admin-overview-card-head"><span>MRR estimado</span><b aria-hidden="true">R$</b></div>
+          <div className="admin-overview-card-head">
+            <span>MRR estimado</span>
+            <b aria-hidden="true">R$</b>
+          </div>
           <strong>{money(billing.estimatedMrr)}</strong>
           <small>{billing.activeSubscriptions} assinaturas ativas</small>
         </article>
         <article className="admin-overview-card admin-money-positive">
-          <div className="admin-overview-card-head"><span>Recebido no mês</span><b aria-hidden="true">↗</b></div>
+          <div className="admin-overview-card-head">
+            <span>Recebido no mês</span>
+            <b aria-hidden="true">↗</b>
+          </div>
           <strong>{money(billing.receivedThisMonth)}</strong>
           <small>Total histórico: {money(billing.receivedTotal)}</small>
         </article>
         <article className="admin-overview-card admin-money-negative">
-          <div className="admin-overview-card-head"><span>Gastos no mês</span><b aria-hidden="true">↘</b></div>
+          <div className="admin-overview-card-head">
+            <span>Gastos no mês</span>
+            <b aria-hidden="true">↘</b>
+          </div>
           <strong>{money(billing.expensesThisMonth)}</strong>
           <small>Total registrado: {money(billing.expensesTotal)}</small>
         </article>
         <article className="admin-overview-card">
-          <div className="admin-overview-card-head"><span>Resultado do mês</span><b aria-hidden="true">＝</b></div>
+          <div className="admin-overview-card-head">
+            <span>Resultado do mês</span>
+            <b aria-hidden="true">＝</b>
+          </div>
           <strong>{money(billing.netThisMonth)}</strong>
           <small>Receitas menos despesas da Horária</small>
         </article>
         <article className="admin-overview-card admin-money-warning">
-          <div className="admin-overview-card-head"><span>A receber</span><b aria-hidden="true">!</b></div>
+          <div className="admin-overview-card-head">
+            <span>A receber</span>
+            <b aria-hidden="true">!</b>
+          </div>
           <strong>{money(billing.receivableTotal)}</strong>
-          <small>{billing.overdueCount} em atraso · {billing.pendingCount} pendentes</small>
+          <small>
+            {billing.overdueCount} em atraso · {billing.pendingCount} pendentes
+          </small>
         </article>
         <article className="admin-overview-card">
-          <div className="admin-overview-card-head"><span>Vencem em 24h</span><b aria-hidden="true">◷</b></div>
+          <div className="admin-overview-card-head">
+            <span>Vencem em 24h</span>
+            <b aria-hidden="true">◷</b>
+          </div>
           <strong>{billing.dueNext24hCount}</strong>
           <small>Tolerância configurada: {billing.graceHours}h</small>
         </article>
         <article className="admin-overview-card">
-          <div className="admin-overview-card-head"><span>Suspensas</span><b aria-hidden="true">×</b></div>
+          <div className="admin-overview-card-head">
+            <span>Suspensas</span>
+            <b aria-hidden="true">×</b>
+          </div>
           <strong>{billing.suspendedCount}</strong>
           <small>{billing.trialSubscriptions} em período inicial</small>
         </article>
       </div>
 
-      <section className="panel admin-platform-finance">
-        <div className="admin-platform-finance-head">
+      <section
+        className="admin-attention-panel"
+        aria-labelledby="admin-attention-title"
+      >
+        <div className="admin-section-heading">
           <div>
-            <span className="eyebrow">FINANCEIRO DA HORÁRIA</span>
-            <h2>Despesas da plataforma</h2>
-            <p>Registre apenas custos da Horária, como domínio, infraestrutura e ferramentas.</p>
+            <span className="eyebrow">ACOMPANHAMENTO</span>
+            <h2 id="admin-attention-title">Quem precisa de atenção?</h2>
+            <p>Selecione um grupo para organizar seus próximos contatos.</p>
           </div>
-          <strong>{money(billing.expensesThisMonth)} no mês</strong>
         </div>
-        <div className="admin-expense-form">
-          <input
-            aria-label="Descrição da despesa"
-            placeholder="Ex.: domínio, ferramenta, infraestrutura"
-            value={expenseDescription}
-            onChange={(event) => setExpenseDescription(event.target.value)}
-          />
-          <select
-            aria-label="Categoria da despesa"
-            value={expenseCategory}
-            onChange={(event) => setExpenseCategory(event.target.value)}
-          >
-            <option>Infraestrutura</option>
-            <option>Domínio</option>
-            <option>Ferramentas</option>
-            <option>Marketing</option>
-            <option>Operação</option>
-            <option>Outros</option>
-          </select>
-          <input
-            aria-label="Valor da despesa"
-            inputMode="decimal"
-            placeholder="R$ 0,00"
-            value={expenseAmount}
-            onChange={(event) => setExpenseAmount(event.target.value)}
-          />
-          <label className="admin-expense-recurring">
-            <input
-              type="checkbox"
-              checked={expenseRecurring}
-              onChange={(event) => setExpenseRecurring(event.target.checked)}
-            />
-            Recorrente
-          </label>
-          <button className="primary" type="button" disabled={expenseBusy} onClick={() => void addPlatformExpense()}>
-            {expenseBusy ? "Salvando…" : "Adicionar despesa"}
-          </button>
-        </div>
-        <div className="admin-expense-list">
-          {expenses.length ? expenses.slice(0, 8).map((expense) => (
-            <article key={expense.id}>
-              <div>
-                <strong>{expense.description}</strong>
-                <small>{expense.category} · {new Date(expense.incurredOn + "T12:00:00").toLocaleDateString("pt-BR")}{expense.recurring ? " · recorrente" : ""}</small>
-              </div>
-              <b>{money(expense.amount)}</b>
-              <button type="button" className="outline" disabled={expenseBusy} onClick={() => void deletePlatformExpense(expense)}>Excluir</button>
-            </article>
-          )) : <p className="admin-detail-muted">Nenhuma despesa da Horária registrada.</p>}
+        <div className="admin-attention-grid">
+          {adminQueues.map((item) => (
+            <button
+              key={item.id}
+              type="button"
+              aria-pressed={queue === item.id}
+              className={queue === item.id ? "is-active" : ""}
+              onClick={() => {
+                setQueue(item.id);
+                setStatusFilter("ALL");
+                setPage(1);
+              }}
+            >
+              <span>{item.label}</span>
+              <strong>{queueCounts[item.id] || 0}</strong>
+              <small>{item.description}</small>
+            </button>
+          ))}
         </div>
       </section>
 
@@ -790,37 +806,72 @@ export default function AdminCompaniesDashboard({
             <label className="admin-company-search">
               <span aria-hidden="true">⌕</span>
               <input
-                aria-label="Buscar empresa, responsável ou e-mail"
-                placeholder="Buscar empresa, responsável ou e-mail…"
+                aria-label="Buscar empresa, responsável, e-mail, telefone ou página"
+                placeholder="Empresa, responsável, e-mail, telefone ou página…"
                 value={search}
-                onChange={(event) => setSearch(event.target.value)}
+                onChange={(event) => {
+                  setSearch(event.target.value);
+                  setPage(1);
+                }}
               />
             </label>
             <label>
               <span>Status</span>
               <select
                 value={statusFilter}
-                onChange={(event) => setStatusFilter(event.target.value)}
+                onChange={(event) => {
+                  setStatusFilter(event.target.value);
+                  setPage(1);
+                }}
               >
                 <option value="ALL">Todos</option>
                 <option value="ACTIVE">Ativa</option>
                 <option value="PAST_DUE">Pagamento pendente</option>
                 <option value="SUSPENDED">Suspensa</option>
+                <option value="TRIAL">Em teste</option>
+                <option value="CANCELED">Cancelada</option>
+                <option value="PENDING_DELETION">Aguardando exclusão</option>
               </select>
             </label>
             <label>
               <span>Ordenar por</span>
               <select
                 value={sortBy}
-                onChange={(event) => setSortBy(event.target.value)}
+                onChange={(event) => {
+                  setSortBy(event.target.value as AdminSort);
+                  setPage(1);
+                }}
               >
                 <option value="last_access">Último acesso</option>
                 <option value="name">Nome</option>
-                <option value="created">Data de cadastro</option>
+                <option value="created">Cadastro mais recente</option>
+                <option value="due">Vencimento mais próximo</option>
+                <option value="amount_due">Maior valor em aberto</option>
+                <option value="orders">Mais ordens de serviço</option>
               </select>
             </label>
           </div>
 
+          <div className="admin-directory-summary">
+            <p role="status">
+              <strong>{companies.length}</strong> de {companyRows.length}{" "}
+              empresas · <strong>{money(filteredAmount)}</strong> em aberto
+              neste filtro
+            </p>
+            <div>
+              <button type="button" className="outline" onClick={resetFilters}>
+                Limpar filtros
+              </button>
+              <button
+                type="button"
+                className="primary"
+                onClick={exportCompanies}
+                disabled={!companies.length}
+              >
+                Exportar lista ({companies.length})
+              </button>
+            </div>
+          </div>
           <div className="table-wrap admin-companies-table-wrap">
             <table className="admin-companies-table">
               <thead>
@@ -837,7 +888,7 @@ export default function AdminCompaniesDashboard({
                 </tr>
               </thead>
               <tbody>
-                {companies.map((company) => {
+                {visibleCompanies.map((company) => {
                   const selected = selectedCompanyId === company.id;
                   return (
                     <tr
@@ -853,7 +904,9 @@ export default function AdminCompaniesDashboard({
                         <small>/{company.slug}</small>
                       </td>
                       <td>
-                        <strong>{company.responsible || "Não informado"}</strong>
+                        <strong>
+                          {company.responsible || "Não informado"}
+                        </strong>
                         <small>{company.email}</small>
                       </td>
                       <td>
@@ -876,8 +929,14 @@ export default function AdminCompaniesDashboard({
                         </div>
                       </td>
                       <td>
-                        <strong>{company.dueAt ? relativeDate(company.dueAt) : "—"}</strong>
-                        <small>{company.dueAt ? fullDate(company.dueAt) : "Sem vencimento"}</small>
+                        <strong>
+                          {company.dueAt ? relativeDate(company.dueAt) : "—"}
+                        </strong>
+                        <small>
+                          {company.dueAt
+                            ? fullDate(company.dueAt)
+                            : "Sem vencimento"}
+                        </small>
                       </td>
                       <td>
                         {Number(company.amountDue || 0) > 0 ? (
@@ -893,7 +952,11 @@ export default function AdminCompaniesDashboard({
                         ) : (
                           <>
                             <strong>Sem pagamento</strong>
-                            <small>{company.subscriptionStatus === "TRIAL" ? "Período inicial" : "Sem cobrança registrada"}</small>
+                            <small>
+                              {company.subscriptionStatus === "TRIAL"
+                                ? "Período inicial"
+                                : "Sem cobrança registrada"}
+                            </small>
                           </>
                         )}
                       </td>
@@ -916,14 +979,18 @@ export default function AdminCompaniesDashboard({
                       </td>
                       <td className="admin-actions-cell" onClick={stopRow}>
                         <details className="admin-row-actions">
-                          <summary aria-label={"Ações de " + company.name}>⋯</summary>
+                          <summary aria-label={"Ações de " + company.name}>
+                            ⋯
+                          </summary>
                           <div>
                             <button
                               type="button"
                               disabled={actionBusy === company.id}
                               onClick={() => void companyAction(company)}
                             >
-                              {["SUSPENDED", "CANCELED"].includes(company.status)
+                              {["SUSPENDED", "CANCELED"].includes(
+                                company.status,
+                              )
                                 ? "Reativar"
                                 : "Suspender"}
                             </button>
@@ -950,6 +1017,32 @@ export default function AdminCompaniesDashboard({
               </div>
             )}
           </div>
+          <nav
+            className="admin-directory-pagination"
+            aria-label="Páginas de empresas"
+          >
+            <span>
+              Página {currentPage} de {totalPages}
+            </span>
+            <div>
+              <button
+                className="outline"
+                type="button"
+                disabled={currentPage <= 1}
+                onClick={() => setPage(currentPage - 1)}
+              >
+                Anterior
+              </button>
+              <button
+                className="outline"
+                type="button"
+                disabled={currentPage >= totalPages}
+                onClick={() => setPage(currentPage + 1)}
+              >
+                Próxima
+              </button>
+            </div>
+          </nav>
         </section>
 
         <aside className="panel admin-company-side">
@@ -983,7 +1076,63 @@ export default function AdminCompaniesDashboard({
                 </span>
               </header>
 
-              <section id="admin-detail-invoices" className="admin-detail-section">
+              <section className="admin-detail-section admin-company-contact">
+                <h3>Contato e acesso</h3>
+                <strong>
+                  {detail.responsible || "Responsável não informado"}
+                </strong>
+                <p>
+                  {detail.email || "E-mail não informado"}
+                  <br />
+                  {detail.phone || "Telefone não informado"}
+                </p>
+                <div className="admin-contact-actions">
+                  <Link
+                    className="outline"
+                    href={`/admin/empresas/${detail.id}`}
+                  >
+                    Gestão completa
+                  </Link>
+                  <Link
+                    className="outline"
+                    href={"/" + encodeURIComponent(detail.slug)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    Página pública ↗
+                  </Link>
+                  <button
+                    className="outline"
+                    type="button"
+                    onClick={() => void copyCompanyLink(detail.slug)}
+                  >
+                    Copiar link
+                  </button>
+                  {detail.email && (
+                    <a
+                      className="outline"
+                      href={"mailto:" + encodeURIComponent(detail.email)}
+                    >
+                      E-mail
+                    </a>
+                  )}
+                  {companyWhatsapp(detail.phone) && (
+                    <a
+                      className="outline"
+                      href={companyWhatsapp(detail.phone)!}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      Abrir WhatsApp ↗
+                    </a>
+                  )}
+                </div>
+              </section>
+
+              <section
+                id="admin-detail-invoices"
+                className="admin-detail-section"
+              >
                 <div className="admin-detail-section-head">
                   <h3>Faturas</h3>
                   {detail.subscription?.nextBillingDate && (
@@ -1041,7 +1190,8 @@ export default function AdminCompaniesDashboard({
                 {detail.subscription?.id && (
                   <div className="admin-note-actions">
                     <small>
-                      Confirme somente depois de conferir o recebimento no banco.
+                      Confirme somente depois de conferir o recebimento no
+                      banco.
                     </small>
                     <button
                       type="button"
@@ -1049,9 +1199,7 @@ export default function AdminCompaniesDashboard({
                       disabled={paymentBusy}
                       onClick={() => void confirmManualPayment()}
                     >
-                      {paymentBusy
-                        ? "Confirmando…"
-                        : "Confirmar pagamento Pix"}
+                      {paymentBusy ? "Confirmando…" : "Confirmar pagamento Pix"}
                     </button>
                   </div>
                 )}
@@ -1066,7 +1214,11 @@ export default function AdminCompaniesDashboard({
                   value={note}
                   maxLength={4000}
                   placeholder="Registre contexto de cobrança, contato ou acompanhamento interno…"
-                  onChange={(event) => { noteDirtyRef.current = true; setNote(event.target.value); }}
+                  onChange={(event) => {
+                    noteRevisionRef.current += 1;
+                    noteDirtyRef.current = true;
+                    setNote(event.target.value);
+                  }}
                 />
                 <div className="admin-note-actions">
                   <small>{note.length}/4000</small>
@@ -1113,6 +1265,133 @@ export default function AdminCompaniesDashboard({
           ) : null}
         </aside>
       </div>
+      <section className="panel admin-platform-finance">
+        <div className="admin-platform-finance-head">
+          <div>
+            <span className="eyebrow">FINANCEIRO DA HORÁRIA</span>
+            <h2>Despesas da plataforma</h2>
+            <p>
+              Registre apenas custos da Horária, como domínio, infraestrutura e
+              ferramentas.
+            </p>
+          </div>
+          <strong>{money(billing.expensesThisMonth)} no mês</strong>
+        </div>
+        <div className="admin-expense-form">
+          <input
+            aria-label="Descrição da despesa"
+            placeholder="Ex.: domínio, ferramenta, infraestrutura"
+            value={expenseDescription}
+            onChange={(event) => setExpenseDescription(event.target.value)}
+          />
+          <select
+            aria-label="Categoria da despesa"
+            value={expenseCategory}
+            onChange={(event) => setExpenseCategory(event.target.value)}
+          >
+            <option>Infraestrutura</option>
+            <option>Domínio</option>
+            <option>Ferramentas</option>
+            <option>Marketing</option>
+            <option>Operação</option>
+            <option>Outros</option>
+          </select>
+          <input
+            aria-label="Valor da despesa"
+            inputMode="decimal"
+            placeholder="R$ 0,00"
+            value={expenseAmount}
+            onChange={(event) => setExpenseAmount(event.target.value)}
+          />
+          <label>
+            Data da despesa
+            <input
+              aria-label="Data da despesa"
+              type="date"
+              required
+              value={expenseDate}
+              onChange={(event) => setExpenseDate(event.target.value)}
+            />
+          </label>
+          <label className="admin-expense-recurring">
+            <input
+              type="checkbox"
+              checked={expenseRecurring}
+              onChange={(event) => setExpenseRecurring(event.target.checked)}
+            />
+            Recorrente
+          </label>
+          <button
+            className="primary"
+            type="button"
+            disabled={expenseBusy}
+            onClick={() => void addPlatformExpense()}
+          >
+            {expenseBusy ? "Salvando…" : "Adicionar despesa"}
+          </button>
+        </div>
+        <label className="admin-expense-note">
+          Observação (opcional)
+          <textarea
+            value={expenseNotes}
+            maxLength={2000}
+            placeholder="Contexto ou referência desta despesa"
+            onChange={(event) => setExpenseNotes(event.target.value)}
+          />
+        </label>
+        <div className="admin-expense-list">
+          {expenses.length ? (
+            expenses
+              .slice(0, showAllExpenses ? expenses.length : 8)
+              .map((expense) => (
+                <article key={expense.id}>
+                  <div>
+                    <strong>{expense.description}</strong>
+                    <small>
+                      {expense.category} ·{" "}
+                      {new Date(
+                        expense.incurredOn + "T12:00:00",
+                      ).toLocaleDateString("pt-BR")}
+                      {expense.recurring ? " · recorrente" : ""}
+                    </small>
+                  </div>
+                  {expense.notes && (
+                    <p className="admin-expense-context">{expense.notes}</p>
+                  )}
+                  <b>{money(expense.amount)}</b>
+                  <button
+                    type="button"
+                    className="outline"
+                    disabled={expenseBusy}
+                    onClick={() => void deletePlatformExpense(expense)}
+                  >
+                    Excluir
+                  </button>
+                </article>
+              ))
+          ) : (
+            <p className="admin-detail-muted">
+              Nenhuma despesa da Horária registrada.
+            </p>
+          )}
+        </div>
+        {expenses.length > 8 && (
+          <button
+            type="button"
+            className="outline admin-expense-toggle"
+            onClick={() => setShowAllExpenses((value) => !value)}
+          >
+            {showAllExpenses
+              ? "Mostrar menos"
+              : `Ver ${expenses.length} despesas carregadas`}
+          </button>
+        )}
+        {expenses.length >= 50 && (
+          <p className="admin-detail-muted">
+            Exibindo as 50 despesas mais recentes.
+          </p>
+        )}
+      </section>
     </section>
   );
 }

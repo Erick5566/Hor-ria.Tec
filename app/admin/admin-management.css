@@ -1,0 +1,190 @@
+/* Management tools share Horária's existing navy and blue identity. */
+.admin-companies-page .admin-attention-panel {
+  margin: 4px 0 22px;
+}
+.admin-companies-page .admin-section-heading h2 {
+  margin: 4px 0 6px;
+  color: #173152;
+  font-size: 1.2rem;
+}
+.admin-companies-page .admin-section-heading p {
+  margin: 0 0 16px;
+  color: #586a82;
+  font-size: 0.9rem;
+}
+.admin-companies-page .admin-attention-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+.admin-companies-page .admin-attention-grid button {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 7px 12px;
+  min-height: 106px;
+  padding: 17px;
+  text-align: left;
+  background: #fff;
+  color: #173152;
+  border: 1px solid #dce4ef;
+  border-radius: 12px;
+}
+.admin-companies-page .admin-attention-grid button > span {
+  align-self: center;
+  font-weight: 700;
+  font-size: 0.87rem;
+}
+.admin-companies-page .admin-attention-grid button > strong {
+  font-size: 1.65rem;
+  font-variant-numeric: tabular-nums;
+}
+.admin-companies-page .admin-attention-grid button > small {
+  grid-column: 1 / -1;
+  color: #586a82;
+  font-size: 0.77rem;
+  font-weight: 400;
+}
+.admin-companies-page .admin-attention-grid button.is-active {
+  background: #173c8f;
+  border-color: #173c8f;
+  color: #fff;
+  box-shadow: 0 5px 15px #173c8f18;
+}
+.admin-companies-page .admin-attention-grid button.is-active > small {
+  color: #e1eaff;
+}
+.admin-companies-page :is(button, a, input, select, textarea):focus-visible {
+  outline: 3px solid #6c91f0;
+  outline-offset: 3px;
+}
+.admin-companies-page .admin-companies-list,
+.admin-companies-page .admin-company-side {
+  min-width: 0;
+}
+.admin-companies-page .admin-directory-summary,
+.admin-companies-page .admin-directory-pagination {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding: 12px 0;
+}
+.admin-companies-page .admin-directory-summary p {
+  margin: 0;
+  color: #586a82;
+  font-size: 0.84rem;
+}
+.admin-companies-page .admin-directory-summary strong {
+  color: #173152;
+}
+.admin-companies-page .admin-directory-summary > div,
+.admin-companies-page .admin-directory-pagination > div {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.admin-companies-page .admin-directory-pagination {
+  border-top: 1px solid #e3e9f2;
+  margin-top: 12px;
+  font-size: 0.85rem;
+}
+.admin-companies-page .admin-contact-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.admin-companies-page .admin-contact-actions :is(a, button) {
+  min-height: 40px;
+  font-size: 0.8rem;
+  text-decoration: none;
+}
+.admin-companies-page .admin-company-contact p {
+  color: #586a82;
+  line-height: 1.65;
+  overflow-wrap: anywhere;
+  font-size: 0.87rem;
+}
+.admin-companies-page .admin-platform-finance {
+  margin-top: 24px;
+}
+.admin-companies-page .admin-expense-form {
+  grid-template-columns: minmax(190px, 1.5fr) minmax(120px, 1fr) 110px minmax(
+      140px,
+      1fr
+    );
+  align-items: end;
+}
+.admin-companies-page .admin-expense-form > label {
+  font-size: 0.78rem;
+  color: #586a82;
+}
+.admin-companies-page .admin-expense-form > button {
+  grid-column: -3 / -1;
+}
+.admin-companies-page .admin-expense-note {
+  display: block;
+  margin-top: 14px;
+  font-size: 0.82rem;
+  color: #586a82;
+}
+.admin-companies-page .admin-expense-note textarea {
+  min-height: 66px;
+  margin-top: 6px;
+}
+.admin-companies-page .admin-expense-context {
+  grid-column: 1 / -1;
+  grid-row: 2;
+  color: #586a82;
+  font-size: 0.82rem;
+  margin: 0;
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+}
+.admin-companies-page .admin-expense-toggle {
+  margin-top: 12px;
+}
+@media (max-width: 1100px) {
+  .admin-companies-page .admin-companies-layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .admin-companies-page .admin-company-toolbar {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  }
+  .admin-companies-page .admin-company-search {
+    grid-column: 1 / -1;
+  }
+  .admin-companies-page .admin-expense-form {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .admin-companies-page .admin-expense-form > :first-child {
+    grid-column: 1 / -1;
+  }
+}
+@media (max-width: 600px) {
+  .admin-companies-page .admin-attention-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .admin-companies-page .admin-attention-grid button {
+    padding: 12px;
+    grid-template-columns: 1fr;
+  }
+  .admin-companies-page .admin-attention-grid button > strong {
+    grid-row: 1;
+  }
+  .admin-companies-page .admin-directory-summary > div {
+    width: 100%;
+  }
+  .admin-companies-page .admin-directory-summary button {
+    flex: 1;
+  }
+  .admin-companies-page .admin-expense-form {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .admin-companies-page .admin-expense-form > button {
+    grid-column: auto;
+  }
+  .admin-companies-page :is(input, select, textarea) {
+    font-size: 16px;
+  }
+}
