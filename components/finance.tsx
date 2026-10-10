@@ -1,4 +1,5 @@
 "use client";
+import { csvCell } from "@/lib/csv";
 import { subscribeWorkspaceDataChanges } from "@/lib/data-change";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import dynamic from "next/dynamic";
@@ -307,7 +308,7 @@ export default function Finance({ ordemId }: { ordemId?: string }) {
       rows
         .map((row) =>
           row
-            .map((value) => `"${String(value ?? "").replaceAll('"', '""')}"`)
+            .map(csvCell)
             .join(";"),
         )
         .join("\r\n");

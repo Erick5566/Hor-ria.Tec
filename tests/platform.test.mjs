@@ -36,7 +36,7 @@ test("plataforma: permissões, manutenção, suspensão, retenção e limite", a
     assert.equal(
       (
         await db.query(
-          `select private.process_billing_event('test','evt-1','payment.approved',$1,'sub-1','pay-1',now()+interval '1 month',99.9,'BRL','{}') processed`,
+          `select private.process_billing_event('test','evt-1','payment.approved',$1,'sub-1','pay-1',now()+interval '1 month',44.99,'BRL','{}') processed`,
           [companyA],
         )
       ).rows[0].processed,
@@ -45,7 +45,7 @@ test("plataforma: permissões, manutenção, suspensão, retenção e limite", a
     assert.equal(
       (
         await db.query(
-          `select private.process_billing_event('test','evt-1','payment.approved',$1,'sub-1','pay-1',now()+interval '1 month',99.9,'BRL','{}') processed`,
+          `select private.process_billing_event('test','evt-1','payment.approved',$1,'sub-1','pay-1',now()+interval '1 month',44.99,'BRL','{}') processed`,
           [companyA],
         )
       ).rows[0].processed,

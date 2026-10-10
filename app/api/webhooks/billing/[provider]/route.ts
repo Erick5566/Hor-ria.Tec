@@ -44,7 +44,7 @@ export async function POST(
   const supplied = request.headers.get("x-horaria-signature") || "";
   const expected = `sha256=${createHmac("sha256", secret).update(raw).digest("hex")}`;
   const valid =
-    supplied.length === expected.length &&
+    /^sha256=[0-9a-f]{64}$/.test(supplied) &&
     timingSafeEqual(Buffer.from(supplied), Buffer.from(expected));
   if (!valid)
     return NextResponse.json({ error: "Assinatura inválida" }, { status: 401 });
@@ -57,17 +57,50 @@ export async function POST(
   } catch {
     return NextResponse.json({ error: "Payload inválido" }, { status: 400 });
   }
-  const eventId = request.headers.get("x-horaria-event-id") || event.eventId;
+  // The idempotency key must be part of the signed body.
+  const eventId = event.eventId;
+  const headerEventId = request.headers.get("x-horaria-event-id");
   if (
     typeof eventId !== "string" ||
     !eventId.trim() ||
     eventId.length > 200 ||
+    (headerEventId !== null && headerEventId !== eventId) ||
     typeof event.eventType !== "string" ||
     !event.eventType ||
     typeof event.companyId !== "string" ||
     !uuid.test(event.companyId)
   )
     return NextResponse.json({ error: "Evento incompleto" }, { status: 400 });
+  const allowedEvents = [
+    "payment.approved",
+    "payment.failed",
+    "payment.past_due",
+    "subscription.created",
+    "subscription.canceled",
+  ];
+  const invalidOptionalId = [
+    event.externalSubscriptionId,
+    event.externalPaymentId,
+  ].some(
+    (value) =>
+      value !== undefined &&
+      (typeof value !== "string" || !value.trim() || value.length > 200),
+  );
+  if (
+    !allowedEvents.includes(event.eventType) ||
+    invalidOptionalId ||
+    (event.amount !== undefined &&
+      (typeof event.amount !== "number" ||
+        !Number.isFinite(event.amount) ||
+        event.amount <= 0)) ||
+    (event.currency !== undefined && event.currency !== "BRL") ||
+    (event.nextBillingAt !== undefined &&
+      (typeof event.nextBillingAt !== "string" ||
+        !Number.isFinite(Date.parse(event.nextBillingAt)))) ||
+    (event.eventType === "payment.approved" &&
+      (!event.externalPaymentId || event.amount === undefined))
+  )
+    return NextResponse.json({ error: "Pagamento inválido" }, { status: 400 });
   const client = createClient(url, serviceKey, {
     auth: { persistSession: false, autoRefreshToken: false },
   });

@@ -45,7 +45,7 @@ async function billingHarness() {
       }),
     },
   );
-  const send = (raw, signed = true, provider = "test") =>
+  const send = (raw, signed = true, provider = "test", headers = {}) =>
     ctx.POST(
       new Request("https://isolated.invalid", {
         method: "POST",
@@ -54,6 +54,7 @@ async function billingHarness() {
           "x-horaria-signature": signed
             ? `sha256=${createHmac("sha256", env.HORARIA_BILLING_WEBHOOK_SECRET).update(raw).digest("hex")}`
             : "invalid",
+          ...headers,
         },
       }),
       { params: Promise.resolve({ provider }) },
@@ -159,11 +160,12 @@ test("cobrança: encaminha evento assinado, duplicado e erro do banco", async ()
     eventId: "test-event",
     eventType: "payment.approved",
     companyId: "10000000-0000-4000-8000-000000000001",
-    amount: 99.9,
+    amount: 44.99,
+    externalPaymentId: "sandbox-payment",
   });
   assert.equal((await h.send(raw)).status, 200);
   assert.equal(h.calls[0].name, "process_billing_event");
-  assert.equal(h.calls[0].args.p_amount, 99.9);
+  assert.equal(h.calls[0].args.p_amount, 44.99);
   assert.equal(h.calls[0].args.p_currency, "BRL");
   h.result.data = false;
   assert.equal((await (await h.send(raw)).json()).processed, false);
@@ -239,7 +241,6 @@ test("WhatsApp: template ausente retorna à fila, falha do provedor registra ten
   assert.equal(failed.updates.at(-1).tentativas, 1);
 });
 
-
 test("WhatsApp: despacho interno aceita somente token de fila válido", async () => {
   const h = await whatsappHarness();
   delete h.env.NOTIFICATION_WEBHOOK_SECRET;
@@ -273,7 +274,6 @@ test("WhatsApp: despacho interno rejeita token ausente ou malformado", async () 
   assert.equal(h.updates.length, 0);
 });
 
-
 test("WhatsApp: usa horaria.site quando PUBLIC_APP_URL não estiver configurada", async () => {
   const h = await whatsappHarness();
   delete h.env.PUBLIC_APP_URL;
@@ -287,3 +287,45 @@ test("WhatsApp: usa horaria.site quando PUBLIC_APP_URL não estiver configurada"
   );
 });
 
+test("cobrança: assinatura multibyte inválida retorna 401 sem erro interno", async () => {
+  const h = await billingHarness();
+  const response = await h.send("{}", true, "test", {
+    "x-horaria-signature": "é".repeat(71),
+  });
+  assert.equal(response.status, 401);
+  assert.equal(h.calls.length, 0);
+});
+
+test("cobrança: id não assinado e pagamento incompleto são rejeitados", async () => {
+  const h = await billingHarness();
+  const event = {
+    eventId: "signed-id",
+    eventType: "payment.approved",
+    companyId: "10000000-0000-4000-8000-000000000001",
+    externalPaymentId: "payment",
+    amount: 44.99,
+  };
+  assert.equal(
+    (
+      await h.send(JSON.stringify(event), true, "test", {
+        "x-horaria-event-id": "other-id",
+      })
+    ).status,
+    400,
+  );
+  for (const change of [
+    { externalPaymentId: undefined },
+    { amount: undefined },
+    { amount: "44.99" },
+    { currency: "USD" },
+    { nextBillingAt: "invalid" },
+    { externalSubscriptionId: {} },
+    { eventType: "unknown" },
+  ]) {
+    assert.equal(
+      (await h.send(JSON.stringify({ ...event, ...change }))).status,
+      400,
+    );
+  }
+  assert.equal(h.calls.length, 0);
+});
