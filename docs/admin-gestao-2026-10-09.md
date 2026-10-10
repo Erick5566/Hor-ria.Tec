@@ -34,3 +34,9 @@ Branch: `feat/admin-gestao-2026-10-09`, baseada na branch auditada `audit/pre-la
 - `git diff --check`: aprovado.
 
 Não houve validação visual autenticada em navegador/mobile nesta alteração. A renderização foi verificada em SSR com dados simulados, além de testes funcionais isolados. As pendências de homologação do relatório de lançamento continuam válidas. Permissões Super Admin + MFA, regras de assinatura e confirmação PIX foram preservadas. Nenhuma migration nova é necessária para estas ferramentas; a migration da auditoria continua dependendo de aprovação e homologação próprias.
+
+## Continuação — proteção do salvamento de anotações
+
+Corrigida uma janela em que o painel marcava a anotação como limpa antes da confirmação da RPC. O refresh automático podia substituir o rascunho durante a gravação. Agora a proteção permanece até a confirmação, edições posteriores continuam pendentes e respostas de outra seleção não alteram o erro ou o estado do rascunho atual. Uma trava imediata impede gravações duplicadas; a confirmação invalida leituras iniciadas antes da gravação.
+
+Validação desta continuação: suíte geral com 184 testes aprovada; teste adicional de refresh anterior à confirmação aprovado separadamente, totalizando nove testes direcionados de concorrência do ADM. TypeScript, build e diff-check aprovados. Comparação automatizada contra a versão antiga interrompida por travamento, sem resultado conclusivo. Sem deploy ou alterações no banco. Homologação autenticada e PIX automático seguem pendentes.

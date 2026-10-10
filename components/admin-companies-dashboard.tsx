@@ -226,6 +226,8 @@ export default function AdminCompaniesDashboard({
   const selectedCompanyRef = useRef<string | null>(null);
   const adminRefreshVersionRef = useRef(0);
   const noteDirtyRef = useRef(false);
+  const noteRevisionRef = useRef(0);
+  const noteSaveLockRef = useRef(false);
   const paymentConfirmationRef = useRef(new Map<string, string>());
   const [actionBusy, setActionBusy] = useState("");
   const [error, setError] = useState("");
@@ -466,6 +468,7 @@ export default function AdminCompaniesDashboard({
       )
     )
       return;
+    noteRevisionRef.current += 1;
     selectedCompanyRef.current = company.id;
     adminRefreshVersionRef.current += 1;
     noteDirtyRef.current = false;
@@ -498,26 +501,34 @@ export default function AdminCompaniesDashboard({
   }
 
   async function saveNote() {
-    if (!detail) return;
-    noteDirtyRef.current = false;
+    if (!detail || noteSaveLockRef.current) return;
+    const companyId = detail.id;
+    const revision = noteRevisionRef.current;
+    noteSaveLockRef.current = true;
+    noteDirtyRef.current = true;
     setNoteBusy(true);
     setDetailError("");
     try {
       const result = await supabase!.rpc("admin_save_company_note", {
-        p_empresa: detail.id,
+        p_empresa: companyId,
         p_note: note,
       });
       if (result.error) throw result.error;
+      if (
+        selectedCompanyRef.current !== companyId ||
+        noteRevisionRef.current !== revision
+      ) return;
+      // Discard refreshes started before this write was acknowledged.
+      adminRefreshVersionRef.current += 1;
+      noteDirtyRef.current = false;
       setNotice("Anotação interna salva.");
-      const refreshed = await supabase!.rpc("admin_company_detail", {
-        p_empresa: detail.id,
-      });
-      if (!refreshed.error && selectedCompanyRef.current === detail.id)
-        setDetail(refreshed.data as AdminCompanyDetail);
     } catch (caught) {
-      noteDirtyRef.current = true;
-      setDetailError(message(caught as Error));
+      if (
+        selectedCompanyRef.current === companyId &&
+        noteRevisionRef.current === revision
+      ) setDetailError(message(caught as Error));
     } finally {
+      noteSaveLockRef.current = false;
       setNoteBusy(false);
     }
   }
@@ -1204,6 +1215,7 @@ export default function AdminCompaniesDashboard({
                   maxLength={4000}
                   placeholder="Registre contexto de cobrança, contato ou acompanhamento interno…"
                   onChange={(event) => {
+                    noteRevisionRef.current += 1;
                     noteDirtyRef.current = true;
                     setNote(event.target.value);
                   }}
