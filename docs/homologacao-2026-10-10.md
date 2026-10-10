@@ -44,4 +44,6 @@ Não mesclar nem publicar automaticamente esta branch antes de:
 4. Identificar/configurar o provedor PIX em sandbox. O produto atual usa PIX manual e um webhook genérico; não existe evidência de confirmação bancária automática funcionando.
 5. Aprovar os testes críticos e só então publicar Production e verificar o domínio.
 
-Nenhum deploy, alteração do banco produtivo, cobrança ou envio real de e-mail foi realizado nesta continuação. A correção está pronta para revisão; a homologação externa permanece bloqueada.
+Após abrir o PR #97, os status do GitHub revelaram uma integração antiga do Netlify, que publicou automaticamente um preview do primeiro commit. Não foi acionado nem utilizado como destino de homologação. Isso é um efeito externo indesejado; o preview anterior não foi removido. `netlify.toml` bloqueia novos builds Git do Netlify, e o título do PR/commit de contenção usa `[skip netlify]`. O vínculo antigo deve ser removido na plataforma antes de futuras publicações. Não houve deploy Vercel nesta continuação.
+
+Nenhuma alteração do banco produtivo, cobrança ou envio real de e-mail foi realizado nesta continuação. A correção está pronta para revisão; a homologação externa permanece bloqueada.
