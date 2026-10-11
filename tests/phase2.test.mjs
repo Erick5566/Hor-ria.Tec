@@ -84,9 +84,9 @@ test("fase 2: venda integra estoque e financeiro com isolamento", async () => {
       (await db.query(`select catalog_page(true,1,30,null) result`)).rows[0].result,
       null,
     );
-    await assert.rejects(
-      db.query(`update pecas set na_vitrine=true where id=$1`, [product]),
-      /Somente proprietários e administradores/,
+    assert.equal(
+      (await db.query(`update pecas set na_vitrine=true where id=$1`, [product])).rowCount,
+      0,
     );
     await assert.rejects(
       db.query(`select finalizar_venda($1,null,$2,0,'pix',null)`, [
