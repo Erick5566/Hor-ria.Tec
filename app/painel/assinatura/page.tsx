@@ -37,6 +37,7 @@ function formatCurrency(value: number) {
 export default function SubscriptionPage() {
   const { access } = useWorkspace();
   const subscription = access.subscription;
+  const paymentDue = subscription?.status === "PAST_DUE" || subscription?.status === "SUSPENDED";
   const [copied, setCopied] = useState<"pix" | "key" | "">("");
   const [, setClockTick] = useState(0);
 
@@ -110,8 +111,7 @@ export default function SubscriptionPage() {
         <section className="notice subscription-paid-status" role="status">
           <strong>Pagamento confirmado ✓</strong>
           <span>
-            Sua assinatura está ativa. Esta tela acompanha novas confirmações
-            automaticamente.
+            Sua assinatura está ativa. O PIX da próxima cobrança aparecerá somente após o vencimento.
           </span>
         </section>
       )}
@@ -153,7 +153,10 @@ export default function SubscriptionPage() {
         </dl>
       </section>
 
-      <section className="panel subscription-payment-card">
+      {!paymentDue && subscription?.status !== "ACTIVE" && (
+        <section className="notice" role="status">O PIX estará disponível somente após o vencimento.</section>
+      )}
+      {paymentDue && <section className="panel subscription-payment-card">
         <div className="subscription-payment-head">
           <div>
             <span className="eyebrow">PAGAMENTO VIA PIX</span>
@@ -227,23 +230,19 @@ export default function SubscriptionPage() {
             <div className="notice subscription-manual-confirmation">
               <strong>Acompanhamento automático da assinatura</strong>
               <p>
-                Esta página monitora a situação da conta em tempo real. Assim
-                que o backend receber a confirmação do pagamento, o status muda
-                para pago e o acesso é liberado sem F5.
+                Após realizar o PIX, aguarde a confirmação manual pelo administrador. O acesso só será liberado após a aprovação no painel ADM.
               </p>
             </div>
           </div>
         </div>
-      </section>
+      </section>}
 
       {subscription?.status === "PAST_DUE" && (
         <section className="panel subscription-overdue-card">
           <div className="notice">
             <strong>Mensalidade pendente</strong>
             <p>
-              Use o Pix acima para regularizar a assinatura. A página permanece
-              acompanhando a assinatura e muda automaticamente quando a
-              confirmação do pagamento chegar ao sistema.
+              Use o Pix acima para regularizar a assinatura. a página será atualizada após a confirmação manual do pagamento pelo administrador.
             </p>
           </div>
         </section>
