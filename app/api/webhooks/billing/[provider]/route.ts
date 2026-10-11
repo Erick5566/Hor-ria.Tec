@@ -101,6 +101,11 @@ export async function POST(
       (!event.externalPaymentId || event.amount === undefined))
   )
     return NextResponse.json({ error: "Pagamento inválido" }, { status: 400 });
+  // Payments are approved exclusively through admin_confirm_manual_payment (Super Admin MFA).
+  // Signed provider events must never activate an account in manual approval mode.
+  if (event.eventType === "payment.approved")
+    return NextResponse.json({ error: "Aprovação manual pelo ADM obrigatória" }, { status: 409 });
+
   const client = createClient(url, serviceKey, {
     auth: { persistSession: false, autoRefreshToken: false },
   });
