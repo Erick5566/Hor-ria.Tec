@@ -163,14 +163,21 @@ test("cobrança: encaminha evento assinado, duplicado e erro do banco", async ()
     amount: 44.99,
     externalPaymentId: "sandbox-payment",
   });
-  assert.equal((await h.send(raw)).status, 200);
+  assert.equal((await h.send(raw)).status, 409);
+  assert.equal(h.calls.length, 0, "Webhook não pode aprovar cobrança manual");
+  const rejected = JSON.stringify({
+    ...JSON.parse(raw),
+    eventId: "test-rejected",
+    eventType: "payment.failed",
+  });
+  assert.equal((await h.send(rejected)).status, 200);
   assert.equal(h.calls[0].name, "process_billing_event");
   assert.equal(h.calls[0].args.p_amount, 44.99);
   assert.equal(h.calls[0].args.p_currency, "BRL");
   h.result.data = false;
-  assert.equal((await (await h.send(raw)).json()).processed, false);
+  assert.equal((await (await h.send(rejected)).json()).processed, false);
   h.result.error = { message: "Simulated rejection" };
-  assert.equal((await h.send(raw)).status, 422);
+  assert.equal((await h.send(rejected)).status, 422);
 });
 test("WhatsApp: rejeita JSON inválido e IDs de tipos incorretos sem enviar", async () => {
   const h = await whatsappHarness();

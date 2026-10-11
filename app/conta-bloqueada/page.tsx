@@ -27,6 +27,7 @@ export default async function BlockedPage() {
         <ExpiredPayment
           status={subscription.status}
           hasApprovedPayment={billing?.hasApprovedPayment ?? false}
+          amounts={billing || undefined}
         />
       ) : (
         <section className="state-card">

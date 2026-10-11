@@ -3,6 +3,7 @@ import { useCallback, useEffect, useState } from "react";
 import { stamp, money } from "@/lib/assistencia";
 import { supabase, message } from "@/lib/supabase";
 import { ErrorBox, Empty, PanelTitle } from "./ui";
+import { useWorkspace } from "./workspace";
 
 type AppliedPart = {
   id: string;
@@ -10,9 +11,9 @@ type AppliedPart = {
   peca_id: string | null;
   nome: string;
   quantidade: number;
-  custo_unitario: number;
-  valor_venda_unitario: number;
-  mao_obra: number;
+  custo_unitario?: number;
+  valor_venda_unitario?: number;
+  mao_obra?: number;
   criado_em: string;
 };
 
@@ -20,8 +21,8 @@ type StockOption = {
   id: string;
   nome: string;
   quantidade: number;
-  custo: number;
-  preco: number;
+  custo: number | null;
+  preco: number | null;
 };
 
 type AppliedPartsData = {
@@ -37,6 +38,8 @@ export default function AppliedParts({
   readOnly?: boolean;
 }) {
   const orderId = orderIds[0];
+  const { access } = useWorkspace();
+  const canSeeFinancialValues = ["OWNER", "ADMIN"].includes(access.company?.role || "");
   const [data, setData] = useState<AppliedPartsData>({
     applied: [],
     stock: [],
@@ -172,6 +175,7 @@ export default function AppliedParts({
               </select>
             </label>
 
+            {canSeeFinancialValues && <>
             <label>
               Custo unitário
               <input
@@ -207,6 +211,7 @@ export default function AppliedParts({
                 required
               />
             </label>
+            </>}
           </div>
 
           <button disabled={busy || loading} className="outline">
@@ -230,7 +235,7 @@ export default function AppliedParts({
             <span>
               {item.nome} · {item.quantidade} unidade(s)
               {item.peca_id ? " · Estoque atualizado" : ""}
-              <small>
+              {canSeeFinancialValues && <small>
                 Custo: {money(Number(item.custo_unitario) * item.quantidade)} ·
                 Peça:{" "}
                 {money(Number(item.valor_venda_unitario) * item.quantidade)} ·
@@ -241,7 +246,7 @@ export default function AppliedParts({
                     item.quantidade +
                     Number(item.mao_obra),
                 )}
-              </small>
+              </small>}
             </span>
             <small>{stamp(item.criado_em)}</small>
           </div>

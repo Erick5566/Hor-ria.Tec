@@ -52,7 +52,8 @@ export default function AdminCompany({ company }: { company: CompanyDetail }) {
   const [error, setError] = useState(""),
     [notice, setNotice] = useState(""),
     [busy, setBusy] = useState(false),
-    [features, setFeatures] = useState(company.featureFlags);
+    [features, setFeatures] = useState(company.featureFlags),
+    [teamPlan, setTeamPlan] = useState(company.subscription?.plan === "Horária Pro" ? "HORARIA_PRO" : "HORARIA");
   async function action(code: string, label: string) {
     if (
       !window.confirm(
@@ -93,6 +94,27 @@ export default function AdminCompany({ company }: { company: CompanyDetail }) {
       });
       if (result.error) throw result.error;
       setNotice("Recursos atualizados.");
+      router.refresh();
+    } catch (caught) {
+      setError(message(caught as Error));
+    } finally {
+      setBusy(false);
+    }
+  }
+  async function changeTeamPlan() {
+    const label = teamPlan === "HORARIA_PRO" ? "Horária Pro (R$ 80/mês, até 9 funcionários)" : "Horária (R$ 49/mês, até 3 funcionários)";
+    if (!window.confirm(`Alterar ${company.name} para ${label}? A alteração é registrada e afeta o valor da próxima cobrança; chatbot ainda não disponível.`)) return;
+    setBusy(true);
+    setError("");
+    setNotice("");
+    try {
+      const result = await supabase!.rpc("admin_set_company_team_plan", {
+        p_empresa: company.id,
+        p_plan_code: teamPlan,
+        p_reason: "Mudança manual do plano de equipe pelo Super Admin",
+      });
+      if (result.error) throw result.error;
+      setNotice("Plano da equipe atualizado. Revise o valor da próxima cobrança antes de confirmar qualquer PIX.");
       router.refresh();
     } catch (caught) {
       setError(message(caught as Error));
@@ -188,6 +210,17 @@ export default function AdminCompany({ company }: { company: CompanyDetail }) {
               </dd>
             </div>
           </dl>
+          <div className="team-plan-management">
+            <label htmlFor="admin-team-plan">Plano de equipe</label>
+            <select id="admin-team-plan" value={teamPlan} onChange={(event) => setTeamPlan(event.target.value)} disabled={busy}>
+              <option value="HORARIA">Horária · R$ 49 · até 3 funcionários</option>
+              <option value="HORARIA_PRO">Horária Pro · R$ 80 · até 9 funcionários</option>
+            </select>
+            <button type="button" className="outline" disabled={busy || teamPlan === (company.subscription?.plan === "Horária Pro" ? "HORARIA_PRO" : "HORARIA")} onClick={() => void changeTeamPlan()}>
+              Aplicar plano
+            </button>
+            <p>Chatbot Pro em desenvolvimento. A mudança exige Super Admin com MFA e não processa PIX automaticamente.</p>
+          </div>
         </section>
       </div>
       <section className="panel">

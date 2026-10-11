@@ -67,7 +67,7 @@ export default async function Page({
 
     if (
       stockOperationalModules.has(module) &&
-      (!company.featureFlags.stockEnabled || role === "ATTENDANT")
+      (!company.featureFlags.stockEnabled || !["OWNER", "ADMIN"].includes(role))
     )
       redirect("/painel");
 

@@ -105,6 +105,16 @@ Deno.serve(async (request) => {
       400,
     );
 
+  // Verifica vagas antes de criar uma conta ou enviar convite por e-mail.
+  // O gatilho do banco continua garantindo o limite contra corridas.
+  const team = await userClient.rpc("team_members_data");
+  if (team.error || !team.data)
+    return json({ ok: false, error: "Não foi possível consultar as vagas da equipe." }, 503);
+  const currentSeats = Number(team.data.seatsUsed ?? 0);
+  const seatLimit = Number(team.data.seatLimit ?? 3);
+  if (currentSeats >= seatLimit)
+    return json({ ok: false, error: `Limite de ${seatLimit} funcionários atingido. Solicite mudança de plano.` }, 409);
+
   const admin = createClient(supabaseUrl, serviceKey, {
     auth: { persistSession: false, autoRefreshToken: false },
   });
@@ -187,6 +197,7 @@ Deno.serve(async (request) => {
       "proprietário já pertence",
       "Membro inválido",
       "Função inválida",
+      "Limite de",
     ].find((fragment) => raw.includes(fragment));
 
     return json(

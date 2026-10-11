@@ -22,6 +22,10 @@ type TeamMember = {
 type TeamData = {
   actorRole: "OWNER" | "ADMIN";
   items: TeamMember[];
+  seatLimit?: number;
+  seatsUsed?: number;
+  planCode?: string;
+  chatbotStatus?: string;
 };
 
 const roleLabel: Record<TeamRole, string> = {
@@ -34,7 +38,7 @@ const roleLabel: Record<TeamRole, string> = {
 const roleSummary: Record<TeamRole, string> = {
   OWNER: "Controle total da conta, equipe, financeiro e configurações.",
   ADMIN: "Gestão da operação, financeiro, relatórios e equipe operacional.",
-  TECHNICIAN: "Central, ordens, clientes, equipamentos e estoque operacional.",
+  TECHNICIAN: "Central, ordens, clientes, equipamentos e mesa de reparos.",
   ATTENDANT: "Recebimento, agenda, ordens, clientes e equipamentos.",
 };
 
@@ -63,7 +67,7 @@ const rolePermissions: Record<TeamRole, string[]> = {
     "Central e OS",
     "Agenda",
     "Clientes e equipamentos",
-    "Estoque operacional",
+    "Mesa de reparos",
     "Consulta de serviços",
   ],
   ATTENDANT: [
@@ -73,6 +77,10 @@ const rolePermissions: Record<TeamRole, string[]> = {
     "Consulta de serviços",
   ],
 };
+
+function panelPathForRole(role: TeamRole) {
+  return role === "TECHNICIAN" ? "/painel/ordens?visao=bancada" : "/painel/ordens/nova";
+}
 
 function relativeAccess(value?: string | null) {
   if (!value) return "Sem acesso registrado";
@@ -133,6 +141,24 @@ export default function TeamPermissions() {
   useEffect(() => {
     void load();
   }, [load]);
+
+  const seatLimit = data?.seatLimit ?? 3;
+  const seatsUsed = data?.seatsUsed ??
+    (data?.items || []).filter((item) => item.status === "ACTIVE" && item.role !== "OWNER").length;
+  const noSeatsAvailable = seatsUsed >= seatLimit;
+
+  async function copyAccessLink(member: TeamMember) {
+    if (!["TECHNICIAN", "ATTENDANT"].includes(member.role)) return;
+    const url = new URL("/entrar", window.location.origin);
+    url.searchParams.set("next", panelPathForRole(member.role));
+    try {
+      await navigator.clipboard.writeText(url.toString());
+      setNotice("Link do painel copiado. O funcionário precisa entrar com o e-mail convidado.");
+      setError("");
+    } catch {
+      setError("Não foi possível copiar o link. Verifique a permissão do navegador.");
+    }
+  }
 
   const counts = useMemo(() => {
     const items = data?.items || [];
@@ -283,6 +309,21 @@ export default function TeamPermissions() {
         </article>
       </section>
 
+      <section className="panel" aria-label="Plano e vagas da equipe">
+        <div className="team-list-head">
+          <div>
+            <strong>{data?.planCode === "HORARIA_PRO" ? "Horária Pro · R$ 80/mês" : "Horária · R$ 49/mês"}</strong>
+            <p>{seatsUsed} de {seatLimit} vagas de funcionários utilizadas (proprietário não ocupa vaga).</p>
+            <p>{data?.planCode === "HORARIA_PRO"
+              ? "Chatbot incluído no planejamento do Pro; integração ainda não disponível."
+              : "Precisa de mais pessoas? O plano Pro prevê até 9 funcionários por R$ 80/mês."}</p>
+          </div>
+          {noSeatsAvailable && (
+            <span className="notice" role="status">Limite atingido. Fale com o administrador da Horária para alterar o plano.</span>
+          )}
+        </div>
+      </section>
+
       <section className="panel team-role-guide">
         <div className="team-role-guide-head">
           <div>
@@ -327,6 +368,7 @@ export default function TeamPermissions() {
             <button
               type="button"
               className="primary"
+              disabled={loading || noSeatsAvailable}
               onClick={() => {
                 setAdding(true);
                 setError("");
@@ -540,6 +582,17 @@ export default function TeamPermissions() {
                     >
                       {member.status === "ACTIVE" ? "Ativo" : "Desativado"}
                     </SemanticBadge>
+                    {member.status === "ACTIVE" &&
+                      ["TECHNICIAN", "ATTENDANT"].includes(member.role) && (
+                        <button
+                          type="button"
+                          className="outline"
+                          onClick={() => void copyAccessLink(member)}
+                          title="O funcionário precisa concluir o convite recebido por e-mail"
+                        >
+                          Copiar link do painel
+                        </button>
+                      )}
                     <button
                       type="button"
                       className="primary"

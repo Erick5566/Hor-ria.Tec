@@ -80,13 +80,13 @@ test("fase 2: venda integra estoque e financeiro com isolamento", async () => {
     assert.equal(Number(technicianRecords.metrics.relationship), 0);
     assert.equal(Number(technicianRecords.items[0].relationship_total), 0);
     assert.equal((await db.query(`select * from vendas`)).rows.length, 0);
-    assert.ok(
-      (await db.query(`select catalog_page(true,1,30,null) result`)).rows[0]
-        .result,
+    assert.equal(
+      (await db.query(`select catalog_page(true,1,30,null) result`)).rows[0].result,
+      null,
     );
-    await assert.rejects(
-      db.query(`update pecas set na_vitrine=true where id=$1`, [product]),
-      /Somente proprietários e administradores/,
+    assert.equal(
+      (await db.query(`update pecas set na_vitrine=true where id=$1 returning id`, [product])).rows.length,
+      0,
     );
     await assert.rejects(
       db.query(`select finalizar_venda($1,null,$2,0,'pix',null)`, [
@@ -95,10 +95,9 @@ test("fase 2: venda integra estoque e financeiro com isolamento", async () => {
       ]),
       /Somente proprietários e administradores/,
     );
-    assert.equal(
-      (await db.query(`select movimentar_estoque($1,1,'Ajuste técnico') quantidade`, [product]))
-        .rows[0].quantidade,
-      4,
+    await assert.rejects(
+      db.query(`select movimentar_estoque($1,1,'Ajuste técnico') quantidade`, [product]),
+      /Item não autorizado/,
     );
 
     await db.exec(`reset role`);
@@ -139,7 +138,7 @@ test("fase 2: venda integra estoque e financeiro com isolamento", async () => {
     assert.equal(
       (await db.query(`select quantidade from pecas where id=$1`, [product]))
         .rows[0].quantidade,
-      4,
+      3,
     );
     assert.equal(
       (await db.query(`select count(*)::int total from vendas`)).rows[0].total,
