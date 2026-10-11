@@ -38,7 +38,7 @@ const roleLabel: Record<TeamRole, string> = {
 const roleSummary: Record<TeamRole, string> = {
   OWNER: "Controle total da conta, equipe, financeiro e configurações.",
   ADMIN: "Gestão da operação, financeiro, relatórios e equipe operacional.",
-  TECHNICIAN: "Central, ordens, clientes, equipamentos e mesa de reparos.";
+  TECHNICIAN: "Central, ordens, clientes, equipamentos e mesa de reparos.",
   ATTENDANT: "Recebimento, agenda, ordens, clientes e equipamentos.",
 };
 
