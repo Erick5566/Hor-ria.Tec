@@ -875,4 +875,191 @@ drop policy if exists pecas_aplicadas_technical_select on public.pecas_aplicadas
 create policy pecas_aplicadas_manager_select on public.pecas_aplicadas for select to authenticated
 using(private.can_manage_company(empresa_id) and private.company_operational(empresa_id));
 
+
+-- Indicadores ADM devem respeitar o plano de cada assistência.
+create or replace function public.admin_list_companies()
+returns jsonb
+language plpgsql
+stable
+security definer
+set search_path = ''
+as $$
+declare result jsonb;
+begin
+  perform private.require_super_admin();
+
+  select coalesce(
+    jsonb_agg(
+      jsonb_build_object(
+        'id',e.id,
+        'name',e.nome,
+        'slug',e.slug,
+        'responsible',coalesce(p.nome,''),
+        'email',coalesce(p.email,''),
+        'phone',e.telefone,
+        'createdAt',e.criado_em,
+        'plan',pl.nome,
+        'subscriptionStatus',case
+          when effective.status in ('PAST_DUE','SUSPENDED','CANCELED') then effective.status
+          else a.status
+        end,
+        'trialEndsAt',a.trial_ends_at,
+        'nextBillingDate',a.next_billing_date,
+        'dueAt',billing.due_at,
+        'graceEndsAt',case
+          when billing.due_at is null then null
+          else billing.due_at + make_interval(hours => cfg.billing_grace_hours)
+        end,
+        'amountDue',case
+          when billing.due_at is not null
+           and billing.due_at < now()
+           and effective.status in ('PAST_DUE','SUSPENDED')
+           and e.status not in ('SUSPENDED','CANCELED','PENDING_DELETION')
+            then case when pl.codigo='HORARIA_PRO' then 80.00 when billing.has_paid then cfg.monthly_payment_amount else cfg.initial_payment_amount end
+          else 0
+        end,
+        'monthlyValue',case when pl.codigo='HORARIA_PRO' then 80.00 else cfg.monthly_payment_amount end,
+        'currency','BRL',
+        'lastPaymentAt',billing.last_payment_at,
+        'lastPaymentAmount',billing.last_payment_amount,
+        'lastAccessAt',stats.ultimo_acesso,
+        'usersCount',stats.usuarios,
+        'customersCount',stats.clientes,
+        'ordersCount',stats.ordens,
+        'storageBytes',stats.storage_bytes,
+        'status',effective.status,
+        'maintenance',e.manutencao_ativa,
+        'scheduledDeletionAt',e.scheduled_deletion_at
+      )
+      order by e.criado_em desc
+    ),
+    '[]'::jsonb
+  )
+  into result
+  from public.empresas e
+  join public.perfis p on p.usuario_id=e.dono_id
+  left join public.assinaturas a on a.empresa_id=e.id
+  left join public.planos pl on pl.id=a.plano_id
+  cross join public.configuracoes_plataforma cfg
+  cross join lateral (select private.effective_company_status(e.id) as status) effective
+  cross join lateral (
+    select
+      case
+        when a.id is null then null
+        when a.status='TRIAL' then a.trial_ends_at
+        else coalesce(a.next_billing_date,a.trial_ends_at)
+      end as due_at,
+      exists(
+        select 1 from public.pagamentos pg
+        where pg.assinatura_id=a.id and pg.status='APPROVED'
+      ) as has_paid,
+      (
+        select coalesce(pg.paid_at,pg.criado_em)
+        from public.pagamentos pg
+        where pg.assinatura_id=a.id and pg.status='APPROVED'
+        order by coalesce(pg.paid_at,pg.criado_em) desc
+        limit 1
+      ) as last_payment_at,
+      (
+        select pg.valor
+        from public.pagamentos pg
+        where pg.assinatura_id=a.id and pg.status='APPROVED'
+        order by coalesce(pg.paid_at,pg.criado_em) desc
+        limit 1
+      ) as last_payment_amount
+  ) billing
+  cross join lateral (
+    select
+      (select max(m.ultimo_acesso_em) from public.empresa_membros m where m.empresa_id=e.id) as ultimo_acesso,
+      (select count(*) from public.empresa_membros m where m.empresa_id=e.id and m.status='ACTIVE') as usuarios,
+      (select count(*) from public.clientes c where c.empresa_id=e.id) as clientes,
+      (select count(*) from public.ordens_servico o where o.empresa_id=e.id) as ordens,
+      (
+        select coalesce(sum(
+          case when coalesce(obj.metadata->>'size','') ~ '^[0-9]+$'
+               then (obj.metadata->>'size')::bigint else 0 end
+        ),0)
+        from storage.objects obj
+        where obj.bucket_id='os-fotos' and obj.name like e.id::text || '/%'
+      ) as storage_bytes
+  ) stats
+  where cfg.id;
+
+  return result;
+end
+$$;
+
+
+create or replace function public.admin_billing_overview()
+returns jsonb
+language plpgsql
+stable
+security definer
+set search_path = ''
+as $$
+declare result jsonb;
+begin
+  perform private.require_super_admin();
+
+  with cfg as (
+    select * from public.configuracoes_plataforma where id
+  ),
+  subscriptions as (
+    select
+      e.id as empresa_id,
+      a.id as assinatura_id,
+      private.effective_company_status(e.id) as effective_status,
+      case when a.status='TRIAL' then a.trial_ends_at else coalesce(a.next_billing_date,a.trial_ends_at) end as due_at,
+      exists(select 1 from public.pagamentos p where p.assinatura_id=a.id and p.status='APPROVED') as has_paid,
+      e.status as company_stored_status,
+      coalesce(pl.codigo,'HORARIA') as plan_code
+    from public.empresas e
+    join public.assinaturas a on a.empresa_id=e.id
+    left join public.planos pl on pl.id=a.plano_id
+  ),
+  receivables as (
+    select s.*,
+      case when s.plan_code='HORARIA_PRO' then 80.00 when s.has_paid then cfg.monthly_payment_amount else cfg.initial_payment_amount end as amount_due
+    from subscriptions s cross join cfg
+    where s.due_at is not null and s.due_at < now()
+      and s.effective_status in ('PAST_DUE','SUSPENDED')
+      and s.company_stored_status not in ('SUSPENDED','CANCELED','PENDING_DELETION')
+  ),
+  revenue as (
+    select
+      coalesce(sum(p.valor) filter(where p.status='APPROVED' and coalesce(p.paid_at,p.criado_em)>=date_trunc('month',now())),0)::numeric(12,2) month_total,
+      coalesce(sum(p.valor) filter(where p.status='APPROVED'),0)::numeric(12,2) all_total
+    from public.pagamentos p
+  ),
+  expense as (
+    select
+      coalesce(sum(x.amount) filter(where x.incurred_on>=date_trunc('month',current_date)::date),0)::numeric(12,2) month_total,
+      coalesce(sum(x.amount),0)::numeric(12,2) all_total
+    from private.platform_expenses x
+  )
+  select jsonb_build_object(
+    'receivedThisMonth',revenue.month_total,
+    'receivedTotal',revenue.all_total,
+    'expensesThisMonth',expense.month_total,
+    'expensesTotal',expense.all_total,
+    'netThisMonth',(revenue.month_total-expense.month_total)::numeric(12,2),
+    'receivableTotal',coalesce((select sum(amount_due) from receivables),0)::numeric(12,2),
+    'pendingCount',(select count(*) from subscriptions where effective_status='PAST_DUE'),
+    'overdueCount',(select count(*) from receivables),
+    'dueNext24hCount',(select count(*) from subscriptions where effective_status in ('ACTIVE','TRIAL') and due_at>=now() and due_at<=now()+interval '24 hours'),
+    'activeSubscriptions',(select count(*) from subscriptions where effective_status='ACTIVE'),
+    'trialSubscriptions',(select count(*) from subscriptions where effective_status='TRIAL'),
+    'suspendedCount',(select count(*) from subscriptions where effective_status='SUSPENDED'),
+    'estimatedMrr',coalesce((select sum(case when plan_code='HORARIA_PRO' then 80.00 else cfg.monthly_payment_amount end) from subscriptions where effective_status in ('ACTIVE','PAST_DUE') and has_paid),0),
+    'graceHours',cfg.billing_grace_hours,
+    'initialAmount',cfg.initial_payment_amount,
+    'monthlyAmount',cfg.monthly_payment_amount
+  )
+  into result
+  from revenue cross join expense cross join cfg;
+
+  return result;
+end $$;
+
+
 commit;
