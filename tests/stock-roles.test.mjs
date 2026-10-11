@@ -78,7 +78,8 @@ test("estoque: técnico pode aplicar peça e atendente não acessa custos nem ba
       await db.query("select applied_parts_options($1) value", [orderId])
     ).rows[0].value;
     assert.equal(options.stock.length, 1);
-    assert.equal(Number(options.stock[0].custo), 100);
+    assert.equal(options.stock[0].custo, null);
+    assert.equal(options.stock[0].preco, null);
 
     await db.query(
       `select registrar_peca_aplicada_valores(
@@ -88,10 +89,8 @@ test("estoque: técnico pode aplicar peça e atendente não acessa custos nem ba
     );
 
     assert.equal(
-      (
-        await db.query("select quantidade from pecas where id=$1", [item])
-      ).rows[0].quantidade,
-      4,
+      (await db.query("select * from pecas where id=$1", [item])).rows.length,
+      0,
     );
 
     await asUser(attendant);
