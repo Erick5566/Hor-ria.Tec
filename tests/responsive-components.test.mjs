@@ -135,3 +135,92 @@ test("admin hamburger opens, closes with Escape and closes after selecting a des
   tree.props.children[1].props.onClick({ target: { closest: () => ({}) } });
   assert.equal(state, false);
 });
+
+test("notifications can close independently of the covered bell and restore focus", () => {
+  let stateIndex = 0;
+  const changes = [];
+  let focused = false;
+  const exports = {};
+  const react = {
+    ...React,
+    useState: (initial) => {
+      const index = stateIndex++;
+      const value =
+        index === 12
+          ? true
+          : typeof initial === "function"
+            ? initial()
+            : initial;
+      return [value, (next) => changes.push({ index, next })];
+    },
+    useRef: () => ({ current: null }),
+    useEffect: () => {},
+    useCallback: (callback) => callback,
+  };
+  const mocks = {
+    react,
+    "react/jsx-runtime": require("react/jsx-runtime"),
+    "next/link": { __esModule: true, default: () => null },
+    "next/image": { __esModule: true, default: () => null },
+    "next/dynamic": { __esModule: true, default: () => () => null },
+    "next/navigation": { usePathname: () => "/painel", useRouter: () => ({}) },
+    "@/lib/supabase": { configured: true, supabase: null },
+    "@/lib/platform-features": { panelPathEnabled: () => true },
+    "./panel-feature-gate": { FeatureUnavailable: () => null },
+    "./brand": { Brand: () => null },
+    "./horaria-icon": { HorariaIcon: () => null },
+  };
+  vm.runInNewContext(
+    ts.transpileModule(readFileSync("components/workspace.tsx", "utf8"), {
+      compilerOptions: {
+        module: ts.ModuleKind.CommonJS,
+        jsx: ts.JsxEmit.ReactJSX,
+        target: ts.ScriptTarget.ES2022,
+        esModuleInterop: true,
+      },
+    }).outputText,
+    {
+      exports,
+      require: (name) => {
+        if (!Object.hasOwn(mocks, name))
+          throw new Error(`Unexpected dependency: ${name}`);
+        return mocks[name];
+      },
+    },
+  );
+  const tree = exports.default({
+    children: null,
+    initialAccess: {
+      company: { role: "OWNER", featureFlags: { appointmentsEnabled: true } },
+    },
+    initialEmpresa: { id: "fixture", nome: "Assistência" },
+    initialUserId: "fixture",
+    initialEmail: "teste@example.invalid",
+  });
+  function find(node) {
+    if (!React.isValidElement(node)) return null;
+    if (node.props["aria-label"] === "Fechar notificações") return node;
+    return React.Children.toArray(node.props.children).map(find).find(Boolean);
+  }
+  const close = find(tree);
+  assert.ok(
+    close,
+    "a touch-accessible close control must be available inside the popover",
+  );
+  assert.equal(close.props.type, "button");
+  close.props.onClick({
+    currentTarget: {
+      closest: () => ({
+        querySelector: () => ({
+          focus: () => {
+            focused = true;
+          },
+        }),
+      }),
+    },
+  });
+  assert.ok(
+    changes.some((change) => change.index === 12 && change.next === false),
+  );
+  assert.equal(focused, true);
+});

@@ -446,6 +446,30 @@ export const fixtures = [
     {},
     { "components/dashboard-page.tsx": { 0: dashboard, 1: false } },
   ],
+  ...[false, true].map((withAlerts) => [
+    withAlerts ? "notificacoes-preenchidas" : "notificacoes-vazias",
+    "components/dashboard-page.tsx",
+    {},
+    {
+      "components/dashboard-page.tsx": { 0: dashboard, 1: false },
+      "components/workspace.tsx": {
+        11: "11/10/2026, 18:30:00",
+        12: true,
+        15: withAlerts
+          ? [
+              {
+                id: "notification-fixture",
+                title: "Orçamento aguardando aprovação",
+                text: longName,
+                href: "/painel/ordens/order",
+                tone: "approval",
+                createdAt: date + "T12:00:00Z",
+              },
+            ]
+          : [],
+      },
+    },
+  ]),
   [
     "ordens",
     "components/orders-list.tsx",

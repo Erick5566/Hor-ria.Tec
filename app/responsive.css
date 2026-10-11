@@ -477,6 +477,26 @@ fieldset {
   );
   overflow-y: auto;
 }
+.workspace .workspace-alert-popover .workspace-popover-head {
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+}
+.workspace .workspace-alert-popover .workspace-popover-head > div {
+  flex: 1 1 8rem;
+  min-width: 0;
+}
+.workspace .workspace-alert-close {
+  flex: 0 0 var(--touch-size);
+  width: var(--touch-size);
+  min-height: var(--touch-size);
+  padding: 0.5rem;
+  font-size: 1.25rem;
+  line-height: 1;
+}
+.workspace .workspace-alert-popover .workspace-mark-all {
+  flex: 1 1 100%;
+}
 .workspace .mobile-bottom-nav {
   display: grid;
   position: fixed;

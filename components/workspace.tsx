@@ -1218,6 +1218,20 @@ export default function Workspace({
                           : "Tudo em dia"}
                       </small>
                     </div>
+                    <button
+                      className="workspace-alert-close"
+                      type="button"
+                      aria-label="Fechar notificações"
+                      onClick={(event) => {
+                        setAlertsOpen(false);
+                        event.currentTarget
+                          .closest(".workspace-top-popover-wrap")
+                          ?.querySelector<HTMLButtonElement>(".workspace-alert-button")
+                          ?.focus();
+                      }}
+                    >
+                      <span aria-hidden="true">×</span>
+                    </button>
                     {unreadAlerts.length > 0 && (
                       <button
                         className="workspace-mark-all"
