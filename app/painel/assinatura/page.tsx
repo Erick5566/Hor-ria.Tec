@@ -46,8 +46,9 @@ export default function SubscriptionPage() {
       getSubscriptionPixPayment(
         subscription?.status,
         access.billing?.hasApprovedPayment,
+        access.billing || undefined,
       ),
-    [subscription?.status, access.billing?.hasApprovedPayment],
+    [subscription?.status, access.billing],
   );
 
   const pixPayload = useMemo(
@@ -170,7 +171,7 @@ export default function SubscriptionPage() {
             <small>{payment.priceLabel}</small>
             <strong>{formatCurrency(payment.amount)}</strong>
             {payment.kind === "initial" ? (
-              <small>Depois, {formatCurrency(MONTHLY_PAYMENT_AMOUNT)}/mês</small>
+              <small>Depois, {formatCurrency(access.billing?.monthlyAmount ?? MONTHLY_PAYMENT_AMOUNT)}/mês</small>
             ) : (
               <small>Pagamento mensal</small>
             )}
