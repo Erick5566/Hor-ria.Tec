@@ -1,4 +1,6 @@
 "use client";
+import ResponsiveTable from "@/components/responsive-table";
+
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -177,7 +179,7 @@ export default function AdminDashboard({
               />
             </div>
             <div className="table-wrap">
-              <table>
+              <ResponsiveTable>
                 <thead>
                   <tr>
                     <th>Empresa</th>
@@ -240,7 +242,7 @@ export default function AdminDashboard({
                     </tr>
                   ))}
                 </tbody>
-              </table>
+              </ResponsiveTable>
             </div>
           </section>
         </>

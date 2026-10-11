@@ -1,4 +1,6 @@
 "use client";
+import ResponsiveTable from "@/components/responsive-table";
+
 
 import {
   useCallback,
@@ -873,7 +875,7 @@ export default function AdminCompaniesDashboard({
             </div>
           </div>
           <div className="table-wrap admin-companies-table-wrap">
-            <table className="admin-companies-table">
+            <ResponsiveTable className="admin-companies-table">
               <thead>
                 <tr>
                   <th>Empresa</th>
@@ -1008,7 +1010,7 @@ export default function AdminCompaniesDashboard({
                   );
                 })}
               </tbody>
-            </table>
+            </ResponsiveTable>
 
             {!companies.length && (
               <div className="empty-state">

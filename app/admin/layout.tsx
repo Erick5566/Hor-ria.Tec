@@ -1,12 +1,14 @@
 import "./admin-management.css";
 import "../theme.css";
 import "../reference-skin.css";
+import "../responsive.css";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Brand } from "@/components/brand";
 import SignOutButton from "@/components/sign-out-button";
 import AdminHeader from "@/components/admin-header";
+import AdminNavigation from "@/components/admin-navigation";
 import { getServerAccess } from "@/lib/server-auth";
 
 export const metadata: Metadata = {
@@ -35,20 +37,22 @@ export default async function AdminLayout({
           <strong>Horária</strong>
           <small>{access.user.email}</small>
         </div>
-        <nav aria-label="Administração Horária">
-          <Link href="/admin">
-            <span aria-hidden="true">▦</span>
-            Empresas
-          </Link>
-          <Link href="/admin/configuracoes">
-            <span aria-hidden="true">⚙</span>
-            Configurações
-          </Link>
-          <Link href="/admin/auditoria">
-            <span aria-hidden="true">◫</span>
-            Auditoria
-          </Link>
-        </nav>
+        <AdminNavigation>
+          <nav aria-label="Administração Horária">
+            <Link href="/admin">
+              <span aria-hidden="true">▦</span>
+              Empresas
+            </Link>
+            <Link href="/admin/configuracoes">
+              <span aria-hidden="true">⚙</span>
+              Configurações
+            </Link>
+            <Link href="/admin/auditoria">
+              <span aria-hidden="true">◫</span>
+              Auditoria
+            </Link>
+          </nav>
+        </AdminNavigation>
         {access.context.company && (
           <div className="admin-quick-links">
             <Link href="/painel">Abrir meu painel</Link>

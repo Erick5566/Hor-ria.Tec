@@ -80,7 +80,7 @@
   pointer-events: none;
 }
 
-:global(.horaria-hero-brand) {
+.page :global(.horaria-hero-brand) {
   position: relative;
   z-index: 1;
   display: flex;
@@ -91,13 +91,13 @@
   transform-origin: 0 100%;
 }
 
-:global(.horaria-hero-mark) {
+.page :global(.horaria-hero-mark) {
   display: block;
   width: clamp(270px, 28vw, 390px);
   height: auto;
 }
 
-:global(.horaria-hero-wordmark) {
+.page :global(.horaria-hero-wordmark) {
   margin: 12px 0 0 4px;
   font-family: "Manrope", "DM Sans", Arial, sans-serif;
   font-size: clamp(64px, 7vw, 92px);
@@ -588,11 +588,11 @@
     padding-inline: 34px;
   }
 
-  :global(.horaria-hero-mark) {
+  .page :global(.horaria-hero-mark) {
     width: 290px;
   }
 
-  :global(.horaria-hero-wordmark) {
+  .page :global(.horaria-hero-wordmark) {
     font-size: 68px;
   }
 
@@ -647,11 +647,11 @@
     width: 540px;
   }
 
-  :global(.horaria-hero-mark) {
+  .page :global(.horaria-hero-mark) {
     width: 300px;
   }
 
-  :global(.horaria-hero-wordmark) {
+  .page :global(.horaria-hero-wordmark) {
     font-size: 72px;
   }
 
@@ -685,11 +685,11 @@
     width: 430px;
   }
 
-  :global(.horaria-hero-mark) {
+  .page :global(.horaria-hero-mark) {
     width: 210px;
   }
 
-  :global(.horaria-hero-wordmark) {
+  .page :global(.horaria-hero-wordmark) {
     margin-top: 7px;
     font-size: 52px;
   }
@@ -3978,4 +3978,230 @@
   .signupViewport .authInput {
     font-size: 16px;
   }
+}
+
+/* Mobile-first entry layouts: size content naturally instead of shrinking a canvas. */
+.page:is(.homeViewport, .authViewport) {
+  --s: clamp(.6px, .075vw, 1px);
+  width: 100%;
+  height: auto;
+  min-height: 100dvh;
+  max-height: none;
+  overflow: visible;
+  padding: max(.75rem, env(safe-area-inset-top)) max(.75rem, env(safe-area-inset-right)) max(.75rem, env(safe-area-inset-bottom)) max(.75rem, env(safe-area-inset-left));
+}
+.page:is(.homeViewport, .authViewport) .shell {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 90rem;
+  height: auto;
+  min-height: calc(100dvh - 1.5rem);
+  max-height: none;
+  margin: 0 auto;
+  overflow: clip;
+  border-radius: clamp(1rem, 2vw, 2rem);
+}
+.page:is(.homeViewport, .authViewport) .topbar {
+  position: relative;
+  inset: auto;
+  z-index: 10;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  width: 100%;
+  height: auto;
+  min-height: 0;
+  padding: clamp(.75rem, 2vw, 1.5rem);
+  gap: .75rem;
+  font-size: clamp(.875rem, .8rem + .25vw, 1rem);
+  line-height: 1.4;
+}
+.page:is(.homeViewport, .authViewport) .loginButton {
+  width: auto;
+  min-width: 2.75rem;
+  height: auto;
+  min-height: 2.75rem;
+  padding: .65rem 1rem;
+  font-size: 1rem;
+  line-height: 1.3;
+}
+.page:is(.homeViewport, .authViewport) .hero {
+  position: relative;
+  inset: auto;
+  flex: 1;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: auto;
+  align-items: center;
+  justify-items: center;
+  gap: clamp(2rem, 4vw, 4rem);
+  width: 100%;
+  height: auto;
+  min-height: 0;
+  max-width: none;
+  margin: 0;
+  padding: 1.25rem clamp(.75rem, 3vw, 2.5rem) 2.5rem;
+}
+.page:is(.homeViewport, .authViewport) .brandSide {
+  display: flex;
+  position: relative;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  flex-basis: auto;
+  width: 100%;
+  height: auto;
+  min-height: 0;
+  min-width: 0;
+  max-width: 32rem;
+  text-align: center;
+}
+.page:is(.homeViewport, .authViewport) .brandSide :global(.horaria-hero-brand) {
+  position: relative;
+  inset: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  height: auto;
+  max-height: none;
+  transform: none;
+}
+.page:is(.homeViewport, .authViewport) .brandSide :global(.horaria-hero-mark-wrap) {
+  position: static;
+  width: auto;
+  height: auto;
+  line-height: 0;
+}
+.page:is(.homeViewport, .authViewport) .brandSide :global(.horaria-hero-mark) {
+  width: clamp(6rem, 20vw, 18rem);
+  height: auto;
+  max-width: 100%;
+  max-height: none;
+}
+.page:is(.homeViewport, .authViewport) .brandSide :global(.horaria-hero-wordmark) {
+  position: static;
+  display: block;
+  margin: .75rem 0 0;
+  font-size: clamp(2.5rem, 6vw, 5rem);
+  line-height: 1;
+  white-space: normal;
+}
+.page:is(.homeViewport, .authViewport) .orbit {
+  width: clamp(8rem, 27vw, 23rem);
+  height: auto;
+  aspect-ratio: 1;
+  top: 0;
+  left: 50%;
+  transform: translate(-50%, -12%);
+}
+.page:is(.homeViewport, .authViewport) .eyebrow,
+.page:is(.homeViewport, .authViewport) .brandSide h1,
+.page.authViewport .authHomeLink {
+  position: relative;
+  inset: auto;
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  margin: 1rem 0 0;
+  height: auto;
+  white-space: normal;
+}
+.page:is(.homeViewport, .authViewport) .eyebrow {
+  font-size: clamp(.75rem, .65rem + .4vw, 1rem);
+  line-height: 1.5;
+}
+.page:is(.homeViewport, .authViewport) .brandSide h1 {
+  font-size: clamp(1.3rem, 1rem + 1.4vw, 2.4rem);
+  line-height: 1.25;
+  text-align: inherit;
+}
+.page:is(.homeViewport, .authViewport) .brandSide h1 br { display: initial; }
+.page.authViewport .authCutLine { display: flex; width: 100%; margin: 0; gap: 0; }
+.page.authViewport .authCutLine span { display: none; }
+.page.authViewport .authCutLine i { flex: 1; min-width: 0; }
+.page.authViewport .authHomeLink { font-size: .875rem; min-height: 2.75rem; display: inline-flex; align-items: center; justify-content: center; }
+.page:is(.homeViewport, .authViewport) .tagStage {
+  position: relative;
+  inset: auto;
+  flex-basis: auto;
+  justify-self: center;
+  align-self: center;
+  width: 100%;
+  max-width: 36rem;
+  height: auto;
+  min-height: 0;
+  max-height: none;
+  padding: 1.5rem 0;
+}
+.page:is(.homeViewport, .authViewport) :is(.tagCard, .authTagCard) {
+  position: relative;
+  inset: auto;
+  width: 100%;
+  height: auto;
+  min-height: 0;
+  max-height: none;
+  padding: 3rem clamp(.75rem, 2vw, 1.75rem) 1.5rem;
+  gap: 1rem;
+  transform: rotate(1deg);
+  clip-path: polygon(12% 0, 89% 0, 100% 1.5rem, 100% 100%, 0 100%, 0 1.5rem);
+  overflow: visible;
+}
+.page:is(.homeViewport, .authViewport) :is(.tagCard, .authTagCard):focus-within { transform: rotate(1deg); }
+.page:is(.homeViewport, .authViewport) .hole { top: 1rem; left: 50%; width: 1.25rem; height: 1.25rem; transform: translateX(-50%); }
+.page:is(.homeViewport, .authViewport) .string { display: block; top: -2rem; left: 50%; width: 3rem; height: 4.7rem; transform: translateX(-50%); }
+.page:is(.homeViewport, .authViewport) .tagHeader { margin: 0 0 .5rem; padding: 0; gap: .5rem; flex-wrap: wrap; }
+.page:is(.homeViewport, .authViewport) .tagHeader strong { font-size: clamp(1.35rem, 2vw, 1.8rem); line-height: 1.2; }
+.page:is(.homeViewport, .authViewport) .tagHeader span,
+.page.authViewport .authLabel,
+.page.homeViewport .fieldLabel,
+.page.homeViewport .deviceFieldset legend { font-size: .75rem; line-height: 1.4; white-space: normal; }
+.page.authViewport .authForm { gap: 1rem; height: auto; min-height: 0; }
+.page.authViewport .authFieldsGrid { grid-template-columns: minmax(0, 1fr); gap: 1rem; }
+.page.authViewport .authField { min-width: 0; gap: .35rem; }
+.page.authViewport .authFieldFull { grid-column: 1 / -1; }
+.page.authViewport .authInput,
+.page.homeViewport .lineInput { width: 100%; height: auto; min-height: 2.75rem; padding: .65rem 0; font-size: 1rem; line-height: 1.4; }
+.page.authViewport .authHint { font-size: .75rem; line-height: 1.4; margin-top: .25rem; }
+.page.authViewport .authActionsRow { flex-wrap: wrap; gap: .5rem; }
+.page.authViewport :is(.authHelpLink, .authSwitchLink) { display: inline-flex; align-items: center; min-height: 2.75rem; font-size: .875rem; }
+.page.authViewport .authLegal { align-items: center; min-height: 2.75rem; padding: .75rem; gap: .75rem; font-size: .8125rem; line-height: 1.5; }
+.page.authViewport .authLegal input { flex: 0 0 1.25rem; width: 1.25rem; height: 1.25rem; min-height: 1.25rem; margin: 0; }
+.page.authViewport .authLegal a { font-size: inherit; }
+.page.authViewport .authCaptcha { display: flex; width: 100%; min-height: 4.875rem; max-height: none; overflow: visible; transform: none; }
+.page.authViewport .authCaptcha > div { width: 100%; min-width: 0; }
+.page:is(.homeViewport, .authViewport) .tagFooter { display: flex; flex-wrap: wrap; align-items: center; gap: 1rem; height: auto; padding: .5rem 0 0; }
+.page:is(.homeViewport, .authViewport) .barcodeWrap { flex: 1 1 6rem; min-width: 0; }
+.page.authViewport .authBarcode { width: 5rem; height: 2.5rem; }
+.page:is(.homeViewport, .authViewport) .barcodeWrap small { font-size: .75rem; line-height: 1.4; }
+.page:is(.homeViewport, .authViewport) :is(.authSubmit, .createButton) { flex: 1 1 10rem; width: auto; max-width: 100%; min-width: 0; height: auto; min-height: 2.75rem; padding: .875rem 1rem; font-size: 1rem; line-height: 1.4; white-space: normal; }
+.page.authViewport .authBottom { display: flex; flex-wrap: wrap; gap: .75rem; margin-top: .75rem; font-size: .8125rem; line-height: 1.5; }
+.page.authViewport .authNotice { font-size: .875rem; line-height: 1.5; padding: .75rem; margin: .5rem 0 0; }
+.page.homeViewport .chips { display: flex; flex-wrap: wrap; gap: .5rem; }
+.page.homeViewport .chip { min-width: 0; min-height: 2.75rem; padding: .6rem .75rem; font-size: .875rem; }
+.page.homeViewport .metaRow { gap: 1rem; margin: 1rem 0; }
+.page.homeViewport .metaRow span { font-size: .75rem; }
+.page.homeViewport .metaRow strong { font-size: 1rem; }
+.page.homeViewport .deviceFieldset { min-width: 0; margin: 0; }
+.page.homeViewport .cutLine { margin-block: 1rem; }
+.page.homeViewport .error { font-size: .875rem; height: auto; min-height: 1.25rem; }
+.page.homeViewport .date { font-size: .75rem; }
+
+@media (min-width: 40rem) {
+  .page.authViewport .authFieldsGrid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (min-width: 48rem) {
+  .page:is(.homeViewport, .authViewport) .hero { grid-template-columns: minmax(0, .85fr) minmax(0, 1.15fr); gap: clamp(1.5rem, 4vw, 4rem); }
+  .page:is(.homeViewport, .authViewport) .brandSide { text-align: left; align-items: flex-start; }
+  .page:is(.homeViewport, .authViewport) .brandSide :global(.horaria-hero-brand) { align-items: flex-start; }
+  .page.authViewport .authHomeLink { justify-content: flex-start; }
+  .page.authViewport .authFieldsGrid { grid-template-columns: minmax(0, 1fr); }
+}
+@media (min-width: 64rem) {
+  .page.authViewport .authFieldsGrid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (min-width: 80rem) {
+  .page:is(.homeViewport, .authViewport) .hero { padding-inline: clamp(2rem, 4vw, 4rem); }
 }

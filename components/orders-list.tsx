@@ -1,4 +1,6 @@
 "use client";
+import ResponsiveTable from "@/components/responsive-table";
+
 import { subscribeWorkspaceDataChanges } from "@/lib/data-change";
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
@@ -397,7 +399,7 @@ export default function OrdersList() {
         ) : (
           <>
             <div className="table-wrap desktop-table orders-table-wrap">
-              <table className="orders-table">
+              <ResponsiveTable className="orders-table">
                 <thead>
                   <tr>
                     <th>OS</th>
@@ -545,7 +547,7 @@ export default function OrdersList() {
                     );
                   })}
                 </tbody>
-              </table>
+              </ResponsiveTable>
             </div>
 
             <div className="mobile-cards orders-mobile-cards">

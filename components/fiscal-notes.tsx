@@ -1,4 +1,6 @@
 "use client";
+import ResponsiveTable from "@/components/responsive-table";
+
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
@@ -1046,7 +1048,7 @@ export default function FiscalNotes({
           />
         ) : (
           <div className="table-wrap">
-            <table>
+            <ResponsiveTable>
               <thead>
                 <tr>
                   <th>Data</th>
@@ -1193,7 +1195,7 @@ export default function FiscalNotes({
                   </tr>
                 ))}
               </tbody>
-            </table>
+            </ResponsiveTable>
           </div>
         )}
       </section>

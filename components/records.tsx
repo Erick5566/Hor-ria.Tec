@@ -1,4 +1,6 @@
 "use client";
+import ResponsiveTable from "@/components/responsive-table";
+
 import { subscribeWorkspaceDataChanges } from "@/lib/data-change";
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
@@ -507,7 +509,7 @@ export default function Records({
         ) : list.length ? (
           <>
             <div className="table-wrap dashboard-table records-table">
-              <table>
+              <ResponsiveTable>
                 <thead>
                   <tr>
                     {(isClient
@@ -611,7 +613,7 @@ export default function Records({
                     );
                   })}
                 </tbody>
-              </table>
+              </ResponsiveTable>
             </div>
             <Pagination
               page={data?.page || page}

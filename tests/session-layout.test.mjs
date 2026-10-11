@@ -37,6 +37,7 @@ test("admin layout mounts one global session keeper", async () => {
     },
     "@/components/brand": { Brand: () => null },
     "@/components/admin-header": { __esModule: true, default: () => null },
+    "@/components/admin-navigation": { __esModule: true, default: ({ children }) => children },
     "@/components/sign-out-button": { __esModule: true, default: () => null },
   };
   const load = (path) => {

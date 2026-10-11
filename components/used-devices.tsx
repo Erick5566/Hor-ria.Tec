@@ -1,4 +1,6 @@
 "use client";
+import ResponsiveTable from "@/components/responsive-table";
+
 import { useMemo, useState } from "react";
 import {
   categories,
@@ -277,7 +279,7 @@ export default function UsedDevices() {
           />
         ) : (
           <div className="table-wrap">
-            <table>
+            <ResponsiveTable>
               <thead>
                 <tr>
                   <th>Aparelho</th>
@@ -361,7 +363,7 @@ export default function UsedDevices() {
                   </tr>
                 ))}
               </tbody>
-            </table>
+            </ResponsiveTable>
           </div>
         )}
       </section>

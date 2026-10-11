@@ -1,4 +1,6 @@
 "use client";
+import ResponsiveTable from "@/components/responsive-table";
+
 import { subscribeWorkspaceDataChanges } from "@/lib/data-change";
 import { useCallback, useEffect, useState } from "react";
 import { useWorkspace } from "./workspace";
@@ -468,7 +470,7 @@ export default function CatalogManagement({
         ) : (
           <>
             <div className="table-wrap dashboard-table catalog-table">
-              <table>
+              <ResponsiveTable>
                 <thead>
                   <tr>
                     <th>{stock ? "Peça" : "Serviço"}</th>
@@ -559,7 +561,7 @@ export default function CatalogManagement({
                     </tr>
                   ))}
                 </tbody>
-              </table>
+              </ResponsiveTable>
             </div>
             <Pagination
               page={data?.page || page}
