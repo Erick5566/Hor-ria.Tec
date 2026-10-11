@@ -598,4 +598,281 @@ create policy pecas_manager_update on public.pecas for update to authenticated
 using(private.can_manage_company(empresa_id) and private.feature_enabled(empresa_id,'stockEnabled'))
 with check(private.can_manage_company(empresa_id) and private.feature_enabled(empresa_id,'stockEnabled'));
 
+
+-- Técnicos continuam registrando peças em OS, sem consultar custos, margens
+-- ou fazer movimentações administrativas de estoque por fora da OS.
+create or replace function public.applied_parts_options(p_order uuid)
+returns jsonb
+language plpgsql
+stable
+security definer
+set search_path = ''
+as $function$
+declare
+  v_empresa uuid;
+  v_role text;
+begin
+  select m.empresa_id,m.role
+    into v_empresa,v_role
+  from public.empresa_membros m
+  where m.usuario_id = auth.uid()
+    and m.status = 'ACTIVE'
+    and m.role in ('OWNER','ADMIN','TECHNICIAN')
+    and private.company_operational(m.empresa_id)
+  order by case m.role
+    when 'OWNER' then 1
+    when 'ADMIN' then 2
+    else 3
+  end
+  limit 1;
+
+  if v_empresa is null then
+    raise exception 'Sem permissão para consultar peças aplicadas';
+  end if;
+
+  if not exists (
+    select 1
+    from public.ordens_servico o
+    where o.id = p_order
+      and o.empresa_id = v_empresa
+  ) then
+    raise exception 'Ordem inválida';
+  end if;
+
+  return jsonb_build_object(
+    'applied', coalesce((
+      select jsonb_agg(case when v_role='TECHNICIAN' then to_jsonb(a) - 'custo_unitario' - 'valor_venda_unitario' - 'mao_obra' else to_jsonb(a) end order by a.criado_em desc)
+      from public.pecas_aplicadas a
+      where a.empresa_id = v_empresa
+        and a.ordem_id = p_order
+    ), '[]'::jsonb),
+    'stock', case
+      when private.feature_enabled(v_empresa, 'stockEnabled') then coalesce((
+        select jsonb_agg(
+          jsonb_build_object(
+            'id', p.id,
+            'nome', p.nome,
+            'quantidade', p.quantidade,
+            'custo', case when v_role='TECHNICIAN' then null else p.custo end,
+            'preco', case when v_role='TECHNICIAN' then null else p.preco end
+          )
+          order by p.nome
+        )
+        from public.pecas p
+        where p.empresa_id = v_empresa
+          and p.ativo
+          and p.quantidade > 0
+      ), '[]'::jsonb)
+      else '[]'::jsonb
+    end
+  );
+end
+$function$;
+
+
+create or replace function public.registrar_peca_aplicada_valores(
+  p_ordem uuid,
+  p_nome text,
+  p_quantidade integer,
+  p_peca uuid default null,
+  p_custo_unitario numeric default null,
+  p_valor_venda_unitario numeric default null,
+  p_mao_obra numeric default 0
+)
+returns uuid
+language plpgsql
+security definer
+set search_path = ''
+as $function$
+declare
+  o public.ordens_servico;
+  p public.pecas;
+  id_novo uuid;
+  nome_final text;
+  custo_final numeric;
+  venda_final numeric;
+  v_manager boolean;
+begin
+  select *
+    into strict o
+  from public.ordens_servico
+  where id = p_ordem
+  for update;
+
+  if not private.has_company_role(
+    o.empresa_id,
+    array['OWNER','ADMIN','TECHNICIAN']
+  ) or not private.company_operational(o.empresa_id) then
+    raise exception 'Ordem não autorizada';
+  end if;
+
+  if o.status in ('finalizado','cancelado') then
+    raise exception 'Ordem encerrada';
+  end if;
+
+  if p_quantidade is null or p_quantidade not between 1 and 1000 then
+    raise exception 'Quantidade inválida';
+  end if;
+
+  if coalesce(p_mao_obra, 0) < 0 then
+    raise exception 'Mão de obra inválida';
+  end if;
+
+  v_manager := private.can_manage_company(o.empresa_id);
+  nome_final := trim(coalesce(p_nome, ''));
+  custo_final := coalesce(p_custo_unitario, 0);
+  venda_final := coalesce(p_valor_venda_unitario, 0);
+
+  if p_peca is not null then
+    if not private.feature_enabled(o.empresa_id, 'stockEnabled') then
+      raise exception 'Estoque indisponível';
+    end if;
+
+    select *
+      into strict p
+    from public.pecas
+    where id = p_peca
+      and empresa_id = o.empresa_id
+      and ativo
+    for update;
+
+    if p.quantidade < p_quantidade then
+      raise exception 'Quantidade indisponível no estoque';
+    end if;
+
+    if length(nome_final) < 2 then
+      nome_final := p.nome;
+    end if;
+
+    custo_final := coalesce(p_custo_unitario, p.custo);
+    venda_final := coalesce(p_valor_venda_unitario, p.preco);
+
+    if not v_manager then
+      custo_final := p.custo;
+      venda_final := p.preco;
+    end if;
+    perform set_config('horaria.ordem_estoque', o.id::text, true);
+    perform set_config('horaria.motivo_estoque', 'Uso na OS #' || o.numero, true);
+    update public.pecas
+    set quantidade = quantidade - p_quantidade
+    where id = p.id;
+    perform set_config('horaria.ordem_estoque', '', true);
+    perform set_config('horaria.motivo_estoque', '', true);
+  end if;
+
+  if not v_manager and p_peca is null then
+    custo_final := 0;
+    venda_final := 0;
+  end if;
+
+  if length(nome_final) not between 2 and 200
+     or custo_final < 0
+     or venda_final < 0 then
+    raise exception 'Valores da peça inválidos';
+  end if;
+
+  insert into public.pecas_aplicadas(
+    empresa_id,
+    ordem_id,
+    peca_id,
+    nome,
+    quantidade,
+    custo_unitario,
+    valor_venda_unitario,
+    mao_obra
+  )
+  values(
+    o.empresa_id,
+    o.id,
+    p_peca,
+    nome_final,
+    p_quantidade,
+    custo_final,
+    venda_final,
+    case when v_manager then coalesce(p_mao_obra,0) else 0 end
+  )
+  returning id into id_novo;
+
+  if p_peca is null then
+    insert into public.historico_os(
+      empresa_id,
+      ordem_id,
+      evento,
+      detalhes,
+      usuario_id,
+      autor
+    )
+    values(
+      o.empresa_id,
+      o.id,
+      'Peça aplicada',
+      nome_final || ' · ' || p_quantidade || ' unidade(s)',
+      auth.uid(),
+      'Equipe técnica'
+    );
+  end if;
+
+  return id_novo;
+end
+$function$;
+
+
+create or replace function public.movimentar_estoque(
+  p_peca uuid,
+  p_quantidade integer,
+  p_motivo text
+)
+returns integer
+language plpgsql
+security definer
+set search_path = ''
+as $function$
+declare
+  p public.pecas;
+  nova_quantidade integer;
+begin
+  select *
+    into strict p
+  from public.pecas
+  where id = p_peca
+  for update;
+
+  if not private.has_company_role(
+    p.empresa_id,
+    array['OWNER','ADMIN']
+  ) or not private.company_operational(p.empresa_id)
+    or not private.feature_enabled(p.empresa_id, 'stockEnabled')
+  then
+    raise exception 'Item não autorizado';
+  end if;
+
+  if p_quantidade is null or p_quantidade = 0 or abs(p_quantidade) > 100000 then
+    raise exception 'Quantidade inválida';
+  end if;
+
+  if length(trim(coalesce(p_motivo,''))) not between 2 and 200 then
+    raise exception 'Informe o motivo da movimentação';
+  end if;
+
+  nova_quantidade := p.quantidade + p_quantidade;
+  if nova_quantidade < 0 then
+    raise exception 'Estoque insuficiente. Disponível: %', p.quantidade;
+  end if;
+
+  perform set_config('horaria.motivo_estoque', trim(p_motivo), true);
+  update public.pecas set quantidade = nova_quantidade where id = p.id;
+  perform set_config('horaria.motivo_estoque', '', true);
+
+  return nova_quantidade;
+end
+$function$;
+
+
+drop policy if exists movimentos_estoque_operational_select on public.movimentos_estoque;
+create policy movimentos_estoque_manager_select on public.movimentos_estoque for select to authenticated
+using(private.can_manage_company(empresa_id) and private.feature_enabled(empresa_id,'stockEnabled'));
+drop policy if exists pecas_aplicadas_technical_select on public.pecas_aplicadas;
+create policy pecas_aplicadas_manager_select on public.pecas_aplicadas for select to authenticated
+using(private.can_manage_company(empresa_id) and private.company_operational(empresa_id));
+
 commit;
