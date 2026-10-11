@@ -85,6 +85,18 @@ test("planos de equipe: 3 funcionários no básico, 9 no Pro e upgrade restrito 
     assert.equal(context.billing.monthlyAmount, 80);
     assert.equal(context.billing.initialAmount, 80);
     assert.equal(context.billing.planCode, "HORARIA_PRO");
+    const companyRows = (await db.query("select admin_list_companies() value")).rows[0].value;
+    const companyRow = companyRows.find((c) => c.id === company);
+    assert.equal(Number(companyRow.monthlyValue), 80);
+
+    const payment = (await db.query(
+      "select admin_confirm_manual_payment($1,$2,'Pro recebido') value",
+      [company, "29000000-0000-4000-8000-000000000099"],
+    )).rows[0].value;
+    assert.equal(Number(payment.amount), 80);
+    const finance = (await db.query("select admin_billing_overview() value")).rows[0].value;
+    assert.ok(Number(finance.estimatedMrr) >= 80);
+
   } finally {
     await db.close();
   }
