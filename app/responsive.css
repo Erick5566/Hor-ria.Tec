@@ -435,7 +435,29 @@ fieldset {
 }
 .workspace .workspace-date-chip {
   display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  width: auto;
   min-width: 0;
+  max-width: 100%;
+  height: auto;
+  min-height: var(--touch-size);
+  padding: 0.5rem 0.75rem;
+  font-size: clamp(0.8125rem, 0.75rem + 0.25vw, 0.9375rem);
+  font-variant-numeric: tabular-nums;
+  line-height: 1.4;
+  white-space: normal;
+}
+.workspace .workspace-date-chip::after {
+  display: none;
+}
+.workspace .workspace-date-chip > span {
+  min-width: 0;
+  font-size: inherit;
+}
+.workspace .workspace-date-chip .workspace-calendar-icon {
+  flex: 0 0 1.125rem;
 }
 .workspace .workspace-breadcrumbs,
 .admin-workspace .admin-breadcrumb {
@@ -459,7 +481,9 @@ fieldset {
   display: grid;
   position: fixed;
   inset: auto 0 0;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
+  grid-template-columns: none;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(0, 1fr);
   z-index: 90;
   padding-bottom: max(0.5rem, env(safe-area-inset-bottom));
 }
