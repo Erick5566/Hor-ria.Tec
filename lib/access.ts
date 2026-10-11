@@ -22,6 +22,7 @@ export type AccessContext = {
     graceHours: number;
     initialAmount: number;
     monthlyAmount: number;
+    planCode?: string;
     hasApprovedPayment: boolean;
   } | null;
   company: null | {
