@@ -41,9 +41,24 @@ Não mesclar nem publicar automaticamente esta branch antes de:
 1. Obter sessão na Vercel e confirmar projeto, equipe, branch de produção, SHA e ambiente.
 2. Publicar exclusivamente no projeto autorizado uma versão de teste usando configuração isolada, sem fixtures no banco produtivo.
 3. Homologar acesso autenticado, bloqueio/liberação sem F5, módulos, e-mails e interface em celular/tablet/computador.
-4. Identificar/configurar o provedor PIX em sandbox. O produto atual usa PIX manual e um webhook genérico; não existe evidência de confirmação bancária automática funcionando.
+4. Validar o PIX manual: o ADM confere o recebimento no banco e confirma no painel; a confirmação deve liberar o acesso sem F5, preservar a idempotência e enfileirar a notificação. Por decisão do usuário em 10/10 às 21:15 (Brasília), integração bancária automática não é requisito de lançamento.
 5. Aprovar os testes críticos e só então publicar Production e verificar o domínio.
 
 Após abrir o PR #97, os status do GitHub revelaram uma integração antiga do Netlify, que publicou automaticamente um preview do primeiro commit. Não foi acionado nem utilizado como destino de homologação. Isso é um efeito externo indesejado; o preview anterior não foi removido. `netlify.toml` bloqueia novos builds Git do Netlify, e o título do PR/commit de contenção usa `[skip netlify]`. O vínculo antigo deve ser removido na plataforma antes de futuras publicações. Não houve deploy Vercel nesta continuação.
 
 Nenhuma alteração do banco produtivo, cobrança ou envio real de e-mail foi realizado nesta continuação. A correção está pronta para revisão; a homologação externa permanece bloqueada.
+
+## Atualização da homologação manual — 10/10, 21:15 (Brasília)
+
+- Usuário configurou `NEXT_PUBLIC_SUPABASE_URL` e `NEXT_PUBLIC_SUPABASE_ANON_KEY` no ambiente Preview do projeto autorizado e republicou o commit `ded53b8`.
+- Capturas confirmaram Preview, branch correta e renderização sem aviso de configuração do Supabase.
+- Widget Turnstile inicialmente autorizava apenas `hor-ria-tec.vercel.app` e `horaria.site`. Usuário adicionou o alias específico da branch de homologação e relatou verificação com sucesso e login concluído. Login é evidência relatada pelo usuário; não houve inspeção do painel autenticado pelo agente.
+- Preview usa o Supabase real: não executar confirmações fictícias, alterar vencimentos ou alternar módulos globais nesse banco para homologar.
+- PIX permanece manual por decisão explícita do usuário. Confirmação bancária automática retirada dos critérios de lançamento; liberação automática após confirmação no ADM permanece obrigatória.
+- Pendentes: homologação autenticada de bloqueio/liberação sem F5 com dados isolados, entrega dos e-mails, módulos e responsividade das telas internas. Production ainda não aprovada nesta tarefa.
+
+## Atualização — 11/10 (Brasília)
+
+Usuário confirmou manualmente bloqueio por vencimento, liberação sem F5 após PIX manual, recebimento dos e-mails, controles dos módulos e interface no computador. Essas aprovações são relatos do usuário, sem nova inspeção autenticada pelo agente. Celular e tablet foram adiados pelo usuário; publicação em Production permanece pendente.
+
+As quatro capturas fornecidas pelo usuário foram adicionadas aos cartões de fone, celular, notebook e tablet no agendamento; imagem de Outros e comportamento de seleção preservados. Arquivos originais mantidos, incluindo fundos e elementos visíveis nas capturas. TypeScript e build aprovados após a troca.
