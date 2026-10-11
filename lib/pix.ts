@@ -45,7 +45,9 @@ export function getSubscriptionPixPayment(
 
   return {
     kind: isInitialPayment ? ("initial" as const) : ("monthly" as const),
-    amount: isInitialPayment ? INITIAL_PAYMENT_AMOUNT : MONTHLY_PAYMENT_AMOUNT,
+    amount: isInitialPayment
+      ? (amounts?.initialAmount ?? INITIAL_PAYMENT_AMOUNT)
+      : (amounts?.monthlyAmount ?? MONTHLY_PAYMENT_AMOUNT),
     heading: isInitialPayment
       ? "Pagamento inicial Horária"
       : "Mensalidade Horária",
