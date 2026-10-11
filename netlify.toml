@@ -1,0 +1,3 @@
+# Horária is hosted exclusively on Vercel. Stop legacy Git-triggered builds.
+[build]
+  ignore = "exit 0"

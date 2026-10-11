@@ -8,10 +8,10 @@ import {
 } from "@/lib/device-catalog";
 
 const deviceCategoryImages: Record<string, string> = {
-  "Fone de ouvido": "/devices/fone-v2.png",
-  "Celular": "/devices/celular-v2.png",
-  "Notebook": "/devices/notebook-v2.png",
-  "Tablet": "/devices/tablet-v2.png",
+  "Fone de ouvido": "/devices/fone-agendamento.png",
+  "Celular": "/devices/celular-agendamento.png",
+  "Notebook": "/devices/notebook-agendamento.png",
+  "Tablet": "/devices/tablet-agendamento.png",
   "Outro": "/devices/outros-v2.png",
 };
 
