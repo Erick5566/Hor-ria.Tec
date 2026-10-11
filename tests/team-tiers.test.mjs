@@ -61,7 +61,7 @@ test("planos de equipe: 3 funcionários no básico, 9 no Pro e upgrade restrito 
     await asUser(owner, "aal1");
     await assert.rejects(
       db.query("select admin_set_company_team_plan($1,'HORARIA_PRO','teste')", [company]),
-      /MFA obrigatória/,
+      /MFA obrigatória|Verificação em duas etapas necessária/,
     );
     await asUser(owner, "aal2");
     const upgraded = (
