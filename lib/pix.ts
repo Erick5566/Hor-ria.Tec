@@ -37,6 +37,7 @@ export function pixCrc16(payload: string) {
 export function getSubscriptionPixPayment(
   status?: "TRIAL" | "ACTIVE" | "PAST_DUE" | "SUSPENDED" | "CANCELED" | null,
   hasApprovedPayment?: boolean,
+  amounts?: { initialAmount: number; monthlyAmount: number },
 ) {
   const isInitialPayment =
     hasApprovedPayment === undefined
