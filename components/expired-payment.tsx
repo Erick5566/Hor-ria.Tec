@@ -9,14 +9,15 @@ const PIX_KEY = "veniciuskiwify@gmail.com";
 type Props = {
   hasApprovedPayment: boolean;
   status: "TRIAL" | "ACTIVE" | "PAST_DUE" | "SUSPENDED" | "CANCELED";
+  amounts?: { initialAmount: number; monthlyAmount: number };
 };
 
-export default function ExpiredPayment({ hasApprovedPayment, status }: Props) {
+export default function ExpiredPayment({ hasApprovedPayment, status, amounts }: Props) {
   const router = useRouter();
   const [copied, setCopied] = useState(false);
   const payment = useMemo(
-    () => getSubscriptionPixPayment(status, hasApprovedPayment),
-    [status, hasApprovedPayment],
+    () => getSubscriptionPixPayment(status, hasApprovedPayment, amounts),
+    [status, hasApprovedPayment, amounts],
   );
   const payload = useMemo(
     () => buildPixPayload({
