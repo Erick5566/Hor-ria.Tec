@@ -607,7 +607,7 @@ export default function Workspace({
     if (
       !stockResult.error &&
       access.company?.featureFlags.stockEnabled &&
-      access.company?.role !== "ATTENDANT"
+      ["OWNER", "ADMIN"].includes(access.company?.role || "")
     ) {
       for (const item of (stockResult.data || []).filter(
         (row) => row.quantidade <= row.estoque_minimo,
@@ -1078,7 +1078,7 @@ export default function Workspace({
                         !access.company?.featureFlags.appointmentsEnabled) ||
                       (href === "/painel/estoque" &&
                         (!access.company?.featureFlags.stockEnabled ||
-                          access.company?.role === "ATTENDANT")) ||
+                          !["OWNER", "ADMIN"].includes(access.company?.role || ""))) ||
                       (href === "/painel/financeiro" &&
                         !access.company?.featureFlags.financialEnabled) ||
                       ([
