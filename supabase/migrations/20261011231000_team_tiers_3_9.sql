@@ -438,4 +438,164 @@ end
 $function$;
 
 
+
+-- O estoque completo é privado para OWNER/ADMIN, inclusive por API.
+-- Técnicos não podem recuperar preços/custos chamando o catálogo diretamente.
+create or replace function public.catalog_page(
+  p_stock boolean default false,
+  p_page integer default 1,
+  p_page_size integer default 30,
+  p_search text default null
+)
+returns jsonb
+language plpgsql
+stable
+security definer
+set search_path = ''
+as $function$
+declare
+  v_empresa uuid;
+  v_page integer := greatest(coalesce(p_page, 1), 1);
+  v_size integer := least(greatest(coalesce(p_page_size, 30), 10), 100);
+  v_offset integer;
+begin
+  select m.empresa_id
+    into v_empresa
+  from public.empresa_membros m
+  where m.usuario_id = auth.uid()
+    and m.status = 'ACTIVE'
+    and private.company_operational(m.empresa_id)
+    and (
+      not p_stock
+      or m.role in ('OWNER','ADMIN')
+    )
+  order by case m.role
+    when 'OWNER' then 1
+    when 'ADMIN' then 2
+    when 'TECHNICIAN' then 3
+    else 4
+  end
+  limit 1;
+
+  if v_empresa is null then
+    return null;
+  end if;
+
+  v_offset := (v_page - 1) * v_size;
+
+  if p_stock then
+    return (
+      with filtered as materialized (
+        select p.*
+        from public.pecas p
+        where p.empresa_id = v_empresa
+          and private.feature_enabled(v_empresa, 'stockEnabled')
+          and (
+            coalesce(trim(p_search), '') = '' or
+            concat_ws(' ', p.nome, p.compatibilidade, p.categoria)
+              ilike '%' || trim(p_search) || '%'
+          )
+      ),
+      paged as (
+        select *
+        from filtered
+        order by nome, id
+        limit v_size
+        offset v_offset
+      )
+      select jsonb_build_object(
+        'page', v_page,
+        'pageSize', v_size,
+        'total', (select count(*)::int from filtered),
+        'items', coalesce(
+          (select jsonb_agg(to_jsonb(p) order by p.nome, p.id) from paged p),
+          '[]'::jsonb
+        ),
+        'metrics', jsonb_build_object(
+          'total', (
+            select count(*)::int from public.pecas p
+            where p.empresa_id = v_empresa
+          ),
+          'active', (
+            select count(*)::int
+            from public.pecas p
+            where p.empresa_id = v_empresa and p.quantidade > 0
+          ),
+          'averagePrice', coalesce((
+            select avg(p.preco) from public.pecas p
+            where p.empresa_id = v_empresa
+          ), 0),
+          'secondary', (
+            select count(distinct nullif(trim(p.compatibilidade), ''))::int
+            from public.pecas p
+            where p.empresa_id = v_empresa
+          )
+        )
+      )
+    );
+  end if;
+
+  return (
+    with filtered as materialized (
+      select s.*
+      from public.servicos s
+      where s.empresa_id = v_empresa
+        and (
+          coalesce(trim(p_search), '') = '' or
+          concat_ws(' ', s.nome, s.categoria, s.descricao)
+            ilike '%' || trim(p_search) || '%'
+        )
+    ),
+    paged as (
+      select *
+      from filtered
+      order by ativo desc, nome, id
+      limit v_size
+      offset v_offset
+    )
+    select jsonb_build_object(
+      'page', v_page,
+      'pageSize', v_size,
+      'total', (select count(*)::int from filtered),
+      'items', coalesce(
+        (select jsonb_agg(to_jsonb(s) order by s.ativo desc, s.nome, s.id) from paged s),
+        '[]'::jsonb
+      ),
+      'metrics', jsonb_build_object(
+        'total', (
+          select count(*)::int from public.servicos s where s.empresa_id = v_empresa
+        ),
+        'active', (
+          select count(*)::int
+          from public.servicos s
+          where s.empresa_id = v_empresa and s.ativo
+        ),
+        'averagePrice', coalesce((
+          select avg(s.preco) from public.servicos s where s.empresa_id = v_empresa
+        ), 0),
+        'secondary', coalesce((
+          select round(avg(s.duracao))::int
+          from public.servicos s
+          where s.empresa_id = v_empresa
+        ), 0)
+      )
+    )
+  );
+end;
+$function$;
+
+
+
+drop policy if exists pecas_operational_select on public.pecas;
+drop policy if exists pecas_operational_insert on public.pecas;
+drop policy if exists pecas_operational_update on public.pecas;
+
+create policy pecas_manager_select on public.pecas for select to authenticated
+using(private.can_manage_company(empresa_id) and private.feature_enabled(empresa_id,'stockEnabled'));
+create policy pecas_manager_insert on public.pecas for insert to authenticated
+with check(private.can_manage_company(empresa_id) and private.feature_enabled(empresa_id,'stockEnabled'));
+create policy pecas_manager_update on public.pecas for update to authenticated
+using(private.can_manage_company(empresa_id) and private.feature_enabled(empresa_id,'stockEnabled'))
+with check(private.can_manage_company(empresa_id) and private.feature_enabled(empresa_id,'stockEnabled'));
+
 commit;
