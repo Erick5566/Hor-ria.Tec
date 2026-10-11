@@ -967,7 +967,7 @@ export default function Workspace({
     { label: "Clientes", href: "/painel/clientes", icon: "clients" },
     { label: "Equipamentos", href: "/painel/equipamentos", icon: "devices" },
     ...(access.company?.featureFlags.stockEnabled &&
-    access.company?.role !== "ATTENDANT"
+    ["OWNER", "ADMIN"].includes(access.company?.role || "")
       ? [{ label: "Estoque", href: "/painel/estoque", icon: "stock" as const }]
       : []),
     ...(access.company?.featureFlags.financialEnabled
