@@ -85,7 +85,7 @@ test("fase 2: venda integra estoque e financeiro com isolamento", async () => {
       null,
     );
     assert.equal(
-      (await db.query(`update pecas set na_vitrine=true where id=$1`, [product])).rowCount,
+      (await db.query(`update pecas set na_vitrine=true where id=$1 returning id`, [product])).rows.length,
       0,
     );
     await assert.rejects(
