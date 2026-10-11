@@ -1,4 +1,6 @@
 "use client";
+import ResponsiveTable from "@/components/responsive-table";
+
 import { useMemo, useState } from "react";
 import { Cliente, money, Peca, stamp, useRows, Venda } from "@/lib/assistencia";
 import { message, supabase, today } from "@/lib/supabase";
@@ -330,7 +332,7 @@ export default function Sales() {
           <Empty title="Nenhuma venda registrada" />
         ) : (
           <div className="table-wrap">
-            <table>
+            <ResponsiveTable>
               <thead>
                 <tr>
                   <th>Venda</th>
@@ -367,7 +369,7 @@ export default function Sales() {
                     </tr>
                   ))}
               </tbody>
-            </table>
+            </ResponsiveTable>
           </div>
         )}
       </section>

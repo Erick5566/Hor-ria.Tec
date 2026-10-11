@@ -107,28 +107,31 @@ export default async function FiscalPrintPage({
     <>
       <style>{`
         .fiscal-print-shell {
-          max-width: 900px;
+          width: 100%;
+          max-width: 56.25rem;
           margin: 0 auto;
-          padding: 24px;
+          padding: clamp(.75rem, 2vw, 1.5rem);
         }
         .fiscal-print-page {
           background: #fff;
           color: #101828;
           border: 1px solid #e4e7ec;
           border-radius: 18px;
-          padding: 32px;
+          min-width: 0;
+          padding: clamp(.75rem, 3vw, 2rem);
         }
         .fiscal-print-top {
           display: flex;
+          flex-direction: column;
           justify-content: space-between;
-          gap: 24px;
+          gap: clamp(.75rem, 2vw, 1.5rem);
           align-items: flex-start;
           padding-bottom: 22px;
           border-bottom: 1px solid #e4e7ec;
         }
         .fiscal-print-top h1 {
           margin: 4px 0 6px;
-          font-size: 26px;
+          font-size: clamp(1.25rem, 2vw, 1.625rem);
         }
         .fiscal-print-top p,
         .fiscal-print-page p {
@@ -140,7 +143,8 @@ export default async function FiscalPrintPage({
           border-radius: 999px;
           padding: 7px 12px;
           font-weight: 700;
-          white-space: nowrap;
+          max-width: 100%;
+          white-space: normal;
         }
         .fiscal-print-alert {
           margin: 22px 0;
@@ -151,14 +155,15 @@ export default async function FiscalPrintPage({
         }
         .fiscal-print-grid {
           display: grid;
-          grid-template-columns: repeat(2, minmax(0, 1fr));
-          gap: 18px;
+          grid-template-columns: minmax(0, 1fr);
+          gap: clamp(.75rem, 2vw, 1.125rem);
           margin-top: 24px;
         }
         .fiscal-print-card {
           border: 1px solid #e4e7ec;
           border-radius: 14px;
-          padding: 18px;
+          min-width: 0;
+          padding: clamp(.75rem, 2vw, 1.125rem);
         }
         .fiscal-print-card h2 {
           margin: 0 0 14px;
@@ -183,6 +188,8 @@ export default async function FiscalPrintPage({
         .fiscal-print-total {
           margin-top: 24px;
           display: flex;
+          flex-wrap: wrap;
+          gap: .75rem;
           justify-content: space-between;
           align-items: center;
           padding: 20px;
@@ -202,9 +209,9 @@ export default async function FiscalPrintPage({
         .fiscal-print-actions small {
           width: 100%;
         }
-        @media (max-width: 720px) {
-          .fiscal-print-grid { grid-template-columns: 1fr; }
-          .fiscal-print-top { flex-direction: column; }
+        @media (min-width: 768px) {
+          .fiscal-print-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+          .fiscal-print-top { flex-direction: row; }
         }
         @media print {
           body * { visibility: hidden !important; }

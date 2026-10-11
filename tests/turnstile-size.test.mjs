@@ -13,18 +13,24 @@ test("public booking uses compact Turnstile without losing token lifecycle", asy
   const cleanups = [];
   const removed = [];
   const exports = {};
+  let disconnected = 0;
   const code = ts.transpileModule(source, {
     compilerOptions: { module: ts.ModuleKind.CommonJS, jsx: ts.JsxEmit.ReactJSX },
   }).outputText;
   vm.runInNewContext(code, {
     exports,
     console,
+    ResizeObserver: class {
+      observe() {}
+      disconnect() { disconnected++; }
+    },
     window: { turnstile: {
       render: (_container, options) => { rendered.push(options); return "widget"; },
       remove: (id) => removed.push(id),
     } },
     require: (name) => name === "react" ? {
-      useRef: () => ({ current: {} }),
+      useRef: () => ({ current: { clientWidth: 260 } }),
+      useState: (initial) => [initial, () => {}],
       useEffect: (fn) => cleanups.push(fn()),
     } : { jsx: React.createElement, jsxs: React.createElement },
   });
@@ -35,10 +41,11 @@ test("public booking uses compact Turnstile without losing token lifecycle", asy
   rendered[0].callback("test-token");
   rendered[0]["expired-callback"]();
   assert.deepEqual(tokens, ["test-token", ""]);
-  cleanups[0]();
+  cleanups.forEach(cleanup => cleanup?.());
+  assert.equal(disconnected, 1);
   assert.deepEqual(removed, ["widget"]);
   exports.default({ siteKey: "public-test-key", onToken: () => {} });
   await Promise.resolve();
-  assert.equal(rendered[1].size, "normal");
+  assert.equal(rendered[1].size, "compact");
 });
 

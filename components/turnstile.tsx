@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 
 declare global {
   interface Window {
@@ -13,7 +13,7 @@ declare global {
           "expired-callback": () => void;
           "error-callback": (errorCode?: string) => void;
           theme: "auto";
-          size: "normal" | "compact";
+          size: "normal" | "compact" | "flexible";
         },
       ) => string;
       remove: (widgetId: string) => void;
@@ -74,13 +74,25 @@ function loadScript() {
 export default function Turnstile({
   siteKey,
   onToken,
-  size = "normal",
+  size = "flexible",
 }: {
   siteKey: string;
   onToken: (token: string) => void;
-  size?: "normal" | "compact";
+  size?: "normal" | "compact" | "flexible";
 }) {
   const ref = useRef<HTMLDivElement>(null);
+  const [narrow, setNarrow] = useState(true);
+  const widgetSize = narrow ? "compact" : size;
+
+  useEffect(() => {
+    const container = ref.current;
+    if (!container) return;
+    const measure = () => setNarrow(container.clientWidth < 300);
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(container);
+    return () => observer.disconnect();
+  }, []);
 
   useEffect(() => {
     let active = true;
@@ -101,7 +113,7 @@ export default function Turnstile({
             onToken("");
           },
           theme: "auto",
-          size,
+          size: widgetSize,
         });
       })
       .catch((error) => {
@@ -113,7 +125,7 @@ export default function Turnstile({
       active = false;
       if (widgetId && window.turnstile) window.turnstile.remove(widgetId);
     };
-  }, [siteKey, onToken, size]);
+  }, [siteKey, onToken, widgetSize]);
 
   return (
     <div className="booking-turnstile" aria-label="Verificação de segurança">

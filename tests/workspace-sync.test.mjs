@@ -50,6 +50,7 @@ test("orders: workspace fallback reloads data without F5 and cleans up on naviga
       },
     },
     "@/components/ui": {},
+    "@/components/responsive-table": { __esModule: true, default: () => null },
     "@/components/workspace": {
       useWorkspace: () => ({
         empresa: { id: "tenant-a" },

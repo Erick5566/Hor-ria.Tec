@@ -1,4 +1,6 @@
 "use client";
+import ResponsiveTable from "@/components/responsive-table";
+
 import { subscribeWorkspaceDataChanges } from "@/lib/data-change";
 
 import Link from "next/link";
@@ -878,7 +880,7 @@ export default function DashboardFinance({
         </div>
 
         <div className="dashboard-finance-table-wrap">
-          <table>
+          <ResponsiveTable>
             <thead>
               <tr>
                 <th>Data</th>
@@ -975,7 +977,7 @@ export default function DashboardFinance({
                 </tr>
               )}
             </tbody>
-          </table>
+          </ResponsiveTable>
         </div>
       </article>
     </section>

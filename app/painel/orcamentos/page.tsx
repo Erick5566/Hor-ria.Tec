@@ -1,4 +1,6 @@
 "use client";
+import ResponsiveTable from "@/components/responsive-table";
+
 import Link from "next/link";
 import {
   useRows,
@@ -117,7 +119,7 @@ export default function Quotes() {
 
           {latest.length ? (
             <div className="table-wrap dashboard-table quotes-table">
-              <table>
+              <ResponsiveTable>
                 <thead>
                   <tr>
                     <th>OS</th>
@@ -160,7 +162,7 @@ export default function Quotes() {
                       );
                     })}
                 </tbody>
-              </table>
+              </ResponsiveTable>
             </div>
           ) : (
             <Empty

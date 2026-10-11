@@ -1,4 +1,6 @@
 "use client";
+import ResponsiveTable from "@/components/responsive-table";
+
 import { csvCell } from "@/lib/csv";
 import { subscribeWorkspaceDataChanges } from "@/lib/data-change";
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -467,7 +469,7 @@ export default function Finance({ ordemId }: { ordemId?: string }) {
         ) : (
           <>
             <div className="table-scroll finance-table">
-              <table>
+              <ResponsiveTable>
                 <thead>
                   <tr>
                     <th>Descrição</th>
@@ -557,7 +559,7 @@ export default function Finance({ ordemId }: { ordemId?: string }) {
                     );
                   })}
                 </tbody>
-              </table>
+              </ResponsiveTable>
             </div>
             <Pagination
               page={data?.page || page}

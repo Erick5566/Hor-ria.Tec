@@ -1,4 +1,6 @@
 "use client";
+import ResponsiveTable from "@/components/responsive-table";
+
 
 import Link from "next/link";
 import { DashboardOrderCharts } from "@/components/dashboard-order-charts";
@@ -462,7 +464,7 @@ export default function Overview() {
           <DashboardContent {...contentProps}>
             {data?.latestOrders.length ? (
               <div className="table-wrap dashboard-table">
-                <table>
+                <ResponsiveTable>
                   <thead>
                     <tr>
                       <th>#OS</th>
@@ -556,7 +558,7 @@ export default function Overview() {
                       );
                     })}
                   </tbody>
-                </table>
+                </ResponsiveTable>
               </div>
             ) : (
               <Empty title="Nenhuma ordem cadastrada no período." />
