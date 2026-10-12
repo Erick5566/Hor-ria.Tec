@@ -3,6 +3,7 @@ import { createClient } from "@supabase/supabase-js";
 import { getServerAccess } from "@/lib/server-auth";
 import { freeSupportReply, safeHistory } from "@/lib/horaria-ai-core";
 import { createPaidAiReply } from "@/lib/horaria-ai-provider";
+import { isHorariaPlus } from "@/lib/horaria-ai-entitlements";
 
 export const runtime = "nodejs";
 
@@ -50,6 +51,8 @@ export async function POST(request: Request) {
   const message = body.message.trim();
   const history = safeHistory(body.history);
   const company = access.context.company;
+  if (!isHorariaPlus(access.context.billing?.planCode))
+    return json({ error: "Assistente exclusivo do plano Horária Plus.", code: "PLUS_REQUIRED" }, 403);
 
   if (body.mode === "support") {
     // Suporte gratuito no MVP: respostas locais verificadas e SEM chamadas pagas.
