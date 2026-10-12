@@ -15,9 +15,9 @@ test("Triagem de texto é gratuita, plausível e recomenda testes sem confirmar 
   const t=importTriage();
   for(const [symptom,expected] of [
     ["iPhone não carrega","carregamento"],
-    ["O aparelho não liga","inicialização"],
+    ["O aparelho não liga","inicializacao"],
     ["Display e tela quebrada","tela"],
-    ["Molhou com água","líquido"],
+    ["Molhou com água","liquido"],
     ["Bateria inchada","bateria"],
     ["Software travando","software"],
   ]) {
