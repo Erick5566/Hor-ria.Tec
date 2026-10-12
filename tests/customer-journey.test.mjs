@@ -165,7 +165,7 @@ test("jornada completa: solicitação pública até retirada e acompanhamento", 
           )
         ).rows[0].total,
       ),
-      1,
+      0, // O cliente da solicitação pública ainda não autorizou o envio automático.
     );
 
     await db.exec(

@@ -11,6 +11,7 @@ import {
 } from "@/lib/assistencia";
 import { Heading, Badge, ErrorBox, Empty } from "@/components/ui";
 import { useWorkspace } from "@/components/workspace";
+import { isHorariaPlus } from "@/lib/horaria-ai-entitlements";
 
 function TabLoading() {
   return (
@@ -40,6 +41,7 @@ const History = dynamic(() => import("@/components/history"), {
 const Finance = dynamic(() => import("@/components/finance"), {
   loading: TabLoading,
 });
+const OrderReadyWhatsapp = dynamic(() => import("@/components/order-ready-whatsapp"), {loading: TabLoading});
 const OrderAdministration = dynamic(
   () => import("@/components/order-administration"),
   { loading: TabLoading },
@@ -350,16 +352,8 @@ export default function OrderDetail({
 
                 {canUseTechnical && order.status === "pronto_retirada" && (
                   <>
-                    {readyWhatsapp && (
-                      <a
-                        className="outline"
-                        href={readyWhatsapp}
-                        target="_blank"
-                        rel="noreferrer"
-                      >
-                        Avisar no WhatsApp ↗
-                      </a>
-                    )}
+                    <OrderReadyWhatsapp orderId={id} manualUrl={readyWhatsapp}
+                      plus={isHorariaPlus(access.billing?.planCode)} />
                     <button
                       className="primary"
                       disabled={busy}

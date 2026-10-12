@@ -69,6 +69,7 @@ async function whatsappHarness({
     payload: {
       cliente: "Teste",
       equipamento: "Notebook",
+      readyConsent: true,
       token: "test-token",
       numero: 1001,
       total: 120,
@@ -204,6 +205,7 @@ test("WhatsApp: mensagem pronta e orçamento usam templates e registram sucesso"
         payload: {
           cliente: "Teste",
           equipamento: "Notebook",
+          readyConsent: true,
           token: "test-token",
           numero: 1001,
           total: 120,
@@ -335,4 +337,18 @@ test("cobrança: id não assinado e pagamento incompleto são rejeitados", async
     );
   }
   assert.equal(h.calls.length, 0);
+});
+
+test("WhatsApp automático: aviso legado de retirada sem autorização nunca é disparado", async()=>{
+  const h=await whatsappHarness({
+    notification:{
+      evento:"pronto_retirada",destinatario:"5511000000000",tentativas:0,
+      payload:{cliente:"Teste",equipamento:"Celular",token:"x",numero:1},
+    },
+  });
+  const response=await h.send();
+  assert.equal(response.status,200);
+  assert.equal((await response.json()).reason,"missing_consent");
+  assert.equal(h.sends.length,0);
+  assert.equal(h.updates.at(-1).status,"falhou");
 });
