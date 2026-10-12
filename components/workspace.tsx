@@ -181,6 +181,7 @@ export default function Workspace({
 
   useEffect(() => {
     setProfileOpen(false);
+    setMobileMoreOpen(false);
   }, [path]);
 
   useEffect(() => {
