@@ -211,7 +211,7 @@ export default function InlineCamera({
       aria-modal="true"
       aria-label="Câmera"
     >
-      <section className="camera-sheet">
+      <section className="camera-sheet camera-controls-separated">
         <div className="panel-head">
           <div>
             <h2>{guideLabel ? `Foto: ${guideLabel}` : "Tirar foto"}</h2>

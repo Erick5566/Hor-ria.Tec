@@ -1,0 +1,44 @@
+/* Keep camera controls in separate flow rows, including short notebook screens. */
+.camera-backdrop-portal .camera-sheet.camera-controls-separated {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  height: auto;
+  max-height: calc(100dvh - 32px);
+  overflow: auto;
+}
+.camera-backdrop-portal .camera-controls-separated .camera-stage {
+  flex: 0 0 auto;
+  height: clamp(120px, 40dvh, 380px);
+  min-height: 0;
+  max-height: none;
+}
+.camera-backdrop-portal .camera-controls-separated .camera-actions {
+  position: static;
+  flex: 0 0 auto;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  background: none;
+}
+.camera-backdrop-portal .camera-controls-separated .camera-actions > button,
+.camera-backdrop-portal .camera-controls-separated .camera-actions > label {
+  flex: 1 1 160px;
+  min-width: 0;
+  max-width: 100%;
+}
+.camera-backdrop-portal .camera-controls-separated .camera-actions > button {
+  min-height: 44px;
+  white-space: normal;
+}
+.camera-backdrop-portal .camera-controls-separated .camera-actions > label {
+  display: grid;
+  gap: 6px;
+}
+.camera-backdrop-portal .camera-controls-separated .camera-actions select {
+  width: 100%;
+  min-width: 0;
+}
