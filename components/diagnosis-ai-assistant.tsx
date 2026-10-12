@@ -60,12 +60,17 @@ export default function DiagnosisAiAssistant({
 
   useEffect(()=>{
     let active=true;
-    void supabase?.rpc("ai_credit_status").then(r=>{
-      if (!active || r.error) return;
-      setCredits(Math.max(0,Number((r.data as CreditState)?.availableUnits||0)));
-    });
+    setCredits(null);
+    const companyId=access.company?.id;
+    if (companyId && supabase) {
+      void supabase.rpc("ai_credit_status_for_company",{p_empresa:companyId})
+        .then(r=>{
+          if (!active || r.error) return;
+          setCredits(Math.max(0,Number((r.data as CreditState)?.availableUnits||0)));
+        });
+    }
     return ()=>{active=false;};
-  },[]);
+  },[access.company?.id]);
 
   function toggle(id:string){
     setVision("");
