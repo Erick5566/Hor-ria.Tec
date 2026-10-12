@@ -156,6 +156,7 @@ test("notifications can close independently of the covered bell and restore focu
     useRef: () => ({ current: null }),
     useEffect: () => {},
     useCallback: (callback) => callback,
+    useMemo: (factory) => factory(),
   };
   const mocks = {
     react,
@@ -167,6 +168,7 @@ test("notifications can close independently of the covered bell and restore focu
     "@/lib/supabase": { configured: true, supabase: null },
     "@/lib/platform-features": { panelPathEnabled: () => true },
     "./panel-feature-gate": { FeatureUnavailable: () => null },
+    "./interactive-tutorial": { __esModule: true, default: () => null },
     "./brand": { Brand: () => null },
     "./horaria-icon": { HorariaIcon: () => null },
   };

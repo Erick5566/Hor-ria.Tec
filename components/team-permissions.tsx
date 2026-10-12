@@ -444,7 +444,7 @@ export default function TeamPermissions() {
                 ? "Acesso de proprietário"
                 : "Acesso de administrador"}
             </SemanticBadge>
-            <button
+            <button data-tour="team-add"
               type="button"
               className="primary"
               disabled={loading || noSeatsAvailable}

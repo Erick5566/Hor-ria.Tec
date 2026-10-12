@@ -6,6 +6,7 @@ import {
   useRef,
   useState,
   useCallback,
+  useMemo,
 } from "react";
 import Link from "next/link";
 import dynamic from "next/dynamic";
@@ -20,6 +21,7 @@ import {
 } from "@/lib/supabase";
 import { panelPathEnabled } from "@/lib/platform-features";
 import { FeatureUnavailable } from "./panel-feature-gate";
+import InteractiveTutorial from "./interactive-tutorial";
 import type { AccessContext } from "@/lib/access";
 import { Brand, MissingConfig } from "./brand";
 const Setup = dynamic(() => import("./setup"), {
@@ -179,6 +181,7 @@ export default function Workspace({
 
   useEffect(() => {
     setProfileOpen(false);
+    setMobileMoreOpen(false);
   }, [path]);
 
   useEffect(() => {
@@ -948,6 +951,28 @@ export default function Workspace({
       )
       .sort((a, b) => b.length - a.length)[0] || "";
 
+  const tutorialRoutes = useMemo(() => {
+    const manager = ["OWNER", "ADMIN"].includes(access.company?.role || "");
+    const managerOnly = new Set([
+      "/painel/vendas", "/painel/seminovos", "/painel/vitrine",
+      "/painel/pos-venda", "/painel/financeiro", "/painel/notas-fiscais",
+      "/painel/equipe", "/painel/minha-pagina", "/painel/empresa",
+      "/painel/configuracoes",
+    ]);
+    return menu.flatMap(([, links]) => links.map(([label, href]) => ({ label, href })))
+      .filter(({href}) =>
+        panelPathEnabled(access.company?.featureFlags, href) &&
+        (!managerOnly.has(href) || manager) &&
+        (href !== "/painel/estoque" || (manager && Boolean(access.company?.featureFlags.stockEnabled))) &&
+        (href !== "/painel/financeiro" || Boolean(access.company?.featureFlags.financialEnabled)) &&
+        (href !== "/painel/agenda" || Boolean(access.company?.featureFlags.appointmentsEnabled)));
+  }, [access.company?.role, access.company?.featureFlags]);
+
+  const revealTutorialRoute = useCallback(() => {
+    setMobileMoreOpen(true);
+    setOpen(false);
+  }, []);
+
   const mobilePrimaryNav: Array<{
     label: string;
     href: string;
@@ -1103,6 +1128,7 @@ export default function Workspace({
                   <Link
                     key={href}
                     href={href}
+                    data-tour-href={href}
                     prefetch={eagerMenuRoutes.has(href)}
                     onMouseEnter={() => {
                       if (!eagerMenuRoutes.has(href)) router.prefetch(href);
@@ -1130,6 +1156,10 @@ export default function Workspace({
             <HorariaIcon name="help" />
             <span>Ajuda</span>
           </Link>
+          <button type="button" onClick={() => window.dispatchEvent(new Event("horaria:resume-tutorial"))}>
+            <HorariaIcon name="help" />
+            <span>Conheça a Horária</span>
+          </button>
           <button
             onClick={async () => {
               setError("");
@@ -1437,6 +1467,9 @@ export default function Workspace({
         )}
       </main>
       {empresa && userId && !loading && (
+        <InteractiveTutorial userId={userId} availableRoutes={tutorialRoutes} openMobileMenu={revealTutorialRoute} />
+      )}
+      {empresa && userId && !loading && (
         <>
           {mobileMoreOpen && (
             <>
@@ -1468,6 +1501,7 @@ export default function Workspace({
                     <Link
                       href={item.href}
                       key={item.href}
+                      data-tour-href={item.href}
                       className={
                         path === item.href ||
                         (item.href !== "/painel" &&
@@ -1497,6 +1531,7 @@ export default function Workspace({
                 <Link
                   href={item.href}
                   key={item.href}
+                  data-tour-href={item.href}
                   className={active ? "is-current" : ""}
                   aria-current={active ? "page" : undefined}
                 >

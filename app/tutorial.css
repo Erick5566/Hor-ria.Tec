@@ -1,0 +1,48 @@
+.horaria-tour { position: fixed; inset: 0; z-index: 100000; pointer-events: none; font-family: inherit; }
+.horaria-tour-dim { position: absolute; inset: 0; background: rgba(9, 17, 32, .62); pointer-events: auto; }
+.horaria-tour-spotlight {
+  position: fixed; border-radius: 12px; pointer-events: none;
+  outline: 3px solid #68a8ff;
+  box-shadow: 0 0 0 4px rgba(65,137,250,.28), 0 0 0 120vmax rgba(8,18,35,.55);
+  transition: top .18s ease, left .18s ease, width .18s ease, height .18s ease;
+}
+.horaria-tour-card {
+  position: fixed; bottom: 28px; right: 26px; z-index: 100002;
+  box-sizing: border-box; width: min(410px, calc(100vw - 28px));
+  max-height: min(70dvh, 530px); overflow-y: auto;
+  border: 1px solid #cfddf1; border-radius: 20px; padding: 22px;
+  background: #fff; color: #17263c; box-shadow: 0 18px 65px rgba(0,0,0,.3);
+  pointer-events: auto; overscroll-behavior: contain;
+}
+.horaria-tour-card.is-welcome {
+  top: 50%; bottom: auto; right: 50%; transform: translate(50%,-50%);
+  width: min(460px,calc(100vw - 30px)); max-height: calc(100dvh - 30px);
+}
+.horaria-tour-overline { display: flex; align-items: center; justify-content: space-between; gap: 12px; color: #26549c; font-size: .78rem; }
+.horaria-tour-overline span { color: #617288; font-variant-numeric: tabular-nums; }
+.horaria-tour-track { height: 5px; background: #e9f0fb; border-radius: 999px; overflow: hidden; margin: 13px 0 18px; }
+.horaria-tour-track span { display: block; height: 100%; background: #2872db; border-radius: inherit; transition: width .2s; }
+.horaria-tour-card h2 { color: #152744; margin: 0 0 8px; line-height: 1.2; font-size: clamp(1.15rem,2vw,1.32rem); }
+.horaria-tour-card p { margin: 0; font-size: .91rem; line-height: 1.6; color: #425471; }
+.horaria-tour-card .horaria-tour-note { background: #eff5fd; border-radius: 10px; padding: 10px 12px; color: #254b83; margin-top: 12px; font-size: .81rem; }
+.horaria-tour-card .horaria-tour-error { color: #8d2929; font-size: .8rem; margin-top: 8px; }
+.horaria-tour-actions, .horaria-tour-actions > div { display: flex; align-items: center; gap: 7px; }
+.horaria-tour-actions { justify-content: space-between; margin-top: 22px; flex-wrap: wrap; }
+.horaria-tour-actions button { min-height: 42px; border-radius: 10px; padding: 9px 12px; font: inherit; font-size: .83rem; font-weight: 650; cursor: pointer; border: 1px solid #d7e1ee; }
+.horaria-tour-actions button:focus-visible { outline: 3px solid #478cec; outline-offset: 2px; }
+.horaria-tour-actions button:disabled { opacity: .45; cursor: not-allowed; }
+.horaria-tour-later, .horaria-tour-back { color: #425571; background: #fff; }
+.horaria-tour-next { background: #2166ce; color: white; border-color: #2166ce !important; }
+.horaria-tour-hint { display: block; margin-top: 13px; font-size: .72rem; color: #6d7e94; }
+@media(max-width: 767px) {
+  .horaria-tour-card:not(.is-welcome) {
+    bottom: calc(70px + env(safe-area-inset-bottom, 0px));
+    left: 10px; right: 10px; width: auto; padding: 16px;
+    max-height: min(58dvh, 440px); border-radius: 17px;
+  }
+  .horaria-tour-actions { gap: 8px; }
+  .horaria-tour-actions button { min-height: 42px; padding: 8px 10px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .horaria-tour-spotlight, .horaria-tour-track span { transition: none; }
+}
