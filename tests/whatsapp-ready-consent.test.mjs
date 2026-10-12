@@ -112,16 +112,28 @@ test("Aviso pronto: exige consentimento explícito, Plus e WhatsApp habilitado, 
     assert.equal((await db.query("select validar_envio_whatsapp_pronto($1) ok",[notificationId])).rows[0].ok,false);
     await db.exec("reset role");
     await db.query("update public.assinaturas set plano_id=(select id from public.planos where codigo='HORARIA_PRO') where empresa_id=$1",[company]);
+    // Revogação continua disponível para funcionário autorizado, mesmo com conta suspensa.
+    await db.exec("reset role");
+    await db.query("update public.empresas set manutencao_ativa=true where id=$1",[company]);
     await asOwner();
-    await db.query("select configurar_aviso_whatsapp_ordem($1,false)",[second]);
-    await db.exec("reset role;set role service_role");
+    await assert.rejects(db.query("select configurar_aviso_whatsapp_ordem($1,false)",[second]),/não encontrada|indisponível|autorização/i);
+    assert.equal((await db.query("select revogar_aviso_whatsapp_ordem($1) ok",[second])).rows[0].ok,true);
+    assert.equal((await db.query("select revogar_aviso_whatsapp_ordem($1) ok",[second])).rows[0].ok,true);
+    await db.exec("reset role");
+    await db.query("update public.empresas set manutencao_ativa=false where id=$1",[company]);
+    await db.exec("set role service_role");
     assert.equal((await db.query("select validar_envio_whatsapp_pronto($1) ok",[notificationId])).rows[0].ok,false);
     await asOwner();
+    const revoked=(await db.query("select status_aviso_whatsapp_ordem($1) data",[second])).rows[0].data;
+    assert.equal(revoked.revoked,true);
+    assert.equal(revoked.authorized,false);
+    await assert.rejects(db.query("select configurar_aviso_whatsapp_ordem($1,true)",[second]),/revogada/);
 
     const another="cd000000-0000-4000-8000-000000000002";
     await db.exec(`reset role;insert into auth.users(id) values ('${another}')`);
     await db.exec(`set request.jwt.claim.sub='${another}';set request.jwt.claims='{"aal":"aal1"}';set role authenticated`);
     await assert.rejects(db.query("select status_aviso_whatsapp_ordem($1)",[second]),/não encontrada/);
+    await assert.rejects(db.query("select revogar_aviso_whatsapp_ordem($1)",[second]),/não encontrada/);
     await assert.rejects(db.query("select configurar_aviso_whatsapp_ordem($1,true)",[second]),/sem autorização/);
     await db.exec("reset role;set role anon");
     await assert.rejects(db.query("select status_aviso_whatsapp_ordem($1)",[second]),/permission denied/i);
@@ -138,6 +150,7 @@ test("Aviso pronto: no recebimento exige autorização e no detalhe exibe result
   assert.match(form,/isHorariaPlus\(access.billing\?\.planCode\)/);
   assert.match(detail,/<OrderReadyWhatsapp/);
   assert.match(widget,/status_aviso_whatsapp_ordem/);
+  assert.match(widget,/revogar_aviso_whatsapp_ordem/);
   assert.match(widget,/Aviso enviado automaticamente/);
   assert.match(widget,/status==="processando" \|\| \(status==="pendente" &&/);
   assert.match(widget,/delivery\.authorized && delivery\.eligiblePlan && delivery\.channelEnabled/);
