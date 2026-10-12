@@ -65,3 +65,24 @@
 @media(max-width:640px){.diagnosis-ai-compact .diagnosis-ai-header{padding:13px}
  .diagnosis-ai-compact .diagnosis-ai-free,.diagnosis-ai-compact .diagnosis-ai-vision{padding:13px}
  .diagnosis-ai-compact .diagnosis-ai-status{max-width:none}}
+
+/* Ajuda Plus: assistente discreto, sem bloquear o conteúdo da página. */
+.horaria-ai-chat-plus{border-radius:15px;box-shadow:0 7px 20px rgba(19,48,91,.055);
+  border-color:#d0dff0;margin:11px 0 20px}
+.horaria-ai-chat-plus .horaria-ai-header{gap:12px;padding:16px 18px;background:linear-gradient(115deg,#0e2e58,#204b7f)}
+.horaria-ai-chat-plus .horaria-ai-avatar{width:39px;height:39px;font-size:17px;background:rgba(255,255,255,.17);
+  color:#fff;border:1px solid rgba(255,255,255,.27)}
+.horaria-ai-chat-plus .horaria-ai-header>div{flex:1;min-width:0}
+.horaria-ai-chat-plus .horaria-ai-header h2{font-size:17px;line-height:1.4}
+.horaria-ai-chat-plus .horaria-ai-header p{font-size:12px;margin:3px 0 0}
+.horaria-ai-chat-plus .horaria-ai-messages{min-height:125px;max-height:300px}
+.horaria-ai-chat-plus .horaria-ai-modes{padding:12px 16px 9px}
+.horaria-ai-chat-plus .horaria-ai-open{flex-shrink:0;border:1px solid rgba(255,255,255,.34);
+  border-radius:9px;background:rgba(255,255,255,.12);color:#fff;padding:9px 12px;
+  min-height:40px;font-size:12px;font-weight:700;cursor:pointer}
+.horaria-ai-chat-plus .horaria-ai-status{background:#f5f9ff;color:#496584}
+.horaria-ai-chat-plus :is(button,input):focus-visible{outline:3px solid #94bdf4;outline-offset:3px}
+@media(max-width:640px){.horaria-ai-chat-plus .horaria-ai-header{padding:13px;gap:10px}
+ .horaria-ai-chat-plus .horaria-ai-open{padding:8px}
+ .horaria-ai-chat-plus .horaria-ai-label{font-size:10px}
+ .horaria-ai-chat-plus .horaria-ai-messages{max-height:37dvh}}
