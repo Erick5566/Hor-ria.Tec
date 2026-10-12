@@ -10,7 +10,7 @@ const route = ts.transpileModule(readFileSync("app/api/ai/chat/route.ts", "utf8"
 const owner = "f8000000-0000-4000-8000-000000000001";
 const company = "f8000000-0000-4000-8000-000000000002";
 
-function createHarness({ authenticated = true, flag = false, paid = false, balance = false, origin = "https://example.test", mark = true, settle = true } = {}) {
+function createHarness({ authenticated = true, flag = false, paid = false, balance = false, origin = "https://example.test", mark = true, settle = true, providerFails = false } = {}) {
   const rpcCalls = [];
   const paidCalls = [];
   const mockContext = authenticated
@@ -45,7 +45,7 @@ function createHarness({ authenticated = true, flag = false, paid = false, balan
           safeHistory: () => [],
         };
         case "@/lib/horaria-ai-provider": return {
-          createPaidAiReply: async (...args) => { paidCalls.push(args); return "Resposta simulada"; },
+          createPaidAiReply: async (...args) => { paidCalls.push(args); if(providerFails) throw new Error("timeout"); return "Resposta simulada"; },
         };
         case "@supabase/supabase-js": return {
           createClient: () => ({
@@ -121,4 +121,13 @@ test("Chat Horária: erro de liquidação após resposta não reembolsa resposta
   assert.equal((await h.send("company")).status,503);
   assert.equal(h.paidCalls.length,1);
   assert.deepEqual(h.rpcCalls,["ai_reserve_message","ai_mark_provider_started","ai_finalize_message"]);
+});
+
+test("Chat Horária: timeout externo mantém crédito reservado para conciliação", async () => {
+  const h=createHarness({flag:true,paid:true,balance:true,providerFails:true});
+  const r=await h.send("company");
+  assert.equal(r.status,503);
+  assert.equal((await r.json()).code,"AI_RECONCILIATION_REQUIRED");
+  assert.equal(h.paidCalls.length,1);
+  assert.deepEqual(h.rpcCalls,["ai_reserve_message","ai_mark_provider_started"]);
 });

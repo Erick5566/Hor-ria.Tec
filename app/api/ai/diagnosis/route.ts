@@ -114,7 +114,6 @@ export async function POST(request: Request) {
   }
 
   let providerReturned=false;
-  let settled=false;
   try {
     // Não transmitir cliente, IMEI, contatos, senha ou dados financeiros à IA.
     const reply=await analyzeRepairPhotos({
@@ -130,18 +129,13 @@ export async function POST(request: Request) {
     });
     if (confirmation.error || confirmation.data!==true)
       return json({error:"Análise concluída, mas a confirmação dos créditos falhou. Contate o suporte para conciliação; não repita a solicitação.",code:"SETTLEMENT_ERROR"},503);
-    settled=true;
     return json({analysis:reply,creditUnits:1,requiresTechnicianReview:true});
   } catch {
     if (providerReturned) {
       return json({error:"A resposta foi recebida, mas não foi possível confirmar os créditos. Contate o suporte antes de tentar novamente.",code:"SETTLEMENT_ERROR"},503);
     }
-    return json({error:"A análise visual não respondeu. Verifique os créditos ou tente mais tarde.",code:"VISION_ERROR"},503);
-  } finally {
-    if (!settled && !providerReturned) {
-      try {
-        await service.rpc("ai_finalize_message",{p_reservation:reserved.data,p_success:false});
-      } catch { /* reservas não reconciliadas requerem conferência */ }
-    }
+    return json({error:"A análise não retornou uma resposta confirmada. O crédito ficará reservado até a conferência, pois o provedor pode ter cobrado a tentativa. Contate o suporte antes de repetir.",code:"VISION_RECONCILIATION_REQUIRED"},503);
   }
+  // Uma chamada externa iniciada pode gerar custo mesmo se houver timeout.
+  // Somente uma conciliação com evidência de não cobrança autoriza reembolso.
 }
