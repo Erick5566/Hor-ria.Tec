@@ -19,6 +19,7 @@ const suggestions = [
 export default function HorariaAiChat() {
   const { access } = useWorkspace();
   const [mode, setMode] = useState<Mode>("support");
+  const [open, setOpen] = useState(false);
   const [lines, setLines] = useState<Line[]>([
     { role: "assistant", content:
       "Olá! Eu sou o assistente da Horária. Posso te orientar sobre ordens de serviço, clientes, equipe, agenda e cobranças. Em que posso ajudar?" },
@@ -95,14 +96,16 @@ export default function HorariaAiChat() {
   }
 
   return (
-    <section className="horaria-ai-chat panel" aria-label="Central Horária IA">
+    <section className="horaria-ai-chat horaria-ai-chat-plus panel" aria-label="Assistente Horária Plus">
       <header className="horaria-ai-header">
-        <span className="horaria-ai-avatar" aria-hidden="true">H</span>
+        <span className="horaria-ai-avatar" aria-hidden="true">H✦</span>
         <div>
-          <h2>Horária IA <span className="horaria-ai-label">Central de atendimento</span></h2>
-          <p>Um único assistente para suporte, operação e integração futura ao WhatsApp.</p>
+          <h2>Horária Plus <span className="horaria-ai-label">Assistente da assistência</span></h2>
+          <p>Orientações sobre a Horária, quando você precisar.</p>
         </div>
+        <button type="button" className="horaria-ai-open" aria-expanded={open} onClick={()=>setOpen(v=>!v)}>{open?"Recolher":"Conversar"}</button>
       </header>
+      {open && <>
       <div className="horaria-ai-modes" role="group" aria-label="Modo de atendimento">
         <button type="button" aria-pressed={mode === "support"}
           onClick={() => selectMode("support")}>Suporte da Horária <small>Sem custo de API</small></button>
@@ -157,6 +160,7 @@ export default function HorariaAiChat() {
           {mode === "support" ? "Conhecer modo da assistência" : "Voltar ao suporte"}
         </button>
       </footer>
+      </>}
     </section>
   );
 }
