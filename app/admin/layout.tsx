@@ -47,6 +47,10 @@ export default async function AdminLayout({
               <span aria-hidden="true">⚙</span>
               Configurações
             </Link>
+            <Link href="/admin/ia">
+              <span aria-hidden="true">✧</span>
+              Operações de IA
+            </Link>
             <Link href="/admin/auditoria">
               <span aria-hidden="true">◫</span>
               Auditoria
