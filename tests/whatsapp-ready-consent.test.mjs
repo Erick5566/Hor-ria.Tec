@@ -86,6 +86,26 @@ test("Aviso pronto: exige consentimento explícito, Plus e WhatsApp habilitado, 
       "select validar_envio_whatsapp_pronto($1) ok",[notificationId]
     )).rows[0].ok,true);
 
+    // Mudanças após o enfileiramento são avaliadas pelo estado ATUAL.
+    await db.exec("reset role");
+    await db.query("update public.empresas set feature_flags=jsonb_set(coalesce(feature_flags,'{}'::jsonb),'{whatsappEnabled}','false'::jsonb) where id=$1",[company]);
+    await db.exec("set role service_role");
+    assert.equal((await db.query("select validar_envio_whatsapp_pronto($1) ok",[notificationId])).rows[0].ok,false);
+    await db.exec("reset role");
+    await db.query("update public.empresas set feature_flags=jsonb_set(coalesce(feature_flags,'{}'::jsonb),'{whatsappEnabled}','true'::jsonb) where id=$1",[company]);
+    await db.query("update public.clientes set whatsapp='11911112222' where empresa_id=$1 and nome='João Teste'",[company]);
+    await db.exec("set role service_role");
+    assert.equal((await db.query("select validar_envio_whatsapp_pronto($1) ok",[notificationId])).rows[0].ok,false);
+    await db.exec("reset role");
+    await db.query("update public.clientes set whatsapp='11998765432' where empresa_id=$1 and nome='João Teste'",[company]);
+    await db.query("update public.ordens_servico set status='em_testes' where id=$1",[second]);
+    await db.exec("set role service_role");
+    assert.equal((await db.query("select validar_envio_whatsapp_pronto($1) ok",[notificationId])).rows[0].ok,false);
+    await db.exec("reset role");
+    await db.query("update public.ordens_servico set status='pronto_retirada' where id=$1",[second]);
+    await db.exec("set role service_role");
+    assert.equal((await db.query("select validar_envio_whatsapp_pronto($1) ok",[notificationId])).rows[0].ok,true);
+
     // Rebaixamento do plano e retirada do opt-in invalidam a fila já criada.
     await db.exec("reset role");
     await db.query("update public.assinaturas set plano_id=(select id from public.planos where codigo='HORARIA') where empresa_id=$1",[company]);
