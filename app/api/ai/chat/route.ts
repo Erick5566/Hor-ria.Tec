@@ -116,10 +116,14 @@ export async function POST(request: Request) {
     if (!completed) {
       // Reembolsa apenas a unidade reservada. A chamada de rede pode ter
       // consumido tokens em falhas ambíguas; margem/preço devem cobrir esse risco.
-      await service.rpc("ai_finalize_message", {
-        p_reservation: reserved.data,
-        p_success: false,
-      }).catch(() => undefined);
+      try {
+        await service.rpc("ai_finalize_message", {
+          p_reservation: reserved.data,
+          p_success: false,
+        });
+      } catch {
+        // Erro de reconciliação deve ser registrado no provedor de logs.
+      }
     }
   }
 }
