@@ -224,6 +224,7 @@ export default function InteractiveTutorial({
   indexRef.current = index;
   const step = steps[Math.min(index, steps.length - 1)];
   const finishRequest = useRef(false);
+  const manualOpen = useRef(false);
   const writeQueue = useRef<Promise<void>>(Promise.resolve());
   const [viewport, setViewport] = useState({ width: 1024, height: 768 });
   const dialogTitle = useRef<HTMLHeadingElement>(null);
@@ -235,13 +236,16 @@ export default function InteractiveTutorial({
     const client = supabase;
     if (!client) return Promise.resolve();
     writeQueue.current = writeQueue.current.catch(() => undefined).then(async () => {
-      const result = await client.rpc("tutorial_save_progress", {
-        p_step: Math.min(nextIndex, 150),
-        p_status: status,
-      });
-      if (result.error) {
+      try {
+        const result = await client.rpc("tutorial_save_progress", {
+          p_step: Math.min(nextIndex, 150),
+          p_status: status,
+        });
+        if (result.error) throw result.error;
+        setError("");
+      } catch {
         setError("Não foi possível sincronizar o progresso. Você ainda pode continuar nesta sessão.");
-      } else setError("");
+      }
     });
     return writeQueue.current;
   }, []);
@@ -280,28 +284,34 @@ export default function InteractiveTutorial({
     setIndex(0);
     setSavedStatus(null);
     finishRequest.current = false;
+    manualOpen.current = false;
     if (!supabase || !userId) return;
     void (async () => {
-      const result = await supabase.rpc("tutorial_get_progress");
-      if (cancelled) return;
-      if (result.error) {
-        setError("O guia estará disponível no menu Ajuda assim que o serviço de progresso estiver configurado.");
+      try {
+        const result = await supabase.rpc("tutorial_get_progress");
+        if (cancelled || manualOpen.current) return;
+        if (result.error) throw result.error;
+        const state = result.data as Progress | null;
+        setSavedStatus(state?.status || null);
+        const firstAccess = Boolean(state?.eligible && !state?.status);
+        const resume = state?.status === "ACTIVE";
+        setIndex(Math.max(0, Math.min(Number(state?.step) || 0, steps.length - 1)));
+        setActive(firstAccess || resume);
         setLoaded(true);
-        return;
+      } catch {
+        if (!cancelled && !manualOpen.current) {
+          setError("O guia estará disponível no menu Ajuda assim que o serviço de progresso estiver configurado.");
+          setLoaded(true);
+        }
       }
-      const state = result.data as Progress | null;
-      setSavedStatus(state?.status || null);
-      const firstAccess = Boolean(state?.eligible && !state?.status);
-      const resume = state?.status === "ACTIVE";
-      setIndex(Math.max(0, Math.min(Number(state?.step) || 0, steps.length - 1)));
-      setActive(firstAccess || resume);
-      setLoaded(true);
     })();
     return () => { cancelled = true; };
   }, [userId, steps.length]);
 
   useEffect(() => {
     const restart = () => {
+      manualOpen.current = true;
+      setLoaded(true);
       finishRequest.current = false;
       setError("");
       setIndex(0);
@@ -309,6 +319,8 @@ export default function InteractiveTutorial({
       void persist(0, "ACTIVE");
     };
     const resume = () => {
+      manualOpen.current = true;
+      setLoaded(true);
       finishRequest.current = false;
       setError("");
       setActive(true);
