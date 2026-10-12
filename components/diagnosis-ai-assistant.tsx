@@ -32,6 +32,7 @@ export default function DiagnosisAiAssistant({
   const [photoRevision,setPhotoRevision]=useState(0);
   const enabled=Boolean(access.company?.featureFlags.aiEnabled);
   const hint=useMemo(()=>suggestDiagnosis([problem,details].join(" ")),[problem,details]);
+  const guidanceReady=problem.trim().length>=3 || details.trim().length>=3;
 
   useEffect(()=>{
     let active=true;
@@ -42,6 +43,7 @@ export default function DiagnosisAiAssistant({
     setConsent(false);
     setError("");
     void (async()=>{
+      if (!enabled) { if(active) setLoadingPhotos(false); return; }
       if (!supabase) {
         if(active) {setLoadingPhotos(false);setError("Sessão não disponível. Atualize a página e entre novamente.");}
         return;
@@ -73,13 +75,13 @@ export default function DiagnosisAiAssistant({
       if(active) {setLoadingPhotos(false);setError("Falha ao carregar as fotos. Tente atualizar a lista.");}
     });
     return ()=>{active=false;};
-  },[ordemId,photoRevision,access.company?.id]);
+  },[ordemId,photoRevision,access.company?.id,enabled]);
 
   useEffect(()=>{
     let active=true;
     setCredits(null);
     const companyId=access.company?.id;
-    if (companyId && supabase) {
+    if (enabled && companyId && supabase) {
       void supabase.rpc("ai_credit_status_for_company",{p_empresa:companyId})
         .then(r=>{
           if (!active || r.error) return;
@@ -87,7 +89,7 @@ export default function DiagnosisAiAssistant({
         });
     }
     return ()=>{active=false;};
-  },[access.company?.id]);
+  },[access.company?.id,enabled]);
 
   function toggle(id:string){
     setVision("");
@@ -119,27 +121,27 @@ export default function DiagnosisAiAssistant({
   }
 
   return (
-    <section className="diagnosis-ai" aria-labelledby="diagnosis-ai-title">
+    <section className="diagnosis-ai diagnosis-ai-compact" aria-labelledby="diagnosis-ai-title">
       <header className="diagnosis-ai-header">
         <div>
-          <span className="diagnosis-ai-kicker">HORÁRIA IA · APOIO AO TÉCNICO</span>
-          <h3 id="diagnosis-ai-title">Diagnóstico inteligente</h3>
-          <p>Investigue possíveis causas e confira os sinais visíveis nas fotos. Nenhuma sugestão substitui testes reais.</p>
+          <span className="diagnosis-ai-kicker">✦ HORÁRIA PLUS · COPILOTO DO REPARO</span>
+          <h3 id="diagnosis-ai-title">Sua assistência técnica, com mais orientação.</h3>
+          <p>O relato do aparelho gera caminhos de investigação e testes. Você decide o diagnóstico final.</p>
         </div>
-        <span className="diagnosis-ai-status">Revisão humana obrigatória</span>
+        <span className="diagnosis-ai-status">Auxílio técnico · sem alterações automáticas</span>
       </header>
 
       <div className="diagnosis-ai-free">
         <div className="diagnosis-ai-title-row">
-          <div><strong>Triagem inicial por sintomas</strong><small>Gratuita · regras técnicas orientativas · sem envio de dados</small></div>
+          <div><strong>Primeira avaliação</strong><small>Baseada no defeito relatado · sem chamadas pagas</small></div>
           <button type="button" className="outline" onClick={()=>{setShowTriage(true);setError("");}}>
-            {showTriage?"Atualizar sugestões":"Gerar sugestões"}
+            {showTriage?"Atualizar":"Ver sugestões"}
           </button>
         </div>
         <label htmlFor="diagnosis-ai-symptom">Mais detalhes sobre o defeito (opcional)</label>
         <textarea id="diagnosis-ai-symptom" value={details} onChange={e=>{setDetails(e.target.value);setShowTriage(false);}}
           placeholder="Ex.: desligou após contato com água, conector está danificado…" rows={2} maxLength={650}/>
-        {showTriage && (
+        {(showTriage || guidanceReady) && (
           <div className="diagnosis-ai-result" role="region" aria-label="Triagem automática">
             <strong>{hint.heading}</strong>
             <b>Possíveis causas</b>
@@ -148,13 +150,14 @@ export default function DiagnosisAiAssistant({
             <ul>{hint.suggestedTests.map(x=><li key={x}>{x}</li>)}</ul>
             <p>{hint.caveat}</p>
             <button type="button" className="outline" onClick={()=>onApplyDraft(diagnosticDraft(hint))}>
-              Copiar sugestões para observações (rascunho)
+              Adicionar rascunho ao diagnóstico
             </button>
           </div>
         )}
       </div>
 
-      <div className="diagnosis-ai-vision">
+      {enabled && <details className="diagnosis-ai-vision">
+        <summary className="diagnosis-ai-photo-summary">✦ Analisar fotografias · opção com créditos pré-pagos</summary>
         <div className="diagnosis-ai-title-row">
           <div>
             <strong>Análise inteligente de fotos</strong>
@@ -162,7 +165,6 @@ export default function DiagnosisAiAssistant({
           </div>
           <span>Saldo: {credits===null?"indisponível":credits+" crédito(s)"}</span>
         </div>
-        {!enabled && <p className="diagnosis-ai-warning">Recurso de IA paga ainda não habilitado para esta assistência. A triagem gratuita acima continua disponível.</p>}
         <p className="diagnosis-ai-instruction">Selecione uma ou duas fotos já registradas nesta ordem. A IA apontará apenas sinais visíveis e testes recomendados, sem identificar automaticamente a causa do defeito.</p>
         <div className="diagnosis-ai-photo-tools">
           <button type="button" className="outline" disabled={busy||loadingPhotos}
@@ -203,7 +205,7 @@ export default function DiagnosisAiAssistant({
             Usar como rascunho das observações
           </button>
         </div>}
-      </div>
+      </details>}
     </section>
   );
 }
