@@ -968,9 +968,14 @@ export default function Workspace({
         (href !== "/painel/agenda" || Boolean(access.company?.featureFlags.appointmentsEnabled)));
   }, [access.company?.role, access.company?.featureFlags]);
 
-  const revealTutorialRoute = useCallback(() => {
-    setMobileMoreOpen(true);
-    setOpen(false);
+  const mobileTourLinkHrefs = useRef<string[]>([]);
+  const revealTutorialRoute = useCallback((href: string) => {
+    if (mobileTourLinkHrefs.current.includes(href)) {
+      setMobileMoreOpen(true);
+      setOpen(false);
+    } else if (["/painel", "/painel/ordens", "/painel/agenda"].includes(href)) {
+      setMobileMoreOpen(false);
+    }
   }, []);
 
   const mobilePrimaryNav: Array<{
@@ -1023,6 +1028,8 @@ export default function Workspace({
       (!item.managerOnly ||
       ["OWNER", "ADMIN"].includes(access.company?.role || "")),
   );
+
+  mobileTourLinkHrefs.current = mobileMoreLinks.map((item) => item.href);
 
   const mobilePrimaryActive = (href: string) => {
     if (href === "/painel") return path === "/painel";
