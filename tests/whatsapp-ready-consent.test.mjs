@@ -79,7 +79,7 @@ test("Aviso pronto: exige consentimento explícito, Plus e WhatsApp habilitado, 
 
     // Rebaixamento do plano e retirada do opt-in invalidam a fila já criada.
     await db.exec("reset role");
-    await db.query("update public.assinaturas set plano_id=(select id from public.planos where codigo='HORARIA_BASIC') where empresa_id=$1",[company]);
+    await db.query("update public.assinaturas set plano_id=(select id from public.planos where codigo='HORARIA') where empresa_id=$1",[company]);
     await db.exec("set role service_role");
     assert.equal((await db.query("select validar_envio_whatsapp_pronto($1) ok",[notificationId])).rows[0].ok,false);
     await db.exec("reset role");
