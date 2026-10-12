@@ -73,5 +73,6 @@ test("tutorial: oferece prática sem cadastrar cliente, OS ou enviar convite soz
   assert.doesNotMatch(guide, /\.from\(["']clientes["']\)|\.from\(["']ordens_servico["']\)/);
   assert.match(links, /data-tour-href=\{href\}/);
   assert.match(links, /data-tour-href=\{item.href\}/);
-  assert.match(help, /Rever tutorial interativo/);
+  assert.match(help, /Continuar tutorial/);
+  assert.match(help, /Rever do início/);
 });
