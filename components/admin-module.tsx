@@ -250,7 +250,7 @@ export default function AdminModule({
           </Link>
         </section>
         </>
-      }
+      )}
     </section>
   );
 }
