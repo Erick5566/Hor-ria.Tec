@@ -173,14 +173,18 @@ export function buildTutorialSteps(routes: Route[]): TutorialStep[] {
 
 function targetElement(selector: string): HTMLElement | null {
   if (typeof document === "undefined" || !selector) return null;
+  let outsideViewport: HTMLElement | null = null;
   for (const el of document.querySelectorAll<HTMLElement>(selector)) {
     const rect = el.getBoundingClientRect();
     const style = window.getComputedStyle(el);
     if (rect.width > 0 && rect.height > 0 &&
       style.visibility !== "hidden" && style.display !== "none" &&
-      !el.closest("[inert]")) return el;
+      !el.closest("[inert]")) {
+      if (onScreen(el)) return el;
+      outsideViewport ??= el;
+    }
   }
-  return null;
+  return outsideViewport;
 }
 
 function onScreen(el: HTMLElement) {
@@ -219,8 +223,6 @@ export default function InteractiveTutorial({
   const indexRef = useRef(index);
   indexRef.current = index;
   const step = steps[Math.min(index, steps.length - 1)];
-  const stepRef = useRef(step);
-  stepRef.current = step;
   const finishRequest = useRef(false);
   const writeQueue = useRef<Promise<void>>(Promise.resolve());
   const [viewport, setViewport] = useState({ width: 1024, height: 768 });
@@ -327,9 +329,9 @@ export default function InteractiveTutorial({
     if (step.kind === "welcome" || step.kind === "finish") {
       setSpot(null); setTargetFound(false); return;
     }
-    if (step.kind === "navigate" && window.innerWidth < 1024 &&
-        !onScreen(targetElement(step.target || "") ?? document.body) && step.href) {
-      openMobileMenu(step.href);
+    if (step.kind === "navigate" && window.innerWidth < 1024 && step.href) {
+      const target = targetElement(step.target || "");
+      if (!target || !onScreen(target)) openMobileMenu(step.href);
     }
   }, [active, loaded, index, step, openMobileMenu, path]);
 
