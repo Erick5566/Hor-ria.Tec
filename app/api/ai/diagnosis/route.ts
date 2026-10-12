@@ -98,6 +98,7 @@ export async function POST(request: Request) {
   if (reserved.error || typeof reserved.data!=="string")
     return json({error:"Você precisa de créditos pré-pagos para analisar fotos. Nenhuma chamada paga foi feita.",code:"CREDIT_REQUIRED"},402);
 
+  let providerReturned=false;
   let settled=false;
   try {
     // Não transmitir cliente, IMEI, contatos, senha ou dados financeiros à IA.
@@ -106,20 +107,26 @@ export async function POST(request: Request) {
       device:"Equipamento desta ordem de serviço",
       images:photos,
     });
+    providerReturned=true;
+    // Após resposta efetiva do provedor, NÃO devolver a unidade se a liquidação falhar:
+    // manter a reserva pendente para conferência, sem consumo gratuito acidental.
     const confirmation=await service.rpc("ai_finalize_message",{
       p_reservation:reserved.data,p_success:true,
     });
     if (confirmation.error || confirmation.data!==true)
-      return json({error:"Falha ao confirmar análise. Solicite conferência dos créditos.",code:"SETTLEMENT_ERROR"},503);
+      return json({error:"Análise concluída, mas a confirmação dos créditos falhou. Contate o suporte para conciliação; não repita a solicitação.",code:"SETTLEMENT_ERROR"},503);
     settled=true;
     return json({analysis:reply,creditUnits:1,requiresTechnicianReview:true});
   } catch {
+    if (providerReturned) {
+      return json({error:"A resposta foi recebida, mas não foi possível confirmar os créditos. Contate o suporte antes de tentar novamente.",code:"SETTLEMENT_ERROR"},503);
+    }
     return json({error:"A análise visual não respondeu. Verifique os créditos ou tente mais tarde.",code:"VISION_ERROR"},503);
   } finally {
-    if (!settled) {
+    if (!settled && !providerReturned) {
       try {
         await service.rpc("ai_finalize_message",{p_reservation:reserved.data,p_success:false});
-      } catch { /* o processo de conciliação deve recuperar a reserva pendente */ }
+      } catch { /* reservas não reconciliadas requerem conferência */ }
     }
   }
 }
