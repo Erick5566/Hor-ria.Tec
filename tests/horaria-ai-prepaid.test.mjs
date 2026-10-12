@@ -76,7 +76,11 @@ test("Horária IA: créditos são adicionados só pelo superadmin MFA, consumido
   const startedId=(await db.query("select ai_reserve_message($1,$2,'web') id",[company,owner])).rows[0].id;
   assert.equal((await db.query("select ai_mark_provider_started($1,$2,$3) result",[startedId,company,owner])).rows[0].result,true);
   assert.equal((await db.query("select ai_mark_provider_started($1,$2,$3) result",[startedId,company,owner])).rows[0].result,false);
+  // Manipulação de tempo apenas no banco efêmero de testes; service_role
+  // continua sem permissão direta de editar carteiras ou reservas privadas.
+  await db.exec("reset role");
   await db.query("update private.ai_message_reservations set reserved_at=now()-interval '15 minutes' where id=$1",[startedId]);
+  await service();
   assert.equal((await db.query("select ai_refund_stale_messages($1) result",[company])).rows[0].result,0);
   assert.equal((await db.query("select ai_finalize_message($1,true) result",[startedId])).rows[0].result,true);
   await as(owner);
