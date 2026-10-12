@@ -445,7 +445,7 @@ export default function OrderDetail({
               />
             )}
             {canUseTechnical && tab === "Diagnóstico" && (
-              <Diagnosis ordemId={id} empresaId={order.empresa_id} />
+              <Diagnosis ordemId={id} empresaId={order.empresa_id} reportedProblem={order.problema} />
             )}
             {tab === "Fotos" && (
               <PhotosPanel ordemId={id} empresaId={order.empresa_id} />
