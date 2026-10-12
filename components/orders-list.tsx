@@ -281,6 +281,7 @@ export default function OrdersList() {
           <label className="orders-search">
             <span>⌕</span>
             <input
+              data-tour="order-search"
               aria-label="Buscar ordens"
               placeholder="Buscar OS, cliente, equipamento ou problema..."
               value={search}
