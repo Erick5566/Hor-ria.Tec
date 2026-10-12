@@ -217,6 +217,7 @@ export default function AdminModule({
       {module === "ajuda" && (
         <section className="panel">
           <PanelTitle title="Do recebimento à entrega" icon="receive" />
+          <button type="button" className="outline" onClick={() => window.dispatchEvent(new Event("horaria:start-tutorial"))}>▶ Rever tutorial interativo</button>
           <ol>
             <li>
               Abra uma nova ordem, selecione o cliente e registre o equipamento.
