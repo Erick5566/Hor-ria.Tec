@@ -41,21 +41,23 @@ test("Super Admin IA: MFA, visão inicial vazia e nenhum dado financeiro criado 
 test("Super Admin IA: dados agregados multiempresa sem expor conteúdo de conversas",async()=>{
  const db=await database();
  const owner="ab000000-0000-4000-8000-000000000011";
- const as=async(aal="aal2")=>db.exec(
-   `reset role;set request.jwt.claim.sub='${owner}';set request.jwt.claims='{"aal":"${aal}"}';set role authenticated`
+ const secondOwner="ab000000-0000-4000-8000-000000000012";
+ const as=async(id=owner,aal="aal2")=>db.exec(
+   `reset role;set request.jwt.claim.sub='${id}';set request.jwt.claims='{"aal":"${aal}"}';set role authenticated`
  );
  try{
-  await db.exec(`insert into auth.users(id) values ('${owner}');`);
+  await db.exec(`insert into auth.users(id) values ('${owner}'),('${secondOwner}');`);
   await as();
   const one=(await db.query(
     "select configurar_empresa('Reparos Azul','reparos-azul-ia','{}',false,'[{\"nome\":\"Reparo\",\"duracao\":30}]') as id"
   )).rows[0].id;
+  await as(secondOwner);
   const two=(await db.query(
     "select configurar_empresa('Reparos Verde','reparos-verde-ia','{}',false,'[{\"nome\":\"Reparo\",\"duracao\":30}]') as id"
   )).rows[0].id;
   await db.exec("reset role");
   await db.query("update public.perfis set platform_role='SUPER_ADMIN' where usuario_id=$1",[owner]);
-  await as();
+  await as(owner);
   await db.query("select admin_add_ai_credits($1,3,'comprovante-azul-001')",[one]);
   await db.query("select admin_add_ai_credits($1,2,'comprovante-verde-002')",[two]);
 
