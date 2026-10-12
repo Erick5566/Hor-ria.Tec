@@ -48,7 +48,7 @@ test("Horária IA: créditos são adicionados só pelo superadmin MFA, consumido
   await service();
   await db.query("update public.perfis set platform_role='SUPER_ADMIN' where usuario_id=$1",[owner]);
   await as(owner);
-  await assert.rejects(db.query("select admin_add_ai_credits($1,2,'deposito-teste-001')",[company]),/MFA/);
+  await assert.rejects(db.query("select admin_add_ai_credits($1,2,'deposito-teste-001')",[company]),/MFA|Verificação em duas etapas/);
   await as(owner,"aal2");
   await db.query("select admin_add_ai_credits($1,2,'deposito-teste-001')",[company]);
   const status=(await db.query("select ai_credit_status() value")).rows[0].value;
