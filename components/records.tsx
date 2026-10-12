@@ -435,6 +435,7 @@ export default function Records({
                   <label>
                     Cliente
                     <select
+                      data-tour="equipment-customer"
                       name="cliente_id"
                       required
                       defaultValue={
