@@ -392,6 +392,7 @@ export default function OrderForm() {
             <label>
               Selecionar cliente
               <select
+                data-tour="order-customer"
                 value={customer.id}
                 onChange={(e) => selectCustomer(e.target.value)}
               >
