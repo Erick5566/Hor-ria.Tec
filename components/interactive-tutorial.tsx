@@ -171,19 +171,34 @@ export function buildTutorialSteps(routes: Route[]): TutorialStep[] {
   return steps;
 }
 
-function visibleElement(selector: string): HTMLElement | null {
-  if (typeof document === "undefined") return null;
+function targetElement(selector: string): HTMLElement | null {
+  if (typeof document === "undefined" || !selector) return null;
+  let outsideViewport: HTMLElement | null = null;
   for (const el of document.querySelectorAll<HTMLElement>(selector)) {
     const rect = el.getBoundingClientRect();
     const style = window.getComputedStyle(el);
-    if (
-      rect.width > 0 && rect.height > 0 &&
-      rect.right > 0 && rect.left < window.innerWidth &&
-      rect.bottom > 0 && rect.top < window.innerHeight &&
-      style.visibility !== "hidden" && style.display !== "none"
-    ) return el;
+    if (rect.width > 0 && rect.height > 0 &&
+      style.visibility !== "hidden" && style.display !== "none" &&
+      !el.closest("[inert]")) {
+      if (onScreen(el)) return el;
+      outsideViewport ??= el;
+    }
   }
-  return null;
+  return outsideViewport;
+}
+
+function onScreen(el: HTMLElement) {
+  const r = el.getBoundingClientRect();
+  return r.bottom > 0 && r.top < window.innerHeight &&
+    r.right > 0 && r.left < window.innerWidth;
+}
+
+function sameRect(a: DOMRect | null, b: DOMRect | null) {
+  if (a === b) return true;
+  if (!a || !b) return false;
+  return ["top", "left", "width", "height"].every((k) =>
+    Math.abs(a[k as keyof DOMRect] as number - (b[k as keyof DOMRect] as number)) < 1
+  );
 }
 
 export default function InteractiveTutorial({
@@ -193,7 +208,7 @@ export default function InteractiveTutorial({
 }: {
   userId: string;
   availableRoutes: Route[];
-  openMobileMenu: () => void;
+  openMobileMenu: (href: string) => void;
 }) {
   const router = useRouter();
   const path = usePathname();
@@ -208,18 +223,31 @@ export default function InteractiveTutorial({
   const indexRef = useRef(index);
   indexRef.current = index;
   const step = steps[Math.min(index, steps.length - 1)];
-  const stepRef = useRef(step);
-  stepRef.current = step;
   const finishRequest = useRef(false);
+  const manualOpen = useRef(false);
+  const writeQueue = useRef<Promise<void>>(Promise.resolve());
+  const [viewport, setViewport] = useState({ width: 1024, height: 768 });
+  const dialogTitle = useRef<HTMLHeadingElement>(null);
 
-  const persist = useCallback(async (nextIndex: number, status: "ACTIVE" | "PAUSED" | "COMPLETED") => {
+  // Serializa gravações para impedir que um clique anterior sobrescreva
+  // um avanço mais recente em redes lentas ou instáveis.
+  const persist = useCallback((nextIndex: number, status: "ACTIVE" | "PAUSED" | "COMPLETED") => {
     setSavedStatus(status);
-    if (!supabase) return;
-    const result = await supabase.rpc("tutorial_save_progress", {
-      p_step: Math.min(nextIndex, 150),
-      p_status: status,
+    const client = supabase;
+    if (!client) return Promise.resolve();
+    writeQueue.current = writeQueue.current.catch(() => undefined).then(async () => {
+      try {
+        const result = await client.rpc("tutorial_save_progress", {
+          p_step: Math.min(nextIndex, 150),
+          p_status: status,
+        });
+        if (result.error) throw result.error;
+        setError("");
+      } catch {
+        setError("Não foi possível sincronizar o progresso. Você ainda pode continuar nesta sessão.");
+      }
     });
-    if (result.error) setError("Não foi possível sincronizar o progresso. Você ainda pode continuar nesta sessão.");
+    return writeQueue.current;
   }, []);
 
   const next = useCallback(() => {
@@ -256,28 +284,34 @@ export default function InteractiveTutorial({
     setIndex(0);
     setSavedStatus(null);
     finishRequest.current = false;
+    manualOpen.current = false;
     if (!supabase || !userId) return;
     void (async () => {
-      const result = await supabase.rpc("tutorial_get_progress");
-      if (cancelled) return;
-      if (result.error) {
-        setError("O guia estará disponível no menu Ajuda assim que o serviço de progresso estiver configurado.");
+      try {
+        const result = await supabase.rpc("tutorial_get_progress");
+        if (cancelled || manualOpen.current) return;
+        if (result.error) throw result.error;
+        const state = result.data as Progress | null;
+        setSavedStatus(state?.status || null);
+        const firstAccess = Boolean(state?.eligible && !state?.status);
+        const resume = state?.status === "ACTIVE";
+        setIndex(Math.max(0, Math.min(Number(state?.step) || 0, steps.length - 1)));
+        setActive(firstAccess || resume);
         setLoaded(true);
-        return;
+      } catch {
+        if (!cancelled && !manualOpen.current) {
+          setError("O guia estará disponível no menu Ajuda assim que o serviço de progresso estiver configurado.");
+          setLoaded(true);
+        }
       }
-      const state = result.data as Progress | null;
-      setSavedStatus(state?.status || null);
-      const firstAccess = Boolean(state?.eligible && !state?.status);
-      const resume = state?.status === "ACTIVE";
-      setIndex(Math.max(0, Math.min(Number(state?.step) || 0, steps.length - 1)));
-      setActive(firstAccess || resume);
-      setLoaded(true);
     })();
     return () => { cancelled = true; };
   }, [userId, steps.length]);
 
   useEffect(() => {
     const restart = () => {
+      manualOpen.current = true;
+      setLoaded(true);
       finishRequest.current = false;
       setError("");
       setIndex(0);
@@ -285,6 +319,8 @@ export default function InteractiveTutorial({
       void persist(0, "ACTIVE");
     };
     const resume = () => {
+      manualOpen.current = true;
+      setLoaded(true);
       finishRequest.current = false;
       setError("");
       setActive(true);
@@ -306,37 +342,67 @@ export default function InteractiveTutorial({
     if (step.kind === "welcome" || step.kind === "finish") {
       setSpot(null); setTargetFound(false); return;
     }
-    if (step.kind === "navigate" && window.innerWidth < 1024 && !visibleElement(step.target || "")) {
-      openMobileMenu();
+    if (step.kind === "navigate" && window.innerWidth < 1024 && step.href) {
+      const target = targetElement(step.target || "");
+      if (!target || !onScreen(target)) openMobileMenu(step.href);
     }
   }, [active, loaded, index, step, openMobileMenu, path]);
 
   useEffect(() => {
+    if (!active) return;
+    const onResize = () => setViewport({ width: window.innerWidth, height: window.innerHeight });
+    onResize();
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+  }, [active]);
+
+  useEffect(() => {
     if (!active || !step?.target) return;
-    let handle = 0;
+    let frame = 0;
+    let scrolled = false;
     const measure = () => {
-      cancelAnimationFrame(handle);
-      handle = requestAnimationFrame(() => {
-        const target = visibleElement(step.target!);
-        setTargetFound(Boolean(target));
-        if (target) {
-          const r = target.getBoundingClientRect();
-          setSpot(new DOMRect(r.x, r.y, r.width, r.height));
-        } else setSpot(null);
+      cancelAnimationFrame(frame);
+      frame = requestAnimationFrame(() => {
+        const target = targetElement(step.target!);
+        if (target && !onScreen(target) && !scrolled &&
+            !(step.kind === "navigate" && window.innerWidth < 1024)) {
+          scrolled = true;
+          target.scrollIntoView({ block: "center", inline: "nearest", behavior: "instant" });
+        }
+        const rect = target && onScreen(target) ? target.getBoundingClientRect() : null;
+        setTargetFound(current => current === Boolean(rect) ? current : Boolean(rect));
+        setSpot(current => sameRect(current, rect) ? current : rect);
       });
     };
     measure();
-    const observer = new MutationObserver(measure);
-    observer.observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ["class","style","aria-expanded"] });
-    window.addEventListener("resize", measure);
+    // Ignora a camada do próprio guia e mede apenas quando o aplicativo
+    // altera o DOM. O retângulo idêntico não causa uma nova renderização.
+    const observer = new MutationObserver(records => {
+      if (records.every(record =>
+        record.target instanceof Element &&
+        Boolean(record.target.closest(".horaria-tour"))
+      )) return;
+      measure();
+    });
+    observer.observe(document.body, {
+      childList: true, subtree: true, attributes: true,
+      attributeFilter: ["class", "aria-expanded", "hidden"],
+    });
     window.addEventListener("scroll", measure, true);
+    window.addEventListener("resize", measure);
     return () => {
       observer.disconnect();
-      window.removeEventListener("resize", measure);
       window.removeEventListener("scroll", measure, true);
-      cancelAnimationFrame(handle);
+      window.removeEventListener("resize", measure);
+      cancelAnimationFrame(frame);
     };
-  }, [active, index, step?.target, path]);
+  }, [active, index, step?.target, step?.kind, path]);
+
+  useEffect(() => {
+    if (active && (step?.kind === "welcome" || step?.kind === "finish")) {
+      dialogTitle.current?.focus();
+    }
+  }, [active, index, step?.kind]);
 
   useEffect(() => {
     if (!active || !step?.target || !["click", "navigate", "type"].includes(step.kind)) return;
@@ -371,6 +437,8 @@ export default function InteractiveTutorial({
   if (!loaded || !active || !step) return null;
 
   const isDialog = step.kind === "welcome" || step.kind === "finish";
+  const showTop = Boolean(spot && spot.top > viewport.height * 0.48);
+  const compact = viewport.width < 768;
   const needsRoute = Boolean(step.href && path !== step.href && step.kind !== "navigate");
   const openStep = () => {
     if (step.kind === "navigate" && step.href) {
@@ -395,7 +463,10 @@ export default function InteractiveTutorial({
           }}
         />
       )}
-      <section className={"horaria-tour-card" + (isDialog ? " is-welcome" : "")}
+      <section className={"horaria-tour-card" +
+        (isDialog ? " is-welcome" : "") +
+        (!isDialog && showTop ? " is-top" : "") +
+        (!isDialog && compact ? " is-compact" : "")}
         role="dialog" aria-modal={isDialog} aria-labelledby="horaria-tour-title"
         aria-describedby="horaria-tour-description">
         <div className="horaria-tour-overline">
@@ -406,7 +477,7 @@ export default function InteractiveTutorial({
           aria-valuemax={steps.length} aria-valuenow={index + 1} aria-label="Etapas concluídas">
           <span style={{width: ((index + 1) / steps.length * 100) + "%"}} />
         </div>
-        <h2 id="horaria-tour-title">{step.title}</h2>
+        <h2 id="horaria-tour-title" ref={dialogTitle} tabIndex={-1}>{step.title}</h2>
         <p id="horaria-tour-description">{step.description}</p>
         {!isDialog && needsRoute && <p className="horaria-tour-note">Vamos abrir a página correspondente para mostrar esta função.</p>}
         {!isDialog && !needsRoute && step.target && !targetFound &&

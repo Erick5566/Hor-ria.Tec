@@ -14,6 +14,7 @@
   background: #fff; color: #17263c; box-shadow: 0 18px 65px rgba(0,0,0,.3);
   pointer-events: auto; overscroll-behavior: contain;
 }
+.horaria-tour-card.is-top:not(.is-welcome) { top: 18px; bottom: auto; }
 .horaria-tour-card.is-welcome {
   top: 50%; bottom: auto; right: 50%; transform: translate(50%,-50%);
   width: min(460px,calc(100vw - 30px)); max-height: calc(100dvh - 30px);
@@ -39,6 +40,10 @@
     bottom: calc(70px + env(safe-area-inset-bottom, 0px));
     left: 10px; right: 10px; width: auto; padding: 16px;
     max-height: min(58dvh, 440px); border-radius: 17px;
+  }
+  .horaria-tour-card.is-top:not(.is-welcome) {
+    top: calc(10px + env(safe-area-inset-top, 0px));
+    bottom: auto;
   }
   .horaria-tour-actions { gap: 8px; }
   .horaria-tour-actions button { min-height: 42px; padding: 8px 10px; }
