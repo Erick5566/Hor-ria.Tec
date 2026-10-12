@@ -51,6 +51,12 @@ O adicional de IA e o volume de créditos devem ser aprovados antes da cobrança
   conferir as imagens antes de dar consentimento.
 - Falhas ambíguas da OpenAI podem ser tarifadas pelo provedor mesmo quando não
   há resposta; não é possível garantir despesa zero sem limites financeiros externos.
+- **Nova regra de segurança:** após iniciar chamada externa, falhas de rede,
+  timeouts e erros sem resposta deixam o crédito em RESERVA, sem estorno automático.
+  O ADM deve conferir o uso real da API antes de liquidar ou devolver o crédito.
+  O mesmo se aplica ao atendimento conversacional com IA.
+- O cliente verá uma mensagem orientando a procurar o suporte e não repetir a
+  chamada imediatamente; o estado reservado não significa consumo confirmado.
 - Conciliação de reservas com chamada iniciada exige procedimento administrativo:
   não estornar automaticamente uma chamada que pode ter sido cobrada.
 - Futuro WhatsApp exige API oficial Meta, credenciais, custos e consentimentos próprios.
