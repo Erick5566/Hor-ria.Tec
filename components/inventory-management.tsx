@@ -268,7 +268,7 @@ export default function InventoryManagement() {
             <option>Sem estoque</option>
           </select>
         </label>
-        <button className="primary" onClick={() => setEditing("new")}>
+        <button data-tour="stock-create" className="primary" onClick={() => setEditing("new")}>
           + Novo item
         </button>
       </div>
@@ -304,6 +304,7 @@ export default function InventoryManagement() {
                 minLength={2}
                 maxLength={150}
                 defaultValue={current?.nome}
+                data-tour="stock-name"
                 placeholder="Ex.: Carregador USB-C 20W"
               />
             </label>
