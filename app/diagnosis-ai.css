@@ -1,0 +1,67 @@
+/* Assistente de diagnóstico: escopo restrito à aba da OS. */
+.diagnosis-ai {
+  margin:16px 0 20px; border:1px solid #d6e3f3; border-radius:16px;
+  background:#fff; overflow:hidden; min-width:0; color:#213550;
+}
+.diagnosis-ai-header {
+  display:flex; justify-content:space-between; gap:16px; align-items:flex-start;
+  padding:18px 20px; background:linear-gradient(112deg,#edf5ff,#f9fcff);
+  border-bottom:1px solid #dfeaf6;
+}
+.diagnosis-ai-kicker{display:block;font-size:10px;letter-spacing:.08em;font-weight:800;color:#2861a5}
+.diagnosis-ai-header h3{font-size:clamp(16px,2.3vw,20px);color:#183654;margin:5px 0;font-weight:800}
+.diagnosis-ai-header p{font-size:12px;color:#536c89;margin:0;line-height:1.55}
+.diagnosis-ai-status{flex-shrink:0;font-size:11px;border-radius:18px;padding:8px 10px;background:#fff;
+  color:#3f628c;border:1px solid #dbe7f8;font-weight:650}
+.diagnosis-ai-free,.diagnosis-ai-vision{padding:19px 20px;display:grid;gap:12px;min-width:0}
+.diagnosis-ai-vision{border-top:1px solid #e2eafa;background:#fbfdff}
+.diagnosis-ai-title-row{display:flex;justify-content:space-between;gap:13px;align-items:center;flex-wrap:wrap}
+.diagnosis-ai-title-row>div{display:grid;gap:4px}
+.diagnosis-ai-title-row strong{font-size:14px;font-weight:750;color:#1d385b}
+.diagnosis-ai-title-row small{font-size:11px;color:#60748b}
+.diagnosis-ai-title-row>span{font-size:11px;color:#365580;background:#ecf4ff;
+  border:1px solid #d8e8ff;border-radius:999px;padding:6px 9px;white-space:nowrap}
+.diagnosis-ai-free>label{font-size:12px;color:#38516f;font-weight:650}
+.diagnosis-ai-free textarea{max-width:100%;width:100%;box-sizing:border-box;border:1px solid #cbdbee;
+  border-radius:10px;background:#fff;color:#173352;padding:11px;font:inherit;resize:vertical;min-height:76px}
+.diagnosis-ai-result{display:grid;gap:10px;border-radius:12px;background:#eef6ff;
+  border:1px solid #d7e8ff;padding:14px;min-width:0;color:#1e3c63}
+.diagnosis-ai-result strong{font-size:14px;color:#153963}
+.diagnosis-ai-result b{font-size:12px;color:#24496f}
+.diagnosis-ai-result ul{margin:0;padding:0 0 0 18px;font-size:12px;line-height:1.6}
+.diagnosis-ai-result p{font-size:12px;color:#47617e;line-height:1.6;margin:0}
+.diagnosis-ai-result button{justify-self:start;max-width:100%}
+.diagnosis-ai-instruction{font-size:12px;color:#506b8b;line-height:1.6;margin:0}
+.diagnosis-ai-warning{background:#fff8ea;border:1px solid #f0dcb1;color:#76511a;font-size:12px;
+  border-radius:8px;padding:10px 12px;margin:0;line-height:1.55}
+.diagnosis-ai-photos{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,150px),1fr));
+  gap:10px;max-height:330px;overflow-y:auto;overscroll-behavior:contain}
+.diagnosis-ai-photo{position:relative;display:grid;grid-template-rows:90px auto;gap:6px;
+  border:1px solid #d6e3f3;border-radius:11px;padding:9px;background:#fff;cursor:pointer;
+  min-width:0;overflow:hidden}
+.diagnosis-ai-photo.is-selected{border:2px solid #256ad6;padding:8px;background:#eff6ff}
+.diagnosis-ai-photo>input{position:absolute;top:12px;left:12px;z-index:1;
+  width:19px;height:19px;accent-color:#1c60ca}
+.diagnosis-ai-photo img{width:100%;height:90px;object-fit:cover;border-radius:7px;background:#e7edf6}
+.diagnosis-ai-photo-fallback{display:grid;place-content:center;padding:12px;border-radius:7px;
+  background:#e8f0fb;color:#527299;font-size:11px;text-align:center}
+.diagnosis-ai-photo>span:last-child{display:grid;gap:3px;font-size:11px;overflow-wrap:anywhere}
+.diagnosis-ai-photo strong{color:#254769}
+.diagnosis-ai-photo small{color:#697d94;font-size:10px;overflow-wrap:anywhere}
+.diagnosis-ai-consent{display:flex;gap:10px;align-items:flex-start;padding:12px;
+  background:#fff;border:1px solid #d6e3f3;border-radius:10px;color:#3c516b;
+  font-size:12px;line-height:1.55}
+.diagnosis-ai-consent input{flex-shrink:0;width:19px;height:19px;accent-color:#1463ca;margin:1px 0 0}
+.diagnosis-ai-vision>.primary{justify-self:start;min-height:44px}
+.diagnosis-ai-error{font-size:12px;padding:10px 12px;border-radius:8px;background:#fff1f0;
+  color:#8f2d2d;border:1px solid #f8cdca;line-height:1.5;margin:0}
+.diagnosis-ai-analysis{white-space:pre-wrap;overflow-wrap:anywhere}
+@media(max-width:640px){
+  .diagnosis-ai-header{padding:15px;display:grid;gap:10px}
+  .diagnosis-ai-status{justify-self:start}
+  .diagnosis-ai-free,.diagnosis-ai-vision{padding:14px}
+  .diagnosis-ai-title-row{align-items:flex-start}
+  .diagnosis-ai-title-row button{width:100%}
+  .diagnosis-ai-photos{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .diagnosis-ai-vision>.primary{width:100%}
+}

@@ -5,6 +5,7 @@ import { ErrorBox, PanelTitle } from "./ui";
 import { money } from "@/lib/assistencia";
 import AppliedParts from "./applied-parts";
 import { PhotosPanel } from "./photos";
+import DiagnosisAiAssistant from "./diagnosis-ai-assistant";
 import {
   DiagnosisPart,
   DiagnosisPartStatus,
@@ -255,6 +256,17 @@ export default function Diagnosis({
                 }}
               />
             </label>
+
+            <DiagnosisAiAssistant
+              ordemId={ordemId}
+              problem={problem}
+              onApplyDraft={(draft) => {
+                setObservations((current) =>
+                  [current.trim(), draft].filter(Boolean).join("\n\n").slice(0, 5000)
+                );
+                setSaved(false);
+              }}
+            />
 
             <section className="diagnosis-section">
               <div className="diagnosis-section-head">
