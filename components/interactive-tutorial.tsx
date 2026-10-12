@@ -69,6 +69,16 @@ export function buildTutorialSteps(routes: Route[]): TutorialStep[] {
         kind: "explain",
       });
     }
+    if (route.href === "/painel/ordens") {
+      steps.push({
+        id: "order-search",
+        title: "Encontre um atendimento",
+        description: "Use a busca para localizar uma OS pelo número, cliente ou aparelho. Você pode clicar e procurar sem alterar nenhum serviço.",
+        href: route.href,
+        target: '[data-tour="order-search"]',
+        kind: "explain",
+      });
+    }
     if (route.href === "/painel/ordens/nova") {
       steps.push({
         id: "order-customer",
@@ -103,6 +113,42 @@ export function buildTutorialSteps(routes: Route[]): TutorialStep[] {
         href: route.href,
         target: '[data-tour="customer-whatsapp"]',
         kind: "explain",
+      });
+    }
+    if (route.href === "/painel/equipamentos") {
+      steps.push({
+        id: "equipment-add",
+        title: "Conheça o cadastro de aparelhos",
+        description: "Toque em Novo equipamento para abrir o formulário. Você poderá associar um aparelho a um cliente, mas não faremos um cadastro fictício.",
+        href: route.href,
+        target: '[data-tour="equipment-create"]',
+        kind: "click",
+      });
+      steps.push({
+        id: "equipment-customer",
+        title: "Vincule ao cliente certo",
+        description: "Todo aparelho precisa ser associado ao cliente. Abra a lista e veja as opções; só salve se estiver cadastrando um aparelho real.",
+        href: route.href,
+        target: '[data-tour="equipment-customer"]',
+        kind: "explain",
+      });
+    }
+    if (route.href === "/painel/estoque") {
+      steps.push({
+        id: "stock-add",
+        title: "Como cadastrar produtos ou peças",
+        description: "Toque no botão de cadastro para conhecer os campos. Esta etapa é apenas uma demonstração, sem criar estoque fictício.",
+        href: route.href,
+        target: '[data-tour="stock-create"]',
+        kind: "click",
+      });
+      steps.push({
+        id: "stock-name",
+        title: "Descrição do item",
+        description: "Aqui você informa o nome de uma peça ou produto, depois sua quantidade e os valores. Pode experimentar digitar sem salvar.",
+        href: route.href,
+        target: '[data-tour="stock-name"]',
+        kind: "type",
       });
     }
     if (route.href === "/painel/equipe") {
