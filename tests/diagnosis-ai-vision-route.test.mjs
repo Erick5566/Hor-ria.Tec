@@ -12,7 +12,7 @@ const orderId="a8000000-0000-4000-8000-000000000002";
 const photoId="a8000000-0000-4000-8000-000000000003";
 const userId="a8000000-0000-4000-8000-000000000004";
 
-function harness({authenticated=true,role="TECHNICIAN",enabled=false,paid=false,photoCompany=companyId,reserve=true}={}){
+function harness({authenticated=true,role="TECHNICIAN",enabled=false,paid=false,photoCompany=companyId,reserve=true,mark=true,settle=true}={}){
   const db=[],provider=[],service=[],storage=[];
   const order={id:orderId,empresa_id:companyId,problema:"Tela quebrada",equipamento_id:photoId};
   const photo={id:photoId,empresa_id:photoCompany,ordem_id:orderId,
@@ -71,7 +71,8 @@ function harness({authenticated=true,role="TECHNICIAN",enabled=false,paid=false,
         rpc:async(name,payload)=>{
           service.push([name,payload]);
           if(name==="ai_reserve_message")return reserve?{data:"reserved-id",error:null}:{data:null,error:{message:"Sem créditos"}};
-          if(name==="ai_finalize_message")return {data:true,error:null};
+          if(name==="ai_mark_provider_started")return {data:mark,error:null};
+          if(name==="ai_finalize_message")return {data:settle,error:settle?null:{message:"fail"}};
           throw Error("Unexpected RPC "+name);
         },
       })};
@@ -127,6 +128,24 @@ test("Diagnóstico IA: imagem privada, reserva, análise e liquidação com revi
   assert.equal(h.storage.length,1);
   assert.equal(h.provider.length,1);
   assert.ok(h.provider[0].images[0].bytes.byteLength>256);
-  assert.deepEqual(h.service.map(x=>x[0]),["ai_reserve_message","ai_finalize_message"]);
-  assert.equal(h.service[1][1].p_success,true);
+  assert.deepEqual(h.service.map(x=>x[0]),["ai_reserve_message","ai_mark_provider_started","ai_finalize_message"]);
+  assert.equal(h.service[2][1].p_success,true);
+});
+
+test("Diagnóstico IA: falha de marcação não envia a foto ao provedor pago",async()=>{
+  const h=harness({enabled:true,paid:true,reserve:true,mark:false});
+  const response=await h.send();
+  assert.equal(response.status,503);
+  assert.equal(h.provider.length,0);
+  assert.equal(h.service[2][1].p_success,false);
+});
+
+test("Diagnóstico IA: erro ao liquidar resposta não gera estorno automático",async()=>{
+  const h=harness({enabled:true,paid:true,reserve:true,mark:true,settle:false});
+  const response=await h.send();
+  assert.equal(response.status,503);
+  assert.equal((await response.json()).code,"SETTLEMENT_ERROR");
+  assert.equal(h.provider.length,1);
+  assert.equal(h.service.length,3);
+  assert.equal(h.service[2][1].p_success,true);
 });

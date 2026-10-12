@@ -89,7 +89,27 @@ export async function POST(request: Request) {
     }, 402);
   }
 
+  let started = false;
+  try {
+    const marked = await service.rpc("ai_mark_provider_started", {
+      p_reservation: reserved.data,
+      p_empresa: company.id,
+      p_actor: access.user.id,
+    });
+    started = !marked.error && marked.data === true;
+  } catch { started = false; }
+  if (!started) {
+    try {
+      await service.rpc("ai_finalize_message", {
+        p_reservation: reserved.data,
+        p_success: false,
+      });
+    } catch { /* Exige conciliação manual. */ }
+    return json({ error: "Não foi possível confirmar a reserva. Nenhuma chamada paga foi realizada.", code: "RESERVATION_ERROR" }, 503);
+  }
+
   let completed = false;
+  let providerReturned = false;
   try {
     const reply = await createPaidAiReply({
       audience: "company-customer",
@@ -100,6 +120,7 @@ export async function POST(request: Request) {
         website: company.slug ? "https://horaria.site/" + company.slug : undefined,
       },
     });
+    providerReturned = true;
     const settled = await service.rpc("ai_finalize_message", {
       p_reservation: reserved.data,
       p_success: true,
@@ -113,9 +134,9 @@ export async function POST(request: Request) {
   } catch {
     return json({ error: "Não foi possível responder agora. Verifique o saldo ou tente novamente.", code: "AI_ERROR" }, 503);
   } finally {
-    if (!completed) {
-      // Reembolsa apenas a unidade reservada. A chamada de rede pode ter
-      // consumido tokens em falhas ambíguas; margem/preço devem cobrir esse risco.
+    if (!completed && !providerReturned) {
+      // Uma resposta externa efetivamente gerada nunca deve ser reembolsada
+      // só porque a liquidação falhou. Nesse caso, a reserva exige conciliação.
       try {
         await service.rpc("ai_finalize_message", {
           p_reservation: reserved.data,

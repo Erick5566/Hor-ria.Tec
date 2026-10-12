@@ -29,6 +29,7 @@ export default function DiagnosisAiAssistant({
   const [busy,setBusy]=useState(false);
   const [error,setError]=useState("");
   const [loadingPhotos,setLoadingPhotos]=useState(true);
+  const [photoRevision,setPhotoRevision]=useState(0);
   const enabled=Boolean(access.company?.featureFlags.aiEnabled);
   const hint=useMemo(()=>suggestDiagnosis([problem,details].join(" ")),[problem,details]);
 
@@ -39,10 +40,20 @@ export default function DiagnosisAiAssistant({
     setPhotos([]);
     setVision("");
     setConsent(false);
+    setError("");
     void (async()=>{
-      if (!supabase) return;
+      if (!supabase) {
+        if(active) {setLoadingPhotos(false);setError("Sessão não disponível. Atualize a página e entre novamente.");}
+        return;
+      }
+      const companyId=access.company?.id;
+      if(!companyId) {
+        if(active) {setLoadingPhotos(false);setError("Selecione uma assistência para consultar as fotos.");}
+        return;
+      }
       const r=await supabase.from("fotos_os").select("id,categoria,descricao,criado_em,caminho")
-        .eq("ordem_id",ordemId).order("criado_em",{ascending:false}).limit(35);
+        .eq("empresa_id",companyId).eq("ordem_id",ordemId)
+        .order("criado_em",{ascending:false}).limit(35);
       if(!active) return;
       if(r.error){setError("Não foi possível carregar fotos da OS.");setLoadingPhotos(false);return;}
       const rows=(r.data||[]) as PhotoItem[];
@@ -51,21 +62,32 @@ export default function DiagnosisAiAssistant({
       if (!rows.length) return;
       const signed=await supabase.storage.from("os-fotos")
         .createSignedUrls(rows.map(x=>x.caminho),180);
-      if(!active || signed.error || !signed.data) return;
+      if(!active) return;
+      if(signed.error || !signed.data) {
+        setError("Fotos carregadas, mas não foi possível gerar as miniaturas privadas.");
+        return;
+      }
       const thumbs=new Map(signed.data.map((x,i)=>[rows[i].id,x.signedUrl||""]));
       setPhotos(rows.map(x=>({...x,thumbnail:thumbs.get(x.id)||undefined})));
-    })();
+    })().catch(()=>{
+      if(active) {setLoadingPhotos(false);setError("Falha ao carregar as fotos. Tente atualizar a lista.");}
+    });
     return ()=>{active=false;};
-  },[ordemId]);
+  },[ordemId,photoRevision,access.company?.id]);
 
   useEffect(()=>{
     let active=true;
-    void supabase?.rpc("ai_credit_status").then(r=>{
-      if (!active || r.error) return;
-      setCredits(Math.max(0,Number((r.data as CreditState)?.availableUnits||0)));
-    });
+    setCredits(null);
+    const companyId=access.company?.id;
+    if (companyId && supabase) {
+      void supabase.rpc("ai_credit_status_for_company",{p_empresa:companyId})
+        .then(r=>{
+          if (!active || r.error) return;
+          setCredits(Math.max(0,Number((r.data as CreditState)?.availableUnits||0)));
+        });
+    }
     return ()=>{active=false;};
-  },[]);
+  },[access.company?.id]);
 
   function toggle(id:string){
     setVision("");
@@ -142,6 +164,13 @@ export default function DiagnosisAiAssistant({
         </div>
         {!enabled && <p className="diagnosis-ai-warning">Recurso de IA paga ainda não habilitado para esta assistência. A triagem gratuita acima continua disponível.</p>}
         <p className="diagnosis-ai-instruction">Selecione uma ou duas fotos já registradas nesta ordem. A IA apontará apenas sinais visíveis e testes recomendados, sem identificar automaticamente a causa do defeito.</p>
+        <div className="diagnosis-ai-photo-tools">
+          <button type="button" className="outline" disabled={busy||loadingPhotos}
+            onClick={()=>setPhotoRevision(n=>n+1)}>
+            Atualizar fotos da OS
+          </button>
+          <small>Use após fotografar o aparelho na aba de fotos.</small>
+        </div>
         {loadingPhotos ? (
           <p className="hint">Carregando fotos da OS…</p>
         ) : photos.length === 0 ? (
@@ -159,7 +188,7 @@ export default function DiagnosisAiAssistant({
         )}
         <label className="diagnosis-ai-consent">
           <input type="checkbox" checked={consent} onChange={e=>setConsent(e.target.checked)} disabled={busy||selection.length===0}/>
-          <span>Autorizo enviar <strong>somente as fotos selecionadas e o relato do defeito</strong> para análise pela OpenAI. Sei que poderá consumir 1 crédito pré-pago e que as sugestões exigem revisão de um técnico.</span>
+          <span>Conferi que as imagens não contêm dados pessoais desnecessários. Autorizo enviar <strong>somente as fotos selecionadas e o relato do defeito</strong> para análise pela OpenAI. Sei que poderá consumir 1 crédito pré-pago e que as sugestões exigem revisão de um técnico.</span>
         </label>
         <button className="primary" type="button" onClick={()=>void analyze()}
           disabled={!enabled||busy||!consent||selection.length===0||credits===0}>

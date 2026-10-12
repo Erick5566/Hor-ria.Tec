@@ -33,8 +33,10 @@ export default function HorariaAiChat() {
 
   useEffect(() => {
     mounted.current = true;
-    if (supabase) {
-      void supabase.rpc("ai_credit_status").then((r) => {
+    setCredits(null);
+    const companyId=access.company?.id;
+    if (companyId && supabase) {
+      void supabase.rpc("ai_credit_status_for_company",{p_empresa:companyId}).then((r) => {
         if (mounted.current && !r.error) {
           const values = r.data as CreditStatus | null;
           setCredits(Math.max(0, Number(values?.availableUnits || 0)));
@@ -42,7 +44,7 @@ export default function HorariaAiChat() {
       });
     }
     return () => { mounted.current = false; };
-  }, []);
+  }, [access.company?.id]);
 
   useEffect(() => { end.current?.scrollIntoView({ behavior: "smooth", block: "nearest" }); }, [lines, busy]);
 

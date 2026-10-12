@@ -10,7 +10,7 @@ const route = ts.transpileModule(readFileSync("app/api/ai/chat/route.ts", "utf8"
 const owner = "f8000000-0000-4000-8000-000000000001";
 const company = "f8000000-0000-4000-8000-000000000002";
 
-function createHarness({ authenticated = true, flag = false, paid = false, balance = false, origin = "https://example.test" } = {}) {
+function createHarness({ authenticated = true, flag = false, paid = false, balance = false, origin = "https://example.test", mark = true, settle = true } = {}) {
   const rpcCalls = [];
   const paidCalls = [];
   const mockContext = authenticated
@@ -53,7 +53,8 @@ function createHarness({ authenticated = true, flag = false, paid = false, balan
               rpcCalls.push(name);
               if (name === "ai_reserve_message")
                 return balance ? { data: "request-test", error: null } : { data: null, error: { message: "Sem saldo" } };
-              if (name === "ai_finalize_message") return { data: true, error: null };
+              if (name === "ai_mark_provider_started") return { data: mark, error: null };
+              if (name === "ai_finalize_message") return { data: settle, error: settle ? null : {message:"Fail"} };
               throw new Error("Unexpected RPC");
             },
           }),
@@ -104,6 +105,20 @@ test("Chat Horária: com créditos, reserva antes de chamar OpenAI e liquida dep
   const r = await h.send("company");
   assert.equal(r.status, 200);
   assert.equal((await r.json()).reply, "Resposta simulada");
-  assert.deepEqual(h.rpcCalls, ["ai_reserve_message", "ai_finalize_message"]);
+  assert.deepEqual(h.rpcCalls, ["ai_reserve_message", "ai_mark_provider_started", "ai_finalize_message"]);
   assert.equal(h.paidCalls.length, 1);
+});
+
+test("Chat Horária: falha de marcação não abre API e devolve reserva", async () => {
+  const h = createHarness({ flag:true, paid:true, balance:true, mark:false });
+  assert.equal((await h.send("company")).status,503);
+  assert.equal(h.paidCalls.length,0);
+  assert.deepEqual(h.rpcCalls,["ai_reserve_message","ai_mark_provider_started","ai_finalize_message"]);
+});
+
+test("Chat Horária: erro de liquidação após resposta não reembolsa resposta gerada", async () => {
+  const h = createHarness({ flag:true, paid:true, balance:true, settle:false });
+  assert.equal((await h.send("company")).status,503);
+  assert.equal(h.paidCalls.length,1);
+  assert.deepEqual(h.rpcCalls,["ai_reserve_message","ai_mark_provider_started","ai_finalize_message"]);
 });
