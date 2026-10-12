@@ -280,8 +280,18 @@ export default function InteractiveTutorial({
       setActive(true);
       void persist(0, "ACTIVE");
     };
+    const resume = () => {
+      finishRequest.current = false;
+      setError("");
+      setActive(true);
+      void persist(indexRef.current, "ACTIVE");
+    };
     window.addEventListener("horaria:start-tutorial", restart);
-    return () => window.removeEventListener("horaria:start-tutorial", restart);
+    window.addEventListener("horaria:resume-tutorial", resume);
+    return () => {
+      window.removeEventListener("horaria:start-tutorial", restart);
+      window.removeEventListener("horaria:resume-tutorial", resume);
+    };
   }, [persist]);
 
   useEffect(() => {
