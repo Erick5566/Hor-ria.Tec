@@ -26,6 +26,7 @@ const Setup = dynamic(() => import("./setup"), {
   loading: () => <div className="module-inline-loading">Preparando configuração…</div>,
 });
 import { HorariaIcon, type HorariaIconName } from "./horaria-icon";
+import GuidedTutorial from "./guided-tutorial";
 type WorkspaceValue = {
   empresa: Empresa;
   userId: string;
@@ -1436,6 +1437,13 @@ export default function Workspace({
           </Context.Provider>
         )}
       </main>
+      {empresa && userId && !loading && (
+        <GuidedTutorial
+          userId={userId}
+          access={access}
+          openSidebar={() => setOpen(true)}
+        />
+      )}
       {empresa && userId && !loading && (
         <>
           {mobileMoreOpen && (
