@@ -1,0 +1,88 @@
+.horaria-tour-launch {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 1100;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  max-width: calc(100vw - 24px);
+  padding: 12px 18px;
+  border: 1px solid rgba(255,255,255,.32);
+  border-radius: 999px;
+  background: #0c2c50;
+  color: #fff;
+  font: 700 13px/1.2 inherit;
+  box-shadow: 0 10px 28px rgba(8,28,55,.22);
+  cursor: pointer;
+}
+.horaria-tour-launch:hover, .horaria-tour-launch:focus-visible {
+  background: #17558f;
+  color: #fff;
+}
+.horaria-tour-launch span { font-size: 18px; }
+.horaria-tour-root { position: fixed; inset: 0; z-index: 200000; pointer-events: none; }
+.horaria-tour-focus {
+  position: fixed;
+  pointer-events: none;
+  border: 2px solid #64b5ff;
+  border-radius: 12px;
+  background: rgba(255,255,255,.07);
+  box-shadow: 0 0 0 500vmax rgba(2,12,25,.55), 0 0 0 5px rgba(83,178,255,.23);
+  transition: top .12s ease, left .12s ease, width .12s ease, height .12s ease;
+}
+.horaria-tour-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(2,12,25,.55);
+  pointer-events: none;
+}
+.horaria-tour-card {
+  position: fixed;
+  z-index: 1;
+  box-sizing: border-box;
+  max-width: calc(100vw - 24px);
+  max-height: min(520px, 85dvh);
+  overflow: auto;
+  pointer-events: auto;
+  padding: 19px;
+  border: 1px solid #b8d4ed;
+  border-radius: 17px;
+  background: #fff;
+  color: #102b46;
+  box-shadow: 0 18px 55px rgba(0, 10, 25, .25);
+}
+.horaria-tour-card-top {
+  display: flex; justify-content: space-between; gap: 12px;
+  color: #355d80; font-size: 11px; font-weight: 800; letter-spacing: .04em;
+}
+.horaria-tour-progress { margin: 11px 0 16px; height: 5px; border-radius: 999px; overflow: hidden; background: #dceaf6; }
+.horaria-tour-progress > span { height: 100%; display: block; border-radius: inherit; background: #1270be; transition: width .18s ease; }
+.horaria-tour-card h2 { margin: 0 0 9px; color: #0c294b; font-size: clamp(17px,2vw,21px); line-height: 1.28; }
+.horaria-tour-card p { margin: 0 0 12px; color: #334c65; font-size: 13px; line-height: 1.48; }
+.horaria-tour-card .horaria-tour-hint { padding: 9px 11px; border-radius: 9px; background: #eff6fd; font-size: 12px; color: #164775; }
+.horaria-tour-card .horaria-tour-error { color: #a52222; }
+.horaria-tour-actions { display: flex; gap: 8px; margin-top: 14px; }
+.horaria-tour-actions button {
+  min-height: 42px; flex: 1; border-radius: 10px; padding: 10px 12px; border: 1px solid #b8cce0; cursor: pointer;
+  font-size: 13px; font-weight: 700;
+}
+.horaria-tour-actions button:disabled { opacity: .45; cursor: default; }
+.horaria-tour-back { background: #f4f7fa; color: #143b5c; }
+.horaria-tour-next { background: #136cb5; color: white; border-color: #136cb5 !important; }
+.horaria-tour-footer { margin-top: 14px; display: flex; justify-content: space-between; gap: 8px; }
+.horaria-tour-footer button { border: 0; background: transparent; color: #526a80; text-decoration: underline; cursor: pointer; font-size: 11px; padding: 3px 0; }
+.horaria-tour-card button:focus-visible, .horaria-tour-launch:focus-visible {
+  outline: 3px solid #69baff; outline-offset: 3px;
+}
+@media (max-width: 767px) {
+  .horaria-tour-launch { right: 12px; bottom: calc(82px + env(safe-area-inset-bottom)); padding: 11px 13px; font-size: 12px; }
+  .horaria-tour-card { padding: 15px; max-height: min(355px, 66dvh); border-radius: 15px; }
+  .horaria-tour-card h2 { font-size: 17px; }
+  .horaria-tour-card p { font-size: 12px; }
+  .horaria-tour-actions button { min-height: 42px; font-size: 12px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .horaria-tour-focus, .horaria-tour-progress > span { transition: none; }
+}

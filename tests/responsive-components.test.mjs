@@ -169,6 +169,7 @@ test("notifications can close independently of the covered bell and restore focu
     "./panel-feature-gate": { FeatureUnavailable: () => null },
     "./brand": { Brand: () => null },
     "./horaria-icon": { HorariaIcon: () => null },
+    "./guided-tutorial": { __esModule: true, default: () => null },
   };
   vm.runInNewContext(
     ts.transpileModule(readFileSync("components/workspace.tsx", "utf8"), {
