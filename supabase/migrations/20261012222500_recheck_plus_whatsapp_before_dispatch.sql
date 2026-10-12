@@ -7,16 +7,20 @@ begin;
 create or replace function private.impedir_edicao_direta_consentimento_whatsapp()
 returns trigger language plpgsql security invoker set search_path = '' as $$
 begin
-  if current_user in ('anon', 'authenticated')
-    and new.aviso_whatsapp_autorizado is distinct from old.aviso_whatsapp_autorizado then
-    raise exception 'Use configurar_aviso_whatsapp_ordem para alterar a autorizacao do WhatsApp';
+  if current_user in ('anon', 'authenticated') then
+    -- Um INSERT direto com opt-in=true também burlaria a autorização da RPC.
+    if (tg_op = 'INSERT' and new.aviso_whatsapp_autorizado is true)
+       or (tg_op = 'UPDATE' and
+           new.aviso_whatsapp_autorizado is distinct from old.aviso_whatsapp_autorizado) then
+      raise exception 'Use configurar_aviso_whatsapp_ordem para alterar a autorizacao do WhatsApp';
+    end if;
   end if;
   return new;
 end $$;
 
 drop trigger if exists proteger_consentimento_whatsapp on public.ordens_servico;
 create trigger proteger_consentimento_whatsapp
-before update of aviso_whatsapp_autorizado on public.ordens_servico
+before insert or update of aviso_whatsapp_autorizado on public.ordens_servico
 for each row execute function private.impedir_edicao_direta_consentimento_whatsapp();
 
 -- O consentimento pode ser retirado a qualquer momento. Uma nova autorização,
