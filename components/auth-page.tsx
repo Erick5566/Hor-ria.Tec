@@ -68,11 +68,16 @@ function clearSignupAttempts() {
   }
 }
 
-
 export default function AuthPage({ mode }: { mode: "login" | "signup" }) {
   const signup = mode === "signup";
   const router = useRouter();
   const search = useSearchParams();
+  const invitationNext = /^\/convite\?token=[0-9a-f-]{36}$/i.test(
+    search.get("next") || "",
+  )
+    ? search.get("next")
+    : null;
+  const invitationSignup = signup && Boolean(invitationNext);
   const [busy, setBusy] = useState(false),
     [notice, setNotice] = useState(""),
     [registration, setRegistration] = useState<RegistrationStatus | null>(null),
@@ -84,7 +89,8 @@ export default function AuthPage({ mode }: { mode: "login" | "signup" }) {
       .then(({ data }) => setRegistration(data as RegistrationStatus));
   }, []);
   if (!configured) return <MissingConfig />;
-  const closed = signup && registration && !registration.enabled;
+  const closed =
+    signup && !invitationSignup && registration && !registration.enabled;
   async function finishLogin(
     session: NonNullable<
       Awaited<
@@ -102,12 +108,17 @@ export default function AuthPage({ mode }: { mode: "login" | "signup" }) {
 
     const requested = search.get("next");
     if (context.isSuperAdmin) {
-      const destination = requested?.startsWith("/admin") ? requested : "/admin";
-      router.replace(
-        `/seguranca/mfa?next=${encodeURIComponent(destination)}`,
-      );
+      const destination = requested?.startsWith("/admin")
+        ? requested
+        : "/admin";
+      router.replace(`/seguranca/mfa?next=${encodeURIComponent(destination)}`);
     } else {
-      router.replace(requested?.startsWith("/painel") ? requested : "/painel");
+      router.replace(
+        requested?.startsWith("/painel") ||
+          /^\/convite\?token=[0-9a-f-]{36}$/i.test(requested || "")
+          ? requested!
+          : "/painel",
+      );
     }
     router.refresh();
   }
@@ -154,6 +165,7 @@ export default function AuthPage({ mode }: { mode: "login" | "signup" }) {
           "cadastro",
           "privacidade",
           "termos",
+          "convite",
           "recuperar-senha",
           "redefinir-senha",
           "solicitacao-enviada",
@@ -178,10 +190,22 @@ export default function AuthPage({ mode }: { mode: "login" | "signup" }) {
         ? await supabase!.auth.signUp({
             ...credentials,
             options: {
+              ...(invitationSignup
+                ? {
+                    emailRedirectTo: new URL(
+                      search.get("next")!,
+                      window.location.origin,
+                    ).toString(),
+                  }
+                : {}),
               data: {
                 responsible_name: String(form.get("responsavel")),
-                company_name: String(form.get("empresa")),
-                company_slug: String(form.get("slug")),
+                ...(!invitationSignup
+                  ? {
+                      company_name: String(form.get("empresa")),
+                      company_slug: String(form.get("slug")),
+                    }
+                  : {}),
                 terms_accepted_at: new Date().toISOString(),
                 terms_version: TERMS_VERSION,
                 privacy_accepted_at: new Date().toISOString(),
@@ -192,9 +216,7 @@ export default function AuthPage({ mode }: { mode: "login" | "signup" }) {
           })
         : await supabase!.auth.signInWithPassword({
             ...credentials,
-            ...(turnstileSiteKey
-              ? { options: { captchaToken } }
-              : {}),
+            ...(turnstileSiteKey ? { options: { captchaToken } } : {}),
           });
       if (result.error) throw result.error;
       if (signup) clearSignupAttempts();
@@ -231,7 +253,9 @@ export default function AuthPage({ mode }: { mode: "login" | "signup" }) {
       ) {
         setNotice(message);
       } else {
-        setNotice("Não foi possível concluir. Confira os dados e tente novamente.");
+        setNotice(
+          "Não foi possível concluir. Confira os dados e tente novamente.",
+        );
       }
     } finally {
       setBusy(false);
@@ -242,13 +266,15 @@ export default function AuthPage({ mode }: { mode: "login" | "signup" }) {
     }
   }
   return (
-    <main className={`${styles.page} ${styles.authViewport} ${signup ? styles.signupViewport : ""}`}>
+    <main
+      className={`${styles.page} ${styles.authViewport} ${signup ? styles.signupViewport : ""}`}
+    >
       <div className={styles.shell}>
         <header className={styles.topbar}>
           <span>{signup ? "Já tem conta?" : "Ainda não tem conta?"}</span>
           <Link
             className={styles.loginButton}
-            href={signup ? "/entrar" : "/cadastro"}
+            href={`${signup ? "/entrar" : "/cadastro"}${invitationNext ? `?next=${encodeURIComponent(invitationNext)}` : ""}`}
           >
             {signup ? "Entrar" : "Criar conta"}
           </Link>
@@ -292,7 +318,11 @@ export default function AuthPage({ mode }: { mode: "login" | "signup" }) {
           </div>
 
           <div className={styles.tagStage}>
-            <svg className={styles.string} viewBox="0 0 60 140" aria-hidden="true">
+            <svg
+              className={styles.string}
+              viewBox="0 0 60 140"
+              aria-hidden="true"
+            >
               <path d="M45 0 C45 24 58 39 53 58 C48 78 43 96 40 138" />
             </svg>
 
@@ -317,8 +347,8 @@ export default function AuthPage({ mode }: { mode: "login" | "signup" }) {
               {closed ? (
                 <div className={styles.authClosed}>
                   <p>
-                    As novas vagas para esta fase da Horária estão temporariamente
-                    encerradas.
+                    As novas vagas para esta fase da Horária estão
+                    temporariamente encerradas.
                   </p>
                   <Link className={styles.authTopLink} href="/entrar">
                     Já tenho conta
@@ -341,34 +371,42 @@ export default function AuthPage({ mode }: { mode: "login" | "signup" }) {
                           />
                         </label>
 
-                        <label className={styles.authField}>
-                          <span className={styles.authLabel}>ASSISTÊNCIA</span>
-                          <input
-                            className={styles.authInput}
-                            name="empresa"
-                            required
-                            minLength={2}
-                            maxLength={100}
-                            defaultValue={search.get("empresa") ?? ""}
-                            placeholder="Nome da assistência"
-                            autoComplete="organization"
-                          />
-                        </label>
+                        {!invitationSignup && (
+                          <>
+                            <label className={styles.authField}>
+                              <span className={styles.authLabel}>
+                                ASSISTÊNCIA
+                              </span>
+                              <input
+                                className={styles.authInput}
+                                name="empresa"
+                                required
+                                minLength={2}
+                                maxLength={100}
+                                defaultValue={search.get("empresa") ?? ""}
+                                placeholder="Nome da assistência"
+                                autoComplete="organization"
+                              />
+                            </label>
 
-                        <label className={styles.authField}>
-                          <span className={styles.authLabel}>ENDEREÇO PÚBLICO</span>
-                          <input
-                            className={styles.authInput}
-                            name="slug"
-                            required
-                            pattern="[a-z0-9]+(-[a-z0-9]+)*"
-                            placeholder="minha-assistencia"
-                            autoComplete="off"
-                          />
-                          <small className={styles.authHint}>
-                            Letras minúsculas, números e hífens.
-                          </small>
-                        </label>
+                            <label className={styles.authField}>
+                              <span className={styles.authLabel}>
+                                ENDEREÇO PÚBLICO
+                              </span>
+                              <input
+                                className={styles.authInput}
+                                name="slug"
+                                required
+                                pattern="[a-z0-9]+(-[a-z0-9]+)*"
+                                placeholder="minha-assistencia"
+                                autoComplete="off"
+                              />
+                              <small className={styles.authHint}>
+                                Letras minúsculas, números e hífens.
+                              </small>
+                            </label>
+                          </>
+                        )}
 
                         <div className="anti-bot-field" aria-hidden="true">
                           <label>
@@ -407,9 +445,13 @@ export default function AuthPage({ mode }: { mode: "login" | "signup" }) {
                         name="password"
                         type="password"
                         minLength={8}
-                        autoComplete={signup ? "new-password" : "current-password"}
+                        autoComplete={
+                          signup ? "new-password" : "current-password"
+                        }
                         required
-                        placeholder={signup ? "Mínimo de 8 caracteres" : "Sua senha"}
+                        placeholder={
+                          signup ? "Mínimo de 8 caracteres" : "Sua senha"
+                        }
                       />
                       {signup && (
                         <small className={styles.authHint}>
@@ -422,7 +464,10 @@ export default function AuthPage({ mode }: { mode: "login" | "signup" }) {
                   {!signup && (
                     <div className={styles.authActionsRow}>
                       <span />
-                      <Link className={styles.authHelpLink} href="/recuperar-senha">
+                      <Link
+                        className={styles.authHelpLink}
+                        href="/recuperar-senha"
+                      >
                         Esqueci minha senha
                       </Link>
                     </div>
@@ -432,8 +477,10 @@ export default function AuthPage({ mode }: { mode: "login" | "signup" }) {
                     <label className={styles.authLegal}>
                       <input name="legal" type="checkbox" required />
                       <span>
-                        Li e aceito os <Link href="/termos">Termos de Uso</Link> e a{" "}
-                        <Link href="/privacidade">Política de Privacidade</Link>.
+                        Li e aceito os <Link href="/termos">Termos de Uso</Link>{" "}
+                        e a{" "}
+                        <Link href="/privacidade">Política de Privacidade</Link>
+                        .
                       </span>
                     </label>
                   )}
@@ -463,13 +510,11 @@ export default function AuthPage({ mode }: { mode: "login" | "signup" }) {
                     </div>
                     <button
                       className={styles.authSubmit}
-                      disabled={busy || (Boolean(turnstileSiteKey) && !captchaToken)}
+                      disabled={
+                        busy || (Boolean(turnstileSiteKey) && !captchaToken)
+                      }
                     >
-                      {busy
-                        ? "Aguarde…"
-                        : signup
-                          ? "Criar conta"
-                          : "Entrar"}
+                      {busy ? "Aguarde…" : signup ? "Criar conta" : "Entrar"}
                     </button>
                   </div>
                 </form>
@@ -487,7 +532,7 @@ export default function AuthPage({ mode }: { mode: "login" | "signup" }) {
                 </span>
                 <Link
                   className={styles.authSwitchLink}
-                  href={signup ? "/entrar" : "/cadastro"}
+                  href={`${signup ? "/entrar" : "/cadastro"}${invitationNext ? `?next=${encodeURIComponent(invitationNext)}` : ""}`}
                 >
                   {signup ? "Entrar" : "Criar conta"}
                 </Link>

@@ -58,6 +58,13 @@ const config: NextConfig = {
       { source: "/painel/:path*", headers: noStoreHeaders },
       { source: "/admin/:path*", headers: noStoreHeaders },
       { source: "/entrar", headers: noStoreHeaders },
+      {
+        source: "/convite",
+        headers: [
+          ...noStoreHeaders,
+          { key: "Referrer-Policy", value: "no-referrer" },
+        ],
+      },
       { source: "/cadastro", headers: noStoreHeaders },
       { source: "/recuperar-senha", headers: noStoreHeaders },
       { source: "/redefinir-senha", headers: noStoreHeaders },

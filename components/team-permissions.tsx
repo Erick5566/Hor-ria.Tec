@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { stamp } from "@/lib/assistencia";
 import { useWorkspace } from "./workspace";
 import { ErrorBox, SemanticBadge, PanelTitle } from "./ui";
 import { message, supabase } from "@/lib/supabase";
@@ -79,7 +80,9 @@ const rolePermissions: Record<TeamRole, string[]> = {
 };
 
 function panelPathForRole(role: TeamRole) {
-  return role === "TECHNICIAN" ? "/painel/ordens?visao=bancada" : "/painel/ordens/nova";
+  return role === "TECHNICIAN"
+    ? "/painel/ordens?visao=bancada"
+    : "/painel/ordens/nova";
 }
 
 function relativeAccess(value?: string | null) {
@@ -102,6 +105,13 @@ export default function TeamPermissions() {
   const [busyUser, setBusyUser] = useState("");
   const [adding, setAdding] = useState(false);
   const [inviteBusy, setInviteBusy] = useState(false);
+  const [generatedInvite, setGeneratedInvite] = useState<{
+    token: string;
+    url: string;
+  } | null>(null);
+  const [pendingInvites, setPendingInvites] = useState<
+    { token: string; email: string; role: TeamRole; expiresAt: string }[]
+  >([]);
   const [invite, setInvite] = useState<{
     name: string;
     email: string;
@@ -123,6 +133,9 @@ export default function TeamPermissions() {
       if (result.error) throw result.error;
       const next = result.data as TeamData;
       setData(next);
+      const pending = await supabase.rpc("list_team_invitations");
+      if (pending.error) throw pending.error;
+      setPendingInvites(pending.data || []);
       setDrafts(
         Object.fromEntries(
           next.items.map((item) => [
@@ -143,8 +156,11 @@ export default function TeamPermissions() {
   }, [load]);
 
   const seatLimit = data?.seatLimit ?? 3;
-  const seatsUsed = data?.seatsUsed ??
-    (data?.items || []).filter((item) => item.status === "ACTIVE" && item.role !== "OWNER").length;
+  const seatsUsed =
+    data?.seatsUsed ??
+    (data?.items || []).filter(
+      (item) => item.status === "ACTIVE" && item.role !== "OWNER",
+    ).length;
   const noSeatsAvailable = seatsUsed >= seatLimit;
 
   async function copyAccessLink(member: TeamMember) {
@@ -153,10 +169,14 @@ export default function TeamPermissions() {
     url.searchParams.set("next", panelPathForRole(member.role));
     try {
       await navigator.clipboard.writeText(url.toString());
-      setNotice("Link do painel copiado. O funcionário precisa entrar com o e-mail convidado.");
+      setNotice(
+        "Link do painel copiado. O funcionário precisa entrar com o e-mail convidado.",
+      );
       setError("");
     } catch {
-      setError("Não foi possível copiar o link. Verifique a permissão do navegador.");
+      setError(
+        "Não foi possível copiar o link. Verifique a permissão do navegador.",
+      );
     }
   }
 
@@ -196,11 +216,7 @@ export default function TeamPermissions() {
           ? "alterar a função"
           : "reativar o acesso";
 
-    if (
-      !window.confirm(
-        `Deseja ${action} de ${member.name || member.email}?`,
-      )
-    )
+    if (!window.confirm(`Deseja ${action} de ${member.name || member.email}?`))
       return;
 
     setBusyUser(member.userId);
@@ -222,7 +238,6 @@ export default function TeamPermissions() {
     }
   }
 
-
   async function inviteMember(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!supabase) return;
@@ -231,41 +246,23 @@ export default function TeamPermissions() {
     setError("");
     setNotice("");
     try {
-      const result = await supabase.functions.invoke("invite-team-member", {
-        body: {
-          name: invite.name.trim(),
-          email: invite.email.trim().toLowerCase(),
-          role: invite.role,
-        },
+      const result = await supabase.rpc("create_team_invitation", {
+        p_name: invite.name.trim(),
+        p_email: invite.email.trim().toLowerCase(),
+        p_role: invite.role,
       });
-
-      if (result.error) {
-        let detail = "";
-        const context = (result.error as unknown as { context?: Response })
-          .context;
-        if (context) {
-          const payload = (await context
-            .clone()
-            .json()
-            .catch(() => ({}))) as { error?: string };
-          detail = payload.error || "";
-        }
-        throw new Error(detail || message(result.error));
-      }
-
-      const payload = result.data as {
-        ok?: boolean;
-        error?: string;
-        mode?: "invited" | "linked";
-      } | null;
-
-      if (!payload?.ok)
-        throw new Error(payload?.error || "Não foi possível adicionar o membro.");
-
+      if (result.error) throw result.error;
+      const token = result.data?.token as string | undefined;
+      if (!token) throw new Error("Não foi possível gerar o convite.");
+      setGeneratedInvite({
+        token,
+        url: new URL(
+          `/convite?token=${encodeURIComponent(token)}`,
+          window.location.origin,
+        ).toString(),
+      });
       setNotice(
-        payload.mode === "invited"
-          ? "Convite enviado por e-mail e funcionário vinculado à equipe."
-          : "Funcionário vinculado à equipe com a conta Horária existente.",
+        "Convite individual criado. Compartilhe com o e-mail informado; válido por 48 horas. A vaga será verificada na aceitação.",
       );
       setAdding(false);
       setInvite({ name: "", email: "", role: "TECHNICIAN" });
@@ -280,6 +277,76 @@ export default function TeamPermissions() {
   return (
     <div className="team-permissions-layout">
       <ErrorBox error={error} />
+      {generatedInvite && (
+        <section className="panel" aria-label="Convite individual">
+          <p>
+            Convite individual válido por 48 horas. Apenas o e-mail convidado
+            pode aceitar.
+          </p>
+          <button
+            className="outline"
+            onClick={() =>
+              void navigator.clipboard
+                .writeText(generatedInvite.url)
+                .then(() => setNotice("Convite copiado."))
+                .catch(() => setError("Não foi possível copiar o convite."))
+            }
+          >
+            Copiar convite
+          </button>
+          <a
+            className="primary"
+            href={`https://wa.me/?text=${encodeURIComponent(`Aceite seu convite para a equipe Horária: ${generatedInvite.url}`)}`}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Compartilhar no WhatsApp
+          </a>
+          <button
+            className="outline"
+            onClick={async () => {
+              const result = await supabase!.rpc("revoke_team_invitation", {
+                p_token: generatedInvite.token,
+              });
+              if (result.error) setError(message(result.error));
+              else {
+                setGeneratedInvite(null);
+                await load();
+                setNotice("Convite revogado.");
+              }
+            }}
+          >
+            Revogar convite
+          </button>
+        </section>
+      )}
+      {pendingInvites.length > 0 && (
+        <section className="panel" aria-label="Convites pendentes">
+          <h2>Convites pendentes</h2>
+          {pendingInvites.map((item) => (
+            <div key={item.token} className="team-list-head">
+              <p>
+                {item.email} · {roleLabel[item.role]} · expira{" "}
+                {stamp(item.expiresAt)}
+              </p>
+              <button
+                className="outline"
+                onClick={() =>
+                  setGeneratedInvite({
+                    token: item.token,
+                    url: new URL(
+                      `/convite?token=${item.token}`,
+                      window.location.origin,
+                    ).toString(),
+                  })
+                }
+              >
+                Abrir opções do convite
+              </button>
+            </div>
+          ))}
+        </section>
+      )}
       {notice && (
         <p className="notice" role="status">
           {notice}
@@ -312,14 +379,26 @@ export default function TeamPermissions() {
       <section className="panel" aria-label="Plano e vagas da equipe">
         <div className="team-list-head">
           <div>
-            <strong>{data?.planCode === "HORARIA_PRO" ? "Horária Pro · R$ 80/mês" : "Horária · R$ 49/mês"}</strong>
-            <p>{seatsUsed} de {seatLimit} vagas de funcionários utilizadas (proprietário não ocupa vaga).</p>
-            <p>{data?.planCode === "HORARIA_PRO"
-              ? "Chatbot incluído no planejamento do Pro; integração ainda não disponível."
-              : "Precisa de mais pessoas? O plano Pro prevê até 9 funcionários por R$ 80/mês."}</p>
+            <strong>
+              {data?.planCode === "HORARIA_PRO"
+                ? "Horária Pro · R$ 80/mês"
+                : "Horária · R$ 49/mês"}
+            </strong>
+            <p>
+              {seatsUsed} de {seatLimit} vagas de funcionários utilizadas
+              (proprietário não ocupa vaga).
+            </p>
+            <p>
+              {data?.planCode === "HORARIA_PRO"
+                ? "Chatbot incluído no planejamento do Pro; integração ainda não disponível."
+                : "Precisa de mais pessoas? O plano Pro prevê até 9 funcionários por R$ 80/mês."}
+            </p>
           </div>
           {noSeatsAvailable && (
-            <span className="notice" role="status">Limite atingido. Fale com o administrador da Horária para alterar o plano.</span>
+            <span className="notice" role="status">
+              Limite atingido. Fale com o administrador da Horária para alterar
+              o plano.
+            </span>
           )}
         </div>
       </section>
@@ -392,9 +471,9 @@ export default function TeamPermissions() {
                 <div>
                   <h2 id="team-invite-title">Adicionar membro</h2>
                   <p>
-                    Se o e-mail ainda não tiver conta na Horária, enviaremos um
-                    convite. Se já tiver conta, ela será vinculada a esta
-                    assistência.
+                    Gere um convite individual e compartilhe com o funcionário.
+                    Ele deve entrar ou criar uma conta com o e-mail indicado. A
+                    conta será vinculada a esta assistência após a aceitação.
                   </p>
                 </div>
                 <button
@@ -477,7 +556,7 @@ export default function TeamPermissions() {
                     Cancelar
                   </button>
                   <button className="primary" disabled={inviteBusy}>
-                    {inviteBusy ? "Enviando convite…" : "Adicionar à equipe"}
+                    {inviteBusy ? "Enviando convite…" : "Gerar convite"}
                   </button>
                 </div>
               </form>
@@ -596,7 +675,9 @@ export default function TeamPermissions() {
                     <button
                       type="button"
                       className="primary"
-                      disabled={!changed || locked || busyUser === member.userId}
+                      disabled={
+                        !changed || locked || busyUser === member.userId
+                      }
                       onClick={() => void saveMember(member)}
                     >
                       {busyUser === member.userId ? "Salvando…" : "Salvar"}
