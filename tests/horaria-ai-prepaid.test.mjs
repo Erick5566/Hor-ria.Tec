@@ -66,11 +66,27 @@ test("Horária IA: créditos são adicionados só pelo superadmin MFA, consumido
   await assert.rejects(db.query("select ai_reserve_message($1,$2,'web')",[company,owner]),/insuficientes/);
   assert.equal((await db.query("select ai_finalize_message($1,false) result",[second])).rows[0].result,true);
   await as(owner);
-  const remaining=(await db.query("select ai_credit_status() value")).rows[0].value;
+  const remaining=(await db.query("select ai_credit_status_for_company($1) value",[company])).rows[0].value;
+  assert.equal(remaining.empresaId,company);
   assert.equal(remaining.availableUnits,1);
   assert.equal(remaining.consumedUnits,1);
+  await as(foreign);
+  await assert.rejects(db.query("select ai_credit_status_for_company($1)",[company]),/Sem acesso/);
+  await service();
+  const startedId=(await db.query("select ai_reserve_message($1,$2,'web') id",[company,owner])).rows[0].id;
+  assert.equal((await db.query("select ai_mark_provider_started($1,$2,$3) result",[startedId,company,owner])).rows[0].result,true);
+  assert.equal((await db.query("select ai_mark_provider_started($1,$2,$3) result",[startedId,company,owner])).rows[0].result,false);
+  await db.query("update private.ai_message_reservations set reserved_at=now()-interval '15 minutes' where id=$1",[startedId]);
+  assert.equal((await db.query("select ai_refund_stale_messages($1) result",[company])).rows[0].result,0);
+  assert.equal((await db.query("select ai_finalize_message($1,true) result",[startedId])).rows[0].result,true);
+  await as(owner);
+  const after=(await db.query("select ai_credit_status_for_company($1) value",[company])).rows[0].value;
+  assert.equal(after.availableUnits,0);
+  assert.equal(after.consumedUnits,2);
   await db.exec("reset role;set role anon");
   await assert.rejects(db.query("select ai_credit_status()"),/permission denied/i);
+  await assert.rejects(db.query("select ai_credit_status_for_company($1)",[company]),/permission denied/i);
+  await assert.rejects(db.query("select ai_mark_provider_started($1,$2,$3)",[startedId,company,owner]),/permission denied/i);
   await assert.rejects(db.query("select ai_reserve_message($1,$2,'web')",[company,owner]),/permission denied/i);
   await assert.rejects(db.query("select ai_finalize_message($1,true)",[id]),/permission denied/i);
  } finally {await db.close();}
