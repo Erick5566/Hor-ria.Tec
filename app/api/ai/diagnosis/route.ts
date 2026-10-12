@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { getServerAccess } from "@/lib/server-auth";
 import { analyzeRepairPhotos } from "@/lib/diagnosis-vision-provider";
+import { isHorariaPlus } from "@/lib/horaria-ai-entitlements";
 
 export const runtime = "nodejs";
 
@@ -23,6 +24,8 @@ export async function POST(request: Request) {
   const access = await getServerAccess();
   const company = access?.context.company;
   if (!access?.user?.id || !company) return json({error:"Entre na Horária."},401);
+  if (!isHorariaPlus(access.context.billing?.planCode))
+    return json({error:"Análise com IA exclusiva do plano Horária Plus.",code:"PLUS_REQUIRED"},403);
   if (!["OWNER","ADMIN","TECHNICIAN"].includes(company.role))
     return json({error:"Somente técnicos ou gestores podem analisar fotos."},403);
   if (access.context.globalMaintenance || company.maintenance ||
