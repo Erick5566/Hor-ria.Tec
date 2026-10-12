@@ -6,6 +6,8 @@ import { money } from "@/lib/assistencia";
 import AppliedParts from "./applied-parts";
 import { PhotosPanel } from "./photos";
 import DiagnosisAiAssistant from "./diagnosis-ai-assistant";
+import { isHorariaPlus } from "@/lib/horaria-ai-entitlements";
+import { useWorkspace } from "./workspace";
 import {
   DiagnosisPart,
   DiagnosisPartStatus,
@@ -37,10 +39,13 @@ const partStatuses: DiagnosisPartStatus[] = [
 export default function Diagnosis({
   ordemId,
   empresaId,
+  reportedProblem = "",
 }: {
   ordemId: string;
   empresaId: string;
+  reportedProblem?: string;
 }) {
+  const { access } = useWorkspace();
   const [problem, setProblem] = useState("");
   const [observations, setObservations] = useState("");
   const [tests, setTests] = useState<DiagnosisTestItem[]>(emptyDiagnosisTests());
@@ -257,16 +262,16 @@ export default function Diagnosis({
               />
             </label>
 
-            <DiagnosisAiAssistant
+            {isHorariaPlus(access.billing?.planCode) && <DiagnosisAiAssistant
               ordemId={ordemId}
-              problem={problem}
+              problem={problem || reportedProblem}
               onApplyDraft={(draft) => {
                 setObservations((current) =>
                   [current.trim(), draft].filter(Boolean).join("\n\n").slice(0, 5000)
                 );
                 setSaved(false);
               }}
-            />
+            />}
 
             <section className="diagnosis-section">
               <div className="diagnosis-section-head">

@@ -22,8 +22,10 @@ import {
   uploadPhotos,
 } from "@/lib/photos";
 import DeviceFields from "./device-fields";
+import OrderAiIntakeCoach from "./order-ai-intake-coach";
+import { isHorariaPlus } from "@/lib/horaria-ai-entitlements";
 export default function OrderForm() {
-  const { empresa, userId } = useWorkspace(),
+  const { empresa, userId, access } = useWorkspace(),
     router = useRouter();
   const clients = useRows<Cliente>("clientes"),
     equipment = useRows<Equipamento>("equipamentos");
@@ -572,6 +574,14 @@ export default function OrderForm() {
                 liga.
               </small>
             </label>
+            {isHorariaPlus(access.billing?.planCode) && (
+              <OrderAiIntakeCoach
+                deviceType={device.categoria}
+                brand={device.marca}
+                model={device.modelo}
+                symptom={details.problema}
+              />
+            )}
             <div className="form-grid">
               <label>
                 Técnico responsável

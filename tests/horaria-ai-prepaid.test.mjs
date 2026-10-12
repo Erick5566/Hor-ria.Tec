@@ -109,7 +109,7 @@ test("Horária IA: gateway verifica sessão, origem, créditos e trava chamadas 
  assert.match(provider,/gpt-6-luna/);
  assert.match(provider,/store: false/);
  assert.match(provider,/max_output_tokens: 420/);
- assert.match(ui,/Horária IA/);
+ assert.match(ui,/Horária Plus/);
  assert.match(ui,/Sem custo de API/);
  assert.doesNotMatch(ui,/OPENAI_API_KEY|SUPABASE_SERVICE_ROLE_KEY/);
 });

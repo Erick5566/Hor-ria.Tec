@@ -12,7 +12,7 @@ const orderId="a8000000-0000-4000-8000-000000000002";
 const photoId="a8000000-0000-4000-8000-000000000003";
 const userId="a8000000-0000-4000-8000-000000000004";
 
-function harness({authenticated=true,role="TECHNICIAN",enabled=false,paid=false,photoCompany=companyId,reserve=true,mark=true,settle=true,providerFails=false}={}){
+function harness({authenticated=true,role="TECHNICIAN",enabled=false,paid=false,photoCompany=companyId,reserve=true,mark=true,settle=true,providerFails=false,plan="HORARIA_PRO"}={}){
   const db=[],provider=[],service=[],storage=[];
   const order={id:orderId,empresa_id:companyId,problema:"Tela quebrada",equipamento_id:photoId};
   const photo={id:photoId,empresa_id:photoCompany,ordem_id:orderId,
@@ -46,6 +46,7 @@ function harness({authenticated=true,role="TECHNICIAN",enabled=false,paid=false,
     user:{id:userId},
     context:{
       globalMaintenance:false,
+      billing:{planCode:plan},
       company:{id:companyId,role,status:"ACTIVE",maintenance:false,featureFlags:{aiEnabled:enabled}},
     },
     client,
@@ -62,6 +63,7 @@ function harness({authenticated=true,role="TECHNICIAN",enabled=false,paid=false,
     require(name){
       if(name==="next/server")return {NextResponse:{json:(p,o)=>Response.json(p,o)}};
       if(name==="@/lib/server-auth")return {getServerAccess:async()=>access};
+      if(name==="@/lib/horaria-ai-entitlements")return {isHorariaPlus:code=>code==="HORARIA_PRO"};
       if(name==="@/lib/diagnosis-vision-provider")
         return {analyzeRepairPhotos:async(args)=>{
           provider.push(args);
@@ -158,4 +160,14 @@ test("Diagnóstico IA: falha ambígua da OpenAI não estorna automaticamente a r
   assert.equal((await r.json()).code,"VISION_RECONCILIATION_REQUIRED");
   assert.equal(h.provider.length,1);
   assert.deepEqual(h.service.map(x=>x[0]),["ai_reserve_message","ai_mark_provider_started"]);
+});
+
+test("Diagnóstico IA: plano Básico bloqueado antes de ler fotos ou reservar créditos",async()=>{
+  const h=harness({plan:"HORARIA",enabled:true,paid:true,reserve:true});
+  const r=await h.send();
+  assert.equal(r.status,403);
+  assert.equal((await r.json()).code,"PLUS_REQUIRED");
+  assert.equal(h.provider.length,0);
+  assert.equal(h.storage.length,0);
+  assert.equal(h.service.length,0);
 });

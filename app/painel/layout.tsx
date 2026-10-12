@@ -5,6 +5,7 @@ import "../responsive.css";
 import "../tutorial.css";
 import "../horaria-ai.css";
 import "../diagnosis-ai.css";
+import "../ai-plus-context.css";
 import type { Metadata } from "next";
 import Workspace from "@/components/workspace";
 import { redirect } from "next/navigation";
