@@ -34,6 +34,9 @@
 .diagnosis-ai-instruction{font-size:12px;color:#506b8b;line-height:1.6;margin:0}
 .diagnosis-ai-warning{background:#fff8ea;border:1px solid #f0dcb1;color:#76511a;font-size:12px;
   border-radius:8px;padding:10px 12px;margin:0;line-height:1.55}
+.diagnosis-ai-photo-tools{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.diagnosis-ai-photo-tools button{min-height:40px}
+.diagnosis-ai-photo-tools small{font-size:11px;color:#687d96;line-height:1.5}
 .diagnosis-ai-photos{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,150px),1fr));
   gap:10px;max-height:330px;overflow-y:auto;overscroll-behavior:contain}
 .diagnosis-ai-photo{position:relative;display:grid;grid-template-rows:90px auto;gap:6px;
