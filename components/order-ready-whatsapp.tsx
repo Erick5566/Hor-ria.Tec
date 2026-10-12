@@ -55,7 +55,11 @@ export default function OrderReadyWhatsapp({
     </div>
   );
 
-  if(status==="processando" || status==="pendente") return (
+  // Uma notificação antiga pendente não deve prender a OS se o envio oficial
+  // está desligado ou não existe autorização. Em processamento, porém, um
+  // disparo pode estar em voo e o envio manual poderia duplicar a mensagem.
+  if(status==="processando" || (status==="pendente" &&
+    delivery.authorized && delivery.eligiblePlan && delivery.channelEnabled)) return (
     <div className="wa-ready-state wa-ready-wait" role="status">
       <strong>{status==="processando"?"Enviando aviso ao cliente…":"Aviso na fila de envio"}</strong>
       <small>O envio ainda não foi confirmado. Evite enviar outro aviso para não duplicar a mensagem.</small>

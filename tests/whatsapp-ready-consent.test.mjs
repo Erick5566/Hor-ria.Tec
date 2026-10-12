@@ -80,7 +80,8 @@ test("Aviso pronto: no recebimento exige autorização e no detalhe exibe result
   assert.match(detail,/<OrderReadyWhatsapp/);
   assert.match(widget,/status_aviso_whatsapp_ordem/);
   assert.match(widget,/Aviso enviado automaticamente/);
-  assert.match(widget,/status==="processando" \|\| status==="pendente"/);
+  assert.match(widget,/status==="processando" \|\| \(status==="pendente" &&/);
+  assert.match(widget,/delivery\.authorized && delivery\.eligiblePlan && delivery\.channelEnabled/);
   assert.match(worker,/readyConsent !== true/);
   assert.doesNotMatch(form,/fetch\("https:\/\/graph.facebook.com/);
 });
