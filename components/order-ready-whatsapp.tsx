@@ -122,7 +122,7 @@ export default function OrderReadyWhatsapp({
       {manualUrl && <a href={manualUrl} target="_blank" rel="noreferrer">
         Abrir WhatsApp manualmente ↗
       </a>}
-      {cancellation}}
+      {cancellation}
     </div>
   );
 }
