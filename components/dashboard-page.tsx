@@ -284,7 +284,7 @@ export default function Overview() {
 
   return (
     <section className="module dashboard-pro dashboard-reference">
-      <div className="dashboard-hero">
+      <div className="dashboard-hero" data-tour="dashboard-hero">
         <div className="dashboard-heading-wrap">
           <span className="dashboard-welcome">Olá, seja bem-vindo! 👋</span>
           <div className="dashboard-reference-heading">
