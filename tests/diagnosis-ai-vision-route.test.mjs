@@ -79,7 +79,7 @@ function harness({authenticated=true,role="TECHNICIAN",enabled=false,paid=false,
     },
   });
   const send=(override={})=>{
-    const body={ordemId,photoIds:[photoId],notes:"Trinca na lateral",consent:true,...override};
+    const body={ordemId:orderId,photoIds:[photoId],notes:"Trinca na lateral",consent:true,...override};
     return exports.POST(new Request("https://isolated.invalid/api/ai/diagnosis",{
       method:"POST",headers:{"content-type":"application/json",origin:"https://isolated.invalid"},
       body:JSON.stringify(body),
