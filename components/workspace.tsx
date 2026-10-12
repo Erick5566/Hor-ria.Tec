@@ -1155,7 +1155,7 @@ export default function Workspace({
             <HorariaIcon name="help" />
             <span>Ajuda</span>
           </Link>
-          <button type="button" onClick={() => window.dispatchEvent(new Event("horaria:start-tutorial"))}>
+          <button type="button" onClick={() => window.dispatchEvent(new Event("horaria:resume-tutorial"))}>
             <HorariaIcon name="help" />
             <span>Conheça a Horária</span>
           </button>
