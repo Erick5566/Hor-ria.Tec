@@ -28,7 +28,7 @@ function createHarness({ authenticated = true, flag = false, paid = false, balan
   const exports = {};
   vm.runInNewContext(route, {
     exports,
-    Request, Response, process: {
+    Request, Response, URL, process: {
       env: {
         NEXT_PUBLIC_SUPABASE_URL: "https://example.test",
         SUPABASE_SERVICE_ROLE_KEY: "test-only-do-not-send",
