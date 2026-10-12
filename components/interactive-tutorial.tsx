@@ -232,9 +232,10 @@ export default function InteractiveTutorial({
   // um avanço mais recente em redes lentas ou instáveis.
   const persist = useCallback((nextIndex: number, status: "ACTIVE" | "PAUSED" | "COMPLETED") => {
     setSavedStatus(status);
-    if (!supabase) return Promise.resolve();
+    const client = supabase;
+    if (!client) return Promise.resolve();
     writeQueue.current = writeQueue.current.catch(() => undefined).then(async () => {
-      const result = await supabase.rpc("tutorial_save_progress", {
+      const result = await client.rpc("tutorial_save_progress", {
         p_step: Math.min(nextIndex, 150),
         p_status: status,
       });
