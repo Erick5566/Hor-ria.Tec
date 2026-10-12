@@ -1,0 +1,18 @@
+/* WhatsApp automático: interface operacional, sem chat extra ou tela de IA. */
+.wa-ready-optin{margin:14px 0;padding:14px 16px;border:1px solid #d4e4f4;border-radius:13px;
+ background:linear-gradient(110deg,#f7fbff,#edf5ff);min-width:0}
+.wa-ready-optin-check{display:flex!important;flex-direction:row!important;align-items:flex-start!important;gap:12px!important;cursor:pointer}
+.wa-ready-optin-check input{margin:2px 0 0;accent-color:#1764ce;width:20px;height:20px;flex-shrink:0}
+.wa-ready-optin-check span{display:grid;gap:6px;min-width:0}
+.wa-ready-optin-check strong{color:#193e6a;font-weight:750;font-size:13px;line-height:1.5}
+.wa-ready-optin-check small{font-size:11px;line-height:1.6;color:#54718e;font-weight:400}
+.wa-ready-state{display:grid;gap:5px;padding:12px 14px;border:1px solid #d1e1f3;border-radius:11px;
+ background:#f5f9ff;color:#284666;min-width:min(100%,240px);max-width:min(100%,490px);flex:1}
+.wa-ready-state strong{font-size:12px;line-height:1.4}
+.wa-ready-state span,.wa-ready-state small{font-size:11px;line-height:1.55;color:#5c7390}
+.wa-ready-state a{font-size:12px;color:#1c5eae;font-weight:750;margin-top:4px;text-decoration:underline}
+.wa-ready-state.wa-ready-ok{border-color:#baddcf;background:#eefbf4;color:#176042}
+.wa-ready-state.wa-ready-ok small{color:#3c7862}
+.wa-ready-state.wa-ready-wait{border-color:#e8d7b2;background:#fff9ed;color:#775525}
+.wa-ready-state.wa-ready-wait small{color:#846b41}
+@media(max-width:640px){.wa-ready-optin{padding:12px}.wa-ready-state{width:100%;max-width:none}}
