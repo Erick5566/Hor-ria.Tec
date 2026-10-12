@@ -366,6 +366,7 @@ export default function Records({
             />
             <button
               id="novo-registro"
+              data-tour={isClient ? "customer-create" : "equipment-create"}
               className="primary"
               onClick={() => openEditor(null)}
             >
