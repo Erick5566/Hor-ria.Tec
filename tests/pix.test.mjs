@@ -49,6 +49,26 @@ test("pix: gera payload BR Code com chave, valor e CRC válido", async () => {
   assert.equal(payload.slice(-4), pixCrc16(body));
 });
 
+test("auditoria PIX: Básico e Pro produzem valores e CRC corretos", async () => {
+  const { buildPixPayload, pixCrc16, getSubscriptionPixPayment } =
+    await loadPixModule();
+  for (const amount of [49, 80]) {
+    const payment = getSubscriptionPixPayment("PAST_DUE", true, {
+      initialAmount: amount,
+      monthlyAmount: amount,
+    });
+    assert.equal(payment.amount, amount);
+    const payload = buildPixPayload({
+      key: "test@horaria.test",
+      amount: payment.amount,
+      merchantName: "Horaria",
+      merchantCity: "Sao Paulo",
+    });
+    assert.ok(payload.includes(`5405${amount.toFixed(2)}`));
+    assert.equal(payload.slice(-4), pixCrc16(payload.slice(0, -4)));
+  }
+});
+
 test("pix: usa valor inicial apenas durante o trial", async () => {
   const { getSubscriptionPixPayment } = await loadPixModule();
 
