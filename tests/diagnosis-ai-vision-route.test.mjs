@@ -12,7 +12,7 @@ const orderId="a8000000-0000-4000-8000-000000000002";
 const photoId="a8000000-0000-4000-8000-000000000003";
 const userId="a8000000-0000-4000-8000-000000000004";
 
-function harness({authenticated=true,role="TECHNICIAN",enabled=false,paid=false,photoCompany=companyId,reserve=true,mark=true,settle=true}={}){
+function harness({authenticated=true,role="TECHNICIAN",enabled=false,paid=false,photoCompany=companyId,reserve=true,mark=true,settle=true,providerFails=false}={}){
   const db=[],provider=[],service=[],storage=[];
   const order={id:orderId,empresa_id:companyId,problema:"Tela quebrada",equipamento_id:photoId};
   const photo={id:photoId,empresa_id:photoCompany,ordem_id:orderId,
@@ -65,6 +65,7 @@ function harness({authenticated=true,role="TECHNICIAN",enabled=false,paid=false,
       if(name==="@/lib/diagnosis-vision-provider")
         return {analyzeRepairPhotos:async(args)=>{
           provider.push(args);
+          if(providerFails) throw new Error("timeout");
           return "SINAIS VISÍVEIS: trinca possível. TESTES: conferir touch.";
         }};
       if(name==="@supabase/supabase-js")return {createClient:()=>({
@@ -148,4 +149,13 @@ test("Diagnóstico IA: erro ao liquidar resposta não gera estorno automático",
   assert.equal(h.provider.length,1);
   assert.equal(h.service.length,3);
   assert.equal(h.service[2][1].p_success,true);
+});
+
+test("Diagnóstico IA: falha ambígua da OpenAI não estorna automaticamente a reserva", async()=>{
+  const h=harness({enabled:true,paid:true,reserve:true,providerFails:true});
+  const r=await h.send();
+  assert.equal(r.status,503);
+  assert.equal((await r.json()).code,"VISION_RECONCILIATION_REQUIRED");
+  assert.equal(h.provider.length,1);
+  assert.deepEqual(h.service.map(x=>x[0]),["ai_reserve_message","ai_mark_provider_started"]);
 });
