@@ -39,9 +39,11 @@ const partStatuses: DiagnosisPartStatus[] = [
 export default function Diagnosis({
   ordemId,
   empresaId,
+  reportedProblem = "",
 }: {
   ordemId: string;
   empresaId: string;
+  reportedProblem?: string;
 }) {
   const { access } = useWorkspace();
   const [problem, setProblem] = useState("");
@@ -262,7 +264,7 @@ export default function Diagnosis({
 
             {isHorariaPlus(access.billing?.planCode) && <DiagnosisAiAssistant
               ordemId={ordemId}
-              problem={problem}
+              problem={problem || reportedProblem}
               onApplyDraft={(draft) => {
                 setObservations((current) =>
                   [current.trim(), draft].filter(Boolean).join("\n\n").slice(0, 5000)
