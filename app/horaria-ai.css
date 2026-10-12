@@ -1,0 +1,74 @@
+/* Horária IA — visual isolado dos demais módulos e mobile-first. */
+.horaria-ai-chat {
+  display:flex; flex-direction:column; gap:0; min-width:0;
+  margin:18px 0 24px; padding:0 !important; overflow:hidden;
+  background:#fff; border:1px solid #dbe5f1; border-radius:20px;
+  box-shadow:0 12px 36px rgba(27,50,94,.08); color:#182943;
+}
+.horaria-ai-header {
+  display:flex; align-items:center; gap:14px; padding:20px 22px;
+  background:linear-gradient(115deg,#0c2b56,#173e75); color:white;
+}
+.horaria-ai-avatar { display:grid; place-items:center; width:44px; height:44px;
+  flex-shrink:0; border-radius:14px; background:#fff; font-weight:900;
+  font-size:25px; color:#174aa1; }
+.horaria-ai-header h2 { margin:0; font-size:clamp(17px,2vw,22px); font-weight:800; color:#fff; }
+.horaria-ai-header p { margin:5px 0 0; color:#c8d9f0; font-size:13px; line-height:1.5; }
+.horaria-ai-label { font-size:11px; background:rgba(255,255,255,.14); border-radius:7px;
+  padding:4px 7px; display:inline-block; vertical-align:middle; margin-left:6px; font-weight:500; }
+.horaria-ai-modes { display:grid; grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:10px; padding:16px 20px 12px; background:#f8faff; }
+.horaria-ai-modes button { min-width:0; display:flex; flex-direction:column; gap:4px;
+  background:white; text-align:left; color:#354d6d; border:1px solid #dce5f2;
+  border-radius:12px; padding:11px 14px; font:inherit; font-size:13px; font-weight:700; cursor:pointer; }
+.horaria-ai-modes button[aria-pressed=true] { border:2px solid #236be0; color:#1047a0; background:#eaf3ff; }
+.horaria-ai-modes small {font-size:11px;font-weight:500;color:#687e98;}
+.horaria-ai-status { padding:9px 20px; font-size:12px; background:#edf5ff;
+  color:#385779; border-top:1px solid #dfecfb; }
+.horaria-ai-messages { display:flex; flex-direction:column; gap:15px; padding:22px;
+  min-height:235px; max-height:min(47dvh,420px); overflow-y:auto; overscroll-behavior:contain;
+  background:radial-gradient(ellipse at 90% 0%,#f0f5ff,transparent 65%),#fff; }
+.horaria-ai-line { display:flex; align-items:flex-end; gap:9px; max-width:90%; }
+.horaria-ai-line p { margin:0; padding:12px 15px; border-radius:14px;
+  background:#f2f5fa; border:1px solid #e5ebf4; font-size:13px;
+  line-height:1.65; overflow-wrap:anywhere; white-space:pre-wrap; color:#213954; }
+.horaria-ai-line.is-user { margin-left:auto; }
+.horaria-ai-line.is-user p { background:#2466cb; border-color:#2466cb; color:#fff; border-bottom-right-radius:4px; }
+.horaria-ai-line.is-assistant p { border-bottom-left-radius:4px; }
+.horaria-ai-bubble-icon { display:grid; place-items:center; flex-shrink:0; width:25px;
+  height:25px; border-radius:8px; background:#123b77; color:#fff; font-size:13px; font-weight:800; }
+.horaria-ai-thinking { font-size:12px; color:#677b94; margin:0; }
+.horaria-ai-suggestions { display:flex; gap:8px; padding:0 20px 13px; flex-wrap:wrap; }
+.horaria-ai-suggestions button { border:1px solid #d0ddf0; background:#f5f9ff;
+  color:#215393; padding:8px 11px; border-radius:8px; font:inherit; font-size:11px;
+  cursor:pointer; }
+.horaria-ai-compose { display:grid; gap:8px; padding:17px 20px;
+  border-top:1px solid #e6edf6; }
+.horaria-ai-compose > label { font-size:12px; font-weight:700; color:#2e4362; }
+.horaria-ai-compose-controls { display:flex; align-items:stretch; gap:8px; }
+.horaria-ai-compose-controls input { width:100%; min-width:0; flex:1;
+  background:#fff; border:1px solid #cfdbeb; border-radius:10px;
+  padding:12px; font:inherit; font-size:13px; color:#1a324f; }
+.horaria-ai-compose-controls button { min-width:78px; border-radius:10px; }
+.horaria-ai-compose-controls button:disabled { opacity:.55; cursor:not-allowed; }
+.horaria-ai-error { margin:0 20px; color:#9c2727; background:#fff1f1;
+  border-radius:8px; padding:10px 12px; font-size:12px; }
+.horaria-ai-footer { display:flex; justify-content:space-between; align-items:center;
+  gap:12px; padding:11px 20px; color:#73849b; background:#f8faff;
+  font-size:11px; border-top:1px solid #e5edf5; }
+.horaria-ai-footer button { border:0; background:none; text-decoration:underline;
+  color:#1e5cb9; font:inherit; font-weight:700; cursor:pointer; text-align:right; }
+@media(max-width:640px) {
+  .horaria-ai-header {padding:15px;gap:11px;}
+  .horaria-ai-modes {padding:12px;gap:8px;}
+  .horaria-ai-modes button {padding:10px;font-size:11px;}
+  .horaria-ai-messages {padding:13px;max-height:42dvh;min-height:240px;}
+  .horaria-ai-line {max-width:96%;}
+  .horaria-ai-suggestions {padding:0 12px 12px;}
+  .horaria-ai-compose {padding:13px;}
+  .horaria-ai-footer {padding:10px 13px;align-items:flex-start;}
+  .horaria-ai-label {display:block;width:max-content;margin:7px 0 0;}
+}
+@media (prefers-reduced-motion:reduce) {
+  .horaria-ai-chat * {scroll-behavior:auto;}
+}
