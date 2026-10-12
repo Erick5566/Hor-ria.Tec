@@ -10,7 +10,7 @@ const route = ts.transpileModule(readFileSync("app/api/ai/chat/route.ts", "utf8"
 const owner = "f8000000-0000-4000-8000-000000000001";
 const company = "f8000000-0000-4000-8000-000000000002";
 
-function createHarness({ authenticated = true, flag = false, paid = false, balance = false, origin = "https://example.test", mark = true, settle = true, providerFails = false } = {}) {
+function createHarness({ authenticated = true, flag = false, paid = false, balance = false, origin = "https://example.test", mark = true, settle = true, providerFails = false, plan = "HORARIA_PRO" } = {}) {
   const rpcCalls = [];
   const paidCalls = [];
   const mockContext = authenticated
@@ -18,6 +18,7 @@ function createHarness({ authenticated = true, flag = false, paid = false, balan
       user: { id: owner },
       context: {
         globalMaintenance: false,
+        billing: { planCode: plan },
         company: {
           id: company, name: "Assistência de teste", slug: "test-company",
           status: "ACTIVE", maintenance: false, featureFlags: { aiEnabled: flag },
@@ -40,6 +41,7 @@ function createHarness({ authenticated = true, flag = false, paid = false, balan
       switch (id) {
         case "next/server": return { NextResponse: { json: (v, o) => Response.json(v, o) } };
         case "@/lib/server-auth": return { getServerAccess: async () => mockContext };
+        case "@/lib/horaria-ai-entitlements": return { isHorariaPlus: (code) => code === "HORARIA_PRO" };
         case "@/lib/horaria-ai-core": return {
           freeSupportReply: (v) => "Resposta gratuita: " + v,
           safeHistory: () => [],
@@ -130,4 +132,15 @@ test("Chat Horária: timeout externo mantém crédito reservado para conciliaç�
   assert.equal((await r.json()).code,"AI_RECONCILIATION_REQUIRED");
   assert.equal(h.paidCalls.length,1);
   assert.deepEqual(h.rpcCalls,["ai_reserve_message","ai_mark_provider_started"]);
+});
+
+test("Chat Horária: plano Básico não recebe chat nem chama OpenAI mesmo com flag e créditos", async()=>{
+  const h=createHarness({plan:"HORARIA",flag:true,paid:true,balance:true});
+  for(const mode of ["support","company"]) {
+    const r=await h.send(mode);
+    assert.equal(r.status,403);
+    assert.equal((await r.json()).code,"PLUS_REQUIRED");
+  }
+  assert.equal(h.paidCalls.length,0);
+  assert.deepEqual(h.rpcCalls,[]);
 });
