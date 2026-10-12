@@ -1,0 +1,67 @@
+/* Horária Plus — assistência contextual sem flutuar sobre o formulário. */
+.ai-intake-coach{margin:16px 0;min-width:0;overflow:hidden;border-radius:16px;
+  border:1px solid #c8d7eb;background:#fff;
+  box-shadow:0 8px 24px rgba(19,46,93,.055);color:#1d3555}
+.ai-intake-head{display:flex;align-items:center;gap:13px;padding:17px 18px;
+  background:linear-gradient(115deg,#0e2e58 0%,#1f487a 100%);color:#fff}
+.ai-intake-emblem{flex:none;display:inline-flex;align-items:center;justify-content:center;
+  position:relative;width:42px;height:42px;border-radius:12px;
+  background:rgba(255,255,255,.15);color:#fff;font-size:22px;font-weight:800;border:1px solid rgba(255,255,255,.2)}
+.ai-intake-emblem span{position:absolute;font-size:11px;top:4px;right:4px;color:#d0e3ff}
+.ai-intake-intro{flex:1;min-width:0}
+.ai-intake-eyebrow{display:block;color:#bfd9ff;font-size:10px;font-weight:800;letter-spacing:.07em}
+.ai-intake-eyebrow span{margin:0 4px}
+.ai-intake-intro strong{display:block;color:#fff;font-size:clamp(15px,2.3vw,18px);margin:5px 0;font-weight:800;line-height:1.3}
+.ai-intake-intro p{margin:0;color:#d3e1f4;font-size:12px;line-height:1.6}
+.ai-intake-toggle{width:34px;height:34px;flex:none;border-radius:10px;border:1px solid rgba(255,255,255,.24);
+  color:#fff;background:rgba(255,255,255,.11);font-size:21px;cursor:pointer;align-self:flex-start}
+.ai-intake-body{padding:15px 19px 18px;display:grid;gap:13px}
+.ai-intake-context{display:flex;align-items:center;gap:8px;color:#436184;font-size:12px;font-weight:600;min-width:0;overflow-wrap:anywhere}
+.ai-intake-context-dot{height:7px;width:7px;border-radius:50%;background:#3c9e91;flex:none}
+.ai-intake-insight{display:grid;gap:4px;padding:13px 15px;border:1px solid #dce8f6;border-radius:11px;background:#f5f9ff}
+.ai-intake-insight small{color:#52759b;font-size:9px;letter-spacing:.075em;font-weight:800}
+.ai-intake-insight strong{color:#193d6e;font-size:15px}
+.ai-intake-insight>span{color:#64809f;font-size:11px}
+.ai-intake-tabs{display:flex;gap:5px;padding:3px;background:#edf3fb;border-radius:10px;width:max-content;max-width:100%}
+.ai-intake-tabs button{border:0;background:transparent;border-radius:7px;color:#4a6483;
+  min-height:36px;padding:8px 13px;font:inherit;font-size:12px;font-weight:700;cursor:pointer}
+.ai-intake-tabs button[aria-pressed=true]{background:#fff;color:#164d95;box-shadow:0 2px 6px rgba(15,44,79,.1)}
+.ai-intake-items{list-style:none;margin:0;padding:0;display:grid;gap:10px}
+.ai-intake-items li{display:flex;align-items:flex-start;gap:11px;color:#2b4362;font-size:12px;line-height:1.65;overflow-wrap:anywhere}
+.ai-intake-items li>span{display:inline-flex;justify-content:center;align-items:center;min-width:27px;height:27px;
+  border-radius:8px;background:#e8f2ff;color:#2864a7;font-size:10px;font-weight:800}
+.ai-intake-footer{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;
+  padding-top:12px;border-top:1px solid #e5edf6}
+.ai-intake-footer>span{color:#7186a0;font-size:11px;line-height:1.45;flex:1;min-width:130px}
+.ai-intake-footer button{border:1px solid #cdddf2;background:#f6faff;color:#1d5ca5;
+  border-radius:9px;padding:10px 13px;min-height:40px;font-size:12px;font-weight:750;cursor:pointer}
+.ai-intake-idle{display:flex;align-items:center;gap:10px;background:#f6f9fe;border:1px dashed #d8e6f7;
+  border-radius:11px;padding:13px;color:#647b95}
+.ai-intake-idle>span{font-size:21px;color:#719aca}
+.ai-intake-idle p{margin:0;font-size:12px;line-height:1.6}
+.ai-intake-coach :is(button):focus-visible{outline:3px solid #8cb8fa;outline-offset:3px}
+@media(max-width:640px){.ai-intake-head{padding:13px;gap:10px}.ai-intake-body{padding:13px}
+ .ai-intake-emblem{width:36px;height:36px}.ai-intake-tabs{width:100%}
+ .ai-intake-tabs button{flex:1;padding:7px 8px;font-size:11px}
+ .ai-intake-footer button{width:100%}}
+@media(prefers-reduced-motion:reduce){.ai-intake-coach *{scroll-behavior:auto;transition:none!important}}
+/* Integração discreta da IA com o diagnóstico técnico existente */
+.diagnosis-ai-compact{margin:14px 0 19px;box-shadow:0 7px 19px rgba(15,48,93,.045);border-color:#d5e2f1}
+.diagnosis-ai-compact .diagnosis-ai-header{padding:15px 18px;background:linear-gradient(116deg,#0f315b,#214978)}
+.diagnosis-ai-compact .diagnosis-ai-kicker{color:#a9cef9;letter-spacing:.07em}
+.diagnosis-ai-compact .diagnosis-ai-header h3{font-size:clamp(15px,2vw,18px);color:#fff;margin:5px 0}
+.diagnosis-ai-compact .diagnosis-ai-header p{color:#d1e0f2}
+.diagnosis-ai-compact .diagnosis-ai-status{color:#285281;background:#eef5ff;font-size:10px;white-space:normal;max-width:170px;text-align:center}
+.diagnosis-ai-compact .diagnosis-ai-free{padding:15px 18px;gap:11px}
+.diagnosis-ai-compact .diagnosis-ai-result{background:#f8fbff;border-color:#dce7f5}
+.diagnosis-ai-compact .diagnosis-ai-result ul{display:grid;gap:6px}
+.diagnosis-ai-compact .diagnosis-ai-photo-summary{display:block;list-style:none;cursor:pointer;
+ font-weight:700;font-size:12px;color:#25538a;line-height:1.6}
+.diagnosis-ai-compact .diagnosis-ai-photo-summary::-webkit-details-marker{display:none}
+.diagnosis-ai-compact .diagnosis-ai-vision{padding:13px 18px}
+.diagnosis-ai-compact .diagnosis-ai-vision[open]{display:grid;gap:13px}
+.diagnosis-ai-compact .diagnosis-ai-photo-summary::after{content:" +";font-weight:900}
+.diagnosis-ai-compact .diagnosis-ai-vision[open] .diagnosis-ai-photo-summary::after{content:" −"}
+@media(max-width:640px){.diagnosis-ai-compact .diagnosis-ai-header{padding:13px}
+ .diagnosis-ai-compact .diagnosis-ai-free,.diagnosis-ai-compact .diagnosis-ai-vision{padding:13px}
+ .diagnosis-ai-compact .diagnosis-ai-status{max-width:none}}
