@@ -108,8 +108,6 @@ export async function POST(request: Request) {
     return json({ error: "Não foi possível confirmar a reserva. Nenhuma chamada paga foi realizada.", code: "RESERVATION_ERROR" }, 503);
   }
 
-  let completed = false;
-  let providerReturned = false;
   try {
     const reply = await createPaidAiReply({
       audience: "company-customer",
@@ -120,7 +118,6 @@ export async function POST(request: Request) {
         website: company.slug ? "https://horaria.site/" + company.slug : undefined,
       },
     });
-    providerReturned = true;
     const settled = await service.rpc("ai_finalize_message", {
       p_reservation: reserved.data,
       p_success: true,
@@ -129,22 +126,10 @@ export async function POST(request: Request) {
       // Reserva permanece pendente e demanda conciliação.
       return json({ error: "Resposta indisponível. Contate o suporte para conferir seus créditos.", code: "SETTLEMENT_ERROR" }, 503);
     }
-    completed = true;
     return json({ reply, origin: "openai-prepaid", paid: true });
   } catch {
-    return json({ error: "Não foi possível responder agora. Verifique o saldo ou tente novamente.", code: "AI_ERROR" }, 503);
-  } finally {
-    if (!completed && !providerReturned) {
-      // Uma resposta externa efetivamente gerada nunca deve ser reembolsada
-      // só porque a liquidação falhou. Nesse caso, a reserva exige conciliação.
-      try {
-        await service.rpc("ai_finalize_message", {
-          p_reservation: reserved.data,
-          p_success: false,
-        });
-      } catch {
-        // Erro de reconciliação deve ser registrado no provedor de logs.
-      }
-    }
+    return json({ error: "Não recebemos uma resposta confirmada. O crédito está reservado para conferência, pois o provedor pode ter cobrado a chamada. Solicite suporte antes de tentar novamente.", code: "AI_RECONCILIATION_REQUIRED" }, 503);
   }
+  // Após ai_mark_provider_started, erros e timeouts são ambíguos:
+  // não fazemos reembolso automático de chamadas que possam ter custo no provedor.
 }
