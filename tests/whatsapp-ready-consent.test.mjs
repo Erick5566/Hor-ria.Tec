@@ -28,6 +28,15 @@ test("Aviso pronto: exige consentimento explícito, Plus e WhatsApp habilitado, 
     await db.exec("reset role");
     await db.query(`update public.assinaturas set plano_id=(select id from public.planos where codigo='HORARIA_PRO') where empresa_id=$1`,[company]);
     await asOwner();
+    // Uma chamada INSERT direta não pode pré-marcar autorização sem passar pela RPC.
+    await assert.rejects(
+      db.query(`insert into public.ordens_servico
+        (numero,empresa_id,cliente_id,equipamento_id,problema,aviso_whatsapp_autorizado)
+        select (select coalesce(max(numero),0)+1 from public.ordens_servico),
+               empresa_id,cliente_id,equipamento_id,'Tentativa sem opt-in',true
+        from public.ordens_servico where id=$1`,[order]),
+      /configurar_aviso_whatsapp_ordem/,
+    );
     await assert.rejects(
       db.query("update public.ordens_servico set aviso_whatsapp_autorizado=true where id=$1",[order]),
       /configurar_aviso_whatsapp_ordem/,
