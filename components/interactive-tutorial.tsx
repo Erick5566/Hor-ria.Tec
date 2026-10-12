@@ -199,6 +199,7 @@ export default function InteractiveTutorial({
   const path = usePathname();
   const steps = useMemo(() => buildTutorialSteps(availableRoutes), [availableRoutes]);
   const [loaded, setLoaded] = useState(false);
+  const [savedStatus, setSavedStatus] = useState<Progress["status"]>(null);
   const [active, setActive] = useState(false);
   const [index, setIndex] = useState(0);
   const [spot, setSpot] = useState<DOMRect | null>(null);
@@ -212,6 +213,7 @@ export default function InteractiveTutorial({
   const finishRequest = useRef(false);
 
   const persist = useCallback(async (nextIndex: number, status: "ACTIVE" | "PAUSED" | "COMPLETED") => {
+    setSavedStatus(status);
     if (!supabase) return;
     const result = await supabase.rpc("tutorial_save_progress", {
       p_step: Math.min(nextIndex, 150),
@@ -252,6 +254,7 @@ export default function InteractiveTutorial({
     setLoaded(false);
     setActive(false);
     setIndex(0);
+    setSavedStatus(null);
     finishRequest.current = false;
     if (!supabase || !userId) return;
     void (async () => {
@@ -263,6 +266,7 @@ export default function InteractiveTutorial({
         return;
       }
       const state = result.data as Progress | null;
+      setSavedStatus(state?.status || null);
       const firstAccess = Boolean(state?.eligible && !state?.status);
       const resume = state?.status === "ACTIVE";
       setIndex(Math.max(0, Math.min(Number(state?.step) || 0, steps.length - 1)));
@@ -284,7 +288,10 @@ export default function InteractiveTutorial({
       finishRequest.current = false;
       setError("");
       setActive(true);
-      void persist(indexRef.current, "ACTIVE");
+      if (savedStatus === "COMPLETED") {
+        setIndex(0);
+        void persist(0, "ACTIVE");
+      } else void persist(indexRef.current, "ACTIVE");
     };
     window.addEventListener("horaria:start-tutorial", restart);
     window.addEventListener("horaria:resume-tutorial", resume);
@@ -292,7 +299,7 @@ export default function InteractiveTutorial({
       window.removeEventListener("horaria:start-tutorial", restart);
       window.removeEventListener("horaria:resume-tutorial", resume);
     };
-  }, [persist]);
+  }, [persist, savedStatus]);
 
   useEffect(() => {
     if (!active || !loaded || !step) return;
