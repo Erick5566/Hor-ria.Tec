@@ -48,6 +48,7 @@ const InventoryManagement = dynamic(() => import("./inventory-management"), {
   loading: ModuleLoading,
 });
 import FinanceWorkspace from "./finance-workspace";
+import HorariaAiChat from "./horaria-ai-chat";
 import { useWorkspace } from "./workspace";
 import { supabase, message } from "@/lib/supabase";
 const titles: Record<string, string> = {
@@ -215,6 +216,8 @@ export default function AdminModule({
         </section>
       )}
       {module === "ajuda" && (
+        <>
+        <HorariaAiChat />
         <section className="panel">
           <PanelTitle title="Do recebimento à entrega" icon="receive" />
           <div className="tutorial-help-controls"><button type="button" className="outline" onClick={() => window.dispatchEvent(new Event("horaria:resume-tutorial"))}>▶ Continuar tutorial</button> <button type="button" className="outline" onClick={() => window.dispatchEvent(new Event("horaria:start-tutorial"))}>↻ Rever do início</button></div>
@@ -246,6 +249,7 @@ export default function AdminModule({
             Criar uma ordem
           </Link>
         </section>
+        </>
       )}
     </section>
   );
