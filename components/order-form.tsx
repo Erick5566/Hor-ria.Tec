@@ -64,6 +64,7 @@ export default function OrderForm() {
     [photoDraftReady, setPhotoDraftReady] = useState(false),
     [draftStored, setDraftStored] = useState(true),
     [editingCustomer, setEditingCustomer] = useState(false),
+    [whatsappReadyConsent, setWhatsappReadyConsent] = useState(false),
     [photoGuide, setPhotoGuide] = useState<GuidedPhotoState>({
       currentIndex: 0,
       skipped: [],
@@ -345,6 +346,15 @@ export default function OrderForm() {
         orderId = String(data);
         setCreatedId(orderId);
       }
+      // Consentimento separado do cadastro; nunca enviado por padrão.
+      // A função no banco verifica a assinatura Plus e não envia mensagens.
+      if (isHorariaPlus(access.billing?.planCode)) {
+        const permission = await supabase!.rpc("configurar_aviso_whatsapp_ordem", {
+          p_ordem: orderId,
+          p_autorizado: whatsappReadyConsent,
+        });
+        if (permission.error) throw permission.error;
+      }
       await uploadPhotos(empresa.id, orderId, photos);
       const confirmation = await supabase!.rpc("confirmar_entrada", {
         p_ordem: orderId,
@@ -581,6 +591,20 @@ export default function OrderForm() {
                 model={device.modelo}
                 symptom={details.problema}
               />
+            )}
+            {isHorariaPlus(access.billing?.planCode) && (
+              <div className="wa-ready-optin">
+                <label className="wa-ready-optin-check">
+                  <input type="checkbox" checked={whatsappReadyConsent}
+                    onChange={event=>setWhatsappReadyConsent(event.target.checked)} />
+                  <span>
+                    <strong>Avisar o cliente automaticamente quando o reparo estiver pronto</strong>
+                    <small>Confirme que o cliente autorizou receber essa mensagem no WhatsApp informado.
+                      O aviso será enviado ao marcar “Pronto para retirada”, somente com a
+                      integração oficial da assistência ativa. Não há envio na abertura da OS.</small>
+                  </span>
+                </label>
+              </div>
             )}
             <div className="form-grid">
               <label>
