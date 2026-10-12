@@ -156,6 +156,7 @@ test("notifications can close independently of the covered bell and restore focu
     useRef: () => ({ current: null }),
     useEffect: () => {},
     useCallback: (callback) => callback,
+    useMemo: (factory) => factory(),
   };
   const mocks = {
     react,
