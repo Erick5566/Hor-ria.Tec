@@ -98,6 +98,21 @@ export async function POST(request: Request) {
   if (reserved.error || typeof reserved.data!=="string")
     return json({error:"Você precisa de créditos pré-pagos para analisar fotos. Nenhuma chamada paga foi feita.",code:"CREDIT_REQUIRED"},402);
 
+  // Registrar no banco o início da chamada ANTES de contatar o provedor.
+  // Uma reserva não marcada não pode ser consumida externamente.
+  let started=false;
+  try {
+    const marked=await service.rpc("ai_mark_provider_started",{
+      p_reservation:reserved.data,p_empresa:company.id,p_actor:access.user.id,
+    });
+    started=!marked.error && marked.data===true;
+  } catch { started=false; }
+  if (!started) {
+    try { await service.rpc("ai_finalize_message",{p_reservation:reserved.data,p_success:false}); }
+    catch { /* conciliação manual em caso de indisponibilidade */ }
+    return json({error:"Não foi possível registrar a reserva de créditos. Nenhuma chamada paga foi realizada.",code:"RESERVATION_ERROR"},503);
+  }
+
   let providerReturned=false;
   let settled=false;
   try {
