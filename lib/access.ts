@@ -31,6 +31,7 @@ export type AccessContext = {
     slug: string;
     role: "OWNER" | "ADMIN" | "TECHNICIAN" | "ATTENDANT";
     status:
+      | "PENDING_PAYMENT"
       | "TRIAL"
       | "ACTIVE"
       | "PAST_DUE"

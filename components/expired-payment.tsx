@@ -8,11 +8,12 @@ const PIX_KEY = "veniciuskiwify@gmail.com";
 
 type Props = {
   hasApprovedPayment: boolean;
+  pendingActivation?: boolean;
   status: "TRIAL" | "ACTIVE" | "PAST_DUE" | "SUSPENDED" | "CANCELED";
   amounts?: { initialAmount: number; monthlyAmount: number };
 };
 
-export default function ExpiredPayment({ hasApprovedPayment, status, amounts }: Props) {
+export default function ExpiredPayment({ hasApprovedPayment, status, amounts, pendingActivation = false }: Props) {
   const router = useRouter();
   const [copied, setCopied] = useState(false);
   const payment = useMemo(
@@ -47,9 +48,11 @@ export default function ExpiredPayment({ hasApprovedPayment, status, amounts }: 
 
   return (
     <section className="state-card" aria-labelledby="payment-title">
-      <span className="eyebrow">PRAZO DE USO ENCERRADO</span>
-      <h1 id="payment-title">Sua assinatura venceu</h1>
-      <p>Para continuar usando a Horária, realize o PIX abaixo. A cobrança só desaparecerá e o acesso será liberado quando o administrador confirmar o pagamento.</p>
+      <span className="eyebrow">{pendingActivation ? "ATIVAÇÃO DA HORÁRIA" : "PRAZO DE USO ENCERRADO"}</span>
+      <h1 id="payment-title">{pendingActivation ? "Pague agora e ganhe 7 dias extras" : "Sua assinatura venceu"}</h1>
+      <p>{pendingActivation
+        ? "O pagamento inicial é realizado na contratação. Após a confirmação, você ganha 7 dias de bônus e começa seu primeiro mês de assinatura. A próxima mensalidade vence depois desse mês."
+        : "Para continuar usando a Horária, realize o PIX abaixo. O acesso será liberado quando o administrador confirmar o pagamento."}</p>
       <p><strong>{payment.heading}: {payment.amount.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}</strong></p>
       <img src={qr} alt="QR Code Pix da assinatura Horária" width={240} height={240} style={{ maxWidth: "100%", height: "auto", margin: "12px auto" }} />
       <p>Chave PIX: <strong>{PIX_KEY}</strong></p>

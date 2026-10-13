@@ -22,5 +22,8 @@ export async function database() {
     .filter((f) => f.endsWith(".sql"))
     .sort())
     await db.exec(await readFile("supabase/migrations/" + f, "utf8"));
+  // Testes legados exercitam fluxos de trial existentes; o novo fluxo imediato
+  // é ativado explicitamente nos testes específicos de cobrança.
+  await db.exec("update public.configuracoes_plataforma set upfront_payment_effective_at=null where id");
   return db;
 }
