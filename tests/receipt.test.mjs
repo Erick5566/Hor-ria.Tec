@@ -224,7 +224,7 @@ test("câmera: permissão tardia após desmontagem não deixa câmera ligada", a
   await new Promise((r) => setTimeout(r, 0));
   assert.ok(stream.track.stopped);
 });
-test("câmera: refazer libera stream anterior e negativa mantém alternativas de arquivo", async () => {
+test("câmera: refazer libera stream anterior e negativa não exibe botões de arquivo", async () => {
   const first = fakeStream(),
     second = fakeStream();
   let calls = 0;
@@ -247,9 +247,9 @@ test("câmera: refazer libera stream anterior e negativa mantém alternativas de
   await denied.click("Ativar câmera");
   assert.equal(
     denied.nodes("input").filter((n) => n.props.type === "file").length,
-    2,
+    0,
   );
-  assert.equal(denied.nodes("input")[0].props.capture, "environment");
+  assert.deepEqual(denied.nodes("button").filter(n => n.props['aria-label'] !== 'Fechar câmera').map(n => n.props.children), ['Ativar câmera']);
   denied.close();
 });
 test("recebimento: banco conserva YYYY-MM-DD e rejeita entrega anterior à entrada", async () => {
