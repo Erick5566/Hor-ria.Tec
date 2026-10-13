@@ -9,12 +9,14 @@ export default function InlineCamera({
   onCancel,
   guideLabel,
   guideInstruction,
+  autoStart = true,
 }: {
   onUse: (file: File) => void;
   onClose: () => void;
   onCancel?: () => void;
   guideLabel?: string;
   guideInstruction?: string;
+  autoStart?: boolean;
 }) {
   const video = useRef<HTMLVideoElement>(null);
   const stream = useRef<MediaStream | null>(null);
@@ -57,6 +59,7 @@ export default function InlineCamera({
     };
     window.addEventListener("pagehide", hide);
     document.addEventListener("visibilitychange", visibility);
+    if (autoStart) void start();
     return () => {
       mounted.current = false;
       stop();
@@ -65,7 +68,7 @@ export default function InlineCamera({
       window.removeEventListener("pagehide", hide);
       document.removeEventListener("visibilitychange", visibility);
     };
-  }, [stop]);
+  }, [stop, autoStart]);
   async function start(nextFacing = facing, nextDevice = "") {
     stop();
     clearPreview();
@@ -278,61 +281,37 @@ export default function InlineCamera({
                     ? "Tirar foto"
                     : "Ativar câmera"}
               </button>
-              <button
-                type="button"
-                className="outline"
-                disabled={busy}
-                onClick={() =>
-                  void start(facing === "environment" ? "user" : "environment")
-                }
-              >
-                Alternar frontal/traseira
-              </button>
-              {devices.length > 1 && (
-                <label>
-                  Câmera
-                  <select
-                    value={device}
-                    disabled={busy}
-                    onChange={(e) => void start(facing, e.target.value)}
-                  >
-                    {devices.map((d, i) => (
-                      <option key={d.deviceId} value={d.deviceId}>
-                        {d.label || `Câmera ${i + 1}`}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-              )}
             </>
           )}
         </div>
-        <div className="camera-actions">
-          <button
-            type="button"
-            className="outline"
-            onClick={() => {
-              stop();
-              setReady(false);
-              setBusy(false);
-              native.current?.click();
-            }}
-          >
-            Câmera do aparelho
-          </button>
-          <button
-            type="button"
-            className="outline"
-            onClick={() => {
-              stop();
-              setReady(false);
-              setBusy(false);
-              gallery.current?.click();
-            }}
-          >
-            Galeria / arquivos
-          </button>
-        </div>
+        {error && !ready && !busy && !preview && (
+          <div className="camera-actions">
+            <button
+              type="button"
+              className="outline"
+              onClick={() => {
+                stop();
+                setReady(false);
+                setBusy(false);
+                native.current?.click();
+              }}
+            >
+              Câmera do aparelho
+            </button>
+            <button
+              type="button"
+              className="outline"
+              onClick={() => {
+                stop();
+                setReady(false);
+                setBusy(false);
+                gallery.current?.click();
+              }}
+            >
+              Galeria / arquivos
+            </button>
+          </div>
+        )}
         <input
           ref={native}
           hidden
