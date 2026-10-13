@@ -16,7 +16,10 @@ test("nova contratação: PIX exigido agora, acesso após confirmação e 7 dias
     assert.equal(before.company.status,"PENDING_PAYMENT");
     assert.equal(before.billing.hasApprovedPayment,false);
     assert.equal((await db.query("select public_company_status($1) s",["primeiro-pix-novo"])).rows[0].s.state,"UNAVAILABLE");
-    await assert.rejects(db.query("select cadastrar_cliente($1,$2,$3)",[company,"Sem pagar","11999999999"]));
+    await assert.rejects(
+      db.query("insert into public.servicos(empresa_id,nome,duracao) values($1,'Bloqueado sem pagar',30)",[company]),
+      /indisponível|autorizado/i
+    );
     await db.exec("reset role");
     await db.query("update perfis set platform_role='SUPER_ADMIN' where usuario_id=$1",[owner]);
     await db.exec("set role authenticated");
