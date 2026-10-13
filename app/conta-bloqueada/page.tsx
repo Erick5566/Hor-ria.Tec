@@ -16,9 +16,10 @@ export default async function BlockedPage() {
     ? subscription.trialEndsAt
     : subscription?.nextBillingDate || subscription?.trialEndsAt;
   const isBillingExpired = !!dueAt && new Date(dueAt).getTime() <= Date.now();
-  const allowPayment = !!company && !!subscription
-    && company.status === "SUSPENDED"
-    && isBillingExpired;
+  const pendingActivation = company?.status === "PENDING_PAYMENT" &&
+    !billing?.hasApprovedPayment;
+  const allowPayment = pendingActivation || (!!company && !!subscription
+    && company.status === "SUSPENDED" && isBillingExpired);
 
   return (
     <main className="state-page">
@@ -26,6 +27,7 @@ export default async function BlockedPage() {
       {allowPayment && subscription ? (
         <ExpiredPayment
           status={subscription.status}
+          pendingActivation={pendingActivation}
           hasApprovedPayment={billing?.hasApprovedPayment ?? false}
           amounts={billing || undefined}
         />

@@ -9,20 +9,20 @@ export default function InlineCamera({
   onCancel,
   guideLabel,
   guideInstruction,
+  autoStart = true,
 }: {
   onUse: (file: File) => void;
   onClose: () => void;
   onCancel?: () => void;
   guideLabel?: string;
   guideInstruction?: string;
+  autoStart?: boolean;
 }) {
   const video = useRef<HTMLVideoElement>(null);
   const stream = useRef<MediaStream | null>(null);
   const request = useRef(0);
   const mounted = useRef(true);
   const previewUrl = useRef("");
-  const native = useRef<HTMLInputElement>(null),
-    gallery = useRef<HTMLInputElement>(null);
   const [preview, setPreview] = useState("");
   const [photo, setPhoto] = useState<File | null>(null);
   const [error, setError] = useState("");
@@ -57,6 +57,7 @@ export default function InlineCamera({
     };
     window.addEventListener("pagehide", hide);
     document.addEventListener("visibilitychange", visibility);
+    if (autoStart) void start();
     return () => {
       mounted.current = false;
       stop();
@@ -65,7 +66,7 @@ export default function InlineCamera({
       window.removeEventListener("pagehide", hide);
       document.removeEventListener("visibilitychange", visibility);
     };
-  }, [stop]);
+  }, [stop, autoStart]);
   async function start(nextFacing = facing, nextDevice = "") {
     stop();
     clearPreview();
@@ -76,11 +77,11 @@ export default function InlineCamera({
     try {
       if (!window.isSecureContext)
         throw new Error(
-          "Abra o sistema por HTTPS para usar a câmera ao vivo. Você também pode enviar uma foto abaixo.",
+          "Abra o sistema por HTTPS para usar a câmera ao vivo. Feche a câmera para usar a Galeria.",
         );
       if (!navigator.mediaDevices?.getUserMedia)
         throw new Error(
-          "Este navegador não oferece câmera ao vivo. Use a câmera do aparelho ou escolha um arquivo abaixo.",
+          "Este navegador não oferece câmera ao vivo. Feche este diálogo e use a Galeria.",
         );
       let next: MediaStream;
       try {
@@ -125,13 +126,13 @@ export default function InlineCamera({
       const e = caught as Error;
       setError(
         e.name === "NotAllowedError"
-          ? "Permissão da câmera negada. Nas configurações deste site no Safari/Chrome, permita a câmera e tente novamente. Você também pode escolher um arquivo."
+          ? "Permissão da câmera negada. Nas configurações deste site no Safari/Chrome, permita a câmera e tente novamente. Feche a câmera para usar a Galeria."
           : e.name === "NotFoundError"
-            ? "Nenhuma câmera encontrada. Conecte uma webcam ou escolha um arquivo."
+            ? "Nenhuma câmera encontrada. Conecte uma webcam ou feche este diálogo para usar a Galeria."
             : e.name === "NotReadableError"
-              ? "A câmera está ocupada ou indisponível. Feche outros aplicativos de câmera e tente novamente, ou escolha um arquivo."
+              ? "A câmera está ocupada ou indisponível. Feche outros aplicativos de câmera e tente novamente, ou feche este diálogo para usar a Galeria."
               : e.message ||
-                "Não foi possível iniciar a câmera. Escolha um arquivo abaixo.",
+                "Não foi possível iniciar a câmera. Feche este diálogo para usar a Galeria.",
       );
     } finally {
       if (mounted.current && token === request.current) setBusy(false);
@@ -185,7 +186,7 @@ export default function InlineCamera({
       if (mounted.current) {
         setReady(false);
         setError(
-          "Não foi possível capturar a foto. Ative a câmera novamente ou escolha um arquivo.",
+          "Não foi possível capturar a foto. Ative a câmera novamente ou feche este diálogo para usar a Galeria.",
         );
       }
     } finally {
@@ -211,7 +212,7 @@ export default function InlineCamera({
       aria-modal="true"
       aria-label="Câmera"
     >
-      <section className="camera-sheet">
+      <section className="camera-sheet camera-controls-separated">
         <div className="panel-head">
           <div>
             <h2>{guideLabel ? `Foto: ${guideLabel}` : "Tirar foto"}</h2>
@@ -278,84 +279,12 @@ export default function InlineCamera({
                     ? "Tirar foto"
                     : "Ativar câmera"}
               </button>
-              <button
-                type="button"
-                className="outline"
-                disabled={busy}
-                onClick={() =>
-                  void start(facing === "environment" ? "user" : "environment")
-                }
-              >
-                Alternar frontal/traseira
-              </button>
-              {devices.length > 1 && (
-                <label>
-                  Câmera
-                  <select
-                    value={device}
-                    disabled={busy}
-                    onChange={(e) => void start(facing, e.target.value)}
-                  >
-                    {devices.map((d, i) => (
-                      <option key={d.deviceId} value={d.deviceId}>
-                        {d.label || `Câmera ${i + 1}`}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-              )}
             </>
           )}
         </div>
-        <div className="camera-actions">
-          <button
-            type="button"
-            className="outline"
-            onClick={() => {
-              stop();
-              setReady(false);
-              setBusy(false);
-              native.current?.click();
-            }}
-          >
-            Câmera do aparelho
-          </button>
-          <button
-            type="button"
-            className="outline"
-            onClick={() => {
-              stop();
-              setReady(false);
-              setBusy(false);
-              gallery.current?.click();
-            }}
-          >
-            Galeria / arquivos
-          </button>
-        </div>
-        <input
-          ref={native}
-          hidden
-          type="file"
-          accept="image/*"
-          capture="environment"
-          onChange={(e) => {
-            useFile(e.target.files?.[0]);
-            e.target.value = "";
-          }}
-        />
-        <input
-          ref={gallery}
-          hidden
-          type="file"
-          accept="image/*"
-          onChange={(e) => {
-            useFile(e.target.files?.[0]);
-            e.target.value = "";
-          }}
-        />
       </section>
     </div>,
     document.body,
   );
 }
+

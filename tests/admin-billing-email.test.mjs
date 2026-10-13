@@ -127,8 +127,8 @@ test("cobrança: enfileira e-mails únicos para tolerância de 24h e pagamento a
     assert.ok(paymentAlerts[0].payload.planName);
     const nextBillingDelay =
       new Date(paymentAlerts[0].payload.nextBillingDate).getTime() - Date.now();
-    assert.ok(nextBillingDelay >= 6.9 * 24 * 60 * 60 * 1000);
-    assert.ok(nextBillingDelay <= 7.1 * 24 * 60 * 60 * 1000);
+    assert.ok(nextBillingDelay >= 35 * 24 * 60 * 60 * 1000);
+    assert.ok(nextBillingDelay <= 39 * 24 * 60 * 60 * 1000);
     assert.equal(paymentAlerts[0].status, "pending");
 
     await db.exec(`

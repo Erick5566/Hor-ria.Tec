@@ -21,6 +21,7 @@ export type CompanySummary = {
 export const adminStatusLabels: Record<string, string> = {
   ACTIVE: "Ativa",
   TRIAL: "Em teste",
+  PENDING_PAYMENT: "Aguardando pagamento inicial",
   PAST_DUE: "Pagamento pendente",
   SUSPENDED: "Suspensa",
   CANCELED: "Cancelada",
