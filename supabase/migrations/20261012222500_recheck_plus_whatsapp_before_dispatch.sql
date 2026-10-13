@@ -39,7 +39,7 @@ revoke all on private.whatsapp_aviso_revogacoes from public, anon, authenticated
 -- O funcionário pode revogar mesmo durante suspensão da assistência.
 -- A identidade da OS fica oculta de quem não pertence à mesma empresa.
 create or replace function public.revogar_aviso_whatsapp_ordem(p_ordem uuid)
-returns boolean language plpgsql security definer set search_path = '' as $
+returns boolean language plpgsql security definer set search_path = '' as $revogacao$
 declare
   v_empresa uuid;
 begin
@@ -56,7 +56,7 @@ begin
     values (p_ordem, v_empresa, auth.uid())
     on conflict (ordem_id) do nothing;
   return true;
-end $;
+end $revogacao$;
 revoke all on function public.revogar_aviso_whatsapp_ordem(uuid)
   from public, anon;
 grant execute on function public.revogar_aviso_whatsapp_ordem(uuid)
@@ -153,7 +153,7 @@ grant execute on function public.validar_envio_whatsapp_pronto(uuid)
 
 -- Reflete uma revogação mesmo quando o consentimento legado permanece gravado.
 create or replace function public.status_aviso_whatsapp_ordem(p_ordem uuid)
-returns jsonb language plpgsql stable security definer set search_path = '' as $
+returns jsonb language plpgsql stable security definer set search_path = '' as $status_os$
 declare
   o public.ordens_servico;
   n public.notificacoes;
@@ -186,7 +186,7 @@ begin
     'sentAt',n.enviado_em,
     'hasNotification',n.id is not null
   );
-end $;
+end $status_os$;
 revoke all on function public.status_aviso_whatsapp_ordem(uuid) from public,anon;
 grant execute on function public.status_aviso_whatsapp_ordem(uuid) to authenticated;
 
