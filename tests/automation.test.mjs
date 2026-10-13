@@ -31,6 +31,19 @@ test("automação: token seguro, peças livres e notificações idempotentes", a
         { problema: "Sem áudio" },
       ])
     ).rows[0].id;
+    // Habilitação explícita, apenas neste banco efêmero de testes:
+    // Plus + canal + consentimento do cliente para esta OS.
+    await db.exec("reset role");
+    await db.query(
+      "update public.assinaturas set plano_id=(select id from public.planos where codigo='HORARIA_PRO') where empresa_id=$1",
+      [eid],
+    );
+    await db.query(
+      "update public.empresas set feature_flags=jsonb_set(coalesce(feature_flags,'{}'::jsonb),'{whatsappEnabled}','true'::jsonb) where id=$1",
+      [eid],
+    );
+    await db.exec(`set request.jwt.claim.sub='${owner}';set role authenticated`);
+    await db.query("select configurar_aviso_whatsapp_ordem($1,true)",[oid]);
     const token = (
       await db.query(
         "select token_acompanhamento from ordens_servico where id=$1",

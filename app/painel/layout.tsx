@@ -6,6 +6,7 @@ import "../tutorial.css";
 import "../horaria-ai.css";
 import "../diagnosis-ai.css";
 import "../ai-plus-context.css";
+import "../ready-whatsapp.css";
 import type { Metadata } from "next";
 import Workspace from "@/components/workspace";
 import { redirect } from "next/navigation";
@@ -34,7 +35,7 @@ export default async function PanelLayout({
     redirect(access.context.isSuperAdmin ? "/admin" : "/manutencao");
   if (
     company &&
-    ["SUSPENDED", "CANCELED", "PENDING_DELETION"].includes(company.status)
+    ["PENDING_PAYMENT", "SUSPENDED", "CANCELED", "PENDING_DELETION"].includes(company.status)
   )
     redirect(`/conta-bloqueada?status=${company.status}`);
 

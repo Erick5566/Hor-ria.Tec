@@ -224,6 +224,7 @@ export default function Setup({ done }: { done: () => void }) {
             {error}
           </p>
         )}
+        <p className="notice">Ao configurar sua assistência, você verá o Pix de pagamento inicial. A assinatura começa após a confirmação; o primeiro pagamento inclui 7 dias extras antes do início do mês contratado.</p>
         <button disabled={busy} className="primary">
           {busy ? "Salvando…" : "Tudo pronto. Configurar assistência →"}
         </button>

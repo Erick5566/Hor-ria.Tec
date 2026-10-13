@@ -130,7 +130,7 @@ test("billing: approved payment preserves administrative suspension and commerci
     assert.equal((await state(a)).status, "SUSPENDED");
     const initialDue = (await state(a)).next_billing_date;
     const days = (new Date(initialDue) - Date.now()) / 86400000;
-    assert.ok(days > 6.99 && days <= 7.01);
+    assert.ok(days > 35 && days <= 39);
     await send("renewal", a, { amount: 49 });
     assert.ok(
       new Date((await state(a)).next_billing_date) > new Date(initialDue),

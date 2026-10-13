@@ -67,6 +67,23 @@ Deno.serve(async (request) => {
   if (claimError) return json({ error: claimError.message }, 500);
   if (!notification) return json({ ok: true, skipped: true });
 
+  // Não enviar mensagens antigas ou sem opt-in. A origem da autorização é
+  // a OS e a fila assinala readyConsent apenas após checagem de Plus no banco.
+  if (
+    notification.evento === "pronto_retirada" &&
+    notification.payload?.readyConsent !== true
+  ) {
+    await admin.from("notificacoes")
+      .update({
+        status: "falhou",
+        tentativas: notification.tentativas + 1,
+        ultimo_erro: "Aviso de retirada sem consentimento válido registrado nesta OS",
+        atualizado_em: new Date().toISOString(),
+      })
+      .eq("id", id);
+    return json({ ok: true, skipped: true, reason: "missing_consent" });
+  }
+
   const apiToken = Deno.env.get("WHATSAPP_ACCESS_TOKEN");
   const phoneId = Deno.env.get("WHATSAPP_PHONE_NUMBER_ID");
 
