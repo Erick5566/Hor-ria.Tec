@@ -41,3 +41,46 @@ jobs:
           }
           if (failed) process.exitCode = 1;
           NODE
+
+  deny-anonymous-access:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Conferir redirecionamento de rotas privadas e CSRF sem sessao
+        env:
+          BASE_URL: https://hor-ria-tec.vercel.app
+        run: |
+          node --input-type=module <<'NODE'
+          const origin = process.env.BASE_URL;
+          let failures = 0;
+          for (const route of ["/painel", "/painel/ordens", "/admin", "/admin/configuracoes"]) {
+            for (const cookie of ["", "horaria_access=invalid-session"]) {
+              const r = await fetch(new URL(route, origin), {
+                redirect: "manual",
+                signal: AbortSignal.timeout(12000),
+                headers: cookie ? {cookie} : {},
+              });
+              const next = r.headers.get("location") || "";
+              const pass = [302,303,307,308].includes(r.status) && next.includes("/entrar");
+              console.log(JSON.stringify({route,unauthorizedCookie:Boolean(cookie),status:r.status,redirect:next.slice(0,160),pass}));
+              if (!pass) failures++;
+            }
+          }
+          const cross = await fetch(new URL("/api/auth/session", origin), {
+            method: "POST",
+            headers: {"origin":"https://malicious.example.invalid","content-type":"application/json"},
+            body: JSON.stringify({accessToken:"invalid-session"}),
+            signal: AbortSignal.timeout(12000),
+          });
+          console.log(JSON.stringify({route:"/api/auth/session",test:"cross-origin",status:cross.status,pass:cross.status===403}));
+          if (cross.status!==403) failures++;
+          const noToken = await fetch(new URL("/api/auth/session", origin), {
+            method: "POST",
+            headers: {"origin":origin,"content-type":"application/json"},
+            body: "{}",
+            signal: AbortSignal.timeout(12000),
+          });
+          console.log(JSON.stringify({route:"/api/auth/session",test:"missing-token",status:noToken.status,pass:noToken.status===400}));
+          if (noToken.status!==400) failures++;
+          if (failures) {console.error("falhas=" + failures);process.exitCode=1;}
+          NODE
