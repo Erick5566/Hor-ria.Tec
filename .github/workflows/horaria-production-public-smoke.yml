@@ -84,3 +84,51 @@ jobs:
           if (noToken.status!==400) failures++;
           if (failures) {console.error("falhas=" + failures);process.exitCode=1;}
           NODE
+
+  responsive-public-pages:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - name: Instalar motor de automacao de navegador isolado
+        run: npm install --prefix /tmp/horaria-browser --no-audit --no-fund --silent playwright-core@1.56.0
+      - name: Verificar rolagem e cortes em celular tablet e notebook
+        env:
+          BASE_URL: https://hor-ria-tec.vercel.app
+        run: |
+          node <<'NODE'
+          const { chromium } = require("/tmp/horaria-browser/node_modules/playwright-core");
+          const { execFileSync } = require("node:child_process");
+          (async()=>{
+            const binary = execFileSync("which",["google-chrome"],{encoding:"utf8"}).trim();
+            const browser=await chromium.launch({headless:true,executablePath:binary,args:["--no-sandbox","--disable-dev-shm-usage"]});
+            let failed=0;
+            try{
+              const page=await browser.newPage();
+              for(const path of ["/","/entrar","/cadastro","/recuperar-senha"]){
+                for(const [width,height] of [[320,568],[390,844],[768,1024],[1366,768]]){
+                  await page.setViewportSize({width,height});
+                  const response=await page.goto(new URL(path,process.env.BASE_URL).href,{waitUntil:"domcontentloaded",timeout:20000});
+                  await page.waitForTimeout(650);
+                  const m=await page.evaluate(()=>{
+                    const w=window.innerWidth;
+                    const all=[...document.querySelectorAll("body *")];
+                    const offenders=all.filter(e=>{
+                      const s=getComputedStyle(e),r=e.getBoundingClientRect();
+                      if(s.display==="none"||s.visibility==="hidden"||!r.width||!r.height||e.closest('[aria-hidden="true"]'))return false;
+                      return r.right > w+2 || r.left < -2;
+                    }).slice(0,5).map(e=>({tag:e.tagName,cls:String(e.className).slice(0,55)}));
+                    const formButtons=[...document.querySelectorAll("button[type=submit]")].map(e=>{
+                      const r=e.getBoundingClientRect();
+                      return {label:e.textContent.trim().slice(0,45),visibleInViewport:r.top>=0&&r.bottom<=innerHeight+2};
+                    });
+                    return {docWidth:document.documentElement.scrollWidth,docHeight:document.documentElement.scrollHeight,viewportHeight:innerHeight,offenders,formButtons};
+                  });
+                  const ok=response?.status()===200 && m.docWidth<=width+2;
+                  console.log(JSON.stringify({path,width,height,httpStatus:response?.status(),ok,...m}));
+                  if(!ok)failed++;
+                }
+              }
+            }finally{await browser.close()}
+            if(failed){console.error("falhas_horizontais="+failed);process.exitCode=1}
+          })().catch(e=>{console.error(String(e));process.exitCode=1});
+          NODE
