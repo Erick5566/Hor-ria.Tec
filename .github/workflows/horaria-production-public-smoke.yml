@@ -111,7 +111,6 @@ jobs:
                   await page.setViewportSize({width,height});
                   const response=await page.goto(new URL(path,process.env.BASE_URL).href,{waitUntil:"domcontentloaded",timeout:20000});
                   await page.waitForTimeout(650);
-                  if (path === "/entrar" || path === "/cadastro") await page.addStyleTag({path:"tests/fixtures/auth-layout-probe.css"});
                   const m=await page.evaluate(()=>{
                     const w=window.innerWidth;
                     const all=[...document.querySelectorAll("body *")];
@@ -129,7 +128,14 @@ jobs:
                     });
                     return {docWidth:document.documentElement.scrollWidth,docHeight:document.documentElement.scrollHeight,viewportHeight:innerHeight,offenders,formButtons,diag};
                   });
-                  const ok=response?.status()===200 && m.docWidth<=width+2;
+                  const finalCta = m.diag?.authControls?.filter(x=>x.kind==="BUTTON").at(-1);
+                  const desktopFit= width===1366 && ["/entrar","/cadastro"].includes(path)
+                    ? m.docHeight<=height+2 && finalCta && finalCta.bottom<=height+2
+                    : true;
+                  const mobileLoginFit = path==="/entrar" && width===390
+                    ? finalCta && finalCta.bottom<=height+2
+                    : true;
+                  const ok=response?.status()===200 && m.docWidth<=width+2 && desktopFit && mobileLoginFit;
                   console.log(JSON.stringify({path,width,height,httpStatus:response?.status(),ok,...m}));
                   if(!ok)failed++;
                 }
