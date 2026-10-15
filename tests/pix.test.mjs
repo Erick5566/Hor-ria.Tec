@@ -52,7 +52,7 @@ test("pix: gera payload BR Code com chave, valor e CRC válido", async () => {
 test("auditoria PIX: Básico e Pro produzem valores e CRC corretos", async () => {
   const { buildPixPayload, pixCrc16, getSubscriptionPixPayment } =
     await loadPixModule();
-  for (const amount of [49, 80]) {
+  for (const amount of [44.99, 80]) {
     const payment = getSubscriptionPixPayment("PAST_DUE", true, {
       initialAmount: amount,
       monthlyAmount: amount,
@@ -74,10 +74,10 @@ test("pix: usa valor inicial apenas durante o trial", async () => {
 
   assert.equal(getSubscriptionPixPayment("TRIAL").amount, 44.99);
   assert.equal(getSubscriptionPixPayment(null).amount, 44.99);
-  assert.equal(getSubscriptionPixPayment("ACTIVE").amount, 49);
-  assert.equal(getSubscriptionPixPayment("PAST_DUE").amount, 49);
-  assert.equal(getSubscriptionPixPayment("SUSPENDED").amount, 49);
-  assert.equal(getSubscriptionPixPayment("CANCELED").amount, 49);
+  assert.equal(getSubscriptionPixPayment("ACTIVE").amount, 44.99);
+  assert.equal(getSubscriptionPixPayment("PAST_DUE").amount, 44.99);
+  assert.equal(getSubscriptionPixPayment("SUSPENDED").amount, 44.99);
+  assert.equal(getSubscriptionPixPayment("CANCELED").amount, 44.99);
 });
 
 test("pix: rejeita chave vazia e valores inválidos", async () => {
@@ -86,7 +86,7 @@ test("pix: rejeita chave vazia e valores inválidos", async () => {
   assert.throws(() =>
     buildPixPayload({
       key: "",
-      amount: 49,
+      amount: 44.99,
       merchantName: "Horária",
       merchantCity: "Camaçari",
     }),
@@ -102,10 +102,10 @@ test("pix: rejeita chave vazia e valores inválidos", async () => {
   );
 });
 
-test("pix: trial vencido sem pagamento aprovado mantém R$44,99, enquanto renovação custa R$49", async () => {
+test("pix: trial vencido sem pagamento aprovado mantém R$44,99, enquanto renovação custa R$44.99", async () => {
   const { getSubscriptionPixPayment } = await loadPixModule();
   assert.equal(getSubscriptionPixPayment("PAST_DUE", false).amount, 44.99);
   assert.equal(getSubscriptionPixPayment("SUSPENDED", false).amount, 44.99);
-  assert.equal(getSubscriptionPixPayment("PAST_DUE", true).amount, 49);
-  assert.equal(getSubscriptionPixPayment("TRIAL", true).amount, 49);
+  assert.equal(getSubscriptionPixPayment("PAST_DUE", true).amount, 44.99);
+  assert.equal(getSubscriptionPixPayment("TRIAL", true).amount, 44.99);
 });
