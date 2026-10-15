@@ -28,3 +28,30 @@
   [class*="authViewport"] [class*="authSubmit"] { padding: .55rem 1rem !important; }
   [class*="authViewport"] [class*="authBottom"] { margin-top: .3rem !important; }
 }
+
+/* Ajustes de refinamento após medir o posicionamento dos botões. */
+@media (max-width: 767px) {
+  [class*="authViewport"] [class*="brandSide"] [class*="horaria-hero-brand"] {
+    flex-direction: row !important;
+    justify-content: center !important;
+    align-items: center !important;
+    gap: .55rem !important;
+  }
+  [class*="authViewport"] [class*="brandSide"] [class*="horaria-hero-mark"] {
+    width: 3rem !important;
+    max-height: 3.25rem !important;
+  }
+  [class*="authViewport"] [class*="brandSide"] [class*="horaria-hero-wordmark"] {
+    font-size: 1.75rem !important;
+    margin: 0 !important;
+  }
+  [class*="authViewport"] [class*="hero"] { gap: .5rem !important; }
+  [class*="authViewport"] [class*="tagStage"] { padding: .25rem 0 0 !important; }
+  [class*="authViewport"] [class*="authTagCard"] { padding-top: 2rem !important; }
+}
+@media (min-width: 1024px) and (max-height: 820px) {
+  [class*="authViewport"] [class*="hero"] { padding-bottom: 0 !important; }
+  [class*="authViewport"] [class*="tagStage"] { padding: 0 !important; }
+  [class*="authViewport"] [class*="authTagCard"] { padding-bottom: .45rem !important; }
+  [class*="authViewport"] [class*="authBottom"] { margin-top: 0 !important; }
+}
