@@ -89,6 +89,8 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 8
     steps:
+      - name: Checkout do CSS experimental
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
       - name: Instalar motor de automacao de navegador isolado
         run: npm install --prefix /tmp/horaria-browser --no-audit --no-fund --silent playwright-core@1.56.0
       - name: Verificar rolagem e cortes em celular tablet e notebook
@@ -109,6 +111,7 @@ jobs:
                   await page.setViewportSize({width,height});
                   const response=await page.goto(new URL(path,process.env.BASE_URL).href,{waitUntil:"domcontentloaded",timeout:20000});
                   await page.waitForTimeout(650);
+                  if (path === "/entrar" || path === "/cadastro") await page.addStyleTag({path:"tests/fixtures/auth-layout-probe.css"});
                   const m=await page.evaluate(()=>{
                     const w=window.innerWidth;
                     const all=[...document.querySelectorAll("body *")];
