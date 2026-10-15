@@ -1,0 +1,43 @@
+name: Homologacao HTTP publica Horaria
+on:
+  push:
+    branches:
+      - release/horaria-4499-vercel-20261015
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  public-http-smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Verificar paginas publicas sem credenciais nem dados reais
+        env:
+          BASE_URL: https://hor-ria-tec.vercel.app
+        run: |
+          node --input-type=module <<'NODE'
+          const origin = process.env.BASE_URL;
+          const routes = ["/", "/entrar", "/cadastro", "/recuperar-senha", "/termos", "/privacidade"];
+          let failed = false;
+          for (const route of routes) {
+            try {
+              const res = await fetch(new URL(route, origin), {
+                redirect: "follow",
+                signal: AbortSignal.timeout(12000),
+                headers: {"user-agent":"Horaria-ReadOnly-Production-Smoke/1.0","accept":"text/html"}
+              });
+              const html = await res.text();
+              const vercelAuth = /Vercel Authentication|Authentication Required|_vercel\/sso|Vercel Security Checkpoint/i.test(html.slice(0,30000)) ||
+                /vercel\.com\/(login|sso)/i.test(res.url);
+              const ok = res.status === 200 && !vercelAuth;
+              console.log(JSON.stringify({route,status:res.status,finalUrl:res.url,vercelAuth,ok}));
+              if (!ok) failed = true;
+            } catch (err) {
+              console.log(JSON.stringify({route,ok:false,error:String(err).slice(0,250)}));
+              failed = true;
+            }
+          }
+          if (failed) process.exitCode = 1;
+          NODE
