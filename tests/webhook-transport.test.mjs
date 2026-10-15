@@ -76,10 +76,12 @@ async function whatsappHarness({
     },
   },
   transportStatus = 200,
+  eligibility = { data: true, error: null },
 } = {}) {
   const updates = [],
     sends = [],
-    filters = [];
+    filters = [],
+    eligibilityChecks = [];
   const env = {
     NOTIFICATION_WEBHOOK_SECRET: "test-secret",
     WHATSAPP_ACCESS_TOKEN: "isolated-token",
@@ -99,6 +101,10 @@ async function whatsappHarness({
       },
     },
     createClient: () => ({
+      rpc: async (name, args) => {
+        eligibilityChecks.push({ name, args });
+        return eligibility;
+      },
       from: (table) => {
         assert.equal(table, "notificacoes");
         const builder = {
@@ -138,7 +144,7 @@ async function whatsappHarness({
         headers: { "x-horaria-webhook-secret": secret },
       }),
     );
-  return { send, env, updates, sends, filters };
+  return { send, env, updates, sends, filters, eligibilityChecks };
 }
 
 test("cobrança: rejeita JSON malformado, null, lista e evento incompleto sem chamar banco", async () => {
@@ -231,6 +237,7 @@ test("WhatsApp: mensagem pronta e orçamento usam templates e registram sucesso"
     );
     assert.equal(h.updates.at(-1).status, "enviada");
     assert.equal(h.updates.at(-1).tentativas, 3);
+    assert.equal(h.eligibilityChecks.length, evento === "pronto_retirada" ? 1 : 0);
   }
 });
 test("WhatsApp: evento já processado não envia novamente", async () => {
@@ -351,4 +358,27 @@ test("WhatsApp automático: aviso legado de retirada sem autorização nunca é 
   assert.equal((await response.json()).reason,"missing_consent");
   assert.equal(h.sends.length,0);
   assert.equal(h.updates.at(-1).status,"falhou");
+});
+
+test("WhatsApp: revalidação impede envio após downgrade, opt-out ou canal desativado", async () => {
+  const h = await whatsappHarness({
+    eligibility: { data: false, error: null },
+  });
+  const response = await h.send();
+  assert.equal(response.status, 200);
+  assert.equal((await response.json()).reason, "no_longer_authorized");
+  assert.equal(h.sends.length, 0);
+  assert.equal(h.updates.at(-1).status, "falhou");
+  assert.equal(h.eligibilityChecks[0].name, "validar_envio_whatsapp_pronto");
+});
+
+test("WhatsApp: falha na consulta de segurança bloqueia envio e não faz chamada Meta", async () => {
+  const h = await whatsappHarness({
+    eligibility: { data: null, error: { message: "DB offline" } },
+  });
+  const response = await h.send();
+  assert.equal(response.status, 503);
+  assert.equal((await response.json()).error, "authorization_check_unavailable");
+  assert.equal(h.sends.length, 0);
+  assert.equal(h.updates.at(-1).status, "falhou");
 });
