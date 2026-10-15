@@ -1,0 +1,30 @@
+/* Experimental only: injected into browser tests; not loaded by production. */
+@media (max-width: 767px) {
+  [class*="authViewport"] [class*="topbar"] { padding: .5rem .75rem !important; }
+  [class*="authViewport"] [class*="hero"] { gap: .75rem !important; padding: .25rem .75rem 1rem !important; }
+  [class*="authViewport"] [class*="brandSide"] [class*="horaria-hero-mark"] { width: clamp(3.75rem, 16vw, 4.5rem) !important; max-height: 4.5rem !important; }
+  [class*="authViewport"] [class*="brandSide"] [class*="horaria-hero-wordmark"] { font-size: 1.75rem !important; margin: .2rem 0 0 !important; }
+  [class*="authViewport"] [class*="eyebrow"] { margin: .3rem 0 0 !important; font-size: .69rem !important; line-height: 1.25 !important; }
+  [class*="authViewport"] [class*="brandSide"] h1 { margin: .25rem 0 0 !important; font-size: 1.05rem !important; line-height: 1.2 !important; }
+  [class*="authViewport"] [class*="authHomeLink"] { margin: .25rem 0 0 !important; min-height: 2rem !important; }
+  [class*="authViewport"] [class*="tagStage"] { padding: .75rem 0 0 !important; }
+  [class*="authViewport"] [class*="authTagCard"] { padding-top: 2.25rem !important; }
+}
+@media (min-width: 769px) and (max-height: 820px) {
+  [class*="authViewport"] [class*="hero"] { gap: 1.25rem !important; padding-top: 0 !important; padding-bottom: .5rem !important; }
+  [class*="authViewport"] [class*="brandSide"] [class*="horaria-hero-mark"] { width: clamp(7.5rem, 16vh, 10rem) !important; max-height: 16vh !important; }
+  [class*="authViewport"] [class*="brandSide"] [class*="horaria-hero-wordmark"] { font-size: clamp(2rem, 4vh, 2.7rem) !important; margin: .25rem 0 0 !important; }
+  [class*="authViewport"] [class*="eyebrow"] { margin: .35rem 0 0 !important; }
+  [class*="authViewport"] [class*="brandSide"] h1 { margin: .35rem 0 0 !important; font-size: 1.4rem !important; }
+  [class*="authViewport"] [class*="authHomeLink"] { margin: .3rem 0 0 !important; min-height: 2.1rem !important; }
+  [class*="authViewport"] [class*="tagStage"] { padding: .25rem 0 !important; }
+  [class*="authViewport"] [class*="authTagCard"] { padding-top: 2.25rem !important; padding-bottom: .75rem !important; gap: .5rem !important; }
+  [class*="authViewport"] [class*="authForm"],
+  [class*="authViewport"] [class*="authFieldsGrid"] { gap: .5rem !important; }
+  [class*="authViewport"] [class*="authInput"] { min-height: 2.5rem !important; padding: .4rem 0 !important; }
+  [class*="authViewport"] [class*="authCaptcha"] { min-height: 4rem !important; }
+  [class*="authViewport"] [class*="authLegal"] { min-height: 2.5rem !important; padding: .5rem !important; }
+  [class*="authViewport"] [class*="tagFooter"] { gap: .5rem !important; padding-top: .2rem !important; }
+  [class*="authViewport"] [class*="authSubmit"] { padding: .55rem 1rem !important; }
+  [class*="authViewport"] [class*="authBottom"] { margin-top: .3rem !important; }
+}
