@@ -1,7 +1,7 @@
 const PIX_GUI = "BR.GOV.BCB.PIX";
 
 export const INITIAL_PAYMENT_AMOUNT = 44.99;
-export const MONTHLY_PAYMENT_AMOUNT = 49;
+export const MONTHLY_PAYMENT_AMOUNT = 44.99;
 
 function field(id: string, value: string) {
   return `${id}${String(value.length).padStart(2, "0")}${value}`;
