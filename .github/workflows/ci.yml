@@ -2,7 +2,7 @@ name: CI
 
 on:
   push:
-    branches: [dev, main]
+    branches: [dev, main, 'release/horaria-4499-vercel-20261015']
   pull_request:
     branches: [main]
 
