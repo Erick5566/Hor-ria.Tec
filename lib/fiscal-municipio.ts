@@ -31,6 +31,11 @@ export function ufValida(uf: string) {
   return Object.hasOwn(codigoUF, uf);
 }
 
+export function codigoMunicipioCompativel(codigo: string, uf: string) {
+  const prefixo = codigoUF[uf];
+  return Boolean(prefixo) && /^\d{7}$/.test(codigo) && codigo.startsWith(prefixo);
+}
+
 export function normalizarMunicipio(value: string) {
   return value
     .normalize("NFD")
@@ -54,7 +59,7 @@ function encontrarMunicipio(
 
     const codigo = String(row.id ?? row.codigo_ibge ?? "");
     // Nunca converter/truncar um código de origem incerta.
-    if (!/^\d{7}$/.test(codigo) || !codigo.startsWith(codigoUF[uf]))
+    if (!codigoMunicipioCompativel(codigo, uf))
       continue;
 
     return { codigo, cidade: row.nome, uf };
