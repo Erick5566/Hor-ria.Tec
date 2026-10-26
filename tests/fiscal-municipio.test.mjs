@@ -7,7 +7,7 @@ const source = await readFile(new URL("../lib/fiscal-municipio.ts", import.meta.
 const compiled = ts.transpileModule(source, {
   compilerOptions: { target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.ESNext },
 });
-const { resolverMunicipio, ufValida, normalizarMunicipio } = await import(
+const { resolverMunicipio, ufValida, normalizarMunicipio, codigoMunicipioCompativel } = await import(
   `data:text/javascript;base64,${Buffer.from(compiled.outputText).toString("base64")}`
 );
 
@@ -45,6 +45,10 @@ test("fiscal: não aceita correspondência aproximada nem código de outra UF", 
   assert.equal(partial.municipio, null);
   const wrongCode = await resolverMunicipio("Camaçari", "BA", mockFetch([], [{ codigo_ibge: "3550308", nome: "Camaçari" }]));
   assert.equal(wrongCode.municipio, null);
+  assert.equal(codigoMunicipioCompativel("2905701", "BA"), true);
+  assert.equal(codigoMunicipioCompativel("3550308", "BA"), false);
+  assert.equal(codigoMunicipioCompativel("290570", "BA"), false);
+  assert.equal(codigoMunicipioCompativel("2999999", "BA"), true); // Faixa da UF, existência do município depende do IBGE.
   assert.equal(ufValida("ZZ"), false);
   assert.equal(normalizarMunicipio("  São   José d'Ávila "), "sao jose d avila");
 });
