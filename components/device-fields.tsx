@@ -8,11 +8,11 @@ import {
 } from "@/lib/device-catalog";
 
 const deviceCategoryImages: Record<string, string> = {
-  "Fone de ouvido": "/devices/fone.png",
-  "Celular": "/devices/celular.png",
-  "Notebook": "/devices/notebook.png",
-  "Tablet": "/devices/tablet.png",
-  "Outro": "/devices/outros.png",
+  "Fone de ouvido": "/devices/fone-foto.png",
+  "Celular": "/devices/celular-foto.png",
+  "Notebook": "/devices/notebook-foto.png",
+  "Tablet": "/devices/tablet-foto.png",
+  "Outro": "/devices/outros-foto.png",
 };
 
 export function DeviceGlyph({ type = "phone" }: { type?: string }) {
