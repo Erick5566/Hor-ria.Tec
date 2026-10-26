@@ -11,7 +11,7 @@ declare global {
           sitekey: string;
           callback: (token: string) => void;
           "expired-callback": () => void;
-          "error-callback": (errorCode?: string) => void;
+          "error-callback": (errorCode?: string) => boolean | void;
           theme: "auto";
           size: "normal" | "compact" | "flexible";
         },
@@ -74,10 +74,12 @@ function loadScript() {
 export default function Turnstile({
   siteKey,
   onToken,
+  onError,
   size = "flexible",
 }: {
   siteKey: string;
   onToken: (token: string) => void;
+  onError?: (code?: string) => void;
   size?: "normal" | "compact" | "flexible";
 }) {
   const ref = useRef<HTMLDivElement>(null);
@@ -111,6 +113,8 @@ export default function Turnstile({
               code || "desconhecido",
             );
             onToken("");
+            onError?.(code);
+            return true;
           },
           theme: "auto",
           size: widgetSize,
@@ -119,13 +123,14 @@ export default function Turnstile({
       .catch((error) => {
         console.error("[Turnstile] Falha ao carregar script:", error);
         onToken("");
+        onError?.("SCRIPT_LOAD_ERROR");
       });
 
     return () => {
       active = false;
       if (widgetId && window.turnstile) window.turnstile.remove(widgetId);
     };
-  }, [siteKey, onToken, widgetSize]);
+  }, [siteKey, onToken, onError, widgetSize]);
 
   return (
     <div className="booking-turnstile" aria-label="Verificação de segurança">

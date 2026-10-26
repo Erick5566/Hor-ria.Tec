@@ -23,6 +23,7 @@ function render(file, search, props = {}) {
     },
     "@/lib/supabase": { configured: true, supabase: null, publicDb: null },
     "@/lib/turnstile-config": { turnstileSiteKey: "test" },
+    "@/lib/turnstile-errors": { turnstileErrorMessage: () => "Falha na verificação" },
     "./brand": { Brand: stub, MissingConfig: stub },
     "./turnstile": { __esModule: true, default: stub },
     "@/components/horaria-hero-brand": { __esModule: true, default: stub },

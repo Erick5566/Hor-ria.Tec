@@ -4205,3 +4205,36 @@
 @media (min-width: 80rem) {
   .page:is(.homeViewport, .authViewport) .hero { padding-inline: clamp(2rem, 4vw, 4rem); }
 }
+
+/* Falhas do Turnstile: orientação acessível, sem liberar envio sem token válido. */
+.page.authViewport .authCaptchaRecovery {
+  display: grid;
+  gap: .45rem;
+  padding: .65rem .75rem;
+  color: #822d29;
+  background: #f9e9e5;
+  border: 1px solid #e8c3bc;
+  border-radius: 8px;
+  font-size: .8125rem;
+  line-height: 1.4;
+}
+.page.authViewport .authCaptchaRecovery p {
+  margin: 0;
+}
+.page.authViewport .authRetryCaptcha {
+  justify-self: start;
+  background: transparent;
+  border: 0;
+  padding: .3rem 0;
+  color: #1a5cff;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: .2em;
+  font: inherit;
+  font-weight: 700;
+}
+.page.authViewport .authRetryCaptcha:focus-visible {
+  outline: 2px solid #1a5cff;
+  outline-offset: 3px;
+  border-radius: 2px;
+}
