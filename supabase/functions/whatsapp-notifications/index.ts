@@ -135,6 +135,29 @@ Deno.serve(async (request) => {
           link,
         ];
 
+  // O opt-in armazenado na fila não basta: assinatura, empresa, canal,
+  // telefone e status da OS podem mudar antes da execução. Esta RPC lê a
+  // condição atual e só é executável pelo service_role.
+  if (notification.evento === "pronto_retirada") {
+    const { data: authorized, error: authorizationError } = await admin.rpc(
+      "validar_envio_whatsapp_pronto",
+      { p_notificacao: id },
+    );
+    if (authorizationError || authorized !== true) {
+      await admin.from("notificacoes").update({
+        status: "falhou",
+        tentativas: notification.tentativas + 1,
+        ultimo_erro: authorizationError
+          ? "Validação de consentimento indisponível; envio bloqueado"
+          : "Aviso não autorizado no momento do envio",
+        atualizado_em: new Date().toISOString(),
+      }).eq("id", id).eq("status", "processando");
+      if (authorizationError)
+        return json({ error: "authorization_check_unavailable" }, 503);
+      return json({ ok: true, skipped: true, reason: "no_longer_authorized" });
+    }
+  }
+
   try {
     const response = await fetch(
       `https://graph.facebook.com/${Deno.env.get("WHATSAPP_GRAPH_VERSION") ?? "v23.0"}/${phoneId}/messages`,
