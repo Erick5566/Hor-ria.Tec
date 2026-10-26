@@ -5,6 +5,7 @@ import ResponsiveTable from "@/components/responsive-table";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { supabase, message } from "@/lib/supabase";
+import { codigoMunicipioCompativel, ufValida } from "@/lib/fiscal-municipio";
 import { useWorkspace } from "./workspace";
 import { ErrorBox, Empty, PanelTitle, SemanticBadge } from "./ui";
 
@@ -262,9 +263,9 @@ export default function FiscalNotes({
   }, [load]);
 
   const basicDataComplete = useMemo(() => {
-    const hasMunicipalityCode = /^\d{7}$/.test(settings.codigo_municipio || "");
+    const hasMunicipalityCode = codigoMunicipioCompativel(settings.codigo_municipio || "", uf.trim().toUpperCase());
     const canResolveMunicipality =
-      city.trim().length >= 2 && /^[A-Z]{2}$/.test(uf.trim().toUpperCase());
+      city.trim().length >= 2 && ufValida(uf.trim().toUpperCase());
     return (
       (settings.cnpj || "").replace(/\D/g, "").length === 14 &&
       Boolean(settings.razao_social?.trim()) &&
@@ -386,7 +387,11 @@ export default function FiscalNotes({
     setError("");
     setNotice("");
     let codigoMunicipio = settings.codigo_municipio || "";
-    if (!/^\d{7}$/.test(codigoMunicipio)) {
+    if (codigoMunicipio.length > 0 && !codigoMunicipioCompativel(codigoMunicipio, uf.trim().toUpperCase())) {
+      setError("O código IBGE deve ter 7 dígitos e pertencer à UF informada. Confira o código oficial do município.");
+      return;
+    }
+    if (!codigoMunicipioCompativel(codigoMunicipio, uf.trim().toUpperCase())) {
       if (city.trim().length < 2 || !/^[A-Z]{2}$/.test(uf.trim().toUpperCase())) {
         setError("Informe a cidade e a UF para localizarmos o município automaticamente.");
         return;
