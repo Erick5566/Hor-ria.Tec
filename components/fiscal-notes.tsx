@@ -140,7 +140,7 @@ export default function FiscalNotes({
   const [city, setCity] = useState(empresa.cidade || "");
   const [uf, setUf] = useState((empresa.estado || "").toUpperCase());
   const [municipalityStatus, setMunicipalityStatus] = useState<
-    "idle" | "loading" | "found"
+    "idle" | "loading" | "found" | "unavailable"
   >("idle");
   const [documents, setDocuments] = useState<FiscalDocument[]>([]);
   const [orders, setOrders] = useState<OrderOption[]>([]);
@@ -383,6 +383,8 @@ export default function FiscalNotes({
       return;
     }
 
+    setError("");
+    setNotice("");
     let codigoMunicipio = settings.codigo_municipio || "";
     if (!/^\d{7}$/.test(codigoMunicipio)) {
       if (city.trim().length < 2 || !/^[A-Z]{2}$/.test(uf.trim().toUpperCase())) {
@@ -401,7 +403,12 @@ export default function FiscalNotes({
           cidade?: string;
           uf?: string;
           error?: string;
+          code?: string;
         };
+        if (response.status === 503 && data.code === "MUNICIPIO_LOOKUP_UNAVAILABLE") {
+          setMunicipalityStatus("unavailable");
+          return;
+        }
         if (!response.ok || !data.codigo)
           throw new Error(data.error || "Não foi possível localizar o município.");
 
@@ -410,6 +417,10 @@ export default function FiscalNotes({
         setUf(data.uf || uf);
         setMunicipalityStatus("found");
       } catch (caught) {
+        if (caught instanceof TypeError) {
+          setMunicipalityStatus("unavailable");
+          return;
+        }
         setMunicipalityStatus("idle");
         setError(message(caught as Error));
         return;
@@ -735,21 +746,61 @@ export default function FiscalNotes({
               <small>
                 {municipalityStatus === "loading"
                   ? "Buscando código do município…"
-                  : municipalityStatus === "found" || /^\d{7}$/.test(settings.codigo_municipio || "")
-                    ? "Município identificado automaticamente."
-                    : "O código IBGE será preenchido automaticamente ao continuar."}
+                  : municipalityStatus === "unavailable"
+                    ? /^\d{7}$/.test(settings.codigo_municipio || "")
+                      ? "Código informado manualmente. Confira no IBGE antes de continuar."
+                      : "Consulta automática indisponível. Utilize o código oficial do IBGE."
+                    : municipalityStatus === "found" || /^\d{7}$/.test(settings.codigo_municipio || "")
+                      ? "Município identificado."
+                      : "O código IBGE será preenchido automaticamente ao continuar."}
               </small>
             </label>
           </div>
+
+          {municipalityStatus === "unavailable" && (
+            <div className="notice" role="status" style={{ marginTop: 16 }}>
+              <p>
+                A consulta automática do município está indisponível.
+                Tente novamente ou informe o código após conferi-lo no portal do IBGE.
+                Os demais dados preenchidos foram preservados.
+              </p>
+              <label>
+                Código IBGE do município (7 dígitos)
+                <input
+                  value={settings.codigo_municipio || ""}
+                  disabled={!canManage || busy}
+                  inputMode="numeric"
+                  maxLength={7}
+                  placeholder="Ex.: 2905701"
+                  onChange={(event) =>
+                    setSettings((current) => ({
+                      ...current,
+                      codigo_municipio: event.target.value.replace(/\D/g, "").slice(0, 7),
+                      dados_confirmados: false,
+                    }))
+                  }
+                />
+              </label>
+              <small>
+                <a
+                  href="https://www.ibge.gov.br/explica/codigos-dos-municipios.php"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  Consultar o código no site oficial do IBGE
+                </a>
+              </small>
+            </div>
+          )}
 
           <div className="inline-actions" style={{ marginTop: 16 }}>
             <button
               className="primary"
               type="button"
-              disabled={!canManage || busy}
+              disabled={!canManage || busy || municipalityStatus === "loading"}
               onClick={() => void completeCompanyData()}
             >
-              {busy ? "Salvando…" : "Salvar e continuar"}
+              {busy ? "Salvando…" : municipalityStatus === "loading" ? "Consultando município…" : "Salvar e continuar"}
             </button>
           </div>
         </section>
