@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Brand, MissingConfig } from "./brand";
@@ -12,6 +12,7 @@ import {
 } from "@/lib/supabase";
 import type { AccessContext } from "@/lib/access";
 import { turnstileSiteKey } from "@/lib/turnstile-config";
+import { turnstileErrorMessage } from "@/lib/turnstile-errors";
 import styles from "@/app/home.module.css";
 import HorariaHeroBrand from "@/components/horaria-hero-brand";
 
@@ -82,7 +83,16 @@ export default function AuthPage({ mode }: { mode: "login" | "signup" }) {
     [notice, setNotice] = useState(""),
     [registration, setRegistration] = useState<RegistrationStatus | null>(null),
     [captchaToken, setCaptchaToken] = useState(""),
-    [captchaResetKey, setCaptchaResetKey] = useState(0);
+    [captchaResetKey, setCaptchaResetKey] = useState(0),
+    [captchaError, setCaptchaError] = useState("");
+  const onCaptchaToken = useCallback((token: string) => {
+    setCaptchaToken(token);
+    if (token) setCaptchaError("");
+  }, []);
+  const onCaptchaError = useCallback((code?: string) => {
+    setCaptchaToken("");
+    setCaptchaError(turnstileErrorMessage(code));
+  }, []);
   useEffect(() => {
     publicDb
       ?.rpc("registration_status")
@@ -133,7 +143,7 @@ export default function AuthPage({ mode }: { mode: "login" | "signup" }) {
     }
 
     if (turnstileSiteKey && !captchaToken) {
-      setNotice("Conclua a verificação de segurança para continuar.");
+      setNotice(captchaError || "Conclua a verificação de segurança para continuar.");
       return;
     }
 
@@ -231,6 +241,10 @@ export default function AuthPage({ mode }: { mode: "login" | "signup" }) {
         typeof error === "object" && error !== null && "status" in error
           ? Number((error as { status?: number }).status)
           : 0;
+      const errorCode =
+        typeof error === "object" && error !== null && "code" in error
+          ? String((error as { code?: string }).code || "")
+          : "";
 
       if (
         status === 429 ||
@@ -241,6 +255,15 @@ export default function AuthPage({ mode }: { mode: "login" | "signup" }) {
             ? message
             : "Muitas tentativas em pouco tempo. Aguarde alguns minutos e tente novamente.",
         );
+      } else if (
+        errorCode === "invalid_credentials" ||
+        /invalid login credentials/i.test(message)
+      ) {
+        setNotice("E-mail ou senha incorretos. Confira os dados ou utilize 'Esqueci minha senha'.");
+      } else if (errorCode === "email_not_confirmed") {
+        setNotice("Confirme seu e-mail antes de entrar. Verifique também a caixa de spam.");
+      } else if (signup && errorCode === "user_already_exists") {
+        setNotice("Já existe uma conta com este e-mail. Entre com sua senha ou recupere o acesso.");
       } else if (/captcha/i.test(message)) {
         setNotice(
           turnstileSiteKey
@@ -486,13 +509,33 @@ export default function AuthPage({ mode }: { mode: "login" | "signup" }) {
                   )}
 
                   {turnstileSiteKey && (
-                    <div className={styles.authCaptcha}>
-                      <Turnstile
-                        key={captchaResetKey}
-                        siteKey={turnstileSiteKey}
-                        onToken={setCaptchaToken}
-                      />
-                    </div>
+                    <>
+                      <div className={styles.authCaptcha}>
+                        <Turnstile
+                          key={captchaResetKey}
+                          siteKey={turnstileSiteKey}
+                          onToken={onCaptchaToken}
+                          onError={onCaptchaError}
+                        />
+                      </div>
+                      {captchaError && (
+                        <div className={styles.authCaptchaRecovery} role="alert">
+                          <p>{captchaError}</p>
+                          <button
+                            type="button"
+                            className={styles.authRetryCaptcha}
+                            onClick={() => {
+                              setCaptchaError("");
+                              setCaptchaToken("");
+                              setNotice("");
+                              setCaptchaResetKey((current) => current + 1);
+                            }}
+                          >
+                            Tentar verificação novamente
+                          </button>
+                        </div>
+                      )}
+                    </>
                   )}
 
                   <div
