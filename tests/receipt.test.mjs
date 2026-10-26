@@ -54,7 +54,9 @@ test("recebimento: data pura e horário Fortaleza sobrevivem à gravação e vir
 });
 function cameraHarness(getUserMedia, secure = true) {
   const hooks = [],
-    cleanups = [];
+    cleanups = [],
+    saved = [];
+  let closed = 0;
   let index = 0,
     tree,
     initial = true;
@@ -129,13 +131,22 @@ function cameraHarness(getUserMedia, secure = true) {
         ];
   const render = () => {
     index = 0;
-    tree = C({ onUse() {}, onClose() {} });
+    tree = C({
+      onUse(file) {
+        saved.push(file);
+      },
+      onClose() {
+        closed++;
+      },
+    });
     initial = false;
     all(tree, "video")[0].props.ref.current = media;
   };
   render();
   return {
     render,
+    saved,
+    closed: () => closed,
     nodes: (t) => all(tree, t),
     click: async (label) => {
       const b = all(tree, "button").find(
@@ -192,20 +203,17 @@ test("câmera: permissão tardia após desmontagem não deixa câmera ligada", a
   await new Promise((r) => setTimeout(r, 0));
   assert.ok(stream.track.stopped);
 });
-test("câmera: troca libera stream anterior e negativa mantém alternativas de arquivo", async () => {
-  const first = fakeStream(),
-    second = fakeStream();
-  let calls = 0;
+test("câmera: seleção frontal antes da captura e negativa mantém alternativas de arquivo", async () => {
+  const stream = fakeStream();
   const h = cameraHarness(async (c) => {
-    calls++;
-    if (calls === 2) assert.equal(c.video.facingMode.ideal, "user");
-    return calls === 1 ? first : second;
+    assert.equal(c.video.facingMode.ideal, "user");
+    return stream;
   });
-  await h.click("Ativar câmera");
   await h.click("Alternar frontal/traseira");
-  assert.ok(first.track.stopped);
+  await h.click("Fechar câmera");
+  assert.ok(stream.track.stopped);
+  assert.equal(h.closed(), 1);
   h.close();
-  assert.ok(second.track.stopped);
   const denied = cameraHarness(async () => {
     const e = new Error("denied");
     e.name = "NotAllowedError";
@@ -219,6 +227,38 @@ test("câmera: troca libera stream anterior e negativa mantém alternativas de a
   assert.equal(denied.nodes("input")[0].props.capture, "environment");
   denied.close();
 });
+test("câmera: fontes ocultas na captura, confirmação, refazer e entrega da foto", async () => {
+  const streams = [];
+  const h = cameraHarness(async () => {
+    const stream = fakeStream();
+    streams.push(stream);
+    return stream;
+  });
+  const labels = () =>
+    h
+      .nodes("button")
+      .filter((n) => n.props["aria-label"] !== "Fechar câmera")
+      .map((n) => n.props.children);
+  assert.ok(labels().includes("Câmera do aparelho"));
+  assert.ok(labels().includes("Galeria / arquivos"));
+  await h.click("Ativar câmera");
+  assert.deepEqual(labels(), ["Tirar foto"]);
+  await h.click("Tirar foto");
+  assert.deepEqual(labels(), ["Refazer foto", "Usar foto"]);
+  assert.equal(h.saved.length, 0);
+  assert.ok(streams[0].track.stopped);
+  await h.click("Refazer foto");
+  assert.deepEqual(labels(), ["Tirar foto"]);
+  assert.equal(h.nodes("img").length, 0);
+  await h.click("Tirar foto");
+  await h.click("Usar foto");
+  assert.equal(h.saved.length, 1);
+  assert.equal(h.saved[0].type, "image/jpeg");
+  assert.equal(h.closed(), 1);
+  assert.ok(streams.every((s) => s.track.stopped));
+  h.close();
+});
+
 test("recebimento: banco conserva YYYY-MM-DD e rejeita entrega anterior à entrada", async () => {
   const db = await database();
   try {

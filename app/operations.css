@@ -8153,6 +8153,46 @@ button.danger,
 }
 
 
+/* Keep capture controls in normal flow while the preview absorbs available height. */
+.camera-backdrop-portal .camera-sheet {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow-y: auto;
+  padding-bottom: max(12px, env(safe-area-inset-bottom));
+}
+
+.camera-backdrop-portal .camera-sheet > :not(.camera-stage) {
+  flex-shrink: 0;
+}
+
+.camera-backdrop-portal .camera-stage {
+  flex: 1 1 0;
+  min-height: 0;
+  height: auto;
+  max-height: none;
+}
+
+.camera-backdrop-portal .camera-stage .camera-preview {
+  height: 100%;
+  max-height: none;
+  object-fit: contain;
+}
+
+.camera-backdrop-portal .camera-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  position: static;
+  gap: 8px;
+  width: 100%;
+}
+
+.camera-backdrop-portal .camera-actions button {
+  min-height: 44px;
+  max-width: 100%;
+}
+
 /* Compact orders table spacing */
 .orders-pro .orders-table-wrap {
   overflow-x: auto;
