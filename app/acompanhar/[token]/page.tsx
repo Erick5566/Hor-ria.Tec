@@ -3,6 +3,7 @@ import { use, useCallback, useEffect, useState } from "react";
 import { Brand } from "@/components/brand";
 import TrackingResult, { Repair } from "@/components/tracking-result";
 import { ErrorBox } from "@/components/ui";
+import { useTrackingRefresh } from "@/lib/use-tracking-refresh";
 import { publicDb } from "@/lib/supabase";
 
 export default function DirectTracking({
@@ -16,24 +17,42 @@ export default function DirectTracking({
     [busy, setBusy] = useState(true),
     [note, setNote] = useState("");
 
-  const load = useCallback(async () => {
-    const result = await publicDb!.functions.invoke("public-tracking", {
-      body: { action: "lookup-token", token },
-    });
-    if (result.error)
-      throw new Error("Não foi possível consultar o atendimento agora.");
-    if (!result.data?.ok || !result.data.data)
-      throw new Error(
-        result.data?.error || "Este link de acompanhamento não é válido.",
-      );
-    setData(result.data.data as Repair);
-  }, [token]);
+  const load = useCallback(
+    async (signal?: AbortSignal) => {
+      const result = await publicDb!.functions.invoke("public-tracking", {
+        body: { action: "lookup-token", token },
+        signal,
+      });
+      if (result.error)
+        throw new Error("Não foi possível consultar o atendimento agora.");
+      if (!result.data?.ok || !result.data.data)
+        throw new Error(
+          result.data?.error || "Este link de acompanhamento não é válido.",
+        );
+      return result.data.data as Repair;
+    },
+    [token],
+  );
 
   useEffect(() => {
-    load()
-      .catch((reason) => setError((reason as Error).message))
-      .finally(() => setBusy(false));
+    const controller = new AbortController();
+    setData(null);
+    setBusy(true);
+    setError("");
+    load(controller.signal)
+      .then((result) => {
+        if (!controller.signal.aborted) setData(result);
+      })
+      .catch((reason) => {
+        if (!controller.signal.aborted) setError((reason as Error).message);
+      })
+      .finally(() => {
+        if (!controller.signal.aborted) setBusy(false);
+      });
+    return () => controller.abort();
   }, [load]);
+
+  const syncWarning = useTrackingRefresh(Boolean(data) && !busy, load, setData);
 
   async function respond(decision: string) {
     if (!data?.orcamento) return;
@@ -76,6 +95,12 @@ export default function DirectTracking({
       <ErrorBox error={error} />
       {busy && !data && (
         <section className="panel">Carregando atendimento…</section>
+      )}
+      {data && (
+        <p role="status">
+          {syncWarning ||
+            "Atualização automática a cada 75 segundos enquanto esta página estiver aberta."}
+        </p>
       )}
       {data && (
         <TrackingResult
