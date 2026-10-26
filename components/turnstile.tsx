@@ -12,6 +12,8 @@ declare global {
           callback: (token: string) => void;
           "expired-callback": () => void;
           "error-callback": (errorCode?: string) => void;
+          "timeout-callback": () => void;
+          language: "pt-br";
           theme: "auto";
           size: "normal" | "compact" | "flexible";
         },
@@ -32,40 +34,34 @@ function loadScript() {
     const existing = document.querySelector<HTMLScriptElement>(
       'script[data-horaria-turnstile="true"]',
     );
-    if (existing) {
-      if (existing.dataset.horariaTurnstileLoaded === "true") {
-        existing.remove();
-      } else {
-        existing.addEventListener("load", () => resolve(), { once: true });
-        existing.addEventListener(
-          "error",
-          () => {
-            existing.remove();
-            scriptPromise = null;
-            reject(new Error("Turnstile indisponível"));
-          },
-          { once: true },
-        );
-        return;
-      }
-    }
-
-    const script = document.createElement("script");
-    script.src =
-      "https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit";
-    script.async = true;
-    script.defer = true;
-    script.dataset.horariaTurnstile = "true";
-    script.onload = () => {
-      script.dataset.horariaTurnstileLoaded = "true";
-      resolve();
+    const script = existing || document.createElement("script");
+    const cleanup = () => {
+      clearTimeout(timer);
+      script.removeEventListener("load", loaded);
+      script.removeEventListener("error", failed);
     };
-    script.onerror = () => {
+    const failed = () => {
+      cleanup();
       script.remove();
       scriptPromise = null;
       reject(new Error("Turnstile indisponível"));
     };
-    document.head.appendChild(script);
+    const loaded = () => {
+      if (!window.turnstile) return failed();
+      cleanup();
+      resolve();
+    };
+    const timer = setTimeout(failed, 15000);
+    script.addEventListener("load", loaded, { once: true });
+    script.addEventListener("error", failed, { once: true });
+    if (!existing) {
+      script.src =
+        "https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit";
+      script.async = true;
+      script.defer = true;
+      script.dataset.horariaTurnstile = "true";
+      document.head.appendChild(script);
+    }
   });
 
   return scriptPromise;
@@ -81,6 +77,8 @@ export default function Turnstile({
   size?: "normal" | "compact" | "flexible";
 }) {
   const ref = useRef<HTMLDivElement>(null);
+  const [error, setError] = useState("");
+  const [attempt, setAttempt] = useState(0);
   const [narrow, setNarrow] = useState(true);
   const widgetSize = narrow ? "compact" : size;
 
@@ -97,20 +95,39 @@ export default function Turnstile({
   useEffect(() => {
     let active = true;
     let widgetId = "";
+    onToken("");
+    setError("");
+    const fail = (message: string) => {
+      if (!active) return;
+      onToken("");
+      setError(message);
+    };
 
     loadScript()
       .then(() => {
         if (!active || !ref.current || !window.turnstile) return;
         widgetId = window.turnstile.render(ref.current, {
           sitekey: siteKey,
-          callback: (token) => onToken(token),
-          "expired-callback": () => onToken(""),
+          callback: (token) => {
+            if (!active) return;
+            setError("");
+            onToken(token);
+          },
+          "expired-callback": () => fail("A verificação expirou. Tente novamente."),
+          "timeout-callback": () => fail("O tempo da verificação terminou. Tente novamente."),
+          language: "pt-br",
           "error-callback": (code) => {
             console.error(
               "[Turnstile] Falha no desafio:",
               code || "desconhecido",
             );
-            onToken("");
+            fail(
+              code === "110200"
+                ? "A verificação não está configurada para este endereço. Entre em contato com o suporte."
+                : ["110100", "110110", "400020", "400070"].includes(code || "")
+                  ? "A verificação de segurança está indisponível. Entre em contato com o suporte."
+                  : "Não foi possível concluir a verificação de segurança. Confira sua conexão e tente novamente.",
+            );
           },
           theme: "auto",
           size: widgetSize,
@@ -118,18 +135,26 @@ export default function Turnstile({
       })
       .catch((error) => {
         console.error("[Turnstile] Falha ao carregar script:", error);
-        onToken("");
+        fail("Não foi possível carregar a verificação de segurança. Confira sua conexão e tente novamente.");
       });
 
     return () => {
       active = false;
       if (widgetId && window.turnstile) window.turnstile.remove(widgetId);
     };
-  }, [siteKey, onToken, widgetSize]);
+  }, [siteKey, onToken, widgetSize, attempt]);
 
   return (
     <div className="booking-turnstile" aria-label="Verificação de segurança">
       <div ref={ref} />
+      {error && (
+        <div className="turnstile-feedback">
+          <p role="alert">{error}</p>
+          <button type="button" onClick={() => setAttempt((value) => value + 1)}>
+            Tentar novamente
+          </button>
+        </div>
+      )}
     </div>
   );
 }

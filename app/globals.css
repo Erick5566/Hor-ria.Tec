@@ -2073,3 +2073,8 @@ hr {
 .saved-photo-backdrop { z-index: 150; }
 .saved-photo-modal { background: var(--white); color: var(--ink); border-radius: 12px; max-height: calc(100dvh - 40px); overflow-y: auto; }
 .saved-photo-preview { display: block; max-width: 100%; max-height: 40dvh; margin: 12px auto; object-fit: contain; }
+
+.turnstile-feedback { margin-top: 8px; font-size: .875rem; line-height: 1.4; }
+.turnstile-feedback p { margin: 0 0 8px; }
+.turnstile-feedback button { min-height: 44px; padding: 8px 12px; border: 1px solid currentColor; border-radius: 8px; color: inherit; background: transparent; cursor: pointer; font: inherit; }
+.turnstile-feedback button:focus-visible { outline: 2px solid currentColor; outline-offset: 3px; }
