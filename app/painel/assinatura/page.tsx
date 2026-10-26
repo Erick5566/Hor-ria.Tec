@@ -37,7 +37,7 @@ function formatCurrency(value: number) {
 export default function SubscriptionPage() {
   const { access } = useWorkspace();
   const subscription = access.subscription;
-  const paymentDue = subscription?.status === "PAST_DUE" || subscription?.status === "SUSPENDED";
+  const paymentDue = !access.billing?.hasApprovedPayment || subscription?.status === "PAST_DUE" || subscription?.status === "SUSPENDED";
   const [copied, setCopied] = useState<"pix" | "key" | "">("");
   const [, setClockTick] = useState(0);
 
@@ -112,7 +112,7 @@ export default function SubscriptionPage() {
         <section className="notice subscription-paid-status" role="status">
           <strong>Pagamento confirmado ✓</strong>
           <span>
-            Sua assinatura está ativa. O PIX da próxima cobrança aparecerá somente após o vencimento.
+            Sua assinatura está ativa. O primeiro pagamento inclui 7 dias extras; a próxima mensalidade vence na data indicada abaixo.
           </span>
         </section>
       )}
@@ -134,11 +134,11 @@ export default function SubscriptionPage() {
             <dd>{subscription?.status || "Não disponível"}</dd>
           </div>
           <div>
-            <dt>Período inicial</dt>
+            <dt>Fim dos 7 dias de bônus</dt>
             <dd>
               {subscription?.trialEndsAt
                 ? new Date(subscription.trialEndsAt).toLocaleDateString("pt-BR")
-                : "Concluído"}
+                : "Não disponível"}
             </dd>
           </div>
           <div>
@@ -171,7 +171,7 @@ export default function SubscriptionPage() {
             <small>{payment.priceLabel}</small>
             <strong>{formatCurrency(payment.amount)}</strong>
             {payment.kind === "initial" ? (
-              <small>Depois, {formatCurrency(access.billing?.monthlyAmount ?? MONTHLY_PAYMENT_AMOUNT)}/mês</small>
+              <small>Pagamento na contratação + 7 dias de bônus. A primeira mensalidade vence após 1 mês completo.</small>
             ) : (
               <small>Pagamento mensal</small>
             )}

@@ -272,7 +272,7 @@ export default function Workspace({
       }
       if (
         nextAccess.company &&
-        ["SUSPENDED", "CANCELED", "PENDING_DELETION"].includes(
+        ["PENDING_PAYMENT", "SUSPENDED", "CANCELED", "PENDING_DELETION"].includes(
           nextAccess.company.status,
         )
       ) {
