@@ -203,6 +203,7 @@ export default function InlineCamera({
     onUse(file);
     onClose();
   };
+  const choosingSource = !ready && !busy && !preview;
   if (typeof document === "undefined") return null;
   return createPortal(
     <div
@@ -254,14 +255,14 @@ export default function InlineCamera({
                 className="outline"
                 onClick={() => void start()}
               >
-                Refazer
+                Refazer foto
               </button>
               <button
                 type="button"
                 className="primary"
                 onClick={() => useFile(photo || undefined)}
               >
-                Usar esta foto
+                Usar foto
               </button>
             </>
           ) : (
@@ -278,61 +279,69 @@ export default function InlineCamera({
                     ? "Tirar foto"
                     : "Ativar câmera"}
               </button>
-              <button
-                type="button"
-                className="outline"
-                disabled={busy}
-                onClick={() =>
-                  void start(facing === "environment" ? "user" : "environment")
-                }
-              >
-                Alternar frontal/traseira
-              </button>
-              {devices.length > 1 && (
-                <label>
-                  Câmera
-                  <select
-                    value={device}
+              {choosingSource && (
+                <>
+                  <button
+                    type="button"
+                    className="outline"
                     disabled={busy}
-                    onChange={(e) => void start(facing, e.target.value)}
+                    onClick={() =>
+                      void start(
+                        facing === "environment" ? "user" : "environment",
+                      )
+                    }
                   >
-                    {devices.map((d, i) => (
-                      <option key={d.deviceId} value={d.deviceId}>
-                        {d.label || `Câmera ${i + 1}`}
-                      </option>
-                    ))}
-                  </select>
-                </label>
+                    Alternar frontal/traseira
+                  </button>
+                  {devices.length > 1 && (
+                    <label>
+                      Câmera
+                      <select
+                        value={device}
+                        disabled={busy}
+                        onChange={(e) => void start(facing, e.target.value)}
+                      >
+                        {devices.map((d, i) => (
+                          <option key={d.deviceId} value={d.deviceId}>
+                            {d.label || `Câmera ${i + 1}`}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                  )}
+                </>
               )}
             </>
           )}
         </div>
-        <div className="camera-actions">
-          <button
-            type="button"
-            className="outline"
-            onClick={() => {
-              stop();
-              setReady(false);
-              setBusy(false);
-              native.current?.click();
-            }}
-          >
-            Câmera do aparelho
-          </button>
-          <button
-            type="button"
-            className="outline"
-            onClick={() => {
-              stop();
-              setReady(false);
-              setBusy(false);
-              gallery.current?.click();
-            }}
-          >
-            Galeria / arquivos
-          </button>
-        </div>
+        {choosingSource && (
+          <div className="camera-actions">
+            <button
+              type="button"
+              className="outline"
+              onClick={() => {
+                stop();
+                setReady(false);
+                setBusy(false);
+                native.current?.click();
+              }}
+            >
+              Câmera do aparelho
+            </button>
+            <button
+              type="button"
+              className="outline"
+              onClick={() => {
+                stop();
+                setReady(false);
+                setBusy(false);
+                gallery.current?.click();
+              }}
+            >
+              Galeria / arquivos
+            </button>
+          </div>
+        )}
         <input
           ref={native}
           hidden
