@@ -35,7 +35,7 @@ export default async function PanelLayout({
     redirect(access.context.isSuperAdmin ? "/admin" : "/manutencao");
   if (
     company &&
-    ["SUSPENDED", "CANCELED", "PENDING_DELETION"].includes(company.status)
+    ["PENDING_PAYMENT", "SUSPENDED", "CANCELED", "PENDING_DELETION"].includes(company.status)
   )
     redirect(`/conta-bloqueada?status=${company.status}`);
 

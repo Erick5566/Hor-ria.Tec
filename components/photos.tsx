@@ -120,10 +120,6 @@ export function GuidedPhotoSequence({
     }
   }
 
-  function openCameraCapture() {
-    fallbackCamera.current?.click();
-  }
-
   function revisit(index: number) {
     if (statusFor(index) !== "done" || busy) return;
     onStateChange({
@@ -305,20 +301,9 @@ export function GuidedPhotoSequence({
           type="button"
           className="primary"
           disabled={busy}
-          onClick={openCameraCapture}
-        >
-          ◎{" "}
-          {activeExisting
-            ? "Refazer com câmera do aparelho"
-            : "Câmera do aparelho"}
-        </button>
-        <button
-          type="button"
-          className="outline"
-          disabled={busy}
           onClick={() => setCameraOpen(true)}
         >
-          Câmera ao vivo / webcam
+          Câmera
         </button>
         <button
           type="button"
@@ -326,7 +311,7 @@ export function GuidedPhotoSequence({
           disabled={busy}
           onClick={() => galleryInput.current?.click()}
         >
-          Escolher da galeria
+          Galeria
         </button>
         {activeIndex > 0 && state.resumeIndex === null && (
           <button
@@ -593,17 +578,9 @@ export function PhotoPicker({
           className="primary"
           type="button"
           disabled={busy}
-          onClick={() => fallbackCamera.current?.click()}
-        >
-          ◎ Câmera do aparelho
-        </button>
-        <button
-          type="button"
-          className="outline"
-          disabled={busy}
           onClick={() => setCameraOpen(true)}
         >
-          Câmera ao vivo / webcam
+          Câmera
         </button>
         <input
           ref={fallbackCamera}
@@ -626,7 +603,7 @@ export function PhotoPicker({
           disabled={busy}
           onClick={() => galleryInput.current?.click()}
         >
-          + Adicionar fotos
+          Galeria
         </button>
         <input
           ref={galleryInput}

@@ -56,16 +56,19 @@ test("admin: confirmação manual do Pix é segura, idempotente e renova a assin
 
     const afterInitial = (
       await db.query(
-        "select status,next_billing_date from public.assinaturas where empresa_id=$1",
+        "select status,started_at,trial_ends_at,next_billing_date from public.assinaturas where empresa_id=$1",
         [company],
       )
     ).rows[0];
 
     assert.equal(afterInitial.status, "ACTIVE");
+    const bonusTime=new Date(afterInitial.trial_ends_at)-Date.now();
+    assert.ok(bonusTime>6.9*86400000 && bonusTime<7.1*86400000);
+    assert.equal(new Date(afterInitial.started_at).getTime(),new Date(afterInitial.trial_ends_at).getTime());
     const firstRenewalDelay =
       new Date(afterInitial.next_billing_date).getTime() - Date.now();
-    assert.ok(firstRenewalDelay >= 6.9 * 24 * 60 * 60 * 1000);
-    assert.ok(firstRenewalDelay <= 7.1 * 24 * 60 * 60 * 1000);
+    assert.ok(firstRenewalDelay >= 35 * 24 * 60 * 60 * 1000);
+    assert.ok(firstRenewalDelay <= 39 * 24 * 60 * 60 * 1000);
     assert.notEqual(
       new Date(afterInitial.next_billing_date).getTime(),
       new Date(before).getTime(),

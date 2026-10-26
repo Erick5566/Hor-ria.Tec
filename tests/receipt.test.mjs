@@ -52,7 +52,7 @@ test("recebimento: data pura e horário Fortaleza sobrevivem à gravação e vir
   );
   assert.equal(d.deliveryState("2026-09-28", "finalizado"), "");
 });
-function cameraHarness(getUserMedia, secure = true) {
+function cameraHarness(getUserMedia, secure = true, autoStart = false) {
   const hooks = [],
     cleanups = [];
   let index = 0,
@@ -129,7 +129,7 @@ function cameraHarness(getUserMedia, secure = true) {
         ];
   const render = () => {
     index = 0;
-    tree = C({ onUse() {}, onClose() {} });
+    tree = C({ onUse() {}, onClose() {}, autoStart });
     initial = false;
     all(tree, "video")[0].props.ref.current = media;
   };
@@ -162,6 +162,38 @@ const fakeStream = () => {
   };
   return { track, getTracks: () => [track], getVideoTracks: () => [track] };
 };
+
+test("câmera: abrir inicia captura e mostra somente Tirar foto, sem opções sobrepostas", async () => {
+  let calls = 0;
+  const h = cameraHarness(
+    async () => {
+      calls++;
+      return fakeStream();
+    },
+    true,
+    true,
+  );
+  await new Promise((r) => setTimeout(r, 0));
+  h.render();
+  assert.equal(calls, 1);
+  assert.deepEqual(
+    h
+      .nodes("button")
+      .filter((n) => n.props["aria-label"] !== "Fechar câmera")
+      .map((n) => n.props.children),
+    ["Tirar foto"],
+  );
+  assert.equal(h.nodes("select").length, 0);
+  await h.click("Tirar foto");
+  assert.deepEqual(
+    h
+      .nodes("button")
+      .filter((n) => n.props["aria-label"] !== "Fechar câmera")
+      .map((n) => n.props.children),
+    ["Refazer", "Usar esta foto"],
+  );
+  h.close();
+});
 test("câmera: somente por clique, atributos Safari, captura 1600px e stream liberado", async () => {
   const stream = fakeStream();
   let calls = 0;
@@ -192,17 +224,18 @@ test("câmera: permissão tardia após desmontagem não deixa câmera ligada", a
   await new Promise((r) => setTimeout(r, 0));
   assert.ok(stream.track.stopped);
 });
-test("câmera: troca libera stream anterior e negativa mantém alternativas de arquivo", async () => {
+test("câmera: refazer libera stream anterior e negativa não exibe botões de arquivo", async () => {
   const first = fakeStream(),
     second = fakeStream();
   let calls = 0;
   const h = cameraHarness(async (c) => {
     calls++;
-    if (calls === 2) assert.equal(c.video.facingMode.ideal, "user");
+    if (calls === 2) assert.equal(c.video.facingMode.ideal, "environment");
     return calls === 1 ? first : second;
   });
   await h.click("Ativar câmera");
-  await h.click("Alternar frontal/traseira");
+  await h.click("Tirar foto");
+  await h.click("Refazer");
   assert.ok(first.track.stopped);
   h.close();
   assert.ok(second.track.stopped);
@@ -214,9 +247,9 @@ test("câmera: troca libera stream anterior e negativa mantém alternativas de a
   await denied.click("Ativar câmera");
   assert.equal(
     denied.nodes("input").filter((n) => n.props.type === "file").length,
-    2,
+    0,
   );
-  assert.equal(denied.nodes("input")[0].props.capture, "environment");
+  assert.deepEqual(denied.nodes("button").filter(n => n.props['aria-label'] !== 'Fechar câmera').map(n => n.props.children), ['Ativar câmera']);
   denied.close();
 });
 test("recebimento: banco conserva YYYY-MM-DD e rejeita entrega anterior à entrada", async () => {

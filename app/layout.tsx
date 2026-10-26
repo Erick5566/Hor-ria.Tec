@@ -2,6 +2,7 @@ import "./globals.css";
 import "./workspace.css";
 import "./operations.css";
 import "./responsive.css";
+import "./camera-controls.css";
 import type { Metadata, Viewport } from "next";
 import SessionKeeper from "@/components/session-keeper";
 
