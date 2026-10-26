@@ -10,11 +10,11 @@ const pngSignature = Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]);
 
 test("agendamento público mantém os PNGs originais dos cinco aparelhos", () => {
   const images = {
-    "Fone de ouvido": "fone.png",
-    Celular: "celular.png",
-    Notebook: "notebook.png",
-    Tablet: "tablet.png",
-    Outro: "outros.png",
+    "Fone de ouvido": "fone-foto.png",
+    Celular: "celular-foto.png",
+    Notebook: "notebook-foto.png",
+    Tablet: "tablet-foto.png",
+    Outro: "outros-foto.png",
   };
 
   for (const [category, file] of Object.entries(images)) {
