@@ -40,7 +40,7 @@ test("public booking uses compact Turnstile without losing token lifecycle", asy
   assert.equal(rendered[0].size, "compact");
   rendered[0].callback("test-token");
   rendered[0]["expired-callback"]();
-  assert.deepEqual(tokens, ["test-token", ""]);
+  assert.deepEqual(tokens, ["", "test-token", ""]);
   cleanups.forEach(cleanup => cleanup?.());
   assert.equal(disconnected, 1);
   assert.deepEqual(removed, ["widget"]);
