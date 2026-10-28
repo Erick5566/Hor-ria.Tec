@@ -1,0 +1,16 @@
+.team-invite-row{padding:14px 0;border-bottom:1px solid #e3eaf3;min-width:0}
+.team-invite-row:last-child{border-bottom:0}
+.team-invite-identity{display:flex;flex-direction:column;gap:5px;min-width:0;overflow-wrap:anywhere}
+.team-invite-identity strong{font-size:.86rem;color:var(--ui-text,#102b50)}
+.team-invite-identity span,.team-invite-identity small{font-size:.79rem;color:var(--ui-text-soft,#6c7c92)}
+.team-invite-options{margin-top:12px;padding:15px;border:1px solid #dce6f3;border-radius:13px;background:#f7faff;display:grid;gap:13px}
+.team-invite-options p{margin:0;line-height:1.5;color:var(--ui-text-soft,#6c7c92);font-size:.8rem}
+.team-invite-buttons{display:flex;flex-wrap:wrap;gap:9px}
+.team-invite-buttons button,.team-invite-buttons a{min-height:42px;display:inline-flex;align-items:center;justify-content:center;text-decoration:none;white-space:normal;text-align:center;font-size:.82rem}
+@media(max-width:640px){
+ .team-invite-row>.team-list-head{display:flex;align-items:stretch;gap:10px;flex-direction:column}
+ .team-invite-row>.team-list-head button{width:100%;min-height:44px}
+ .team-invite-options{padding:12px}
+ .team-invite-buttons{display:grid;grid-template-columns:1fr}
+ .team-invite-buttons button,.team-invite-buttons a{width:100%}
+}
