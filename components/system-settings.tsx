@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useWorkspace } from "./workspace";
 import { ErrorBox, PanelTitle } from "./ui";
 import { message, supabase } from "@/lib/supabase";
+import WhatsappMessageSettings from "./whatsapp-message-settings";
 
 
 export default function SystemSettings() {
@@ -116,7 +117,7 @@ export default function SystemSettings() {
           </div>
         </form>
       </section>
-
+      <WhatsappMessageSettings />
     </div>
   );
 }
