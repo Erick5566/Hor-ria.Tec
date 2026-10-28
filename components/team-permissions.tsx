@@ -105,12 +105,12 @@ export default function TeamPermissions() {
   const [busyUser, setBusyUser] = useState("");
   const [adding, setAdding] = useState(false);
   const [inviteBusy, setInviteBusy] = useState(false);
-  const [generatedInvite, setGeneratedInvite] = useState<{
-    token: string;
-    url: string;
-  } | null>(null);
+  const [openInviteToken, setOpenInviteToken] = useState<string | null>(null);
+  const [emailBusyToken, setEmailBusyToken] = useState<string | null>(null);
   const [pendingInvites, setPendingInvites] = useState<
-    { token: string; email: string; role: TeamRole; expiresAt: string }[]
+    { token: string; email: string; role: TeamRole; expiresAt: string;
+      emailStatus?: "nao_enviado" | "processando" | "aceito_pelo_provedor" | "falhou";
+      emailLastAttemptAt?: string | null }[]
   >([]);
   const [invite, setInvite] = useState<{
     name: string;
@@ -238,6 +238,65 @@ export default function TeamPermissions() {
     }
   }
 
+  function invitationUrl(token: string) {
+    return new URL(`/convite?token=${encodeURIComponent(token)}`, window.location.origin).toString();
+  }
+
+  async function copyInvitation(token: string) {
+    try {
+      await navigator.clipboard.writeText(invitationUrl(token));
+      setError("");
+      setNotice("Link do convite copiado. Compartilhe apenas com a pessoa convidada.");
+    } catch {
+      setError("Não foi possível copiar. Tente usar Compartilhar no WhatsApp.");
+    }
+  }
+
+  async function sendInvitationEmail(token: string): Promise<boolean> {
+    if (!supabase || emailBusyToken) return false;
+    setEmailBusyToken(token);
+    setError("");
+    try {
+      const result = await supabase.functions.invoke("send-team-invitation-email", {
+        body: { token },
+      });
+      if (result.error || !result.data?.ok) {
+        throw new Error(
+          result.data?.error ||
+          "O e-mail não foi aceito pelo provedor. Copie o link ou compartilhe no WhatsApp.",
+        );
+      }
+      setNotice("E-mail do convite aceito pelo provedor. A entrega na caixa de entrada depende do destinatário.");
+      await load();
+      return true;
+    } catch (cause) {
+      setError(message(cause as Error));
+      await load();
+      // load() pode limpar o erro; manter o feedback visível.
+      setNotice("Não foi possível confirmar o envio do e-mail. Use Copiar link ou WhatsApp.");
+      return false;
+    } finally {
+      setEmailBusyToken(null);
+    }
+  }
+
+  async function revokeInvitation(token: string) {
+    if (!supabase || !window.confirm("Revogar este convite? O link deixará de funcionar.")) return;
+    setInviteBusy(true);
+    setError("");
+    try {
+      const result = await supabase.rpc("revoke_team_invitation", { p_token: token });
+      if (result.error) throw result.error;
+      setOpenInviteToken(null);
+      setNotice("Convite revogado. O link anterior não pode mais ser utilizado.");
+      await load();
+    } catch (cause) {
+      setError(message(cause as Error));
+    } finally {
+      setInviteBusy(false);
+    }
+  }
+
   async function inviteMember(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!supabase) return;
@@ -254,19 +313,12 @@ export default function TeamPermissions() {
       if (result.error) throw result.error;
       const token = result.data?.token as string | undefined;
       if (!token) throw new Error("Não foi possível gerar o convite.");
-      setGeneratedInvite({
-        token,
-        url: new URL(
-          `/convite?token=${encodeURIComponent(token)}`,
-          window.location.origin,
-        ).toString(),
-      });
-      setNotice(
-        "Convite individual criado. Compartilhe com o e-mail informado; válido por 48 horas. A vaga será verificada na aceitação.",
-      );
+      setOpenInviteToken(token);
+      setNotice("Convite individual criado e válido por 48 horas. Tentando enviar o e-mail…");
       setAdding(false);
       setInvite({ name: "", email: "", role: "TECHNICIAN" });
       await load();
+      await sendInvitationEmail(token);
     } catch (caught) {
       setError(message(caught as Error));
     } finally {
@@ -277,74 +329,68 @@ export default function TeamPermissions() {
   return (
     <div className="team-permissions-layout">
       <ErrorBox error={error} />
-      {generatedInvite && (
-        <section className="panel" aria-label="Convite individual">
-          <p>
-            Convite individual válido por 48 horas. Apenas o e-mail convidado
-            pode aceitar.
-          </p>
-          <button
-            className="outline"
-            onClick={() =>
-              void navigator.clipboard
-                .writeText(generatedInvite.url)
-                .then(() => setNotice("Convite copiado."))
-                .catch(() => setError("Não foi possível copiar o convite."))
-            }
-          >
-            Copiar convite
-          </button>
-          <a
-            className="primary"
-            href={`https://wa.me/?text=${encodeURIComponent(`Aceite seu convite para a equipe Horária: ${generatedInvite.url}`)}`}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Compartilhar no WhatsApp
-          </a>
-          <button
-            className="outline"
-            onClick={async () => {
-              const result = await supabase!.rpc("revoke_team_invitation", {
-                p_token: generatedInvite.token,
-              });
-              if (result.error) setError(message(result.error));
-              else {
-                setGeneratedInvite(null);
-                await load();
-                setNotice("Convite revogado.");
-              }
-            }}
-          >
-            Revogar convite
-          </button>
-        </section>
-      )}
       {pendingInvites.length > 0 && (
         <section className="panel" aria-label="Convites pendentes">
           <h2>Convites pendentes</h2>
-          {pendingInvites.map((item) => (
-            <div key={item.token} className="team-list-head">
-              <p>
-                {item.email} · {roleLabel[item.role]} · expira{" "}
-                {stamp(item.expiresAt)}
-              </p>
-              <button
-                className="outline"
-                onClick={() =>
-                  setGeneratedInvite({
-                    token: item.token,
-                    url: new URL(
-                      `/convite?token=${item.token}`,
-                      window.location.origin,
-                    ).toString(),
-                  })
-                }
-              >
-                Abrir opções do convite
-              </button>
-            </div>
-          ))}
+          <p className="hint">Convites criados não são membros ativos até a aceitação. Abra as opções para compartilhar, reenviar ou revogar.</p>
+          {pendingInvites.map((item) => {
+            const open = openInviteToken === item.token;
+            const url = invitationUrl(item.token);
+            const shareMessage = `Você recebeu um convite para a equipe da assistência na Horária. Acesse: ${url}`;
+            return (
+              <div key={item.token} className="team-invite-row">
+                <div className="team-list-head">
+                  <div className="team-invite-identity">
+                    <strong>{item.email}</strong>
+                    <span>{roleLabel[item.role]} · expira {stamp(item.expiresAt)}</span>
+                    <small>
+                      {item.emailStatus === "aceito_pelo_provedor"
+                        ? "E-mail aceito pelo provedor (entrega não confirmada)"
+                        : item.emailStatus === "processando"
+                          ? "Envio de e-mail em processamento"
+                          : item.emailStatus === "falhou"
+                            ? "Último envio por e-mail falhou"
+                            : "E-mail ainda não enviado pelo sistema"}
+                    </small>
+                  </div>
+                  <button type="button" className="outline"
+                    aria-expanded={open} aria-controls={`invite-options-${item.token}`}
+                    onClick={() => setOpenInviteToken(open ? null : item.token)}>
+                    {open ? "Fechar opções" : "Abrir opções do convite"}
+                  </button>
+                </div>
+                {open && (
+                  <div className="team-invite-options" id={`invite-options-${item.token}`}>
+                    <p>Convite individual válido por 48 horas. Apenas a conta deste e-mail pode aceitá-lo.</p>
+                    <div className="team-invite-buttons">
+                      <button type="button" className="outline" onClick={() => void copyInvitation(item.token)}>
+                        Copiar link
+                      </button>
+                      <a className="outline" target="_blank" rel="noopener noreferrer"
+                        href={`https://wa.me/?text=${encodeURIComponent(shareMessage)}`}>
+                        Compartilhar no WhatsApp
+                      </a>
+                      <button type="button" className="primary"
+                        disabled={emailBusyToken !== null || inviteBusy}
+                        onClick={() => void sendInvitationEmail(item.token)}>
+                        {emailBusyToken === item.token
+                          ? "Enviando e-mail…"
+                          : item.emailStatus === "aceito_pelo_provedor"
+                            ? "Reenviar por e-mail"
+                            : "Enviar por e-mail"}
+                      </button>
+                      <button type="button" className="outline"
+                        disabled={emailBusyToken !== null || inviteBusy}
+                        onClick={() => void revokeInvitation(item.token)}>
+                        {inviteBusy ? "Revogando…" : "Revogar convite"}
+                      </button>
+                    </div>
+                    <p className="hint">O sistema não libera o acesso até o funcionário entrar com o e-mail indicado e aceitar o convite.</p>
+                  </div>
+                )}
+              </div>
+            );
+          })}
         </section>
       )}
       {notice && (
@@ -556,7 +602,7 @@ export default function TeamPermissions() {
                     Cancelar
                   </button>
                   <button className="primary" disabled={inviteBusy}>
-                    {inviteBusy ? "Enviando convite…" : "Gerar convite"}
+                    {inviteBusy ? "Criando convite…" : "Criar convite e enviar e-mail"}
                   </button>
                 </div>
               </form>
@@ -667,7 +713,7 @@ export default function TeamPermissions() {
                           type="button"
                           className="outline"
                           onClick={() => void copyAccessLink(member)}
-                          title="O funcionário precisa concluir o convite recebido por e-mail"
+                          title="Link de acesso para funcionário já vinculado"
                         >
                           Copiar link do painel
                         </button>

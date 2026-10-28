@@ -8,6 +8,7 @@ import "../diagnosis-ai.css";
 import "../ai-plus-context.css";
 import "../ready-whatsapp.css";
 import "../photo-two-angles.css";
+import "../team-invite-actions.css";
 import "../whatsapp-templates.css";
 import type { Metadata } from "next";
 import Workspace from "@/components/workspace";
