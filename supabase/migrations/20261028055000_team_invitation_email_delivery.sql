@@ -79,4 +79,23 @@ end $$;
 revoke all on function public.finish_team_invitation_email_send(uuid,boolean,text,text) from public,anon,authenticated;
 grant execute on function public.finish_team_invitation_email_send(uuid,boolean,text,text) to service_role;
 
+
+-- Estado de envio informado ao proprietário; aceito pelo provedor não é equivalente a entregue.
+create or replace function public.list_team_invitations()
+returns jsonb language sql stable security definer set search_path='' as $
+  select coalesce(jsonb_agg(jsonb_build_object(
+    'token',i.token,'email',i.email,'role',i.role,'expiresAt',i.expires_at,
+    'emailStatus',coalesce(d.last_status,'nao_enviado'),
+    'emailLastAttemptAt',d.last_attempt_at
+  ) order by i.expires_at desc),'[]'::jsonb)
+  from private.team_invitations i
+  left join private.team_invitation_email_delivery d on d.token=i.token
+  where i.accepted_at is null and i.revoked_at is null and i.expires_at>now()
+    and exists(select 1 from public.empresa_membros m where m.empresa_id=i.empresa_id
+      and m.usuario_id=auth.uid() and m.status='ACTIVE'
+      and (m.role='OWNER' or (m.role='ADMIN' and i.role<>'ADMIN')))
+$;
+revoke all on function public.list_team_invitations() from public,anon;
+grant execute on function public.list_team_invitations() to authenticated;
+
 commit;
