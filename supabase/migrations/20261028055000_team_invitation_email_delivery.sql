@@ -43,7 +43,7 @@ create function public.claim_team_invitation_email_send(p_token uuid)
 returns boolean language plpgsql security definer set search_path = '' as $$
 declare v_delivery private.team_invitation_email_delivery;
 begin
-  if current_user <> 'service_role' then raise exception 'Acesso restrito'; end if;
+  -- Somente service_role possui EXECUTE nesta função; SECURITY DEFINER executa como proprietário.
   perform 1 from private.team_invitations i where i.token=p_token
     and i.accepted_at is null and i.revoked_at is null and i.expires_at > now()
     for update;
@@ -69,7 +69,7 @@ create function public.finish_team_invitation_email_send(
   p_token uuid, p_ok boolean, p_provider_id text default null, p_error text default null
 ) returns void language plpgsql security definer set search_path = '' as $$
 begin
-  if current_user <> 'service_role' then raise exception 'Acesso restrito'; end if;
+  -- Somente service_role possui EXECUTE nesta função; SECURITY DEFINER executa como proprietário.
   update private.team_invitation_email_delivery
     set last_status = case when p_ok then 'aceito_pelo_provedor' else 'falhou' end,
         last_provider_id = case when p_ok then left(p_provider_id,200) else null end,
