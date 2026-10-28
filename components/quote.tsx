@@ -4,6 +4,7 @@ import { supabase, message, today, shift, Servico } from "@/lib/supabase";
 import { Item, Orcamento, money } from "@/lib/assistencia";
 import { ErrorBox, Empty, PanelTitle } from "./ui";
 import { parseDiagnosisParts } from "@/lib/diagnosis-structured";
+import WhatsappMessageAction from "./whatsapp-message-action";
 
 function quoteStatus(status: string) {
   const labels: Record<string, string> = {
@@ -27,11 +28,15 @@ export default function Quote({
   ordemId,
   trackingToken,
   telefone,
+  clientName,
+  deviceModel,
   onChanged,
 }: {
   ordemId: string;
   trackingToken: string;
   telefone: string;
+  clientName: string;
+  deviceModel: string;
   onChanged: () => void;
 }) {
   const [quotes, setQuotes] = useState<Orcamento[]>([]),
@@ -52,12 +57,6 @@ export default function Quote({
     [busy, setBusy] = useState(false);
 
   const latest = quotes[0];
-  const whatsappDigits = telefone.replace(/\D/g, "");
-  const whatsappDestination = whatsappDigits
-    ? whatsappDigits.length <= 11
-      ? `55${whatsappDigits}`
-      : whatsappDigits
-    : "";
   const servicesSubtotal = subtotal(services);
   const partsSubtotal = subtotal(parts);
   const gross = servicesSubtotal + partsSubtotal + labor;
@@ -608,25 +607,17 @@ export default function Quote({
             <>
               <div className="notice">
                 <p>
-                  O cliente recebeu o valor total e pode abrir o link para ver
+                  O orçamento está disponível para o cliente abrir o link e ver
                   serviços, peças, mão de obra, desconto e responder.
                 </p>
-                {whatsappDestination && (
-                <a
-                  className="outline"
-                  target="_blank"
-                  rel="noreferrer"
-                  href={`https://wa.me/${whatsappDestination}?text=${encodeURIComponent(
-                    `Seu orçamento da OS está disponível. Total: ${money(
-                      Number(latest.total),
-                    )}. Veja os detalhes e responda: ${
-                      typeof window === "undefined" ? "" : window.location.origin
-                    }/acompanhar/${trackingToken}`,
-                  )}`}
-                >
-                  Reenviar orçamento pelo WhatsApp ↗
-                </a>
-                )}
+                <WhatsappMessageAction
+                  type="orcamento"
+                  phone={telefone}
+                  clientName={clientName}
+                  deviceModel={deviceModel}
+                  trackingToken={trackingToken}
+                  label="Enviar orçamento por WhatsApp"
+                />
               </div>
 
               <details className="quote-manual-response">
