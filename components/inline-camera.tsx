@@ -9,12 +9,14 @@ export default function InlineCamera({
   onCancel,
   guideLabel,
   guideInstruction,
+  autoStart = false,
 }: {
   onUse: (file: File) => void;
   onClose: () => void;
   onCancel?: () => void;
   guideLabel?: string;
   guideInstruction?: string;
+  autoStart?: boolean;
 }) {
   const video = useRef<HTMLVideoElement>(null);
   const stream = useRef<MediaStream | null>(null);
@@ -137,6 +139,13 @@ export default function InlineCamera({
       if (mounted.current && token === request.current) setBusy(false);
     }
   }
+  useEffect(() => {
+    if (autoStart) void start();
+    // A câmera é iniciada apenas ao abrir o modal; alterações posteriores
+    // de facing/device são controladas pelos próprios botões da câmera.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [autoStart]);
+
   async function capture() {
     const element = video.current;
     if (!ready || !element?.videoWidth) {

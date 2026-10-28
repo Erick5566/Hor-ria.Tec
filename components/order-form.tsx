@@ -13,7 +13,8 @@ import {
 } from "@/lib/assistencia";
 import { supabase, message } from "@/lib/supabase";
 import { Heading, ErrorBox, PanelTitle } from "./ui";
-import { GuidedPhotoSequence, type GuidedPhotoState } from "./photos";
+import { GuidedPhotoSequence } from "./photos";
+import { hasFrontAndBack, onlyFrontAndBack, type GuidedPhotoState } from "@/lib/photo-angles";
 import {
   PendingPhoto,
   clearPendingPhotosDraft,
@@ -125,7 +126,7 @@ export default function OrderForm() {
     let active = true;
     void loadPendingPhotosDraft(draftKey)
       .then((draftPhotos) => {
-        if (active && draftPhotos.length) setPhotos(draftPhotos);
+        if (active && draftPhotos.length) setPhotos(onlyFrontAndBack(draftPhotos));
       })
       .catch(() => {
         // O rascunho textual continua funcionando mesmo se o navegador
@@ -307,6 +308,10 @@ export default function OrderForm() {
       "problema",
     ) as HTMLTextAreaElement | null;
     try {
+      if (empresa.fotos_obrigatorias && !hasFrontAndBack(photos)) {
+        setStep(3);
+        throw new Error("Adicione uma foto da frente e outra da traseira para continuar.");
+      }
       let orderId = createdId;
       if (!orderId) {
         validateCustomer();
@@ -376,7 +381,7 @@ export default function OrderForm() {
         subtitle="Documente a entrada do equipamento e inicie o atendimento."
       />
       <div className="step-navigation">
-        {["Cliente", "Equipamento", "Fotos", "Estado e problema"].map(
+        {["Cliente", "Equipamento", "Frente e traseira", "Estado e problema"].map(
           (s, i) => (
             <span className={step === i + 1 ? "active" : ""} key={s}>
               {i + 1}. {s}
@@ -392,7 +397,7 @@ export default function OrderForm() {
       </p>
       {createdId && (
         <p className="notice">
-          A ordem foi criada. Conclua o envio das fotos ou{" "}
+          A ordem foi criada. Conclua o registro da frente e traseira ou{" "}
           <a href={`/painel/ordens/${createdId}`}>abra a ordem</a> para
           continuar depois.
         </p>
@@ -525,7 +530,12 @@ export default function OrderForm() {
             onChange={setPhotos}
             state={photoGuide}
             onStateChange={setPhotoGuide}
+            required={Boolean(empresa.fotos_obrigatorias)}
             onComplete={() => {
+              if (empresa.fotos_obrigatorias && !hasFrontAndBack(photos)) {
+                setError("Adicione a frente e a traseira do aparelho.");
+                return;
+              }
               setError("");
               setStep(4);
             }}
