@@ -8,16 +8,9 @@ import { Foto, photoCategories, stamp } from "@/lib/assistencia";
 import { supabase, message } from "@/lib/supabase";
 import { ErrorBox, Empty, PanelTitle } from "./ui";
 import { useWorkspace } from "./workspace";
-
-/** Apenas os dois registros essenciais para a entrada do equipamento. */
-export const guidedPhotoAngles = ["Frente", "Traseira"] as const;
-export type PhotoAngle = (typeof guidedPhotoAngles)[number];
-
-export type GuidedPhotoState = {
-  currentIndex: number;
-  skipped: string[];
-  resumeIndex: number | null;
-};
+import { guidedPhotoAngles, hasFrontAndBack, onlyFrontAndBack, type GuidedPhotoState, type PhotoAngle } from "@/lib/photo-angles";
+export { guidedPhotoAngles, hasFrontAndBack, onlyFrontAndBack } from "@/lib/photo-angles";
+export type { GuidedPhotoState, PhotoAngle } from "@/lib/photo-angles";
 
 const photoInstructions: Record<PhotoAngle, string> = {
   Frente: "Mostre a frente inteira do aparelho.",
@@ -45,12 +38,14 @@ export function GuidedPhotoSequence({
   state,
   onStateChange,
   onComplete,
+  required = false,
 }: {
   value: PendingPhoto[];
   onChange: (photos: PendingPhoto[]) => void;
   state: GuidedPhotoState;
   onStateChange: (state: GuidedPhotoState) => void;
   onComplete: () => void;
+  required?: boolean;
 }) {
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
@@ -59,6 +54,8 @@ export function GuidedPhotoSequence({
   const galleryInput = useRef<HTMLInputElement>(null);
   const selectedGalleryAngle = useRef<PhotoAngle>("Frente");
   const completed = hasFrontAndBack(value);
+  const canContinue = !required || completed;
+  const canContinue = !required || completed;
 
   async function savePhoto(file: File, angle: PhotoAngle) {
     if (busy) return;
@@ -66,9 +63,8 @@ export function GuidedPhotoSequence({
     setError("");
     try {
       const prepared = await preparePhoto(file);
-      const previous = value.find((item) => item.angulo === angle);
       const next: PendingPhoto = {
-        id: previous?.id || crypto.randomUUID(),
+        id: crypto.randomUUID(),
         file: prepared,
         preview: URL.createObjectURL(prepared),
         categoria: "Entrada",
@@ -161,9 +157,9 @@ export function GuidedPhotoSequence({
       {busy && <p role="status" className="hint">Preparando foto…</p>}
       <ErrorBox error={error} />
       <div className="photo-two-bottom">
-        <p className="hint">{completed ? "Frente e traseira registradas." : "Adicione as duas fotos para continuar o recebimento."}</p>
-        <button type="button" className="primary" disabled={!completed || busy}
-          onClick={() => { if (hasFrontAndBack(value)) onComplete(); }}>
+        <p className="hint">{completed ? "Frente e traseira registradas." : required ? "Adicione as duas fotos para continuar." : "Fotos opcionais nesta assistência. Você pode continuar sem fotografar."}</p>
+        <button type="button" className="primary" disabled={!canContinue || busy}
+          onClick={() => { if (canContinue) onComplete(); }}>
           Continuar →
         </button>
       </div>
@@ -215,7 +211,6 @@ export function PhotoPicker({
         await onCameraConfirm(file, angle);
       } else {
         const prepared = await preparePhoto(file);
-        const previous = value.find((item) => item.angulo === angle);
         const next = {
           id: previous?.id || crypto.randomUUID(),
           file: prepared,
