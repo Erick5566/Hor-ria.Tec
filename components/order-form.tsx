@@ -13,7 +13,8 @@ import {
 } from "@/lib/assistencia";
 import { supabase, message } from "@/lib/supabase";
 import { Heading, ErrorBox, PanelTitle } from "./ui";
-import { GuidedPhotoSequence, hasFrontAndBack, onlyFrontAndBack, type GuidedPhotoState } from "./photos";
+import { GuidedPhotoSequence } from "./photos";
+import { hasFrontAndBack, onlyFrontAndBack, type GuidedPhotoState } from "@/lib/photo-angles";
 import {
   PendingPhoto,
   clearPendingPhotosDraft,
@@ -307,7 +308,7 @@ export default function OrderForm() {
       "problema",
     ) as HTMLTextAreaElement | null;
     try {
-      if (!hasFrontAndBack(photos)) {
+      if (empresa.fotos_obrigatorias && !hasFrontAndBack(photos)) {
         setStep(3);
         throw new Error("Adicione uma foto da frente e outra da traseira para continuar.");
       }
@@ -529,8 +530,9 @@ export default function OrderForm() {
             onChange={setPhotos}
             state={photoGuide}
             onStateChange={setPhotoGuide}
+            required={Boolean(empresa.fotos_obrigatorias)}
             onComplete={() => {
-              if (!hasFrontAndBack(photos)) {
+              if (empresa.fotos_obrigatorias && !hasFrontAndBack(photos)) {
                 setError("Adicione a frente e a traseira do aparelho.");
                 return;
               }
