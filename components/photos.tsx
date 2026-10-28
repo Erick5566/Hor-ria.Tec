@@ -17,21 +17,6 @@ const photoInstructions: Record<PhotoAngle, string> = {
   Traseira: "Mostre a traseira inteira do aparelho.",
 };
 
-export function hasFrontAndBack(photos: Pick<PendingPhoto, "angulo">[]) {
-  return guidedPhotoAngles.every((angle) =>
-    photos.some((photo) => photo.angulo === angle),
-  );
-}
-
-export function onlyFrontAndBack(photos: PendingPhoto[]): PendingPhoto[] {
-  // Rascunhos antigos podem ter 7 ângulos; não enviar imagens além das duas
-  // solicitadas. Fotos já salvas de OS antigas não são alteradas.
-  return guidedPhotoAngles.flatMap((angle) => {
-    const found = [...photos].reverse().find((photo) => photo.angulo === angle);
-    return found ? [found] : [];
-  });
-}
-
 export function GuidedPhotoSequence({
   value,
   onChange,
@@ -54,7 +39,6 @@ export function GuidedPhotoSequence({
   const galleryInput = useRef<HTMLInputElement>(null);
   const selectedGalleryAngle = useRef<PhotoAngle>("Frente");
   const completed = hasFrontAndBack(value);
-  const canContinue = !required || completed;
   const canContinue = !required || completed;
 
   async function savePhoto(file: File, angle: PhotoAngle) {
@@ -212,7 +196,7 @@ export function PhotoPicker({
       } else {
         const prepared = await preparePhoto(file);
         const next = {
-          id: previous?.id || crypto.randomUUID(),
+          id: crypto.randomUUID(),
           file: prepared,
           preview: URL.createObjectURL(prepared),
           categoria: category,
