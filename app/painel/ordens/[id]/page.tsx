@@ -165,13 +165,6 @@ export default function OrderDetail({
   const client = data?.client;
   const equipment = data?.equipment;
 
-  const whatsappNumber = (client?.whatsapp || "").replace(/\D/g, "");
-  const readyWhatsapp =
-    whatsappNumber && order
-      ? `https://wa.me/${whatsappNumber.length <= 11 ? "55" + whatsappNumber : whatsappNumber}?text=${encodeURIComponent(
-          `Olá, ${client?.nome?.split(" ")[0] || "tudo bem"}! Seu equipamento da OS #${order.numero} está pronto para retirada. Podemos combinar a entrega?`,
-        )}`
-      : "";
 
   async function advanceStatus(next: Status, nextTab?: Tab) {
     await updateStatus(next);
@@ -352,8 +345,14 @@ export default function OrderDetail({
 
                 {canUseTechnical && order.status === "pronto_retirada" && (
                   <>
-                    <OrderReadyWhatsapp orderId={id} manualUrl={readyWhatsapp}
-                      plus={isHorariaPlus(access.billing?.planCode)} />
+                    <OrderReadyWhatsapp
+                      orderId={id}
+                      plus={isHorariaPlus(access.billing?.planCode)}
+                      phone={client?.whatsapp}
+                      clientName={client?.nome}
+                      deviceModel={[equipment?.marca, equipment?.modelo].filter(Boolean).join(" ")}
+                      trackingToken={order.token_acompanhamento}
+                    />
                     <button
                       className="primary"
                       disabled={busy}
@@ -435,6 +434,8 @@ export default function OrderDetail({
                 ordemId={id}
                 trackingToken={order.token_acompanhamento}
                 telefone={client?.whatsapp || ""}
+                clientName={client?.nome || ""}
+                deviceModel={[equipment?.marca, equipment?.modelo].filter(Boolean).join(" ")}
                 onChanged={() => void load(true)}
               />
             )}
