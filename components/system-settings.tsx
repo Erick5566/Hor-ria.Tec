@@ -99,7 +99,7 @@ export default function SystemSettings() {
               checked={photosRequired}
               onChange={(event) => setPhotosRequired(event.target.checked)}
             />
-            Exigir pelo menos uma foto na entrada do equipamento
+            Exigir fotos de frente e traseira na entrada do equipamento
           </label>
           <label className="check-label">
             <input
