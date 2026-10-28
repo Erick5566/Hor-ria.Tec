@@ -39,6 +39,7 @@ test("Equipe: contexto de e-mail bloqueia acesso cruzado e a aceitação exige e
     await db.exec("insert into auth.users(id) values ('" + owner + "'),('" + outsider + "'),('" + employee + "')");
     await db.exec("reset role");
     await db.query("update auth.users set email='convidado@example.test',email_confirmed_at=now() where id=$1", [employee]);
+    await db.query("update public.perfis set email='convidado@example.test',nome='Pessoa Teste' where usuario_id=$1", [employee]);
     await asUser(owner);
     const company = (await db.query("select configurar_empresa('Loja Teste','team-args-2026','{}',false,'[{\"nome\":\"Reparo\",\"duracao\":30}]') id")).rows[0].id;
     const invite = (await db.query("select create_team_invitation('Pessoa Teste','convidado@example.test','ATTENDANT') info")).rows[0].info;
