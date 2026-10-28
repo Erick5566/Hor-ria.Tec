@@ -9,17 +9,9 @@ import { supabase, message } from "@/lib/supabase";
 import { ErrorBox, Empty, PanelTitle } from "./ui";
 import { useWorkspace } from "./workspace";
 
-export const guidedPhotoAngles = [
-  "Frente",
-  "Traseira",
-  "Laterais",
-  "Tela",
-  "Conectores",
-  "Acessórios",
-  "Área danificada",
-] as const;
-
-const suggestedPhotoAngles = guidedPhotoAngles;
+/** Apenas os dois registros essenciais para a entrada do equipamento. */
+export const guidedPhotoAngles = ["Frente", "Traseira"] as const;
+export type PhotoAngle = (typeof guidedPhotoAngles)[number];
 
 export type GuidedPhotoState = {
   currentIndex: number;
@@ -27,24 +19,25 @@ export type GuidedPhotoState = {
   resumeIndex: number | null;
 };
 
-const guidedPhotoInstructions: Record<
-  (typeof guidedPhotoAngles)[number],
-  string
-> = {
-  Frente:
-    "Centralize a frente do aparelho dentro da moldura, mostrando o equipamento inteiro com boa iluminação.",
-  Traseira:
-    "Centralize a parte de trás do aparelho dentro da moldura, com boa iluminação e sem reflexos.",
-  Laterais:
-    "Fotografe as laterais de forma que bordas, botões e possíveis marcas fiquem visíveis.",
-  Tela: "Ligue a tela do aparelho, se possível, e evite reflexos de luz para registrar riscos, manchas ou trincas.",
-  Conectores:
-    "Aproxime os conectores e entradas sem perder o foco, mostrando sujeira, oxidação ou danos visíveis.",
-  Acessórios:
-    "Organize carregador, cabo, capa e outros acessórios entregues ao lado do aparelho e enquadre todos.",
-  "Área danificada":
-    "Aproxime a área danificada, mantenha o foco e registre o defeito com detalhe suficiente para comparação futura.",
+const photoInstructions: Record<PhotoAngle, string> = {
+  Frente: "Mostre a frente inteira do aparelho.",
+  Traseira: "Mostre a traseira inteira do aparelho.",
 };
+
+export function hasFrontAndBack(photos: Pick<PendingPhoto, "angulo">[]) {
+  return guidedPhotoAngles.every((angle) =>
+    photos.some((photo) => photo.angulo === angle),
+  );
+}
+
+export function onlyFrontAndBack(photos: PendingPhoto[]): PendingPhoto[] {
+  // Rascunhos antigos podem ter 7 ângulos; não enviar imagens além das duas
+  // solicitadas. Fotos já salvas de OS antigas não são alteradas.
+  return guidedPhotoAngles.flatMap((angle) => {
+    const found = [...photos].reverse().find((photo) => photo.angulo === angle);
+    return found ? [found] : [];
+  });
+}
 
 export function GuidedPhotoSequence({
   value,
@@ -61,346 +54,131 @@ export function GuidedPhotoSequence({
 }) {
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
-  const [cameraOpen, setCameraOpen] = useState(false);
+  const [cameraAngle, setCameraAngle] = useState<PhotoAngle | null>(null);
   const [zoom, setZoom] = useState("");
   const galleryInput = useRef<HTMLInputElement>(null);
-  const fallbackCamera = useRef<HTMLInputElement>(null);
+  const selectedGalleryAngle = useRef<PhotoAngle>("Frente");
+  const completed = hasFrontAndBack(value);
 
-  const finished =
-    state.currentIndex >= guidedPhotoAngles.length &&
-    state.resumeIndex === null;
-  const activeIndex = Math.min(
-    Math.max(state.currentIndex, 0),
-    guidedPhotoAngles.length - 1,
-  );
-  const activeAngle = guidedPhotoAngles[activeIndex];
-  const activeInstruction = guidedPhotoInstructions[activeAngle];
-  const activeExisting = value.find((photo) => photo.angulo === activeAngle);
-
-  function statusFor(index: number) {
-    const angle = guidedPhotoAngles[index];
-    if (!finished && index === state.currentIndex) return "current";
-    if (value.some((photo) => photo.angulo === angle)) return "done";
-    if (state.skipped.includes(angle)) return "skipped";
-    return "future";
-  }
-
-  async function useFile(file: File) {
+  async function savePhoto(file: File, angle: PhotoAngle) {
+    if (busy) return;
     setBusy(true);
     setError("");
     try {
       const prepared = await preparePhoto(file);
-      const preview = URL.createObjectURL(prepared);
+      const previous = value.find((item) => item.angulo === angle);
       const next: PendingPhoto = {
-        id: activeExisting?.id || crypto.randomUUID(),
+        id: previous?.id || crypto.randomUUID(),
         file: prepared,
-        preview,
+        preview: URL.createObjectURL(prepared),
         categoria: "Entrada",
         descricao: "",
-        angulo: activeAngle,
+        angulo: angle,
+        // Refazer a foto exige novo envio, sem reutilizar estado do upload anterior.
+        uploaded: false,
+        saved: false,
       };
-      const withoutCurrent = value.filter(
-        (photo) => photo.angulo !== activeAngle,
-      );
-      onChange([...withoutCurrent, next]);
-      const nextIndex =
-        state.resumeIndex !== null
-          ? state.resumeIndex
-          : Math.min(guidedPhotoAngles.length, state.currentIndex + 1);
+      const updated = [
+        ...onlyFrontAndBack(value).filter((item) => item.angulo !== angle),
+        next,
+      ];
+      onChange(onlyFrontAndBack(updated));
       onStateChange({
-        ...state,
-        skipped: state.skipped.filter((angle) => angle !== activeAngle),
-        currentIndex: nextIndex,
+        currentIndex: updated.some((item) => item.angulo === "Frente") ? 1 : 0,
+        skipped: [],
         resumeIndex: null,
       });
-    } catch (caught) {
-      setError(message(caught as Error));
+    } catch (cause) {
+      setError(message(cause as Error));
     } finally {
       setBusy(false);
     }
   }
 
-  function openCameraCapture() {
-    fallbackCamera.current?.click();
-  }
-
-  function revisit(index: number) {
-    if (statusFor(index) !== "done" || busy) return;
-    onStateChange({
-      ...state,
-      currentIndex: index,
-      resumeIndex: finished ? guidedPhotoAngles.length : state.currentIndex,
-    });
-    // Ao refazer, já abrimos a câmera da etapa escolhida. O novo estado
-    // é aplicado no mesmo ciclo de render e a captura substitui aquela foto.
-    setCameraOpen(true);
-  }
-
-  function skipCurrent() {
-    if (activeIndex === 0 || state.resumeIndex !== null) return;
-    const nextSkipped = Array.from(new Set([...state.skipped, activeAngle]));
-    onStateChange({
-      ...state,
-      skipped: nextSkipped,
-      currentIndex: Math.min(guidedPhotoAngles.length, state.currentIndex + 1),
-    });
-  }
-
-  if (finished) {
-    return (
-      <section className="guided-photo-flow guided-photo-summary">
-        <div className="guided-photo-top">
-          <div>
-            <small>Etapa 3 · Fotos</small>
-            <h2>Registro fotográfico concluído</h2>
-          </div>
-          <strong>7 de 7 revisadas</strong>
-        </div>
-
-        <div className="guided-photo-progress" aria-label="Progresso concluído">
-          {guidedPhotoAngles.map((angle, index) => (
-            <span
-              key={angle}
-              className={statusFor(index) === "done" ? "done" : "skipped"}
-            />
-          ))}
-        </div>
-
-        <div className="guided-photo-summary-grid">
-          {guidedPhotoAngles.map((angle, index) => {
-            const photo = value.find((item) => item.angulo === angle);
-            const skipped = state.skipped.includes(angle) && !photo;
-            return (
-              <article
-                className={`guided-photo-summary-card${
-                  skipped ? " is-skipped" : ""
-                }`}
-                key={angle}
-              >
-                {photo ? (
-                  <button
-                    type="button"
-                    onClick={() => setZoom(photo.preview)}
-                    aria-label={`Ampliar foto ${angle}`}
-                  >
-                    <img src={photo.preview} alt={`Foto: ${angle}`} />
-                  </button>
-                ) : (
-                  <div className="guided-photo-skipped-mark">—</div>
-                )}
-                <div>
-                  <strong>{angle}</strong>
-                  <small>{photo ? "✓ Concluído" : "Pulado"}</small>
-                </div>
-                {photo && (
-                  <button
-                    type="button"
-                    className="guided-photo-redo"
-                    onClick={() => revisit(index)}
-                  >
-                    Refazer
-                  </button>
-                )}
-              </article>
-            );
-          })}
-        </div>
-
-        <div className="guided-photo-summary-actions">
-          <button type="button" className="primary" onClick={onComplete}>
-            Continuar →
-          </button>
-        </div>
-
-        {zoom && (
-          <div
-            className="lightbox"
-            role="dialog"
-            aria-label="Foto ampliada"
-            onClick={() => setZoom("")}
-          >
-            <button type="button" aria-label="Fechar foto">
-              ×
-            </button>
-            <img src={zoom} alt="Registro do equipamento ampliado" />
-          </div>
-        )}
-      </section>
-    );
-  }
-
   return (
-    <section className="guided-photo-flow">
+    <section className="guided-photo-flow photo-two-step">
       <div className="guided-photo-top">
         <div>
-          <small>
-            Passo {activeIndex + 1} de {guidedPhotoAngles.length}
-          </small>
-          <h2>{activeAngle}</h2>
+          <small>Etapa 3 · Registro do aparelho</small>
+          <h2>Duas fotos e pronto</h2>
+          <p className="hint">Registre só a frente e a traseira. Não é necessário fotografar laterais, conectores ou acessórios.</p>
         </div>
-        {state.resumeIndex !== null && <strong>Refazendo foto</strong>}
+        <strong>{guidedPhotoAngles.filter((angle) => value.some((photo) => photo.angulo === angle)).length} de 2</strong>
       </div>
-
       <div className="guided-photo-progress" aria-label="Progresso das fotos">
-        {guidedPhotoAngles.map((angle, index) => (
-          <span key={angle} className={statusFor(index)} />
+        {guidedPhotoAngles.map((angle) => (
+          <span className={value.some((photo) => photo.angulo === angle) ? "done" : "future"} key={angle} />
         ))}
       </div>
-
-      <div className="guided-photo-chip-row">
+      <div className="photo-two-grid">
         {guidedPhotoAngles.map((angle, index) => {
-          const status = statusFor(index);
-          const clickable = status === "done";
+          const photo = value.find((item) => item.angulo === angle);
           return (
-            <button
-              type="button"
-              key={angle}
-              className={`guided-photo-chip ${status}`}
-              disabled={!clickable}
-              onClick={() => revisit(index)}
-            >
-              <span aria-hidden="true">
-                {status === "done"
-                  ? "✓"
-                  : status === "skipped"
-                    ? "—"
-                    : status === "future"
-                      ? "🔒"
-                      : activeIndex + 1}
-              </span>
-              {angle}
-            </button>
+            <article className={"photo-two-card" + (photo ? " photo-two-done" : "")} key={angle}>
+              <div className="photo-two-card-title">
+                <span className="photo-two-number">{index + 1}</span>
+                <div>
+                  <h3>{angle} do aparelho</h3>
+                  <small>{photo ? "✓ Foto adicionada" : photoInstructions[angle]}</small>
+                </div>
+              </div>
+              {photo ? (
+                <button type="button" className="photo-two-preview"
+                  onClick={() => setZoom(photo.preview)}
+                  aria-label={`Ampliar foto da ${angle.toLowerCase()}`}>
+                  <img src={photo.preview} alt={`Foto da ${angle.toLowerCase()} do aparelho`} />
+                </button>
+              ) : (
+                <div className="photo-two-placeholder" aria-hidden="true">
+                  <span>◎</span>
+                  <small>Sem foto</small>
+                </div>
+              )}
+              <div className="photo-two-actions">
+                <button className="primary" type="button" disabled={busy}
+                  onClick={() => setCameraAngle(angle)}>
+                  {photo ? "Refazer foto" : "Tirar foto"}
+                </button>
+                <button className="outline" type="button" disabled={busy}
+                  onClick={() => {
+                    selectedGalleryAngle.current = angle;
+                    galleryInput.current?.click();
+                  }}>
+                  Galeria
+                </button>
+              </div>
+            </article>
           );
         })}
       </div>
-
-      <div className="guided-photo-reference">
-        <div className="guided-photo-reference-frame">
-          <span>Alinhe aqui</span>
-        </div>
-        <strong>{activeAngle}</strong>
-        <p>{activeInstruction}</p>
-      </div>
-
-      {activeExisting && (
-        <div className="guided-photo-current-preview">
-          <button
-            type="button"
-            onClick={() => setZoom(activeExisting.preview)}
-            aria-label={`Ampliar foto ${activeAngle}`}
-          >
-            <img
-              src={activeExisting.preview}
-              alt={`Foto atual: ${activeAngle}`}
-            />
-          </button>
-          <small>
-            Foto atual · ao capturar novamente, ela será substituída.
-          </small>
-        </div>
-      )}
-
-      <div className="guided-photo-actions">
-        <button
-          type="button"
-          className="primary"
-          disabled={busy}
-          onClick={openCameraCapture}
-        >
-          ◎{" "}
-          {activeExisting
-            ? "Refazer com câmera do aparelho"
-            : "Câmera do aparelho"}
-        </button>
-        <button
-          type="button"
-          className="outline"
-          disabled={busy}
-          onClick={() => setCameraOpen(true)}
-        >
-          Câmera ao vivo / webcam
-        </button>
-        <button
-          type="button"
-          className="outline"
-          disabled={busy}
-          onClick={() => galleryInput.current?.click()}
-        >
-          Escolher da galeria
-        </button>
-        {activeIndex > 0 && state.resumeIndex === null && (
-          <button
-            type="button"
-            className="guided-photo-skip"
-            disabled={busy}
-            onClick={skipCurrent}
-          >
-            Pular esta foto
-          </button>
-        )}
-      </div>
-
-      <input
-        ref={fallbackCamera}
-        className="camera-fallback-input"
-        style={{ display: "none" }}
-        type="file"
-        accept="image/*"
-        capture="environment"
+      <input ref={galleryInput} hidden type="file" accept="image/*"
         onChange={(event) => {
           const file = event.target.files?.[0];
-          if (file) void useFile(file);
+          if (file) void savePhoto(file, selectedGalleryAngle.current);
           event.target.value = "";
         }}
       />
-      <input
-        ref={galleryInput}
-        style={{ display: "none" }}
-        type="file"
-        accept="image/*"
-        onChange={(event) => {
-          const file = event.target.files?.[0];
-          if (file) void useFile(file);
-          event.target.value = "";
-        }}
-      />
-
-      {busy && (
-        <p className="hint" role="status">
-          Preparando foto…
-        </p>
-      )}
+      {busy && <p role="status" className="hint">Preparando foto…</p>}
       <ErrorBox error={error} />
-
-      {cameraOpen && (
+      <div className="photo-two-bottom">
+        <p className="hint">{completed ? "Frente e traseira registradas." : "Adicione as duas fotos para continuar o recebimento."}</p>
+        <button type="button" className="primary" disabled={!completed || busy}
+          onClick={() => { if (hasFrontAndBack(value)) onComplete(); }}>
+          Continuar →
+        </button>
+      </div>
+      {cameraAngle && (
         <InlineCamera
-          guideLabel={activeAngle}
-          guideInstruction={activeInstruction}
-          onClose={() => setCameraOpen(false)}
-          onCancel={() => {
-            setCameraOpen(false);
-            if (state.resumeIndex !== null) {
-              onStateChange({
-                ...state,
-                currentIndex: state.resumeIndex,
-                resumeIndex: null,
-              });
-            }
-          }}
-          onUse={(file) => void useFile(file)}
+          guideLabel={cameraAngle}
+          guideInstruction={photoInstructions[cameraAngle]}
+          onClose={() => setCameraAngle(null)}
+          onUse={(file) => void savePhoto(file, cameraAngle)}
         />
       )}
-
       {zoom && (
-        <div
-          className="lightbox"
-          role="dialog"
-          aria-label="Foto ampliada"
-          onClick={() => setZoom("")}
-        >
-          <button type="button" aria-label="Fechar foto">
-            ×
-          </button>
+        <div className="lightbox" role="dialog" aria-label="Foto ampliada"
+          onClick={() => setZoom("")}>
+          <button type="button" aria-label="Fechar foto">×</button>
           <img src={zoom} alt="Registro do equipamento ampliado" />
         </div>
       )}
@@ -414,337 +192,118 @@ export function PhotoPicker({
   category = "Entrada",
   publicMode = false,
   onCameraConfirm,
-  suggestedChecklist = false,
 }: {
   value: PendingPhoto[];
-  onChange: (p: PendingPhoto[]) => void;
+  onChange: (photos: PendingPhoto[]) => void;
   category?: string;
   publicMode?: boolean;
-  onCameraConfirm?: (file: File) => Promise<void> | void;
+  onCameraConfirm?: (file: File, angle: PhotoAngle) => Promise<void> | void;
   suggestedChecklist?: boolean;
 }) {
-  const [error, setError] = useState(""),
-    [busy, setBusy] = useState(false),
-    [zoom, setZoom] = useState(""),
-    [cameraOpen, setCameraOpen] = useState(false),
-    [selectedAngle, setSelectedAngle] = useState("");
-  const fallbackCamera = useRef<HTMLInputElement>(null);
+  const [error, setError] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [cameraAngle, setCameraAngle] = useState<PhotoAngle | null>(null);
+  const [zoom, setZoom] = useState("");
   const galleryInput = useRef<HTMLInputElement>(null);
-  const urls = useRef<string[]>([]);
-  useEffect(
-    () => () => {
-      urls.current.forEach(URL.revokeObjectURL);
-    },
-    [],
-  );
-  async function addFiles(files: File[]) {
-    if (!files.length) return;
-    setError("");
+  const selectedGalleryAngle = useRef<PhotoAngle>("Frente");
+
+  async function addFile(file: File, angle: PhotoAngle, fromCamera = false) {
     setBusy(true);
-    const pending: PendingPhoto[] = [];
+    setError("");
     try {
-      if (value.length + files.length > 15)
-        throw new Error("Adicione até 15 fotos por envio.");
-      const preparedFiles = await Promise.all(files.map(preparePhoto));
-      for (const [index, prepared] of preparedFiles.entries()) {
-        const preview = URL.createObjectURL(prepared);
-        urls.current.push(preview);
-        pending.push({
-          id: crypto.randomUUID(),
+      if (fromCamera && onCameraConfirm) {
+        await onCameraConfirm(file, angle);
+      } else {
+        const prepared = await preparePhoto(file);
+        const previous = value.find((item) => item.angulo === angle);
+        const next = {
+          id: previous?.id || crypto.randomUUID(),
           file: prepared,
-          preview,
+          preview: URL.createObjectURL(prepared),
           categoria: category,
           descricao: "",
-          angulo: suggestedChecklist && index === 0 ? selectedAngle : "",
-        });
+          angulo: angle,
+          saved: false,
+          uploaded: false,
+        };
+        onChange(onlyFrontAndBack([
+          ...value.filter((item) => item.angulo !== angle),
+          next,
+        ]));
       }
-      onChange([...value, ...pending]);
-      if (suggestedChecklist && selectedAngle) setSelectedAngle("");
-    } catch (e) {
-      setError(message(e as Error));
+    } catch (cause) {
+      setError(message(cause as Error));
     } finally {
       setBusy(false);
     }
   }
-  const choose = (files: FileList | null) =>
-    addFiles(files ? Array.from(files) : []);
-  return (
-    <div>
-      <h2>
-        {publicMode ? "Adicionar fotos do problema" : "Fotos do equipamento"}
-      </h2>
-      <p>
-        {publicMode
-          ? "Mostre onde está o problema."
-          : "Registre o estado do equipamento no momento da entrada."}
-      </p>
-      <p className="hint">
-        Recomendamos registrar pelo menos uma foto do equipamento antes de
-        iniciar o atendimento.
-      </p>
-      {suggestedChecklist && (
-        <>
-          <div className="photo-checklist-heading">
-            <strong>
-              Checklist sugerido (
-              {
-                new Set(
-                  value
-                    .map((photo) => photo.angulo)
-                    .filter((angle): angle is string => Boolean(angle)),
-                ).size
-              }{" "}
-              de {suggestedPhotoAngles.length})
-            </strong>
-            <small>Opcional</small>
-          </div>
-          <div className="photo-angle-chips" aria-label="Ângulos sugeridos">
-            {suggestedPhotoAngles.map((angle) => {
-              const done = value.some((photo) => photo.angulo === angle);
-              const selected = selectedAngle === angle;
-              return (
-                <button
-                  type="button"
-                  key={angle}
-                  className={`photo-angle-chip${done ? " done" : ""}${selected ? " selected" : ""}`}
-                  aria-pressed={selected}
-                  onClick={() =>
-                    setSelectedAngle((current) =>
-                      current === angle ? "" : angle,
-                    )
-                  }
-                >
-                  {done && <span aria-hidden="true">✓</span>}
-                  {angle}
-                </button>
-              );
-            })}
-          </div>
 
-          <div className="photo-stage-grid">
-            {value.map((photo, index) => (
-              <article className="photo-stage-card" key={photo.id}>
-                <button
-                  type="button"
-                  className="photo-stage-preview"
-                  onClick={() => setZoom(photo.preview)}
-                  aria-label={`Ampliar foto ${index + 1}`}
-                >
-                  <img
-                    src={photo.preview}
-                    alt={`Foto ${index + 1} do equipamento`}
-                    loading="lazy"
-                    decoding="async"
-                  />
-                  {photo.angulo && (
-                    <span className="photo-stage-angle">{photo.angulo}</span>
-                  )}
-                </button>
-                <button
-                  type="button"
-                  className="photo-stage-remove"
-                  aria-label={`Remover foto ${index + 1}`}
-                  onClick={() => {
-                    if (!window.confirm("Remover esta foto do rascunho?"))
-                      return;
-                    onChange(value.filter((item) => item.id !== photo.id));
-                  }}
-                >
-                  ×
-                </button>
-                <label className="photo-stage-angle-select">
-                  <span>Ângulo</span>
-                  <select
-                    value={photo.angulo || ""}
-                    onChange={(event) =>
-                      onChange(
-                        value.map((item) =>
-                          item.id === photo.id
-                            ? { ...item, angulo: event.target.value }
-                            : item,
-                        ),
-                      )
-                    }
-                  >
-                    <option value="">Sem ângulo</option>
-                    {suggestedPhotoAngles.map((angle) => (
-                      <option key={angle} value={angle}>
-                        {angle}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-              </article>
-            ))}
-            <button
-              type="button"
-              className="photo-stage-add"
-              onClick={() => galleryInput.current?.click()}
-              aria-label="Adicionar fotos"
-            >
-              <span aria-hidden="true">+</span>
-              <small>Adicionar</small>
-            </button>
-          </div>
-        </>
-      )}
-      <div className="upload-actions">
-        <button
-          className="primary"
-          type="button"
-          disabled={busy}
-          onClick={() => fallbackCamera.current?.click()}
-        >
-          ◎ Câmera do aparelho
-        </button>
-        <button
-          type="button"
-          className="outline"
-          disabled={busy}
-          onClick={() => setCameraOpen(true)}
-        >
-          Câmera ao vivo / webcam
-        </button>
-        <input
-          ref={fallbackCamera}
-          className="camera-fallback-input"
-          style={{ display: "none" }}
-          type="file"
-          accept="image/*"
-          capture="environment"
-          disabled={busy}
-          onChange={(e) => {
-            const file = e.target.files?.[0];
-            if (file && onCameraConfirm) void onCameraConfirm(file);
-            else choose(e.target.files);
-            e.target.value = "";
-          }}
-        />
-        <button
-          className="outline"
-          type="button"
-          disabled={busy}
-          onClick={() => galleryInput.current?.click()}
-        >
-          + Adicionar fotos
-        </button>
-        <input
-          ref={galleryInput}
-          style={{ display: "none" }}
-          type="file"
-          accept="image/*"
-          multiple
-          disabled={busy}
-          onChange={(e) => {
-            choose(e.target.files);
-            e.target.value = "";
-          }}
-        />
+  return (
+    <div className="photo-two-step">
+      <div className="guided-photo-top">
+        <div>
+          <h2>{publicMode ? "Fotos do aparelho" : "Registro fotográfico"}</h2>
+          <p className="hint">Somente frente e traseira. As fotos anteriores continuam no histórico.</p>
+        </div>
       </div>
-      {!suggestedChecklist && (
-        <p className="hint">
-          Frente · Traseira · Laterais · Tela · Conectores · Acessórios · Área
-          danificada
-        </p>
-      )}
-      {busy && <p role="status">Preparando fotos…</p>}
-      <ErrorBox error={error} />
-      {!suggestedChecklist && (
-        <div className="photos-grid">
-          {value.map((p, i) => (
-            <article className="photo-card" key={p.id}>
-              <button
-                type="button"
-                style={{ padding: 0, width: "100%" }}
-                onClick={() => setZoom(p.preview)}
-                aria-label={`Ampliar foto ${i + 1}`}
-              >
-                <img
-                  src={p.preview}
-                  alt={`Foto ${i + 1} do equipamento`}
-                  loading="lazy"
-                  decoding="async"
-                />
-              </button>
-              <div className="photo-meta">
-                {!publicMode && (
-                  <label>
-                    Categoria
-                    <select
-                      value={p.categoria}
-                      onChange={(e) =>
-                        onChange(
-                          value.map((x, j) =>
-                            i === j ? { ...x, categoria: e.target.value } : x,
-                          ),
-                        )
-                      }
-                    >
-                      {photoCategories.map((c) => (
-                        <option key={c}>{c}</option>
-                      ))}
-                    </select>
-                  </label>
-                )}
-                <label>
-                  Observação
-                  <input
-                    maxLength={1000}
-                    value={p.descricao}
-                    onChange={(e) =>
-                      onChange(
-                        value.map((x, j) =>
-                          i === j ? { ...x, descricao: e.target.value } : x,
-                        ),
-                      )
-                    }
-                  />
-                </label>
-                <button
-                  type="button"
-                  disabled={p.uploaded}
-                  onClick={() => {
-                    if (!window.confirm("Remover esta foto do rascunho?"))
-                      return;
-                    onChange(value.filter((x) => x.id !== p.id));
-                  }}
-                >
-                  Remover foto
+      <div className="photo-two-grid">
+        {guidedPhotoAngles.map((angle) => {
+          const photo = value.find((item) => item.angulo === angle);
+          return (
+            <article className={"photo-two-card" + (photo ? " photo-two-done" : "")} key={angle}>
+              <div className="photo-two-card-title">
+                <strong>{angle} do aparelho</strong>
+                <small>{photo ? "✓ Pronta para salvar" : photoInstructions[angle]}</small>
+              </div>
+              {photo ? (
+                <button type="button" className="photo-two-preview"
+                  onClick={() => setZoom(photo.preview)} aria-label={`Ampliar foto da ${angle.toLowerCase()}`}>
+                  <img src={photo.preview} alt={`Foto da ${angle.toLowerCase()} do aparelho`} />
                 </button>
-                {p.saved && <small>Salva</small>}
+              ) : (
+                <div className="photo-two-placeholder" aria-hidden="true"><span>◎</span><small>Sem foto nova</small></div>
+              )}
+              <div className="photo-two-actions">
+                <button type="button" className="primary" disabled={busy}
+                  onClick={() => setCameraAngle(angle)}>
+                  {photo ? "Refazer foto" : "Tirar foto"}
+                </button>
+                <button type="button" className="outline" disabled={busy}
+                  onClick={() => { selectedGalleryAngle.current = angle; galleryInput.current?.click(); }}>
+                  Galeria
+                </button>
               </div>
             </article>
-          ))}
-        </div>
+          );
+        })}
+      </div>
+      <input ref={galleryInput} hidden type="file" accept="image/*"
+        onChange={(event) => {
+          const file = event.target.files?.[0];
+          if (file) void addFile(file, selectedGalleryAngle.current);
+          event.target.value = "";
+        }}
+      />
+      {busy && <p role="status">Preparando foto…</p>}
+      <ErrorBox error={error} />
+      {cameraAngle && (
+        <InlineCamera
+          guideLabel={cameraAngle}
+          guideInstruction={photoInstructions[cameraAngle]}
+          onClose={() => setCameraAngle(null)}
+          onUse={(file) => void addFile(file, cameraAngle, true)}
+        />
       )}
       {zoom && (
-        <div
-          className="lightbox"
-          role="dialog"
-          aria-label="Foto ampliada"
-          onClick={() => setZoom("")}
-        >
-          <button type="button" aria-label="Fechar foto">
-            ×
-          </button>
-          <img src={zoom} alt="Equipamento ampliado" />
+        <div className="lightbox" role="dialog" aria-label="Foto ampliada" onClick={() => setZoom("")}>
+          <button type="button" aria-label="Fechar foto">×</button>
+          <img src={zoom} alt="Registro ampliado" />
         </div>
-      )}
-      {cameraOpen && (
-        <InlineCamera
-          onClose={() => setCameraOpen(false)}
-          onUse={(file) => {
-            if (onCameraConfirm) {
-              void onCameraConfirm(file);
-              return;
-            }
-            void addFiles([file]);
-          }}
-        />
       )}
     </div>
   );
 }
+
 export function PhotosPanel({
   ordemId,
   empresaId,
@@ -804,7 +363,7 @@ export function PhotosPanel({
   useEffect(() => {
     if (!readOnly) void cleanupSavedPhotos(ordemId).catch(() => false);
   }, [ordemId, readOnly]);
-  async function saveCameraPhoto(file: File) {
+  async function saveCameraPhoto(file: File, angle: PhotoAngle) {
     setBusy(true);
     setError("");
     try {
@@ -815,6 +374,7 @@ export function PhotosPanel({
         preview: "",
         categoria: category,
         descricao: "",
+        angulo: angle,
       };
       await uploadPhotos(empresaId, ordemId, [cameraPhoto]);
       await load();
