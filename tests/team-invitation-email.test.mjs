@@ -35,6 +35,7 @@ test("Equipe: contexto de e-mail bloqueia acesso cruzado e a aceitação exige e
     await db.exec("reset role;set request.jwt.claim.sub='" + id + "';set request.jwt.claims='{\"aal\":\"aal1\"}';set role authenticated");
   };
   try {
+    await db.exec("alter table auth.users add column if not exists email text; alter table auth.users add column if not exists email_confirmed_at timestamptz;");
     await db.exec("insert into auth.users(id) values ('" + owner + "'),('" + outsider + "'),('" + employee + "')");
     await db.exec("reset role");
     await db.query("update auth.users set email='convidado@example.test',email_confirmed_at=now() where id=$1", [employee]);
