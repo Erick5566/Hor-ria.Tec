@@ -173,12 +173,14 @@ export function PhotoPicker({
   category = "Entrada",
   publicMode = false,
   onCameraConfirm,
+  savedAngles = {},
 }: {
   value: PendingPhoto[];
   onChange: (photos: PendingPhoto[]) => void;
   category?: string;
   publicMode?: boolean;
   onCameraConfirm?: (file: File, angle: PhotoAngle) => Promise<void> | void;
+  savedAngles?: Partial<Record<PhotoAngle, string>>;
   suggestedChecklist?: boolean;
 }) {
   const [error, setError] = useState("");
@@ -229,16 +231,17 @@ export function PhotoPicker({
       <div className="photo-two-grid">
         {guidedPhotoAngles.map((angle) => {
           const photo = value.find((item) => item.angulo === angle);
+          const preview = photo?.preview || savedAngles[angle];
           return (
-            <article className={"photo-two-card" + (photo ? " photo-two-done" : "")} key={angle}>
+            <article className={"photo-two-card" + (preview ? " photo-two-done" : "")} key={angle}>
               <div className="photo-two-card-title">
                 <strong>{angle} do aparelho</strong>
-                <small>{photo ? "✓ Pronta para salvar" : photoInstructions[angle]}</small>
+                <small>{photo ? "✓ Pronta para salvar" : preview ? "✓ Salva no histórico" : photoInstructions[angle]}</small>
               </div>
-              {photo ? (
+              {preview ? (
                 <button type="button" className="photo-two-preview"
-                  onClick={() => setZoom(photo.preview)} aria-label={`Ampliar foto da ${angle.toLowerCase()}`}>
-                  <img src={photo.preview} alt={`Foto da ${angle.toLowerCase()} do aparelho`} />
+                  onClick={() => setZoom(preview)} aria-label={`Ampliar foto da ${angle.toLowerCase()}`}>
+                  <img src={preview} alt={`Foto da ${angle.toLowerCase()} do aparelho`} />
                 </button>
               ) : (
                 <div className="photo-two-placeholder" aria-hidden="true"><span>◎</span><small>Sem foto nova</small></div>
@@ -246,7 +249,7 @@ export function PhotoPicker({
               <div className="photo-two-actions">
                 <button type="button" className="primary" disabled={busy}
                   onClick={() => setCameraAngle(angle)}>
-                  {photo ? "Refazer foto" : "Tirar foto"}
+                  {photo ? "Refazer foto" : preview ? "Nova foto" : "Tirar foto"}
                 </button>
                 <button type="button" className="outline" disabled={busy}
                   onClick={() => { selectedGalleryAngle.current = angle; galleryInput.current?.click(); }}>
@@ -389,6 +392,12 @@ export function PhotosPanel({
             value={pending}
             onChange={setPending}
             onCameraConfirm={saveCameraPhoto}
+            savedAngles={Object.fromEntries(
+              guidedPhotoAngles.map((angle) => [
+                angle,
+                photos.filter((item) => item.descricao?.startsWith("Ângulo: " + angle)).at(-1)?.signed || "",
+              ]),
+            )}
           />
           {busy && <p role="status">Salvando foto…</p>}
           {pending.length > 0 && (
