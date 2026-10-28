@@ -150,6 +150,7 @@ export function GuidedPhotoSequence({
       {cameraAngle && (
         <InlineCamera
           guideLabel={cameraAngle}
+          autoStart
           guideInstruction={photoInstructions[cameraAngle]}
           onClose={() => setCameraAngle(null)}
           onUse={(file) => void savePhoto(file, cameraAngle)}
@@ -268,6 +269,7 @@ export function PhotoPicker({
       {cameraAngle && (
         <InlineCamera
           guideLabel={cameraAngle}
+          autoStart
           guideInstruction={photoInstructions[cameraAngle]}
           onClose={() => setCameraAngle(null)}
           onUse={(file) => void addFile(file, cameraAngle, true)}
