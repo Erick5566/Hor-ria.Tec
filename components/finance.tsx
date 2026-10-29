@@ -182,7 +182,20 @@ export default function Finance({ ordemId }: { ordemId?: string }) {
     }
   }, [ordemId, empresa.id, orderOptions.length, ordersLoading]);
 
+  useEffect(() => {
+    if (!adding) return;
+    const frame = window.requestAnimationFrame(() => {
+      entryFormRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+      entryFormRef.current?.focus({ preventScroll: true });
+    });
+    return () => window.cancelAnimationFrame(frame);
+  }, [adding]);
+
   function openNewLaunch() {
+    if (adding) {
+      entryFormRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+      entryFormRef.current?.focus({ preventScroll: true });
+    }
     setAdding(true);
     void loadOrderOptions();
   }
@@ -345,7 +358,7 @@ export default function Finance({ ordemId }: { ordemId?: string }) {
             />
           </div>
           <button
-            className="primary"
+            className={adding ? "secondary" : "primary"}
             onClick={() => {
               if (adding) setAdding(false);
               else openNewLaunch();
