@@ -3,7 +3,7 @@ import ResponsiveTable from "@/components/responsive-table";
 
 import { csvCell } from "@/lib/csv";
 import { subscribeWorkspaceDataChanges } from "@/lib/data-change";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import dynamic from "next/dynamic";
 import { useWorkspace } from "./workspace";
 import { type Lancamento, money, saveRow } from "@/lib/assistencia";
@@ -77,6 +77,7 @@ export default function Finance({ ordemId }: { ordemId?: string }) {
   const [data, setData] = useState<FinanceData | null>(null);
   const [page, setPage] = useState(1);
   const [adding, setAdding] = useState(false);
+  const entryFormRef = useRef<HTMLFormElement>(null);
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
   const [loading, setLoading] = useState(true);
