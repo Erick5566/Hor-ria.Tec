@@ -357,6 +357,9 @@ export default function Finance({ ordemId }: { ordemId?: string }) {
 
         {adding && (
           <form
+            ref={entryFormRef}
+            tabIndex={-1}
+            aria-label="Novo lançamento financeiro"
             className="finance-entry-form"
             onSubmit={async (event) => {
               event.preventDefault();
