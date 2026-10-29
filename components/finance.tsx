@@ -3,7 +3,7 @@ import ResponsiveTable from "@/components/responsive-table";
 
 import { csvCell } from "@/lib/csv";
 import { subscribeWorkspaceDataChanges } from "@/lib/data-change";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import dynamic from "next/dynamic";
 import { useWorkspace } from "./workspace";
 import { type Lancamento, money, saveRow } from "@/lib/assistencia";
@@ -77,6 +77,7 @@ export default function Finance({ ordemId }: { ordemId?: string }) {
   const [data, setData] = useState<FinanceData | null>(null);
   const [page, setPage] = useState(1);
   const [adding, setAdding] = useState(false);
+  const entryFormRef = useRef<HTMLFormElement>(null);
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -181,7 +182,20 @@ export default function Finance({ ordemId }: { ordemId?: string }) {
     }
   }, [ordemId, empresa.id, orderOptions.length, ordersLoading]);
 
+  useEffect(() => {
+    if (!adding) return;
+    const frame = window.requestAnimationFrame(() => {
+      entryFormRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+      entryFormRef.current?.focus({ preventScroll: true });
+    });
+    return () => window.cancelAnimationFrame(frame);
+  }, [adding]);
+
   function openNewLaunch() {
+    if (adding) {
+      entryFormRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+      entryFormRef.current?.focus({ preventScroll: true });
+    }
     setAdding(true);
     void loadOrderOptions();
   }
@@ -344,7 +358,7 @@ export default function Finance({ ordemId }: { ordemId?: string }) {
             />
           </div>
           <button
-            className="primary"
+            className={adding ? "secondary" : "primary"}
             onClick={() => {
               if (adding) setAdding(false);
               else openNewLaunch();
@@ -356,6 +370,9 @@ export default function Finance({ ordemId }: { ordemId?: string }) {
 
         {adding && (
           <form
+            ref={entryFormRef}
+            tabIndex={-1}
+            aria-label="Novo lançamento financeiro"
             className="finance-entry-form"
             onSubmit={async (event) => {
               event.preventDefault();
