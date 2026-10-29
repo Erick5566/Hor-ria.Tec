@@ -304,8 +304,6 @@ export default function Records({
               ? "Relacionamentos, histórico e valor gerado em um só lugar."
               : "Acompanhe aparelhos, reparos e histórico técnico com clareza."
           }
-          action={`+ ${isClient ? "Novo cliente" : "Novo equipamento"}`}
-          href="#novo-registro"
         />
         <div className="dashboard-callout">
           <span className="dashboard-callout-icon">
@@ -365,7 +363,6 @@ export default function Records({
               onChange={(event) => setSearch(event.target.value)}
             />
             <button
-              id="novo-registro"
               data-tour={isClient ? "customer-create" : "equipment-create"}
               className="primary"
               onClick={() => openEditor(null)}
