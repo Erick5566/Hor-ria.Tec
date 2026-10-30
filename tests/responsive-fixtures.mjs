@@ -416,6 +416,7 @@ export async function renderFixture(
   if (shell === "admin")
     css += readFileSync("app/admin/admin-management.css", "utf8");
   css += "\n" + readFileSync("app/responsive.css", "utf8");
+  if (shell === "panel") css += "\n" + readFileSync("app/analytics.css", "utf8");
   if (shell === "public") {
     css +=
       "\n" +

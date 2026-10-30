@@ -1,7 +1,6 @@
 "use client";
 import ResponsiveTable from "@/components/responsive-table";
 
-
 import Link from "next/link";
 import { DashboardOrderCharts } from "@/components/dashboard-order-charts";
 import { watchDashboard } from "@/lib/dashboard-live";
@@ -229,19 +228,19 @@ export default function Overview() {
     {
       key: "concluidas",
       label: "Concluídas",
-      color: "#25b47e",
+      color: "#15966b",
       count: data?.status.concluidas ?? 0,
     },
     {
       key: "andamento",
       label: "Em andamento",
-      color: "#2d8cff",
+      color: "#3a4da1",
       count: data?.status.andamento ?? 0,
     },
     {
       key: "pecas",
       label: "Aguardando peças",
-      color: "#f5b83d",
+      color: "#d99a26",
       count: data?.status.pecas ?? 0,
     },
     {
@@ -283,7 +282,7 @@ export default function Overview() {
   const today = saoPauloDay();
 
   return (
-    <section className="module dashboard-pro dashboard-reference">
+    <section className="module dashboard-pro dashboard-reference analytics-refresh">
       <div className="dashboard-hero" data-tour="dashboard-hero">
         <div className="dashboard-heading-wrap">
           <span className="dashboard-welcome">Olá, seja bem-vindo! 👋</span>
@@ -388,6 +387,8 @@ export default function Overview() {
                 <div
                   className="dashboard-status-donut"
                   style={{ background: donut }}
+                  role="img"
+                  aria-label={`${statusTotal} ordens no período selecionado`}
                 >
                   <div>
                     <strong>{statusTotal}</strong>
@@ -398,7 +399,12 @@ export default function Overview() {
                   {statusData.map((item) => (
                     <div key={item.key}>
                       <span style={{ background: item.color }} />
-                      <b>{item.label}</b>
+                      <b>
+                        {item.label}
+                        <small className="analytics-status-count">
+                          {item.count} {item.count === 1 ? "ordem" : "ordens"}
+                        </small>
+                      </b>
                       <strong>
                         {Math.round((item.count / statusTotal) * 100)}%
                       </strong>

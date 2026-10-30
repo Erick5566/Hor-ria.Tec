@@ -1,3 +1,4 @@
+import { useId } from "react";
 import type { DashboardData } from "@/lib/dashboard";
 import { Empty } from "./ui";
 
@@ -13,7 +14,7 @@ const series = [
     key: "active",
     label: "Em andamento",
     lines: ["Em", "andamento"],
-    color: "#2563eb",
+    color: "#3a4da1",
   },
   {
     key: "parts",
@@ -31,7 +32,7 @@ const series = [
     key: "finished",
     label: "Concluídos",
     lines: ["Concluídos"],
-    color: "#16a34a",
+    color: "#15966b",
   },
 ] as const;
 
@@ -40,6 +41,7 @@ export function DashboardOrderCharts({
 }: {
   counts: DashboardData["serviceChart"];
 }) {
+  const gradientId = useId().replace(/:/g, "");
   const values = series.map((item) => counts?.[item.key] ?? 0);
   const hasData = values.some((value) => value > 0);
   const tickStep = Math.max(1, Math.ceil(Math.max(1, ...values) / 5));
@@ -58,6 +60,25 @@ export function DashboardOrderCharts({
             role="img"
             aria-label="Quantidade de agendamentos e serviços por status no período selecionado"
           >
+            <defs>
+              {series.map((item) => (
+                <linearGradient
+                  key={item.key}
+                  id={`${gradientId}-${item.key}`}
+                  x1="0"
+                  y1="0"
+                  x2="0"
+                  y2="1"
+                >
+                  <stop offset="0%" stopColor={item.color} />
+                  <stop
+                    offset="100%"
+                    stopColor={item.color}
+                    stopOpacity=".65"
+                  />
+                </linearGradient>
+              ))}
+            </defs>
             {ticks.map((value) => (
               <g key={value} className="dashboard-chart-tick">
                 <line
@@ -83,7 +104,8 @@ export function DashboardOrderCharts({
                     y={y(value)}
                     width="48"
                     height={230 - y(value)}
-                    fill={item.color}
+                    rx="6"
+                    fill={`url(#${gradientId}-${item.key})`}
                     className="dashboard-service-bar"
                   >
                     <title>{`${item.label}: ${value}`}</title>
@@ -118,9 +140,10 @@ export function DashboardOrderCharts({
       )}
       <figcaption className="dashboard-order-legend">
         {series.map((item) => (
-          <span key={item.key} style={{ color: item.color }}>
-            <i aria-hidden="true" />
+          <span key={item.key}>
+            <i aria-hidden="true" style={{ background: item.color }} />
             {item.label}
+            <b>{counts?.[item.key] ?? 0}</b>
           </span>
         ))}
       </figcaption>

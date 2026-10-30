@@ -1,4 +1,5 @@
 "use client";
+import { FinancialChart } from "@/components/financial-chart";
 import ResponsiveTable from "@/components/responsive-table";
 
 import { subscribeWorkspaceDataChanges } from "@/lib/data-change";
@@ -117,9 +118,6 @@ function FinanceMetricCard({
           <HorariaIcon name={icon} />
         </span>
         <strong>{title}</strong>
-        <span className="dashboard-finance-metric-more" aria-hidden="true">
-          ⋮
-        </span>
       </div>
       <b>{value}</b>
       <Variation value={variation} period={period} inverse={inverseVariation} />
@@ -374,25 +372,6 @@ export default function DashboardFinance({
     [days, currentPaid],
   );
 
-  const chartMax = Math.max(
-    1,
-    ...chartData.flatMap((item) => [item.revenue, item.expense]),
-  );
-
-  const linePoints = (key: "revenue" | "expense") =>
-    chartData
-      .map((item, index) => {
-        const x =
-          chartData.length === 1
-            ? 50
-            : (index / Math.max(1, chartData.length - 1)) * 100;
-        const y = 88 - (item[key] / chartMax) * 72;
-        return x.toFixed(2) + "," + y.toFixed(2);
-      })
-      .join(" ");
-
-  const axisEvery = Math.max(1, Math.ceil(period / 6));
-
   const expenseGroups = useMemo(() => {
     const groups = new Map<string, number>();
     currentAccruedRows
@@ -481,7 +460,7 @@ export default function DashboardFinance({
 
   return (
     <section
-      className="dashboard-finance-reference"
+      className="dashboard-finance-reference analytics-refresh"
       aria-label="Resumo financeiro do painel"
     >
       <ErrorBox error={error} />
@@ -606,85 +585,7 @@ export default function DashboardFinance({
             <span>Últimos {period} dias</span>
           </div>
 
-          <div className="dashboard-finance-legend">
-            <span>
-              <i className="revenue" /> Receitas
-            </span>
-            <span>
-              <i className="expense" /> Despesas
-            </span>
-          </div>
-
-          {!loading && currentPaid.length === 0 && (
-            <div className="dashboard-finance-empty-chart">
-              <HorariaIcon name="trend" />
-              <strong>Nenhuma movimentação neste período</strong>
-              <small>
-                Os gráficos aparecem assim que houver entradas ou saídas pagas.
-              </small>
-            </div>
-          )}
-
-          <div className="dashboard-finance-line-chart">
-            <svg
-              viewBox="0 0 100 100"
-              preserveAspectRatio="none"
-              role="img"
-              aria-label="Receitas e despesas no período"
-            >
-              <defs>
-                <linearGradient
-                  id="dashboardRevenueArea"
-                  x1="0"
-                  y1="0"
-                  x2="0"
-                  y2="1"
-                >
-                  <stop offset="0%" stopColor="#20b26b" stopOpacity=".18" />
-                  <stop offset="100%" stopColor="#20b26b" stopOpacity="0" />
-                </linearGradient>
-                <linearGradient
-                  id="dashboardExpenseArea"
-                  x1="0"
-                  y1="0"
-                  x2="0"
-                  y2="1"
-                >
-                  <stop offset="0%" stopColor="#ef4d57" stopOpacity=".14" />
-                  <stop offset="100%" stopColor="#ef4d57" stopOpacity="0" />
-                </linearGradient>
-              </defs>
-              {[18, 36, 54, 72, 90].map((y) => (
-                <line key={y} x1="0" x2="100" y1={y} y2={y} className="grid" />
-              ))}
-              <polygon
-                points={"0,90 " + linePoints("revenue") + " 100,90"}
-                fill="url(#dashboardRevenueArea)"
-              />
-              <polygon
-                points={"0,90 " + linePoints("expense") + " 100,90"}
-                fill="url(#dashboardExpenseArea)"
-              />
-              <polyline
-                points={linePoints("revenue")}
-                className="revenue-line"
-              />
-              <polyline
-                points={linePoints("expense")}
-                className="expense-line"
-              />
-            </svg>
-            <div className="dashboard-finance-axis">
-              {chartData
-                .filter(
-                  (_, index) =>
-                    index % axisEvery === 0 || index === chartData.length - 1,
-                )
-                .map((item) => (
-                  <span key={item.key}>{formatShortDate(item.key)}</span>
-                ))}
-            </div>
-          </div>
+          <FinancialChart data={chartData} loading={loading} />
         </article>
 
         <article className="dashboard-finance-card dashboard-finance-flow-card">
@@ -701,61 +602,7 @@ export default function DashboardFinance({
             <span>Últimos {period} dias</span>
           </div>
 
-          <div className="dashboard-finance-legend">
-            <span>
-              <i className="revenue" /> Entradas
-            </span>
-            <span>
-              <i className="expense" /> Saídas
-            </span>
-          </div>
-
-          {!loading && currentPaid.length === 0 && (
-            <div className="dashboard-finance-empty-chart">
-              <HorariaIcon name="finance" />
-              <strong>Sem fluxo de caixa no período</strong>
-              <small>
-                Registre um recebimento ou pagamento para visualizar a evolução.
-              </small>
-            </div>
-          )}
-
-          <div
-            className="dashboard-finance-bars"
-            role="img"
-            aria-label="Entradas e saídas por dia"
-          >
-            {chartData.map((item, index) => (
-              <div className="dashboard-finance-bar-day" key={item.key}>
-                <div>
-                  <i
-                    className="revenue"
-                    style={{
-                      height:
-                        Math.max(
-                          item.revenue > 0 ? 4 : 0,
-                          (item.revenue / chartMax) * 100,
-                        ) + "%",
-                    }}
-                  />
-                  <i
-                    className="expense"
-                    style={{
-                      height:
-                        Math.max(
-                          item.expense > 0 ? 4 : 0,
-                          (item.expense / chartMax) * 100,
-                        ) + "%",
-                    }}
-                  />
-                </div>
-                {(index % axisEvery === 0 ||
-                  index === chartData.length - 1) && (
-                  <small>{formatShortDate(item.key)}</small>
-                )}
-              </div>
-            ))}
-          </div>
+          <FinancialChart data={chartData} variant="bar" loading={loading} />
         </article>
 
         <article className="dashboard-finance-card dashboard-finance-summary-card">
@@ -779,13 +626,15 @@ export default function DashboardFinance({
               aria-label="Distribuição das despesas por categoria"
             >
               <div>
-                <strong>{money(expenseTotal)}</strong>
+                <strong>{loading ? "—" : money(expenseTotal)}</strong>
                 <small>Despesas</small>
               </div>
             </div>
 
             <div className="dashboard-finance-summary-legend">
-              {expenseGroups.length ? (
+              {loading ? (
+                <p role="status">Carregando despesas…</p>
+              ) : expenseGroups.length ? (
                 expenseGroups.slice(0, 5).map((item, index) => (
                   <div key={item.key}>
                     <i
@@ -794,7 +643,12 @@ export default function DashboardFinance({
                           expensePalette[index % expensePalette.length],
                       }}
                     />
-                    <span>{item.label}</span>
+                    <span>
+                      {item.label}
+                      <small className="analytics-category-amount">
+                        {money(item.value)}
+                      </small>
+                    </span>
                     <strong>
                       {expenseTotal
                         ? ((item.value / expenseTotal) * 100).toFixed(1)
@@ -817,7 +671,13 @@ export default function DashboardFinance({
                 <HorariaIcon name="reports" />
                 Margem de lucro
               </span>
-              <strong>{margin.toFixed(1)}%</strong>
+              <strong>
+                {loading
+                  ? "—"
+                  : margin.toLocaleString("pt-BR", {
+                      maximumFractionDigits: 1,
+                    }) + "%"}
+              </strong>
             </div>
             <div className="dashboard-finance-margin-track" aria-hidden="true">
               <i style={{ width: progressWidth + "%" }} />
